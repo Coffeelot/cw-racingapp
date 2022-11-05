@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --main-font-size: 2vh;  
+}
+
+.container {
+    height: 100vh;
+    opacity: 1.0;
+}
+
+.ui {
+    position: absolute;
+    width: 30vh;
+    height: 20vh;
+    bottom: 35vh;
+    border-radius: 1vh;
+    left: 2.7vh;
+}
+
+.editor {
+    display: none;
+}
+
+#editor-racename {
+    position: absolute;
+    left: 2vh;
+    top: 2vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#editor-checkpoints {
+    position: absolute;
+    left: 2vh;
+    top: 5vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#editor-keys-tiredistance {
+    position: absolute;
+    left: 2vh;
+    top: 8vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#editor-keys-add {
+    position: absolute;
+    left: 2vh;
+    top: 11vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#editor-keys-delete {
+    position: absolute;
+    left: 2vh;
+    top: 14vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#editor-keys-cancel {
+    position: absolute;
+    left: 2vh;
+    top: 17vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#editor-keys-save {
+    position: absolute;
+    left: 2vh;
+    top: 20vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+/* RACE */
+
+.race {
+    display: none;
+}
+
+#race-racename {
+    position: absolute;
+    left: 2vh;
+    top: 2vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#race-checkpoints {
+    position: absolute;
+    left: 2vh;
+    top: 5vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#race-lap {
+    position: absolute;
+    left: 2vh;
+    top: 8vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#race-time {
+    position: absolute;
+    left: 2vh;
+    top: 11vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#race-besttime {
+    position: absolute;
+    left: 2vh;
+    top: 14vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
+
+#race-totaltime {
+    position: absolute;
+    left: 2vh;
+    top: 17vh;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 1px 1px 0px #000000;
+}
