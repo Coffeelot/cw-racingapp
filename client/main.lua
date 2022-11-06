@@ -1307,22 +1307,24 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
             local first = '🥇 '
             local second = '🥈 '
             local third = '🥉 '
+            local header = ''
             if i == 1 then
-                text = first..string.format("%s |  %s ", RecordData.Holder, SecondsToClock(RecordData.Time)).. ' | '..RecordData.Vehicle
+                header = first..RecordData.Holder
             elseif i == 2 then
-                text = second..string.format("%s |  %s ", RecordData.Holder, SecondsToClock(RecordData.Time)).. ' | '..RecordData.Vehicle
+                header = second..RecordData.Holder
             elseif i == 3 then
-                text = third..string.format("%s |  %s ", RecordData.Holder, SecondsToClock(RecordData.Time)).. ' | '..RecordData.Vehicle
+                header = third..RecordData.Holder
             else
-                text = string.format("%s |  %s ", RecordData.Holder, SecondsToClock(RecordData.Time)).. ' | '..RecordData.Vehicle
+                header = i..'. '..RecordData.Holder
             end
-            
+            text = SecondsToClock(RecordData.Time).. ' | '..RecordData.Vehicle
             if data.class == 'all' then
                 text = text.. ' | '..RecordData.Class
             end
 
             menu[#menu + 1] = {
-                header = text,
+                header = header,
+                text = text,
                 disabled = true
             }
         end
