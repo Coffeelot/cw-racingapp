@@ -65,7 +65,7 @@ Change from normal qb-racing: Sorted by track, added classes and added full list
 
 ![Interface](https://i.imgur.com/8480LVX.png)
 ![Interface](https://i.imgur.com/H7Trlzz.png)
-![Interface](https://i.imgur.com/TAQyQQl.png)
+![Interface](https://i.imgur.com/5FthsBY.png)
 
 **Setting up a Race**
 Change from normal qb-racing: Added classes to list. If you set up a race with A class, people can join with A and lower, but not higher.
