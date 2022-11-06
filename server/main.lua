@@ -32,6 +32,11 @@ MySQL.ready(function ()
             if v.records ~= nil then
                 Records = json.decode(v.records)
                 if #Records == 0 then
+                    if Config.Debug then
+                       print('Only one record')
+                       MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
+                        {json.encode({Records}), v.raceid})
+                    end
                     Records = { Records }
                 end
             end
@@ -72,12 +77,15 @@ local function filterLeaderboardsByClass(Leaderboard, class)
 end
 
 local function racerHasPreviousRecordInClass(Records, RacerName, CarClass)
-    for i, Record in pairs(Records) do
-        if Record.Holder == RacerName and Record.Class == CarClass then
-            return Record, i
+    if Records then 
+        for i, Record in pairs(Records) do
+            if Record.Holder == RacerName and Record.Class == CarClass then
+                return Record, i
+            end
         end
+    else
+        return false
     end
-    return false
 end
 
 local function getLatestRecordsById(RaceId)
@@ -119,17 +127,20 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         end
     else
         FilteredLeaderboard = filterLeaderboardsByClass(records, CarClass)
+        local PersonalBest, index =  racerHasPreviousRecordInClass(records, RacerName, CarClass)
     end
     if Config.Debug then
        print('Time', PlayerTime, RacerName, CarClass, VehicleModel)
        print('All times for this class', dump(FilteredLeaderboard))
     end
 
-    local PersonalBest, index =  racerHasPreviousRecordInClass(records, RacerName, CarClass)
     if Config.Debug then
        print('racer has previous record: ', dump(PersonalBest), index)
     end
     if PersonalBest and PersonalBest.Time > PlayerTime then
+        if Config.Debug then
+           print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
+        end
         TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.new_pb"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
         local playerPlacement = {
             Time = PlayerTime,
@@ -139,18 +150,24 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         }
         records[index] = playerPlacement
         records = sortRecordsByTime(records)
+        print('records being sent to db', dump(records))
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode(records), RaceData.RaceId})
         return true
 
     elseif not PersonalBest then
         TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.time_added"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
+        print('had no pb')
+        if Config.Debug then
+            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
+         end
         local playerPlacement = {
             Time = PlayerTime,
             Holder = RacerName,
             Class = CarClass,
             Vehicle = VehicleModel
         }
+        print('records', dump(records))
         table.insert(records, playerPlacement)
         records = sortRecordsByTime(records)
         if Config.Debug then

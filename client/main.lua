@@ -1303,23 +1303,41 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
                print('RecordData', dump(RecordData), i)
             end
             
+            local class = RecordData.Class
+            local holder = RecordData.Holder
+            local vehicle = RecordData.Vehicle
+            local time = RecordData.Time
+
+            if not class then
+                class = 'NO DATA AVAILABLE'
+            end
+            if not holder then
+                holder = 'NO DATA AVAILABLE'
+            end
+            if not vehicle then
+                vehicle = 'NO DATA AVAILABLE'
+            end
+            if not time then
+                time = 'NO DATA AVAILABLE'
+            end
+
             local text = ''
             local first = '🥇 '
             local second = '🥈 '
             local third = '🥉 '
             local header = ''
             if i == 1 then
-                header = first..RecordData.Holder
+                header = first..holder
             elseif i == 2 then
-                header = second..RecordData.Holder
+                header = second..holder
             elseif i == 3 then
-                header = third..RecordData.Holder
+                header = third..holder
             else
-                header = i..'. '..RecordData.Holder
+                header = i..'. '..holder
             end
-            text = SecondsToClock(RecordData.Time).. ' | '..RecordData.Vehicle
+            text = SecondsToClock(time).. ' | '..vehicle
             if data.class == 'all' then
-                text = text.. ' | '..RecordData.Class
+                text = text.. ' | '..class
             end
 
             menu[#menu + 1] = {
