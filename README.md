@@ -79,7 +79,20 @@ Change from normal qb-racing: Added classes to list. If you set up a race with A
 #### Race Interface, Joining a Race, Finishing a Race
 [![Video Example](https://i.imgur.com/hsZVHeL.png)](https://i.imgur.com/oYgHBdj.mp4)
 
-## Future ToDos
-* Ability to delete race tracks ingame
+# Commands
+
+## /resetracetracks
+This command will remove the current `race_tracks` table and add a new one (good if you got bad data)  (warning: all tracks and records will be gone)
+
+## /updateracetracks
+This command will update the `race_tracks` table from the old way, so that it works with cw-racingapp and qb-racing. Use this if you you have "creator" instead of "creatorid", and "creatorname" is missing
+
+## /removeracetracks
+Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
+
+# Pipeline
+- Track positions
+- Better time tracking (currently it might fuck up due to game hitches etc)
+- Phasing
 
 ## Developed by Coffeelot#1586, Wuggie#1683
