@@ -93,6 +93,9 @@ Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tra
 # Pipeline
 - Track positions
 - Better time tracking (currently it might fuck up due to game hitches etc)
+- Better track editing
+- Removal of tracks from menu
 - Phasing
+
 
 ## Developed by Coffeelot#1586, Wuggie#1683
