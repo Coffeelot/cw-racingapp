@@ -767,3 +767,28 @@ end)
 QBCore.Functions.CreateUseableItem("fob_racing_master", function(source, item)
     UseRacingFob(source, item)
 end)
+
+local function generateRacetrackTable ()
+    MySQL.query('CREATE TABLE IF NOT EXISTS race_tracks ( id int(11) NOT NULL AUTO_INCREMENT, name varchar(50) DEFAULT NULL, checkpoints text DEFAULT NULL, records text DEFAULT NULL, creatorid varchar(50) DEFAULT NULL, creatorname varchar(50) DEFAULT NULL, distance int(11) DEFAULT NULL, raceid varchar(50) DEFAULT NULL, PRIMARY KEY (id))')
+end
+
+local function dropRacetrackTable()
+    MySQL.query('DROP TABLE IF EXISTS race_tracks')
+end
+
+local function updateRaceTrackTable()
+    MySQL.query('ALTER TABLE race_tracks RENAME COLUMN creator TO creatorid; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL AFTER creatorid;')
+end
+
+QBCore.Commands.Add('resetracetracks', 'Reset the race track table', {}, true, function(source, args)
+    dropRacetrackTable()
+    generateRacetrackTable()
+end, 'admin')
+
+QBCore.Commands.Add('updateracetracks', 'Update the race track table to fit qb-racing/cw-racingapp', {}, true, function(source, args)
+    updateRaceTrackTable()
+end, 'admin')
+
+QBCore.Commands.Add('removeracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
+    dropRacetrackTable()
+end, 'admin')

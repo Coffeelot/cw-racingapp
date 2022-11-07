@@ -29,4 +29,10 @@ files {
     'html/img/*'
 }
 
+dependencies {
+    'qb-menu',
+    'qb-core',
+    'cw-performance',
+}
+
 lua54 'yes'
