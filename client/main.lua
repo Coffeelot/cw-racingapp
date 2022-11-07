@@ -1162,7 +1162,6 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
 
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTracks', function(Tracks)
         local menu = {}
-
         for i, track in pairs(Tracks) do      
             menu[#menu + 1] = {
                 header = track.RaceName.. ' | '.. track.Distance..'m',
@@ -1188,14 +1187,6 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
             }
         }
 
-        if #menu == 2 then
-            QBCore.Functions.Notify(Lang:t("primary.no_tracks_exist"))
-            TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
-                type = data.type,
-                name = data.name
-            })
-            return
-        end
         table.sort(menu, function (a,b)
             return a.header < b.header
         end)
@@ -1204,6 +1195,14 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
             header = Lang:t("menu.choose_a_track"),
             isMenuHeader = true
         })
+        if #menu == 2 then
+            QBCore.Functions.Notify(Lang:t("menu.no_tracks_exist"))
+            TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
+                type = data.type,
+                name = data.name
+            })
+            return
+        end
         exports['qb-menu']:openMenu(menu)
     end, class)
 

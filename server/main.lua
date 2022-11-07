@@ -21,10 +21,7 @@ local function dump(o)
     end
 end
 
------------------------
-----   Threads     ----
------------------------
-MySQL.ready(function ()
+local function updateRaces()
     local races = MySQL.Sync.fetchAll('SELECT * FROM race_tracks', {})
     if races[1] ~= nil then
         for _, v in pairs(races) do
@@ -56,6 +53,13 @@ MySQL.ready(function ()
             }
         end
     end
+end
+
+-----------------------
+----   Threads     ----
+-----------------------
+MySQL.ready(function ()
+    updateRaces()
 end)
 
 local function sortRecordsByTime(Records)
@@ -77,8 +81,15 @@ local function filterLeaderboardsByClass(Leaderboard, class)
 end
 
 local function racerHasPreviousRecordInClass(Records, RacerName, CarClass)
-    if Records then 
+    if Records then
+        if Config.Debug then
+           print(RacerName, CarClass)
+        end
         for i, Record in pairs(Records) do
+            if Config.Debug then
+               print('Checking previous records:', Record.Holder, Record.Class)
+               print('check', Record.Holder == RacerName, Record.Class == CarClass)
+            end
             if Record.Holder == RacerName and Record.Class == CarClass then
                 return Record, i
             end
@@ -121,13 +132,14 @@ end
 local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel)
     local records = getLatestRecordsById(RaceData.RaceId)
     local FilteredLeaderboard = {}
+    local PersonalBest, index = nil, nil
     if #records == 0 then
         if Config.Debug then
            print('no records have been set yet')
         end
     else
         FilteredLeaderboard = filterLeaderboardsByClass(records, CarClass)
-        local PersonalBest, index =  racerHasPreviousRecordInClass(records, RacerName, CarClass)
+        PersonalBest, index = racerHasPreviousRecordInClass(records, RacerName, CarClass)
     end
     if Config.Debug then
        print('Time', PlayerTime, RacerName, CarClass, VehicleModel)
@@ -157,7 +169,9 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
 
     elseif not PersonalBest then
         TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.time_added"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
-        print('had no pb')
+        if Config.Debug then
+           print('had no pb')
+        end
         if Config.Debug then
             print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
          end
@@ -167,7 +181,9 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Class = CarClass,
             Vehicle = VehicleModel
         }
-        print('records', dump(records))
+        if Config.Debug then
+           print('records', dump(records))
+        end
         table.insert(records, playerPlacement)
         records = sortRecordsByTime(records)
         if Config.Debug then
@@ -232,10 +248,12 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     else
         Races[RaceData.RaceId].Records = {
             Time = BLap,
-            Holder = RacerName
+            Holder = RacerName,
+            Class = CarClass,
+            Vehicle = VehicleModel
         }
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            {json.encode(Races[RaceData.RaceId].Records), RaceData.RaceId})
+            {json.encode({ Races[RaceData.RaceId].Records }), RaceData.RaceId})
             TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, SecondsToClock(BLap)), 'success')
     end
     AvailableRaces[AvailableKey].RaceData = Races[RaceData.RaceId]
@@ -667,6 +685,9 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingData', function(so
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetTracks', function(source, cb)
+    if #Races == 0 then
+        updateRaces()
+    end
     cb(Races)
 end)
 
