@@ -306,7 +306,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
 
     if CurrentRace ~= nil then
         local AmountOfRacers = 0
-        PreviousRaceKey = GetOpenedRaceKey(CurrentRace)
+        local PreviousRaceKey = GetOpenedRaceKey(CurrentRace)
         for _,_ in pairs(Races[CurrentRace].Racers) do
             AmountOfRacers = AmountOfRacers + 1
         end
@@ -479,12 +479,17 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local CitizenId = Player.PlayerData.citizenid
+    if Races[RaceId].Racers[CitizenId] then
+        Races[RaceId].Racers[CitizenId].Checkpoint = Checkpoint
+        Races[RaceId].Racers[CitizenId].Lap = Lap
+        Races[RaceId].Racers[CitizenId].Finished = Finished
+        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId])
+    else
+        -- Attemt to make sure script dont break if something goes wrong
+        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.youre_not_in_the_race"), 'error')
+        TriggerClientEvent('cw-racingapp:client:LeaveRace', -1, nil)
+    end
 
-    Races[RaceId].Racers[CitizenId].Checkpoint = Checkpoint
-    Races[RaceId].Racers[CitizenId].Lap = Lap
-    Races[RaceId].Racers[CitizenId].Finished = Finished
-
-    TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId])
 end)
 
 RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)

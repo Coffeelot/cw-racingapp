@@ -67,7 +67,7 @@ local function CreatePile(offset, model)
     ClearAreaOfObjects(offset.x, offset.y, offset.z, 50.0, 0)
     LoadModel(model)
 
-    local Obj = CreateObject(model, offset.x, offset.y, offset.z, 0, 0, 0)
+    local Obj = CreateObject(model, offset.x, offset.y, offset.z, 0, 0, 0) -- CHANGE ONE OF THESE TO MAKE NETWORKED???
     PlaceObjectOnGroundProperly(Obj)
     -- FreezeEntityPosition(Obj, 1)
     SetEntityAsMissionEntity(Obj, 1, 1)
@@ -84,10 +84,12 @@ function DeleteAllCheckpoints()
             local RightPile = CurrentCheckpoint.pileright
 
             if LeftPile then
+                DeleteClosestObject(CurrentCheckpoint.offset.left, Config.StartAndFinishModel)
                 DeleteClosestObject(CurrentCheckpoint.offset.left, Config.CheckpointPileModel)
                 LeftPile = nil
             end
             if RightPile then
+                DeleteClosestObject(CurrentCheckpoint.offset.right, Config.StartAndFinishModel)
                 DeleteClosestObject(CurrentCheckpoint.offset.right, Config.CheckpointPileModel)
                 RightPile = nil
             end
@@ -102,11 +104,13 @@ function DeleteAllCheckpoints()
             local RightPile = CurrentCheckpoint.pileright
 
             if LeftPile then
+                DeleteClosestObject(CurrentRaceData.Checkpoints[k].offset.left, Config.StartAndFinishModel)
                 DeleteClosestObject(CurrentRaceData.Checkpoints[k].offset.left, Config.CheckpointPileModel)
                 LeftPile = nil
             end
 
             if RightPile then
+                DeleteClosestObject(CurrentRaceData.Checkpoints[k].offset.right, Config.StartAndFinishModel)
                 DeleteClosestObject(CurrentRaceData.Checkpoints[k].offset.right, Config.CheckpointPileModel)
                 RightPile = nil
             end
@@ -128,12 +132,14 @@ function DeleteCheckpoint()
 
             local PileLeft = ClosestCheckpoint.pileleft
             if PileLeft then
+                DeleteClosestObject(ClosestCheckpoint.offset.left, Config.StartAndFinishModel)
                 DeleteClosestObject(ClosestCheckpoint.offset.left, Config.CheckpointPileModel)
                 PileLeft = nil
             end
 
             local PileRight = ClosestCheckpoint.pileright
             if PileRight then
+                DeleteClosestObject(ClosestCheckpoint.offset.right, Config.StartAndFinishModel)
                 DeleteClosestObject(ClosestCheckpoint.offset.right, Config.CheckpointPileModel)
                 PileRight = nil
             end
@@ -166,12 +172,14 @@ function DeleteCreatorCheckpoints()
             local PileLeft = CurrentCheckpoint.pileleft
             if PileLeft then
                 DeleteClosestObject(CurrentCheckpoint.offset.left, Config.CheckpointPileModel)
+                DeleteClosestObject(CurrentCheckpoint.offset.left, Config.StartAndFinishModel)
                 PileLeft = nil
             end
 
             local PileRight = CurrentCheckpoint.pileright
             if PileRight then
                 DeleteClosestObject(CurrentCheckpoint.offset.right, Config.CheckpointPileModel)
+                DeleteClosestObject(CurrentCheckpoint.offset.right, Config.StartAndFinishModel)
                 PileRight = nil
             end
         end
@@ -431,7 +439,23 @@ function RaceUI()
     end)
 end
 
-function SetupRace(RaceData, Laps)
+local function isFinishOrStart(CurrentRaceData, checkpoint)
+    if CurrentRaceData.TotalLaps == 0 then
+        if checkpoint == 1 or checkpoint == #CurrentRaceData.Checkpoints then
+            return true
+        else 
+            return false
+        end
+    else
+        if checkpoint == 1 then
+            return true
+        else 
+            return false
+        end  
+    end
+end
+
+local function SetupRace(RaceData, Laps)
 
     CurrentRaceData = {
         RaceId = RaceData.RaceId,
@@ -452,31 +476,33 @@ function SetupRace(RaceData, Laps)
     }
 
     for k, v in pairs(CurrentRaceData.Checkpoints) do
-        if k == 1 then
+        
+        ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
+        if isFinishOrStart(CurrentRaceData,k) then
             CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
             CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.StartAndFinishModel)
         else
             CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.CheckpointPileModel)
             CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.CheckpointPileModel)
         end
-        ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
-
+        
         CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
     end
 
     RaceUI()
 end
 
-function showNonLoopParticle(dict, particleName, coords, scale, time)
+local function showNonLoopParticle(dict, particleName, coords, scale, time)
     while not HasNamedPtfxAssetLoaded(dict) do
         RequestNamedPtfxAsset(dict)
         Wait(0)
     end
 
     UseParticleFxAssetNextCall(dict)
+
     local particleHandle = StartParticleFxLoopedAtCoord(particleName, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0,
-        scale, false, false, false)
-    SetParticleFxLoopedColour(particleHandle, 0, 255, 0, 0)
+    scale, false, false, false)
+    SetParticleFxLoopedColour(particleHandle,0.0,0.0,1.0)
     return particleHandle
 end
 
@@ -560,17 +586,16 @@ function DeleteCurrentRaceCheckpoints()
             Blip = nil
         end
 
-        DeleteClosestObject(CurrentCheckpoint.offset.left, Config.CheckpointPileModel)
-        PileLeft = nil
-
         local PileLeft = CurrentCheckpoint.pileleft
         if PileLeft then
+            DeleteClosestObject(CurrentCheckpoint.offset.left, Config.StartAndFinishModel)
             DeleteClosestObject(CurrentCheckpoint.offset.left, Config.CheckpointPileModel)
             PileLeft = nil
         end
 
         local PileRight = CurrentCheckpoint.pileright
         if PileRight then
+            DeleteClosestObject(CurrentCheckpoint.offset.right, Config.StartAndFinishModel)
             DeleteClosestObject(CurrentCheckpoint.offset.right, Config.CheckpointPileModel)
             PileRight = nil
         end
@@ -1218,7 +1243,9 @@ local function getKeysSortedByValue(tbl, sortFunction)
     table.sort(keys, function(a, b)
       return sortFunction(tbl[a], tbl[b])
     end)
-    print('KEYS',dump(keys))
+    if Config.Debug then
+       print('KEYS',dump(keys))
+    end
     return keys
   end
 

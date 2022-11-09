@@ -32,7 +32,7 @@ files {
 dependencies {
     'qb-menu',
     'qb-core',
-    'cw-performance',
+    'cw-performance'
 }
 
 lua54 'yes'

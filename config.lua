@@ -18,7 +18,7 @@ Config.Permissions = {
 
 Config.FlareTime = 10000 -- How long the flares are lit
 
-Config.StartAndFinishModel = `xm_prop_base_tripod_lampa`
+Config.StartAndFinishModel = `prop_golfflag`
 Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --`prop_flare_01b`
 Config.Classes = {
     ['D'] = true,

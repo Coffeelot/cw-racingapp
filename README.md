@@ -26,6 +26,9 @@ Config Options per Dongle:
  - Setup a new race
  - Create a new race track
 
+# Preview 📽
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/APtMydz4gF8/0.jpg)](https://youtu.be/APtMydz4gF8)
+
 ## Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
@@ -71,14 +74,6 @@ Change from normal qb-racing: Sorted by track, added classes and added full list
 Change from normal qb-racing: Added classes to list. If you set up a race with A class, people can join with A and lower, but not higher.
 
 ![Interface](https://i.imgur.com/4r6iriO.png)
-
-
-### Video Example
-#### Creating a Race
-[![Video Example](https://i.imgur.com/DCFUJw9.png)](https://i.imgur.com/WoSxall.mp4)
-#### Race Interface, Joining a Race, Finishing a Race
-[![Video Example](https://i.imgur.com/hsZVHeL.png)](https://i.imgur.com/oYgHBdj.mp4)
-
 # Commands
 
 ## /resetracetracks
