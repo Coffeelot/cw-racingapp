@@ -118,8 +118,10 @@ end
 local function getLatestRecordsByName(RaceName)    
     local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE name = ?', {RaceName})[1]
     if results.records then
-        print('results by name : ', dump(results.records))
-        print('decoded results by name : ', dump(json.decode(results.records)))
+        if Config.Debug then
+           print('results by name : ', dump(results.records))
+           print('decoded results by name : ', dump(json.decode(results.records)))
+        end
         return json.decode(results.records)
     else
         if Config.Debug then
@@ -303,43 +305,46 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
     local CurrentRace = GetCurrentRace(Player.PlayerData.citizenid)
     local RacerName = RaceData.RacerName
-
-    if CurrentRace ~= nil then
-        local AmountOfRacers = 0
-        local PreviousRaceKey = GetOpenedRaceKey(CurrentRace)
-        for _,_ in pairs(Races[CurrentRace].Racers) do
-            AmountOfRacers = AmountOfRacers + 1
-        end
-        Races[CurrentRace].Racers[Player.PlayerData.citizenid] = nil
-        if (AmountOfRacers - 1) == 0 then
-            Races[CurrentRace].Racers = {}
-            Races[CurrentRace].Started = false
-            Races[CurrentRace].Waiting = false
-            table.remove(AvailableRaces, PreviousRaceKey)
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
-            TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[CurrentRace])
+    if not Races[RaceId].Started then
+        if CurrentRace ~= nil then
+            local AmountOfRacers = 0
+            local PreviousRaceKey = GetOpenedRaceKey(CurrentRace)
+            for _,_ in pairs(Races[CurrentRace].Racers) do
+                AmountOfRacers = AmountOfRacers + 1
+            end
+            Races[CurrentRace].Racers[Player.PlayerData.citizenid] = nil
+            if (AmountOfRacers - 1) == 0 then
+                Races[CurrentRace].Racers = {}
+                Races[CurrentRace].Started = false
+                Races[CurrentRace].Waiting = false
+                table.remove(AvailableRaces, PreviousRaceKey)
+                TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
+                TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[CurrentRace])
+            else
+                AvailableRaces[PreviousRaceKey].RaceData = Races[CurrentRace]
+                TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[CurrentRace])
+            end
         else
-            AvailableRaces[PreviousRaceKey].RaceData = Races[CurrentRace]
-            TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[CurrentRace])
+            Races[RaceId].OrganizerCID = Player.PlayerData.citizenid
+        end
+    
+        Races[RaceId].Waiting = true
+        Races[RaceId].MaxClass = RaceData.MaxClass
+        Races[RaceId].Racers[Player.PlayerData.citizenid] = {
+            Checkpoint = 0,
+            Lap = 1,
+            Finished = false,
+            RacerName = RacerName,
+        }
+        AvailableRaces[AvailableKey].RaceData = Races[RaceId]
+        TriggerClientEvent('cw-racingapp:client:JoinRace', src, Races[RaceId], RaceData.Laps, RacerName)
+        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', src, RaceId, Races[RaceId].Racers)
+        local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
+        if creatorsource ~= Player.PlayerData.source then
+            TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
         end
     else
-        Races[RaceId].OrganizerCID = Player.PlayerData.citizenid
-    end
-
-    Races[RaceId].Waiting = true
-    Races[RaceId].MaxClass = RaceData.MaxClass
-    Races[RaceId].Racers[Player.PlayerData.citizenid] = {
-        Checkpoint = 0,
-        Lap = 1,
-        Finished = false,
-        RacerName = RacerName,
-    }
-    AvailableRaces[AvailableKey].RaceData = Races[RaceId]
-    TriggerClientEvent('cw-racingapp:client:JoinRace', src, Races[RaceId], RaceData.Laps, RacerName)
-    TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', src, RaceId, Races[RaceId].Racers)
-    local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
-    if creatorsource ~= Player.PlayerData.source then
-        TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
+        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.the_race_has_already_started"))
     end
 end)
 
@@ -690,9 +695,6 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingData', function(so
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetTracks', function(source, cb)
-    if #Races == 0 then
-        updateRaces()
-    end
     cb(Races)
 end)
 
