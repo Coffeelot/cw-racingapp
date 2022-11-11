@@ -474,9 +474,10 @@ local function SetupRace(RaceData, Laps)
         MaxClass = RaceData.MaxClass,
         Racers = {}
     }
-
+    ClearGpsMultiRoute()
+    StartGpsMultiRoute(6, false , false)
     for k, v in pairs(CurrentRaceData.Checkpoints) do
-        
+        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
         ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
         if isFinishOrStart(CurrentRaceData,k) then
             CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
@@ -488,7 +489,12 @@ local function SetupRace(RaceData, Laps)
         
         CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
     end
-
+    if CurrentRaceData.TotalLaps > 0 then 
+        for k=1, #CurrentRaceData.Checkpoints*(CurrentRaceData.TotalLaps-1), 1 do
+            AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
+        end
+        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+    end
     RaceUI()
 end
 
@@ -626,6 +632,7 @@ function FinishRace()
         QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. SecondsToClock(CurrentRaceData.BestLap), 'success')
     end
 
+    ClearGpsMultiRoute()
     DeleteCurrentRaceCheckpoints()
 end
 
@@ -722,7 +729,7 @@ CreateThread(function()
                     if CurrentRaceData.TotalLaps == 0 then
                         if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                            AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                 CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false)
@@ -763,7 +770,7 @@ CreateThread(function()
                                 CurrentRaceData.RaceTime = 0
                                 CurrentRaceData.Lap = CurrentRaceData.Lap + 1
                                 CurrentRaceData.CurrentCheckpoint = 1
-                                SetNewWaypoint(
+                                AddPointToGpsMultiRoute(
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
@@ -772,7 +779,7 @@ CreateThread(function()
                         else
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
-                                SetNewWaypoint(
+                                AddPointToGpsMultiRoute(
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
@@ -781,7 +788,7 @@ CreateThread(function()
                                 SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip,
                                     1.0)
                             else
-                                SetNewWaypoint(CurrentRaceData.Checkpoints[1].coords.x,
+                                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
                                     CurrentRaceData.Checkpoints[1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false)
@@ -900,12 +907,14 @@ RegisterNetEvent('cw-racingapp:client:UpdateRaceRacers', function(RaceId, Racers
 end)
 
 RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
+    ClearGpsMultiRoute()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
 end)
 
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function()
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
+    SetGpsMultiRouteRender(true)
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then
@@ -924,7 +933,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function()
             Wait(1000)
         end
         if CurrentRaceData.RaceName ~= nil then
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+            AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                 CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             QBCore.Functions.Notify(Lang:t("success.race_go"), 'success', 1000)
             SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, 1.0)
