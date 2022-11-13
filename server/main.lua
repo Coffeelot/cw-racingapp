@@ -729,13 +729,15 @@ local function createRacingFob(source, citizenid, racerName, type)
 end
 
 RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type)
-    local player = QBCore.Functions.GetPlayer(playerId)
-    local playerId = ''
+    local player = QBCore.Functions.GetPlayer(tonumber(playerId))
     if player then
-        playerId = player.PlayerData.citizenid
+        print('character id', playerId)
+        local citizenId = player.PlayerData.citizenid
+        createRacingFob(source, citizenId, racerName, type)
+    else
+        print('character id', playerId)
+        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.could_not_find_person"), "error")
     end
-    print('character id', playerId)
-    createRacingFob(source, playerId, racerName, type)
 end)
 
 QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_description"), { {name='type', help='Basic/Master'}, {name='identifier', help='CitizenID or ID'}, {name='Racer Name', help='Racer Name to associate with Fob'} }, true, function(source, args)

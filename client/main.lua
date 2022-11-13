@@ -1673,7 +1673,7 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a racing fob for '..trader.racingFobCost..' Crypto',
+                label = 'Buy a racing fob for '..trader.racingFobCost..' '..trader.moneyType,
                 purchaseType = trader,
                 fobType = 'basic',
                 canInteract = function()
@@ -1684,7 +1684,7 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a Master racing fob for '..trader.racingFobCost..' Crypto',
+                label = 'Buy a Master racing fob for '..trader.racingFobCost..' '..trader.moneyType,
                 purchaseType = trader,
                 fobType = 'master',
                 canInteract = function()
@@ -1719,7 +1719,7 @@ if Config.Laptop.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a racing fob for '..laptop.racingFobCost..' Crypto',
+                label = 'Buy a racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
                 purchaseType = laptop,
                 fobType = 'basic',
                 canInteract = function()
@@ -1730,7 +1730,7 @@ if Config.Laptop.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a Master racing fob for '..laptop.racingFobCost..' Crypto',
+                label = 'Buy a Master racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
                 purchaseType = laptop,
                 fobType = 'master',
                 canInteract = function()
