@@ -721,7 +721,24 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(sou
     end
 end)
 
-QBCore.Commands.Add(Lang:t("commands.create_racing_fob_command"), Lang:t("commands.create_racing_fob_description"), { {name='type', help='Basic/Master'}, {name='identifier', help='CitizenID or ID'}, {name='Racer Name', help='Racer Name to associate with Fob'} }, true, function(source, args)
+local function createRacingFob(source, citizenid, racerName, type)
+    local Player = QBCore.Functions.GetPlayer(source)
+    Player.Functions.RemoveMoney(Config.Trader.moneyType, Config.Trader.racingFobCost)
+    Player.Functions.AddItem(type, 1, nil, { owner = citizenid, name = racerName })
+    TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[type], "add")
+end
+
+RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type)
+    local player = QBCore.Functions.GetPlayer(playerId)
+    local playerId = ''
+    if player then
+        playerId = player.PlayerData.citizenid
+    end
+    print('character id', playerId)
+    createRacingFob(source, playerId, racerName, type)
+end)
+
+QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_description"), { {name='type', help='Basic/Master'}, {name='identifier', help='CitizenID or ID'}, {name='Racer Name', help='Racer Name to associate with Fob'} }, true, function(source, args)
     local type = args[1]
     local citizenid = args[2]
 

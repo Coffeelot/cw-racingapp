@@ -21,6 +21,8 @@ local Translations = {
         min_tire_distance = "The min distance allowed is ",
         editor_confirm = "Press [9] again to confirm.",
         editor_canceled = "You canceled the editor.",
+        can_not_afford = "You can't afford this",
+        could_not_find_person = "Could not find the person"
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",
@@ -61,7 +63,7 @@ local Translations = {
         race_records = "Race Records",
         race_records_txt = "See all records for races.",
         setup_race = "Setup a Race",
-        create_race = "Create a Race",
+        create_race = "Create a Track",
         close = "✗ Close Menu",
         racers = " racer(s)",
         start_race = "Start Race",
