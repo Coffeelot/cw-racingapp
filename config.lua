@@ -45,7 +45,7 @@ Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Co
 }
 
 Config.Trader = {
-    active = false,
+    active = true,
     jobRequirement = { basic = false, master = true},
     requireToken = false,
     model = 'csb_paige',
@@ -58,7 +58,7 @@ Config.Trader = {
 
 Config.Laptop = {
     active = true,
-    jobRequirement = { basic = true, master = true},
+    jobRequirement = { basic = false, master = true},
     requireToken = false,
     model = 'xm_prop_x17_laptop_lester_01',
     location = vector4(241.10, -2941.14, 6.03, -262.82),

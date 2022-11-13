@@ -29,7 +29,8 @@ local CurrentRaceData = {
     Started = false,
     CurrentCheckpoint = nil,
     TotalLaps = 0,
-    Lap = 0
+    Lap = 0,
+    Position = 0
 }
 
 -- for debug
@@ -413,7 +414,8 @@ function RaceUI()
                         RaceName = CurrentRaceData.RaceName,
                         Time = CurrentRaceData.RaceTime,
                         TotalTime = CurrentRaceData.TotalTime,
-                        BestLap = CurrentRaceData.BestLap
+                        BestLap = CurrentRaceData.BestLap,
+                        Position = CurrentRaceData.Position
                     },
                     racedata = RaceData,
                     active = true
@@ -472,7 +474,8 @@ local function SetupRace(RaceData, Laps)
         TotalTime = 0,
         BestLap = 0,
         MaxClass = RaceData.MaxClass,
-        Racers = {}
+        Racers = {},
+        Position = 0
     }
     ClearGpsMultiRoute()
     StartGpsMultiRoute(6, false , false)
@@ -732,7 +735,7 @@ CreateThread(function()
                             AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                 CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false)
+                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CheckpointDistance)
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                             SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip, 0.6)
@@ -742,7 +745,7 @@ CreateThread(function()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true)
+                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CheckpointDistance)
                             FinishRace()
                         end
                     else
@@ -757,7 +760,7 @@ CreateThread(function()
                                 end
                                 CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CheckpointDistance)
                                 FinishRace()
                             else
                                 DoPilePfx()
@@ -774,7 +777,7 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CheckpointDistance)
                             end
                         else
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
@@ -783,7 +786,7 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CheckpointDistance)
                                 SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip, 0.6)
                                 SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip,
                                     1.0)
@@ -791,7 +794,7 @@ CreateThread(function()
                                 AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
                                     CurrentRaceData.Checkpoints[1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CheckpointDistance)
                                 SetBlipScale(CurrentRaceData.Checkpoints[#CurrentRaceData.Checkpoints].blip, 0.6)
                                 SetBlipScale(CurrentRaceData.Checkpoints[1].blip, 1.0)
                             end
@@ -910,6 +913,131 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     ClearGpsMultiRoute()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
+end)
+
+local function getKeysSortedByValue(tbl, sortFunction)
+    local keys = {}
+    for key in pairs(tbl) do
+      table.insert(keys, key)
+    end
+  
+    table.sort(keys, function(a, b)
+      return sortFunction(tbl[a], tbl[b])
+    end)
+    if Config.Debug then
+       print('KEYS',dump(keys))
+    end
+    return keys
+end
+
+RegisterNetEvent("cw-racingapp:Client:DeleteTrack", function(data)
+    QBCore.Functions.Notify(data.RaceName..Lang:t("primary.has_been_removed"))
+    TriggerServerEvent("cw-racingapp:Server:DeleteTrack", data.RaceId)
+end)
+
+RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
+    local menu = {{
+        header = Lang:t("menu.delete_track"),
+        isMenuHeader = true
+    }}
+
+    menu[#menu + 1] = {
+        header = Lang:t("menu.delete"),
+        params = {
+            event = "cw-racingapp:Client:DeleteTrack",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+
+    menu[#menu + 1] = {
+        header = Lang:t("menu.go_back"),
+        params = {
+            event = "cw-racingapp:Client:ListMyTracks",
+            args = {
+                type = data.type,
+                name = data.name
+            }
+        }
+    }
+
+    if #menu == 2 then
+        QBCore.Functions.Notify(Lang:t("primary.no_races_exist"))
+        TriggerEvent('cw-racingapp:Client:ListMyTracks', {
+            type = data.type,
+            name = data.name
+        })
+        return
+    end
+
+    exports['qb-menu']:openMenu(menu)
+end)
+
+local function filterTracksByRacer(Tracks)
+    print(dump(Tracks))
+    local filteredTracks = {}
+    for i, track in pairs(Tracks) do      
+        if track.Creator == QBCore.Functions.GetPlayerData().citizenid then
+            table.insert(filteredTracks, track)
+        end
+    end
+    return filteredTracks
+end
+
+RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
+    QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTracks', function(Tracks)
+        local menu = {}
+
+        for i, track in pairs(filterTracksByRacer(Tracks)) do      
+            menu[#menu + 1] = {
+                header = track.RaceName.. ' | '.. track.Distance..'m',
+                params = {
+                    event = "cw-racingapp:Client:TrackInfo",
+                    args = {
+                        type = data.type,
+                        name = data.name,
+                        RaceId = track.RaceId,
+                        RaceName = track.RaceName
+                    }
+                }
+            }
+        end
+
+        menu[#menu + 1] = {
+            header = Lang:t("menu.go_back"),
+            params = {
+                event = "cw-racingapp:Client:OpenMainMenu",
+                args = {
+                    type = data.type,
+                    name = data.name
+                }
+            }
+        }
+
+        table.sort(menu, function (a,b)
+            return a.header < b.header
+        end)
+
+        table.insert(menu, 1, {
+            header = Lang:t("menu.my_tracks"),
+            isMenuHeader = true
+        })
+        if #menu == 2 then
+            QBCore.Functions.Notify(Lang:t("menu.no_tracks_exist"))
+            TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
+                type = data.type,
+                name = data.name
+            })
+            return
+        end
+        exports['qb-menu']:openMenu(menu)
+    end, class)
+
+    exports['qb-menu']:openMenu(menu)
 end)
 
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function()
@@ -1064,6 +1192,18 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
         disabled = not Config.Permissions[type].create,
         params = {
             event = "cw-racingapp:Client:CreateRaceMenu",
+            args = {
+                type = type,
+                name = name
+            }
+        }
+    },
+    {
+        header = Lang:t("menu.my_tracks"),
+        txt = "",
+        disabled = not Config.Permissions[type].create,
+        params = {
+            event = "cw-racingapp:Client:ListMyTracks",
             args = {
                 type = type,
                 name = name

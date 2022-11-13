@@ -6,6 +6,7 @@ local Races = {}
 local AvailableRaces = {}
 local LastRaces = {}
 local NotFinished = {}
+local racersSortedByPosition = {}
 
 -- for debug
 local function dump(o)
@@ -335,7 +336,9 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             Lap = 1,
             Finished = false,
             RacerName = RacerName,
+            Placement = 0
         }
+        table.insert(racersSortedByPosition, Races[RaceId].Racers[Player.PlayerData.citizenid] )
         AvailableRaces[AvailableKey].RaceData = Races[RaceId]
         TriggerClientEvent('cw-racingapp:client:JoinRace', src, Races[RaceId], RaceData.Laps, RacerName)
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', src, RaceId, Races[RaceId].Racers)
@@ -480,7 +483,24 @@ RegisterNetEvent('cw-racingapp:server:UpdateRaceState', function(RaceId, Started
     Races[RaceId].Started = Started
 end)
 
-RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished)
+
+local function placements()
+    table.sort(racersSortedByPosition, function(a,b) 
+        if a.Lap < b.Lap then return true
+        elseif a.Lap > b.Lap then return false
+        elseif a.Lap == b.Lap then
+            if a.Checkpoint < b.Checkpoint then return true
+            elseif a.Checkpoint > b.Checkpoint then return false
+            elseif a.Checkpoint == b.Checkpoint then
+                if a.CheckpointDistance < b.CheckpointDistance then
+                    return true
+                end 
+            end
+        end
+    end)
+end
+
+RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, CheckpointDistance)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local CitizenId = Player.PlayerData.citizenid
@@ -488,6 +508,9 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Races[RaceId].Racers[CitizenId].Checkpoint = Checkpoint
         Races[RaceId].Racers[CitizenId].Lap = Lap
         Races[RaceId].Racers[CitizenId].Finished = Finished
+        Races[RaceId].Racers[CitizenId].CheckpointDistance = CheckpointDistance
+        -- placements()
+        -- print(racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId])
     else
         -- Attemt to make sure script dont break if something goes wrong
@@ -549,6 +572,12 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
     }
     MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid) VALUES (?, ?, ?, ?, ?, ?)',
         {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId})
+end)
+
+RegisterNetEvent('cw-racingapp:Server:DeleteTrack', function(RaceId)
+    print('DELETING ', RaceId)
+    Races[RaceId] = nil
+    MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', {RaceId} )
 end)
 
 -----------------------
@@ -815,6 +844,7 @@ QBCore.Commands.Add('updateracetracks', 'Update the race track table to fit qb-r
     updateRaceTrackTable()
 end, 'admin')
 
-QBCore.Commands.Add('removeracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
+QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
     dropRacetrackTable()
 end, 'admin')
+

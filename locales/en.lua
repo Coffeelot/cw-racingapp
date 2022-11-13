@@ -34,6 +34,7 @@ local Translations = {
         no_pending_races = "There are no pending races at the moment.",
         no_races_exist = "No times have been set on this track",
         no_available_tracks = "There are no available tracks at the moment to use.",
+        has_been_removed = " has been removed"
     },
     success = {
         race_created = "The race was created!",
@@ -72,13 +73,16 @@ local Translations = {
         race_info = "%s lap(s) | %sm | %s racer(s)",
         unclaimed = "Unclaimed Record!",
         choose_a_track = "Choose a Track",
-        choose_a_class = "Coose a Class",
+        choose_a_class = "Choose a Class",
         racing_setup = "Racing - Setup",
         select_track = "Select Your Track",
         number_laps = "Number of Laps (0 is Sprint)",
         name_track_question = "What do you want your track to be named?",
         name_track = "Name your track",
-        all = 'All Classes'
+        all = 'All Classes',
+        my_tracks = "My tracks",
+        delete_track = "Delete track?",
+        delete = "Delete"
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})
