@@ -1,5 +1,5 @@
 Config = Config or {}
-Config.Debug = true
+Config.Debug = false
 
 Config.Permissions = {
     ['fob_racing_basic'] = {
