@@ -218,9 +218,9 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     end
     local BLap = 0
     if TotalLaps < 2 then
-        BLap = TotalTime
+        BLap = TotalTime*60
     else
-        BLap = BestLap
+        BLap = BestLap*60
     end
 
     if LastRaces[RaceData.RaceId] ~= nil then
@@ -241,7 +241,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel)
         if newRecord then
             if Config.Debug then
-               print('Player got a record')
+               print('Player got a record', BLap)
             end
         else
             if Config.Debug then
@@ -347,7 +347,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
         end
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.the_race_has_already_started"))
+        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"))
     end
 end)
 
@@ -486,21 +486,27 @@ end)
 
 local function placements()
     table.sort(racersSortedByPosition, function(a,b) 
-        if a.Lap < b.Lap then return true
-        elseif a.Lap > b.Lap then return false
+        if a.Lap > b.Lap then return true
+        elseif a.Lap < b.Lap then return false
         elseif a.Lap == b.Lap then
-            if a.Checkpoint < b.Checkpoint then return true
-            elseif a.Checkpoint > b.Checkpoint then return false
+            if a.Checkpoint > b.Checkpoint then return true
+            elseif a.Checkpoint < b.Checkpoint then return false
             elseif a.Checkpoint == b.Checkpoint then
-                if a.CheckpointDistance < b.CheckpointDistance then
+                if a.RaceTime < b.RaceTime then
+                    if Config.Debug then
+                       print(a.RacerName, a.RaceTime, ' > ',b.RacerName, b.RaceTime)
+                    end
                     return true
-                end 
+                else
+                    return false
+                end
             end
         end
+        print('I SHOULD NOT BE HERE')
     end)
 end
 
-RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, CheckpointDistance)
+RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local CitizenId = Player.PlayerData.citizenid
@@ -508,10 +514,15 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Races[RaceId].Racers[CitizenId].Checkpoint = Checkpoint
         Races[RaceId].Racers[CitizenId].Lap = Lap
         Races[RaceId].Racers[CitizenId].Finished = Finished
-        Races[RaceId].Racers[CitizenId].CheckpointDistance = CheckpointDistance
-        -- placements()
-        -- print(racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
-        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId])
+        Races[RaceId].Racers[CitizenId].RaceTime = RaceTime
+        if Config.Debug then
+           print('before', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
+        end
+        placements()
+        if Config.Debug then
+           print('after', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
+        end
+        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId], racersSortedByPosition)
     else
         -- Attemt to make sure script dont break if something goes wrong
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.youre_not_in_the_race"), 'error')
@@ -537,10 +548,14 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
 
     AvailableRaces[AvailableKey].RaceData.Started = true
     AvailableRaces[AvailableKey].RaceData.Waiting = false
+    local TotalRacers = 0
+    for Index, Value in pairs(Races[RaceId].Racers) do
+        TotalRacers = TotalRacers + 1
+    end
     for CitizenId, _ in pairs(Races[RaceId].Racers) do
         local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
         if Player ~= nil then
-            TriggerClientEvent('cw-racingapp:client:RaceCountdown', Player.PlayerData.source)
+            TriggerClientEvent('cw-racingapp:client:RaceCountdown', Player.PlayerData.source,TotalRacers)
         end
     end
 end)
