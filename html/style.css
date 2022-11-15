@@ -6,21 +6,23 @@ body {
 }
 
 :root {
-    --main-font-size: 2vh;  
+    --main-font-size: 2vh;
+    --big-font-size: 3vh;  
 }
 
 .container {
     height: 100vh;
     opacity: 1.0;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .ui {
     position: absolute;
     width: 30vh;
-    height: 20vh;
-    bottom: 35vh;
+    top: 2.7vh;
+    right: 2.7vh;
     border-radius: 1vh;
-    left: 2.7vh;
 }
 
 .editor {
@@ -100,65 +102,83 @@ body {
 /* RACE */
 
 .race {
-    display: none;
+    display:  none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hud-text {
+    text-align: right;
+    padding: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 2px 1px 0px #0000008c;
+    font-weight: 600;
+    background-color: #0000004e;
+}
+
+.leftAligned {
+    text-align: left;
+}
+
+.split {
+    display: flex;
+    justify-content: space-between;
+}
+
+.big {
+    font-size: var(--big-font-size);
+}
+
+#racer-positions {
+    display: flex;
+    text-align: right;
+    gap: 5px;
+    font-family: 'Poppins', sans-serif;
+    font-size: var(--main-font-size);
+    color: white;
+    text-shadow: 2px 1px 0px #0000008c;
+    font-weight: 600;
+}
+
+#racer-position-number {
+    padding: 10px;
+    text-align: center;
+    width: 5%;
+    flex-grow: 1;
+    background-color: #0000004e;
+}
+
+#racer-position-name {
+    padding: 10px;
+    flex-grow: 9;
+    background-color: #0000004e;  
 }
 
 #race-racename {
-    position: absolute;
-    left: 2vh;
-    top: 2vh;
-    font-family: 'Poppins', sans-serif;
-    font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+}
+
+#race-position {
 }
 
 #race-checkpoints {
-    position: absolute;
-    left: 2vh;
-    top: 5vh;
-    font-family: 'Poppins', sans-serif;
-    font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
 }
 
 #race-lap {
-    position: absolute;
-    left: 2vh;
-    top: 8vh;
-    font-family: 'Poppins', sans-serif;
-    font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
 }
 
 #race-time {
-    position: absolute;
-    left: 2vh;
-    top: 11vh;
-    font-family: 'Poppins', sans-serif;
-    font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
 }
 
 #race-besttime {
-    position: absolute;
-    left: 2vh;
-    top: 14vh;
-    font-family: 'Poppins', sans-serif;
-    font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
 }
 
 #race-totaltime {
-    position: absolute;
-    left: 2vh;
-    top: 17vh;
-    font-family: 'Poppins', sans-serif;
-    font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
 }

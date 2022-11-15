@@ -12,11 +12,9 @@ $(document).ready(function(){
 });
 
 function secondsTimeSpanToHMS(s) {
-    var h = Math.floor(s/3600); //Get whole hours
-    s -= h*3600;
     var m = Math.floor(s/60); //Get remaining minutes
     s -= m*60;
-    return h+":"+(m < 10 ? '0'+m : m)+":"+(s < 10 ? '0'+s : s); //zero padding on minutes and seconds
+    return (m < 10 ? '0'+m : m)+":"+(s < 10 ? '0'+s : s); //zero padding on minutes and seconds
 }
 
 function UpdateUI(type, data) {
@@ -26,7 +24,7 @@ function UpdateUI(type, data) {
                 CreatorActive = true;
                 $(".editor").fadeIn(300);
                 $("#editor-racename").html('Race: ' + data.data.RaceName);
-                $("#editor-checkpoints").html('Checkpoints: ' + data.data.Checkpoints.length + ' / ?');
+                $("#editor-checkpoints").html('Checkpoints: ' + data.racedata.Checkpoints.length + ' / ?');
                 $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">+ ] </span> / <span style="color: rgb(255, 43, 43);">- [</span> - Tire Distance ['+data.data.TireDistance+'.0]');
                 if (data.racedata.ClosestCheckpoint !== undefined && data.racedata.ClosestCheckpoint !== 0) {
                     $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">8</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');
@@ -53,35 +51,46 @@ function UpdateUI(type, data) {
                 RaceActive = true;
                 $(".editor").hide();
                 $(".race").fadeIn(300);
-                $("#race-racename").html('Race: ' + data.data.RaceName);
-                $("#race-checkpoints").html('Checkpoint: ' + data.data.CurrentCheckpoint + ' / ' + data.data.TotalCheckpoints);
+                $("#race-racename").html(data.data.RaceName);
+                let totalRacers = data.data.TotalRacers
+                if (!totalRacers) {
+                    totalRacers = 0
+                }
+                $("#race-position").html(data.data.Position + ' / ' + totalRacers);
+
+                $("#race-checkpoints").html(data.data.CurrentCheckpoint + ' / ' + data.data.TotalCheckpoints);
                 if (data.data.TotalLaps == 0) {
                     $("#race-lap").html('Round: Sprint');
                 } else {
                     $("#race-lap").html('Round: ' + data.data.CurrentLap + ' / ' + data.data.TotalLaps);
                 }
-                $("#race-time").html('Round Time: ' + secondsTimeSpanToHMS(data.data.Time));
+                $("#race-time").html(secondsTimeSpanToHMS(data.data.Time));
                 if (data.data.BestLap !== 0) {
-                    $("#race-besttime").html('Best Round: ' + secondsTimeSpanToHMS(data.data.BestLap));
+                    $("#race-besttime").html(secondsTimeSpanToHMS(data.data.BestLap));
                 } else {
                     $("#race-besttime").html('Best Round: N/A');
                 }
-                $("#race-totaltime").html('Total Time: ' + secondsTimeSpanToHMS(data.data.TotalTime));
+                $("#race-totaltime").html(secondsTimeSpanToHMS(data.data.TotalTime));
             } else {
-                $("#race-racename").html('Race: ' + data.data.RaceName);
-                $("#race-checkpoints").html('Checkpoint: ' + data.data.CurrentCheckpoint + ' / ' + data.data.TotalCheckpoints);
+                $("#race-racename").html(data.data.RaceName);
+                let totalRacers = data.data.TotalRacers
+                if (!totalRacers) {
+                    totalRacers = 0
+                }
+                $("#race-position").html(data.data.Position + ' / ' + totalRacers);
+                $("#race-checkpoints").html(data.data.CurrentCheckpoint + ' / ' + data.data.TotalCheckpoints);
                 if (data.data.TotalLaps == 0) {
-                    $("#race-lap").html('Round: Sprint');
+                    $("#race-lap").html('Sprint');
                 } else {
-                    $("#race-lap").html('Round: ' + data.data.CurrentLap + ' / ' + data.data.TotalLaps);
+                    $("#race-lap").html(data.data.CurrentLap + ' / ' + data.data.TotalLaps);
                 }
-                $("#race-time").html('Round Time: ' + secondsTimeSpanToHMS(data.data.Time));
+                $("#race-time").html(secondsTimeSpanToHMS(data.data.Time));
                 if (data.data.BestLap !== 0) {
-                    $("#race-besttime").html('Best Round: ' + secondsTimeSpanToHMS(data.data.BestLap));
+                    $("#race-besttime").html(secondsTimeSpanToHMS(data.data.BestLap));
                 } else {
-                    $("#race-besttime").html('Best Round: N/A');
+                    $("#race-besttime").html('N/A');
                 }
-                $("#race-totaltime").html('Total Time: ' + secondsTimeSpanToHMS(data.data.TotalTime));
+                $("#race-totaltime").html(secondsTimeSpanToHMS(data.data.TotalTime));
             }
         } else {
             RaceActive = false;
