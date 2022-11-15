@@ -2,7 +2,7 @@
 
 This is a rework of the superb free resource [QB-Racing](https://github.com/ItsANoBrainer/qb-racing) by ItsANoBrainer.
 
-Some of the added features:
+**Some of the added features:**
 - Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
 - Top 3 leaderboard for each track instead of only the best
 - By-class leaderboard
@@ -15,13 +15,17 @@ Some of the added features:
 - Accurate time (old one would vary depending on computer performance)
 - Ability to reset/run the SQL scripts from in game
 
-Original features by ItsANoBrainer:
+**Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize
 - Items to immerse your racing scene with Racer Names
 - Config options to adjust item permissions to your liking
 - Config options to adjust different options
 - Locale Support
 - Create Custom Races Tracks
+
+**Planned:** 
+- Better track editing
+- Phasing
 
 # Developed by Coffeelot and Wuggie
 [More scripts by us](https://github.com/stars/Coffeelot/lists/cw-scripts)  👈\
@@ -87,13 +91,5 @@ This command will update the `race_tracks` table from the old way, so that it wo
 
 ## /removeracetracks
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
-
-# Pipeline
-- Track positions
-- Better time tracking (currently it might fuck up due to game hitches etc)
-- Better track editing
-- Removal of tracks from menu
-- Phasing
-
 
 ## Developed by Coffeelot#1586, Wuggie#1683
