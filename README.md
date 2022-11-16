@@ -14,6 +14,8 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Updated HUD
 - Accurate time (old one would vary depending on computer performance)
 - Ability to reset/run the SQL scripts from in game
+- Phasing/Ghosting of racers
+
 
 **Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize
@@ -25,7 +27,6 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 
 **Planned:** 
 - Better track editing
-- Phasing
 
 # Developed by Coffeelot and Wuggie
 [More scripts by us](https://github.com/stars/Coffeelot/lists/cw-scripts)  👈\
