@@ -301,6 +301,7 @@ end)
 RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
+    local PlayerVehicleEntity = RaceData.PlayerVehicleEntity
     local RaceName = RaceData.RaceData.RaceName
     local RaceId = GetRaceId(RaceName)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
@@ -331,12 +332,15 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     
         Races[RaceId].Waiting = true
         Races[RaceId].MaxClass = RaceData.MaxClass
+        Races[RaceId].Ghosting = RaceData.Ghosting
+        Races[RaceId].GhostingTime = RaceData.GhostingTime
         Races[RaceId].Racers[Player.PlayerData.citizenid] = {
             Checkpoint = 0,
             Lap = 1,
             Finished = false,
             RacerName = RacerName,
-            Placement = 0
+            Placement = 0,
+            PlayerVehicleEntity = PlayerVehicleEntity
         }
         table.insert(racersSortedByPosition, Races[RaceId].Racers[Player.PlayerData.citizenid] )
         AvailableRaces[AvailableKey].RaceData = Races[RaceId]
@@ -423,7 +427,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
     TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', src, RaceId, Races[RaceId].Racers)
 end)
 
-RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass)
+RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     if Races[RaceId] ~= nil then
@@ -436,11 +440,13 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
                     RaceId = RaceId,
                     SetupCitizenId = Player.PlayerData.citizenid,
                     SetupRacerName = RacerName,
-                    MaxClass = MaxClass
+                    MaxClass = MaxClass,
+                    Ghosting = GhostingEnabled,
+                    GhostingTime = GhostingTime
                 }
                 AvailableRaces[#AvailableRaces+1] = allRaceData
                 TriggerClientEvent('QBCore:Notify', src,  Lang:t("success.race_created"), 'success')
-                TriggerClientEvent('cw-racingapp:server:ReadyJoinRace', src, allRaceData)
+                TriggerClientEvent('cw-racingapp:client:ReadyJoinRace', src, allRaceData)
 
                 CreateThread(function()
                     local count = 0
@@ -463,6 +469,8 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
                             Races[RaceId].Started = false
                             Races[RaceId].Waiting = false
                             Races[RaceId].MaxClass = nil
+                            Races[RaceId].Ghosting = false
+                            Races[RaceId].GhostingTime = nil
                             LastRaces[RaceId] = nil
                         end
                     end
@@ -593,6 +601,13 @@ RegisterNetEvent('cw-racingapp:Server:DeleteTrack', function(RaceId)
     print('DELETING ', RaceId)
     Races[RaceId] = nil
     MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', {RaceId} )
+end)
+
+RegisterNetEvent('cw-racingapp:Server:ClearLeaderboard', function(RaceId)
+    print('CLEARING LEADERBOARD ', RaceId)
+    Races[RaceId].Records = nil
+    MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?',
+    {RaceId})
 end)
 
 -----------------------
@@ -730,6 +745,10 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetRaces', function(source,
     cb(AvailableRaces)
 end)
 
+QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacers', function(source, cb, RaceId)
+    cb(Races[RaceId].Racers)
+end)
+
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetListedRaces', function(source, cb)
     cb(Races)
 end)
@@ -775,11 +794,9 @@ end
 RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type)
     local player = QBCore.Functions.GetPlayer(tonumber(playerId))
     if player then
-        print('character id', playerId)
         local citizenId = player.PlayerData.citizenid
         createRacingFob(source, citizenId, racerName, type)
     else
-        print('character id', playerId)
         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.could_not_find_person"), "error")
     end
 end)

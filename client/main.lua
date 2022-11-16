@@ -31,7 +31,8 @@ local CurrentRaceData = {
     TotalLaps = 0,
     TotalRacers = 0,
     Lap = 0,
-    Position = 0
+    Position = 0,
+    Ghosted = false,
 }
 
 -- for debug
@@ -75,6 +76,15 @@ local function CreatePile(offset, model)
     SetEntityAsMissionEntity(Obj, 1, 1)
 
     return Obj
+end
+
+local function GhostPlayers()
+    CreateGhostLoop()
+end
+
+local function UnGhostPlayer()
+    SetLocalPlayerAsGhost(false)
+    SetGhostedEntityAlpha(254)
 end
 
 function DeleteAllCheckpoints()
@@ -395,8 +405,114 @@ function CreatorLoop()
     end)
 end
 
+local Players = {}
+
+local function playerIswithinDistance()
+    local ply = GetPlayerPed(-1)
+    local plyCoords = GetEntityCoords(ply, 0)    
+    for index,player in ipairs(Players) do
+        local playerIdx = GetPlayerFromServerId(player.sourceplayer)
+        local target = GetPlayerPed(playerIdx)
+        if Config.Debug then
+           print('player id', player.id, player.name)
+        end
+        if(target ~= ply) then
+            local targetCoords = GetEntityCoords(target, 0)
+            local distance = #(targetCoords.xy-plyCoords.xy)
+            if Config.Debug then
+               print('distance', distance)
+            end
+            if(distance < Config.Ghosting.NearestDistanceLimit) then
+                return true
+            end
+        end
+    end  
+    return false
+end
+
+local ghostLoopStart = 0
+
+local function actuallyValidateTime(Timer)
+    if Timer == 0 then
+        if Config.Debug then
+           print('Timer is off')
+        end
+        return true
+    else
+        if GetTimeDifference(GetCloudTimeAsInt(), ghostLoopStart) < Timer then
+            if Config.Debug then
+               print('Timer has NOT been reached', GetTimeDifference(GetCloudTimeAsInt(), ghostLoopStart) )
+            end
+            return true
+        end
+        if Config.Debug then
+           print('Timer has been reached')
+        end
+        return false
+    end
+end
+
+local function validateTime()
+    if CurrentRaceData.Ghosting and CurrentRaceData.GhostingTime then
+        return actuallyValidateTime(CurrentRaceData.GhostingTime)
+    else
+        return actuallyValidateTime(Config.Ghosting.Timer)
+    end
+end
+
+function CreateGhostLoop()
+    ghostLoopStart = GetCloudTimeAsInt()
+    if Config.Debug then
+       print('non racers', dump(Players))
+    end
+    CreateThread(function()
+        while true do
+            if validateTime() then
+                if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
+                    if playerIswithinDistance() then
+                        if Config.Debug then
+                           print('DE GHOSTED')
+                        end
+                        CurrentRaceData.Ghosted = false
+                        SetLocalPlayerAsGhost(false)
+                        SetGhostedEntityAlpha(254)
+                    else
+                        if Config.Debug then
+                           print('GHOSTED')
+                        end
+                        CurrentRaceData.Ghosted = true
+                        SetLocalPlayerAsGhost(true)
+                        SetGhostedEntityAlpha(254)
+                    end
+                else
+                    break
+                end
+            else
+                if Config.Debug then
+                   print('Breaking due to time')
+                end
+                CurrentRaceData.Ghosted = false
+                SetLocalPlayerAsGhost(false)
+                SetGhostedEntityAlpha(254)
+                break
+            end
+            Wait(Config.Ghosting.DistanceLoopTime)
+        end
+    end)
+end
+
 local startTime = 0
 local lapStartTime = 0
+
+local function updateCountdown(value)
+    SendNUIMessage({
+        action = "Countdown",
+        data = {
+            value = value
+        },
+        active = true
+    })
+end
 
 function RaceUI()
     CreateThread(function()
@@ -421,6 +537,7 @@ function RaceUI()
                         BestLap = CurrentRaceData.BestLap,
                         Position = CurrentRaceData.Position,
                         TotalRacers = CurrentRaceData.TotalRacers,
+                        Ghosted = CurrentRaceData.Ghosted
                     },
                     racedata = RaceData,
                     active = true
@@ -463,7 +580,6 @@ local function isFinishOrStart(CurrentRaceData, checkpoint)
 end
 
 local function SetupRace(RaceData, Laps)
-
     CurrentRaceData = {
         RaceId = RaceData.RaceId,
         Creator = RaceData.Creator,
@@ -471,6 +587,8 @@ local function SetupRace(RaceData, Laps)
         RacerName = RaceData.RacerName,
         RaceName = RaceData.RaceName,
         Checkpoints = RaceData.Checkpoints,
+        Ghosting = RaceData.Ghosting,
+        GhostingTime = RaceData.GhostingTime,
         Started = false,
         CurrentCheckpoint = 1,
         TotalLaps = Laps,
@@ -539,10 +657,6 @@ end
 
 
 local function DoPilePfx()
-    if Config.Debug then
-       print('current', CurrentRaceData.CurrentCheckpoint)
-       print(' total', #CurrentRaceData.Checkpoints)
-    end
     if CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1] ~= nil then
         handleFlare(CurrentRaceData.CurrentCheckpoint + 1)
     end
@@ -641,7 +755,7 @@ function FinishRace()
     if CurrentRaceData.BestLap ~= 0 then
         QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. SecondsToClock(CurrentRaceData.BestLap*60), 'success')
     end
-
+    UnGhostPlayer()
     ClearGpsMultiRoute()
     DeleteCurrentRaceCheckpoints()
 end
@@ -861,7 +975,7 @@ AddEventHandler('onResourceStop', function(resource)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:server:ReadyJoinRace', function(RaceData)
+RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     local PlayerPed = PlayerPedId()
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
 
@@ -872,8 +986,9 @@ RegisterNetEvent('cw-racingapp:server:ReadyJoinRace', function(RaceData)
         QBCore.Functions.Notify('You are not in a vehicle', 'error')
     end
 
-    RaceData.RacerName = RaceData.SetupRacerName
     if myCarClassIsAllowed(RaceData.MaxClass, class) then
+        RaceData.RacerName = RaceData.SetupRacerName
+        RaceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
         TriggerServerEvent('cw-racingapp:server:JoinRace', RaceData)
     else 
         QBCore.Functions.Notify('Your car is not the correct class', 'error')
@@ -926,6 +1041,7 @@ end)
 
 RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     ClearGpsMultiRoute()
+    UnGhostPlayer()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
 end)
@@ -945,19 +1061,107 @@ local function getKeysSortedByValue(tbl, sortFunction)
     return keys
 end
 
-RegisterNetEvent("cw-racingapp:Client:DeleteTrack", function(data)
+RegisterNetEvent("cw-racingapp:Client:DeleteTrackConfirmed", function(data)
     QBCore.Functions.Notify(data.RaceName..Lang:t("primary.has_been_removed"))
     TriggerServerEvent("cw-racingapp:Server:DeleteTrack", data.RaceId)
 end)
 
+RegisterNetEvent("cw-racingapp:Client:ClearLeaderboardConfirmed", function(data)
+    QBCore.Functions.Notify(data.RaceName..Lang:t("primary.leaderboard_has_been_cleared"))
+    TriggerServerEvent("cw-racingapp:Server:ClearLeaderboard", data.RaceId)
+end)
+
+
+RegisterNetEvent("cw-racingapp:Client:DeleteTrack", function(data)
+    local menu = {{
+        header = Lang:t("menu.are_you_sure_you_want_to_delete_track")..' ('..data.RaceName..')' ,
+        isMenuHeader = true
+    }}
+    menu[#menu + 1] = {
+        header = Lang:t("menu.yes"),
+        icon = "fas fa-check",
+        params = {
+            event = "cw-racingapp:Client:DeleteTrackConfirmed",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+    menu[#menu + 1] = {
+        header = Lang:t("menu.no"),
+        icon = "fas fa-xmark",
+        params = {
+            event = "cw-racingapp:Client:TrackInfo",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+    exports['qb-menu']:openMenu(menu)
+end)
+
+RegisterNetEvent("cw-racingapp:Client:ClearLeaderboard", function(data)
+    local menu = {{
+        header = Lang:t("menu.are_you_sure_you_want_to_clear")..' ('..data.RaceName..')' ,
+        isMenuHeader = true
+    }}
+    menu[#menu + 1] = {
+        header = Lang:t("menu.yes"),
+        icon = "fas fa-check",
+        params = {
+            event = "cw-racingapp:Client:ClearLeaderboardConfirmed",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+    menu[#menu + 1] = {
+        header = Lang:t("menu.no"),
+        icon = "fas fa-xmark",
+        params = {
+            event = "cw-racingapp:Client:TrackInfo",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+    exports['qb-menu']:openMenu(menu)
+end)
+
 RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
     local menu = {{
-        header = Lang:t("menu.delete_track"),
+        header = data.RaceName,
         isMenuHeader = true
     }}
 
     menu[#menu + 1] = {
-        header = Lang:t("menu.delete"),
+        header = Lang:t("menu.clear_leaderboard"),
+        icon = "fas fa-eraser",
+        params = {
+            event = "cw-racingapp:Client:ClearLeaderboard",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+    menu[#menu + 1] = {
+        header = Lang:t("menu.delete_track"),
+        icon = "fas fa-trash-can",
         params = {
             event = "cw-racingapp:Client:DeleteTrack",
             args = {
@@ -993,7 +1197,6 @@ RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
 end)
 
 local function filterTracksByRacer(Tracks)
-    print(dump(Tracks))
     local filteredTracks = {}
     for i, track in pairs(Tracks) do      
         if track.Creator == QBCore.Functions.GetPlayerData().citizenid then
@@ -1063,10 +1266,12 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then
                 if Countdown == 10 then
-                    QBCore.Functions.Notify(Lang:t("primary.race_will_start"), 'primary', 2500)
+                    --QBCore.Functions.Notify(Lang:t("primary.race_will_start"), 'primary', 2500)
+                    updateCountdown(Lang:t("primary.race_will_start"))
                     PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
                 elseif Countdown <= 5 then
-                    QBCore.Functions.Notify(Countdown, 'primary', 500)
+                    --QBCore.Functions.Notify(Countdown, 'primary', 500)
+                    updateCountdown(Countdown)
                     PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
                 end
                 Countdown = Countdown - 1
@@ -1079,10 +1284,41 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
         if CurrentRaceData.RaceName ~= nil then
             AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
             CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
-            QBCore.Functions.Notify(Lang:t("success.race_go"), 'success', 1000)
+            --QBCore.Functions.Notify(Lang:t("success.race_go"), 'success', 1000)
+            updateCountdown(Lang:t("success.race_go"))
             SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, 1.0)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             DoPilePfx()
+            if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
+                QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacers', function(Racers)
+                    QBCore.Functions.TriggerCallback('test:getplayers', function(players)
+                        if Config.Debug then
+                            print('Doing ghosting stuff')
+                            print('PLAYERS', dump(players))
+                            print('Racers', dump(Racers))
+                        end
+
+                        for index,player in ipairs(players) do
+                            if Config.Debug then
+                                print('checking if exists in racers:', player.citizenid)
+                                print(Racers[player.citizenid] ~= nil)
+                            end
+                            if Racers[player.citizenid] then
+                                if Config.Debug then
+                                    print('not adding ', player.name)
+                                end
+                            else
+                                Players[#Players+1] = player
+                            end
+                        end
+                        if Config.Debug then
+                            print('PLAYERS AFTER', dump(Players))
+                            print('====================')
+                        end
+                        GhostPlayers()
+                    end)
+                end, CurrentRaceData.RaceId)
+            end
             lapStartTime = GetCloudTimeAsInt()
             startTime = GetCloudTimeAsInt()
             CurrentRaceData.Started = true
@@ -1163,6 +1399,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     }, {
         header = Lang:t("menu.current_race"),
         txt = Lang:t("menu.current_race_txt"),
+        icon = "fas fa-hourglass-start",
         disabled = (CurrentRaceData.RaceId == nil),
         params = {
             event = "cw-racingapp:Client:CurrentRaceMenu",
@@ -1174,6 +1411,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     }, {
         header = Lang:t("menu.available_races"),
         txt = Lang:t("menu.available_races"),
+        icon = "fas fa-flag-checkered",
         disabled = not Config.Permissions[type].join,
         params = {
             event = "cw-racingapp:Client:AvailableRacesMenu",
@@ -1185,6 +1423,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     }, {
         header = Lang:t("menu.race_records"),
         txt = Lang:t("menu.race_records_txt"),
+        icon = "fas fa-trophy",
         disabled = not Config.Permissions[type].records,
         params = {
             event = "cw-racingapp:Client:RaceRecordsMenu",
@@ -1196,6 +1435,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     }, {
         header = Lang:t("menu.setup_race"),
         txt = "",
+        icon = "fas fa-calendar-plus",
         disabled = not Config.Permissions[type].setup,
         params = {
             event = "cw-racingapp:Client:SetupRaceMenu",
@@ -1207,6 +1447,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     }, {
         header = Lang:t("menu.create_race"),
         txt = "",
+        icon = "fas fa-plus",
         disabled = not Config.Permissions[type].create,
         params = {
             event = "cw-racingapp:Client:CreateRaceMenu",
@@ -1219,6 +1460,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     {
         header = Lang:t("menu.my_tracks"),
         txt = "",
+        icon = "fas fa-route",
         disabled = not Config.Permissions[type].create,
         params = {
             event = "cw-racingapp:Client:ListMyTracks",
@@ -1258,6 +1500,7 @@ RegisterNetEvent("cw-racingapp:Client:CurrentRaceMenu", function(data)
     }, {
         header = Lang:t("menu.start_race"),
         txt = "",
+        icon = "fas fa-play",
         disabled = (not (CurrentRaceData.OrganizerCID == QBCore.Functions.GetPlayerData().citizenid) or
             CurrentRaceData.Started),
         params = {
@@ -1268,6 +1511,7 @@ RegisterNetEvent("cw-racingapp:Client:CurrentRaceMenu", function(data)
     }, {
         header = Lang:t("menu.leave_race"),
         txt = "",
+        icon = "fas fa-door-open",
         params = {
             isServer = true,
             event = "cw-racingapp:server:LeaveRace",
@@ -1275,6 +1519,7 @@ RegisterNetEvent("cw-racingapp:Client:CurrentRaceMenu", function(data)
         }
     }, {
         header = Lang:t("menu.go_back"),
+        icon = "fas fa-left-long",
         params = {
             event = "cw-racingapp:Client:OpenMainMenu",
             args = {
@@ -1295,21 +1540,29 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
         for _, race in ipairs(Races) do
             local RaceData = race.RaceData
             local racers = 0
-
+            local PlayerPed = PlayerPedId()
+            race.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
             for _ in pairs(RaceData.Racers) do
                 racers = racers + 1
             end
 
             race.RacerName = data.name
+
                 
             local maxClass = 'open'
             if (RaceData.MaxClass ~= nil and RaceData.MaxClass ~= "") then
                 maxClass = RaceData.MaxClass
             end
-
+            local text = race.Laps..' lap(s) | ' ..RaceData.Distance.. 'm | ' ..racers.. ' racer(s) | Class: ' ..maxClass
+            if race.Ghosting then
+                text = text..' | 👻'
+                if race.GhostingTime then
+                    text = text..' ('..race.GhostingTime..'s)'
+                end
+            end
             menu[#menu + 1] = {
                 header = RaceData.RaceName,
-                txt = race.Laps..' lap(s) | ' ..RaceData.Distance.. 'm | ' ..racers.. ' racer(s) | Class: ' ..maxClass,
+                txt = text,
                 disabled = CurrentRaceData.RaceId == RaceData.RaceId,
                 params = {
                     isServer = true,
@@ -1565,6 +1818,14 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
     end, data.class, data.trackName)
 end)
 
+local function toboolean(str)
+    local bool = false
+    if str == "true" or str == true then
+        bool = true
+    end
+    return bool
+end
+
 RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetListedRaces', function(Races)
         local tracks = {{
@@ -1589,10 +1850,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             return
         end
 
-        local dialog = exports['qb-input']:ShowInput({
-            header = Lang:t("menu.racing_setup"),
-            submitText = "✓",
-            inputs = {{
+        local options = {{
                 text = Lang:t("menu.select_track"),
                 name = "track",
                 type = "select",
@@ -1602,11 +1860,34 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                 name = "laps",
                 type = "number",
                 isRequired = true
-            }, {
-                text = "Max class (D, C, B, A, S) leave blank for open racing",
-                name = "maxClass",
-                type = "text"
             }}
+
+        if Config.Ghosting.Enabled then
+            table.insert(options, {
+                text = Lang:t("menu.useGhosting"),
+                name = "ghosting", 
+                type = "radio", 
+                options = {
+                    { value = true, text = Lang:t("menu.yes"), checked = true }, 
+                    { value = false, text = Lang:t("menu.no")},
+                }})
+            table.insert(options, {
+                text = Lang:t('menu.ghostingTime'),
+                name = "ghostingTime",
+                type = "text"
+                })
+        end
+
+        table.insert(options, {
+            text = "Max class (D, C, B, A, S) leave blank for open racing",
+            name = "maxClass",
+            type = "text"
+        })
+
+        local dialog = exports['qb-input']:ShowInput({
+            header = Lang:t("menu.racing_setup"),
+            submitText = "✓",
+            inputs = options
         })
         if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
             if not dialog or dialog.track == "none" then
@@ -1623,7 +1904,14 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             if PlayerIsInVehicle then
                 local info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
                 if myCarClassIsAllowed(dialog.maxClass, class) then
-                    TriggerServerEvent('cw-racingapp:server:SetupRace', dialog.track, tonumber(dialog.laps), data.name, dialog.maxClass)
+                    TriggerServerEvent('cw-racingapp:server:SetupRace',
+                        dialog.track,
+                        tonumber(dialog.laps),
+                        data.name,
+                        dialog.maxClass,
+                        toboolean(dialog.ghosting),
+                        tonumber(dialog.ghostingTime)
+                    )
                 else 
                     QBCore.Functions.Notify('Your car is not the correct class', 'error')
                 end

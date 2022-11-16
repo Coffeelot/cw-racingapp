@@ -66,3 +66,10 @@ Config.Laptop = {
     racingFobCost = 25,
     racingFobMasterCost = 100,
 }
+
+Config.Ghosting = {
+    Enabled = true, --adding ability to toggle per started race soon
+    NearestDistanceLimit = 20, -- Distance (in meters) a racer needs to be to a non-racer for the ghosting to turn off
+    Timer = 0, -- Default timer, in seconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
+    DistanceLoopTime = 1000 -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly. 
+}

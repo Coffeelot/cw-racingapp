@@ -1,28 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Faster+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600&display=swap');
+
+:root {
+    --main-font-size: 2vh;
+    --big-font-size: 3vh;  
+    --huge-font-size: 10vh;
+    --font-color: white;
+    --text-shadow: 1px 1px 1px #3b3b3b;
+    --big-text-shadow: 3px 3px 3px #3b3b3b;
+    --huge-text-shadow: 5px 5px 5px #3b3b3b;  
+    --text-font: 'Michroma', sans-serif;
+    --countdown-font: 'Oswald', sans-serif;
+    --box-color-main: rgba(31, 37, 52, 0.437);
+    --debug: none;
+}
 
 body {
     margin: 0;
     padding: 0;
 }
 
-:root {
-    --main-font-size: 2vh;
-    --big-font-size: 3vh;  
-}
-
 .container {
     height: 100vh;
     opacity: 1.0;
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .ui {
     position: absolute;
-    width: 30vh;
+    width: 100vh;
+    display: flex;
+    justify-content: end;
     top: 2.7vh;
     right: 2.7vh;
     border-radius: 1vh;
+}
+
+.countdown-container {
+}
+
+.countdown-holder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#countdown-number {
+    display: var(--debug);
+    font-size: var(--huge-font-size);
+    font-family: var(--countdown-font);
+    color: var(--font-color);
+    /* font-weight:900; */
+    /* -webkit-text-stroke: 1px #000000; */
+    text-transform: uppercase;
+    text-shadow: var(--huge-text-shadow);
+}
+
+#countdown-text {
+    display: var(--debug);
+    font-size: var(--big-font-size);
+    font-family: var(--text-font);
+    color: var(--font-color);
+    text-transform: uppercase;
+    text-shadow: var(--big-text-shadow);
 }
 
 .editor {
@@ -33,76 +77,91 @@ body {
     position: absolute;
     left: 2vh;
     top: 2vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 #editor-checkpoints {
     position: absolute;
     left: 2vh;
     top: 5vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 #editor-keys-tiredistance {
     position: absolute;
     left: 2vh;
     top: 8vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 #editor-keys-add {
     position: absolute;
     left: 2vh;
     top: 11vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 #editor-keys-delete {
     position: absolute;
     left: 2vh;
     top: 14vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 #editor-keys-cancel {
     position: absolute;
     left: 2vh;
     top: 17vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 #editor-keys-save {
     position: absolute;
     left: 2vh;
     top: 20vh;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 1px 1px 0px #000000;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
 }
 
 /* RACE */
 
 .race {
-    display:  none;
+    display: var(--debug);
+}
+
+.blocks-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    gap: 20px;
+    width: 100vh;
+}
+
+
+.blocks {
+    max-width: 40vh;
+    flex-grow: 4;
+    display: flex;
     flex-direction: column;
     gap: 20px;
 }
@@ -116,12 +175,14 @@ body {
 .hud-text {
     text-align: right;
     padding: 10px;
-    font-family: 'Poppins', sans-serif;
+    padding-right: 15px;
+    padding-left: 15px;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 2px 1px 0px #0000008c;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
     font-weight: 600;
-    background-color: #0000004e;
+    background-color: var(--box-color-main);
 }
 
 .leftAligned {
@@ -141,10 +202,10 @@ body {
     display: flex;
     text-align: right;
     gap: 5px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--text-font);
     font-size: var(--main-font-size);
-    color: white;
-    text-shadow: 2px 1px 0px #0000008c;
+    color: var(--font-color);
+    text-shadow: var(--text-shadow);
     font-weight: 600;
 }
 
@@ -159,7 +220,17 @@ body {
 #racer-position-name {
     padding: 10px;
     flex-grow: 9;
-    background-color: #0000004e;  
+    background-color: #1e2a404e;  
+}
+
+#race-ghosted-span{
+    /* display: none; */
+    font-size: var(--big-font-size);
+}
+
+#race-ghosted-value{
+    /* display: none; */
+    
 }
 
 #race-racename {

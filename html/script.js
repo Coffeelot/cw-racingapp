@@ -7,6 +7,8 @@ $(document).ready(function(){
 
         if (data.action == "Update") {
             UpdateUI(data.type, data);
+        } else if (data.action == "Countdown") {
+            UpdateCountdown(data)
         }
     });
 });
@@ -15,6 +17,18 @@ function secondsTimeSpanToHMS(s) {
     var m = Math.floor(s/60); //Get remaining minutes
     s -= m*60;
     return (m < 10 ? '0'+m : m)+":"+(s < 10 ? '0'+s : s); //zero padding on minutes and seconds
+}
+
+function UpdateCountdown(data) {
+    if(typeof data.data.value == 'number') {
+        $("#countdown-number").show();
+        $("#countdown-number").html(data.data.value);
+        $("#countdown-number").fadeOut(900);
+    } else {
+        $("#countdown-text").show();
+        $("#countdown-text").html(data.data.value);
+        $("#countdown-text").fadeOut(4000);
+    }
 }
 
 function UpdateUI(type, data) {
@@ -57,18 +71,17 @@ function UpdateUI(type, data) {
                     totalRacers = 0
                 }
                 $("#race-position").html(data.data.Position + ' / ' + totalRacers);
-
                 $("#race-checkpoints").html(data.data.CurrentCheckpoint + ' / ' + data.data.TotalCheckpoints);
                 if (data.data.TotalLaps == 0) {
-                    $("#race-lap").html('Round: Sprint');
+                    $("#race-lap").html('Sprint');
                 } else {
-                    $("#race-lap").html('Round: ' + data.data.CurrentLap + ' / ' + data.data.TotalLaps);
+                    $("#race-lap").html(data.data.CurrentLap + ' / ' + data.data.TotalLaps);
                 }
                 $("#race-time").html(secondsTimeSpanToHMS(data.data.Time));
                 if (data.data.BestLap !== 0) {
                     $("#race-besttime").html(secondsTimeSpanToHMS(data.data.BestLap));
                 } else {
-                    $("#race-besttime").html('Best Round: N/A');
+                    $("#race-besttime").html('N/A');
                 }
                 $("#race-totaltime").html(secondsTimeSpanToHMS(data.data.TotalTime));
             } else {
@@ -91,6 +104,14 @@ function UpdateUI(type, data) {
                     $("#race-besttime").html('N/A');
                 }
                 $("#race-totaltime").html(secondsTimeSpanToHMS(data.data.TotalTime));
+                if (data.data.Ghosted) {
+                    $("#race-ghosted-value").html('👻');
+                    $("#race-ghosted-span").show();
+
+                } else {
+                    $("#race-ghosted-value").html('');
+                    $("#race-ghosted-span").hide();
+                }
             }
         } else {
             RaceActive = false;

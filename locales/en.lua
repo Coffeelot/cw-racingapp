@@ -34,7 +34,8 @@ local Translations = {
         no_pending_races = "There are no pending races at the moment.",
         no_races_exist = "No times have been set on this track",
         no_available_tracks = "There are no available tracks at the moment to use.",
-        has_been_removed = " has been removed"
+        has_been_removed = " has been removed",
+        leaderboard_has_been_cleared = "leaderboard has been cleared"
     },
     success = {
         race_created = "The race was created!",
@@ -65,11 +66,11 @@ local Translations = {
         race_records_txt = "See all records for races.",
         setup_race = "Setup a Race",
         create_race = "Create a Track",
-        close = "✗ Close Menu",
+        close = "Close Menu",
         racers = " racer(s)",
         start_race = "Start Race",
         leave_race =  "Leave Race",
-        go_back = "← Go Back",
+        go_back = "Go Back",
         race_info = "%s lap(s) | %sm | %s racer(s)",
         unclaimed = "Unclaimed Record!",
         choose_a_track = "Choose a Track",
@@ -81,8 +82,14 @@ local Translations = {
         name_track = "Name your track",
         all = 'All Classes',
         my_tracks = "My tracks",
-        delete_track = "Delete track?",
-        delete = "Delete"
+        delete_track = "Delete track",
+        clear_leaderboard = "Clear Leaderboard",
+        are_you_sure_you_want_to_delete_track = 'Delete this track permanently?',
+        are_you_sure_you_want_to_clear = 'Clear this tracks leaderboard permanently?',
+        yes = "Yes",
+        no = "No",
+        useGhosting = "Use Ghosting?",
+        ghostingTime = "Time (in seconds) until Ghosting turns off"
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})
