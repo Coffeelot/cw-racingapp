@@ -2139,8 +2139,8 @@ if Config.Trader.active then
                 end
             }
         }
-        local pizza
-        traderEntity = exports['qb-target']:SpawnPed({
+
+        exports['qb-target']:SpawnPed({
             model = trader.model,
             coords = trader.location,
             minusOne = true,
