@@ -5,7 +5,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local Countdown = 10
 local ToFarCountdown = 10
 local FinishedUITimeout = false
-
+local useDebug = Config.Debug
 local RaceData = {
     InCreator = false,
     InRace = false,
@@ -413,13 +413,13 @@ local function playerIswithinDistance()
     for index,player in ipairs(Players) do
         local playerIdx = GetPlayerFromServerId(player.sourceplayer)
         local target = GetPlayerPed(playerIdx)
-        if Config.Debug then
+        if useDebug then
            print('player id', player.id, player.name)
         end
         if(target ~= ply) then
             local targetCoords = GetEntityCoords(target, 0)
             local distance = #(targetCoords.xy-plyCoords.xy)
-            if Config.Debug then
+            if useDebug then
                print('distance', distance)
             end
             if(distance < Config.Ghosting.NearestDistanceLimit) then
@@ -434,18 +434,18 @@ local ghostLoopStart = 0
 
 local function actuallyValidateTime(Timer)
     if Timer == 0 then
-        if Config.Debug then
+        if useDebug then
            print('Timer is off')
         end
         return true
     else
         if GetTimeDifference(GetCloudTimeAsInt(), ghostLoopStart) < Timer then
-            if Config.Debug then
+            if useDebug then
                print('Timer has NOT been reached', GetTimeDifference(GetCloudTimeAsInt(), ghostLoopStart) )
             end
             return true
         end
-        if Config.Debug then
+        if useDebug then
            print('Timer has been reached')
         end
         return false
@@ -462,7 +462,7 @@ end
 
 function CreateGhostLoop()
     ghostLoopStart = GetCloudTimeAsInt()
-    if Config.Debug then
+    if useDebug then
        print('non racers', dump(Players))
     end
     CreateThread(function()
@@ -470,14 +470,14 @@ function CreateGhostLoop()
             if validateTime() then
                 if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
                     if playerIswithinDistance() then
-                        if Config.Debug then
+                        if useDebug then
                            print('DE GHOSTED')
                         end
                         CurrentRaceData.Ghosted = false
                         SetLocalPlayerAsGhost(false)
                         SetGhostedEntityAlpha(254)
                     else
-                        if Config.Debug then
+                        if useDebug then
                            print('GHOSTED')
                         end
                         CurrentRaceData.Ghosted = true
@@ -488,7 +488,7 @@ function CreateGhostLoop()
                     break
                 end
             else
-                if Config.Debug then
+                if useDebug then
                    print('Breaking due to time')
                 end
                 CurrentRaceData.Ghosted = false
@@ -661,7 +661,7 @@ local function DoPilePfx()
         handleFlare(CurrentRaceData.CurrentCheckpoint + 1)
     end
     if CurrentRaceData.CurrentCheckpoint == 1 then -- start
-        if Config.Debug then
+        if useDebug then
            print('start')
         end
         -- QBCore.Functions.Notify('Lighting start '..CurrentRaceData.CurrentCheckpoint, 'success')
@@ -669,13 +669,13 @@ local function DoPilePfx()
 
     end
     if CurrentRaceData.TotalLaps > 0 and CurrentRaceData.CurrentCheckpoint == #CurrentRaceData.Checkpoints then -- finish
-        if Config.Debug then
+        if useDebug then
            print('finish')
         end
         --QBCore.Functions.Notify('Lighting finish/startline '..CurrentRaceData.CurrentCheckpoint + 1, 'success')
         handleFlare(1)
         if CurrentRaceData.Lap ~= CurrentRaceData.TotalLaps then
-            if Config.Debug then
+            if useDebug then
                print('not last lap')
             end
             handleFlare(2)
@@ -1055,7 +1055,7 @@ local function getKeysSortedByValue(tbl, sortFunction)
     table.sort(keys, function(a, b)
       return sortFunction(tbl[a], tbl[b])
     end)
-    if Config.Debug then
+    if useDebug then
        print('KEYS',dump(keys))
     end
     return keys
@@ -1292,26 +1292,26 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
                 QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacers', function(Racers)
                     QBCore.Functions.TriggerCallback('test:getplayers', function(players)
-                        if Config.Debug then
+                        if useDebug then
                             print('Doing ghosting stuff')
                             print('PLAYERS', dump(players))
                             print('Racers', dump(Racers))
                         end
 
                         for index,player in ipairs(players) do
-                            if Config.Debug then
+                            if useDebug then
                                 print('checking if exists in racers:', player.citizenid)
                                 print(Racers[player.citizenid] ~= nil)
                             end
                             if Racers[player.citizenid] then
-                                if Config.Debug then
+                                if useDebug then
                                     print('not adding ', player.name)
                                 end
                             else
                                 Players[#Players+1] = player
                             end
                         end
-                        if Config.Debug then
+                        if useDebug then
                             print('PLAYERS AFTER', dump(Players))
                             print('====================')
                         end
@@ -1663,7 +1663,7 @@ local function getKeysSortedByValue(tbl, sortFunction)
     table.sort(keys, function(a, b)
       return sortFunction(tbl[a], tbl[b])
     end)
-    if Config.Debug then
+    if useDebug then
        print('KEYS',dump(keys))
     end
     return keys
@@ -1741,11 +1741,11 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
             header = data.trackName..' | '..data.class,
             isMenuHeader = true
         }}
-        if Config.Debug then
+        if useDebug then
            print(dump(filteredLeaderboards))
         end
         for i, RecordData in pairs(filteredLeaderboards) do
-            if Config.Debug then
+            if useDebug then
                print('RecordData', dump(RecordData), i)
             end
             
@@ -2021,18 +2021,18 @@ local function hasAuth(tradeType, fobType)
         local Player = QBCore.Functions.GetPlayerData()
         local playerHasJob = Config.AllowedJobs[Player.job.name]
         local jobGradeReq = nil
-        if Config.Debug then
+        if useDebug then
            print('Player job: ', Player.job.name)
            print('Allowed jobs: ', dump(Config.AllowedJobs))
         end
         
         if playerHasJob then
-            if Config.Debug then
+            if useDebug then
                print('Player job level: ', Player.job.grade.level)
             end
             if Config.AllowedJobs[Player.job.name] ~= nil then
                 jobGradeReq = Config.AllowedJobs[Player.job.name][fobType]
-                if Config.Debug then
+                if useDebug then
                    print('Required job grade: ', jobGradeReq)
                 end
                 if jobGradeReq ~= nil then
@@ -2104,6 +2104,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     end
 end)
 
+local traderEntity
 if Config.Trader.active then
     local trader = Config.Trader
     CreateThread(function()
@@ -2138,8 +2139,8 @@ if Config.Trader.active then
                 end
             }
         }
-
-        exports['qb-target']:SpawnPed({
+        local pizza
+        traderEntity = exports['qb-target']:SpawnPed({
             model = trader.model,
             coords = trader.location,
             minusOne = true,
@@ -2152,46 +2153,52 @@ if Config.Trader.active then
                 distance = 3.0 
             },
             spawnNow = true,
-            currentpednumber = 0,
+            currentpednumber = 2,
         })
     end)
 end
 
+local laptopEntity
 if Config.Laptop.active then
-    local laptop = Config.Laptop
-    CreateThread(function()    
-        local options = {
-            { 
-                type = "client",
-                event = "cw-racingapp:client:OpenFobInput",
-                icon = "fas fa-flag-checkered",
-                label = 'Buy a racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
-                purchaseType = laptop,
-                fobType = 'basic',
-                canInteract = function()
-                    return hasAuth(laptop,'basic')
-                end
-            },
-            { 
-                type = "client",
-                event = "cw-racingapp:client:OpenFobInput",
-                icon = "fas fa-flag-checkered",
-                label = 'Buy a Master racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
-                purchaseType = laptop,
-                fobType = 'master',
-                canInteract = function()
-                    return hasAuth(laptop,'master')
-                end
+    CreateThread(function()        
+        local laptop = Config.Laptop
+            local options = {
+                { 
+                    type = "client",
+                    event = "cw-racingapp:client:OpenFobInput",
+                    icon = "fas fa-flag-checkered",
+                    label = 'Buy a racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
+                    purchaseType = laptop,
+                    fobType = 'basic',
+                    canInteract = function()
+                        return hasAuth(laptop,'basic')
+                    end
+                },
+                { 
+                    type = "client",
+                    event = "cw-racingapp:client:OpenFobInput",
+                    icon = "fas fa-flag-checkered",
+                    label = 'Buy a Master racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
+                    purchaseType = laptop,
+                    fobType = 'master',
+                    canInteract = function()
+                        return hasAuth(laptop,'master')
+                    end
+                }
             }
-        }
-        local model = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, true,  true, true)
-        SetEntityHeading(model, laptop.location.w)
-        CreateObject(model)
-        FreezeEntityPosition(model, true)
+            laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, true,  true, true)
+            SetEntityHeading(laptopEntity, laptop.location.w)
+            CreateObject(laptopEntity)
+            FreezeEntityPosition(laptopEntity, true)
 
-        exports['qb-target']:AddTargetEntity(model, {
-            options = options,
-            distance = 3.0 
-        })
+            exports['qb-target']:AddTargetEntity(laptopEntity, {
+                options = options,
+                distance = 3.0 
+            })
     end)
 end
+
+RegisterNetEvent('cw-racingapp:client:toggleDebug', function(debug)
+    print('Setting debug to',debug)
+    useDebug = debug
+end)

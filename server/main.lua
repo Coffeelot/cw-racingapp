@@ -7,6 +7,7 @@ local AvailableRaces = {}
 local LastRaces = {}
 local NotFinished = {}
 local racersSortedByPosition = {}
+local useDebug = Config.Debug
 
 -- for debug
 local function dump(o)
@@ -30,11 +31,11 @@ local function updateRaces()
             if v.records ~= nil then
                 Records = json.decode(v.records)
                 if #Records == 0 then
-                    if Config.Debug then
+                    if useDebug then
                        print('Only one record')
-                       MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-                        {json.encode({Records}), v.raceid})
                     end
+                    MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
+                     {json.encode({Records}), v.raceid})
                     Records = { Records }
                 end
             end
@@ -70,7 +71,7 @@ end
 
 local function filterLeaderboardsByClass(Leaderboard, class)
     local filteredLeaderboard = {}
-    if Config.Debug then
+    if useDebug then
        print(dump(Leaderboard))
     end
     for i, Record in pairs(Leaderboard) do
@@ -83,11 +84,11 @@ end
 
 local function racerHasPreviousRecordInClass(Records, RacerName, CarClass)
     if Records then
-        if Config.Debug then
+        if useDebug then
            print(RacerName, CarClass)
         end
         for i, Record in pairs(Records) do
-            if Config.Debug then
+            if useDebug then
                print('Checking previous records:', Record.Holder, Record.Class)
                print('check', Record.Holder == RacerName, Record.Class == CarClass)
             end
@@ -103,13 +104,13 @@ end
 local function getLatestRecordsById(RaceId)
     local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE raceid = ?', {RaceId})[1]
     if results.records then
-        if Config.Debug then
+        if useDebug then
            print('results by id : ', dump(results.records))
            print('decoded results by id : ', dump(json.decode(results.records)))
         end
         return json.decode(results.records)
     else
-        if Config.Debug then
+        if useDebug then
            print('found no latest')
         end
         return {}
@@ -119,13 +120,13 @@ end
 local function getLatestRecordsByName(RaceName)    
     local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE name = ?', {RaceName})[1]
     if results.records then
-        if Config.Debug then
+        if useDebug then
            print('results by name : ', dump(results.records))
            print('decoded results by name : ', dump(json.decode(results.records)))
         end
         return json.decode(results.records)
     else
-        if Config.Debug then
+        if useDebug then
            print('found no latest')
         end
         return {}
@@ -137,23 +138,23 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
     local FilteredLeaderboard = {}
     local PersonalBest, index = nil, nil
     if #records == 0 then
-        if Config.Debug then
+        if useDebug then
            print('no records have been set yet')
         end
     else
         FilteredLeaderboard = filterLeaderboardsByClass(records, CarClass)
         PersonalBest, index = racerHasPreviousRecordInClass(records, RacerName, CarClass)
     end
-    if Config.Debug then
+    if useDebug then
        print('Time', PlayerTime, RacerName, CarClass, VehicleModel)
        print('All times for this class', dump(FilteredLeaderboard))
     end
 
-    if Config.Debug then
+    if useDebug then
        print('racer has previous record: ', dump(PersonalBest), index)
     end
     if PersonalBest and PersonalBest.Time > PlayerTime then
-        if Config.Debug then
+        if useDebug then
            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
         end
         TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.new_pb"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
@@ -172,10 +173,10 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
 
     elseif not PersonalBest then
         TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.time_added"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
-        if Config.Debug then
+        if useDebug then
            print('had no pb')
         end
-        if Config.Debug then
+        if useDebug then
             print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
          end
         local playerPlacement = {
@@ -184,12 +185,12 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Class = CarClass,
             Vehicle = VehicleModel
         }
-        if Config.Debug then
+        if useDebug then
            print('records', dump(records))
         end
         table.insert(records, playerPlacement)
         records = sortRecordsByTime(records)
-        if Config.Debug then
+        if useDebug then
            print('new records', dump(records))
         end
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
@@ -240,11 +241,11 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     if Races[RaceData.RaceId].Records ~= nil and next(Races[RaceData.RaceId].Records) ~= nil then
         local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel)
         if newRecord then
-            if Config.Debug then
+            if useDebug then
                print('Player got a record', BLap)
             end
         else
-            if Config.Debug then
+            if useDebug then
                print('Player did not get a record')
             end
         end
@@ -501,7 +502,7 @@ local function placements()
             elseif a.Checkpoint < b.Checkpoint then return false
             elseif a.Checkpoint == b.Checkpoint then
                 if a.RaceTime < b.RaceTime then
-                    if Config.Debug then
+                    if useDebug then
                        print(a.RacerName, a.RaceTime, ' > ',b.RacerName, b.RaceTime)
                     end
                     return true
@@ -523,11 +524,11 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Races[RaceId].Racers[CitizenId].Lap = Lap
         Races[RaceId].Racers[CitizenId].Finished = Finished
         Races[RaceId].Racers[CitizenId].RaceTime = RaceTime
-        if Config.Debug then
+        if useDebug then
            print('before', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
         end
         placements()
-        if Config.Debug then
+        if useDebug then
            print('after', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
         end
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId], racersSortedByPosition)
@@ -729,7 +730,7 @@ end
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingLeaderboards', function(source, cb, class, trackName)
     local Leaderboard = {}
     Leaderboard[trackName] = getLatestRecordsByName(trackName)
-    if Config.Debug then
+    if useDebug then
        print(class, trackName, dump(Leaderboard[trackName]))
     end
     if Leaderboard[trackName] then
@@ -880,3 +881,8 @@ QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, t
     dropRacetrackTable()
 end, 'admin')
 
+QBCore.Commands.Add('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
+    useDebug = not useDebug
+    print('debug is now:', useDebug)
+    TriggerClientEvent('cw-racingapp:client:toggleDebug',source, useDebug)
+end, 'admin')
