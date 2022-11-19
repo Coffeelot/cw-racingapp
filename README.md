@@ -4,7 +4,7 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 
 **Some of the added features:**
 - Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
-- Top 3 leaderboard for each track instead of only the best
+- Advanced leaderboard for each track and class showing everyones best times
 - By-class leaderboard
 - Replacement of tire-piles lamps
 - Increased size of checkpoints
