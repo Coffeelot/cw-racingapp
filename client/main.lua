@@ -35,6 +35,8 @@ local CurrentRaceData = {
     Ghosted = false,
 }
 
+local Entities = {}
+
 -- for debug
 local function dump(o)
     if type(o) == 'table' then
@@ -2088,7 +2090,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
                     disableCombat = true,
                     }, {
                     }, {}, {}, function() -- Done
-                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, 'fob_racing_basic')
+                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType)
                         TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
                     end, function()
                         TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
@@ -2140,7 +2142,7 @@ if Config.Trader.active then
             }
         }
 
-        exports['qb-target']:SpawnPed({
+        traderEntity = exports['qb-target']:SpawnPed({
             model = trader.model,
             coords = trader.location,
             minusOne = true,
@@ -2153,8 +2155,9 @@ if Config.Trader.active then
                 distance = 3.0 
             },
             spawnNow = true,
-            currentpednumber = 2,
+            currentpednumber = 4,
         })
+        Entities[#Entities+1] = traderEntity
     end)
 end
 
@@ -2190,7 +2193,7 @@ if Config.Laptop.active then
             SetEntityHeading(laptopEntity, laptop.location.w)
             CreateObject(laptopEntity)
             FreezeEntityPosition(laptopEntity, true)
-
+            Entities[#Entities+1] = laptopEntity
             exports['qb-target']:AddTargetEntity(laptopEntity, {
                 options = options,
                 distance = 3.0 
@@ -2198,7 +2201,12 @@ if Config.Laptop.active then
     end)
 end
 
-RegisterNetEvent('cw-racingapp:client:toggleDebug', function(debug)
-    print('Setting debug to',debug)
-    useDebug = debug
+AddEventHandler('onResourceStop', function (resource)
+   if resource ~= GetCurrentResourceName() then return end
+   for i, entity in pairs(Entities) do
+       print('deleting', entity)
+       if DoesEntityExist(entity) then
+          DeleteEntity(entity)
+       end
+    end
 end)
