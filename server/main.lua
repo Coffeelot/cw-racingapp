@@ -786,14 +786,10 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(sou
 end)
 
 local function createRacingFob(source, citizenid, racerName, type)
-    local fobTypes = {
-        ['basic'] = "fob_racing_basic",
-        ['master'] = "fob_racing_master"
-    }
     local Player = QBCore.Functions.GetPlayer(source)
     Player.Functions.RemoveMoney(Config.Trader.moneyType, Config.Trader.racingFobCost)
-    Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
-    TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
+    Player.Functions.AddItem(type, 1, nil, { owner = citizenid, name = racerName })
+    TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[type], "add")
 end
 
 RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type)
