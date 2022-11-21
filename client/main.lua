@@ -2090,7 +2090,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
                     disableCombat = true,
                     }, {
                     }, {}, {}, function() -- Done
-                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType)
+                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
                         TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
                     end, function()
                         TriggerEvent('animations:client:EmoteCommandStart', {"damn"})

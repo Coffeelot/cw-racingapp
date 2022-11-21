@@ -785,22 +785,22 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(sou
     end
 end)
 
-local function createRacingFob(source, citizenid, racerName, type)
+local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     local fobTypes = {
         ['basic'] = "fob_racing_basic",
         ['master'] = "fob_racing_master"
     }
     local Player = QBCore.Functions.GetPlayer(source)
-    Player.Functions.RemoveMoney(Config.Trader.moneyType, Config.Trader.racingFobCost)
+    Player.Functions.RemoveMoney(purchaseType.moneyType, purchaseType.racingFobCost)
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
 end
 
-RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type)
+RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type, purchaseType)
     local player = QBCore.Functions.GetPlayer(tonumber(playerId))
     if player then
         local citizenId = player.PlayerData.citizenid
-        createRacingFob(source, citizenId, racerName, type)
+        createRacingFob(source, citizenId, racerName, type, purchaseType)
     else
         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.could_not_find_person"), "error")
     end
