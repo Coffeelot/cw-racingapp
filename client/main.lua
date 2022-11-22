@@ -1293,7 +1293,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             DoPilePfx()
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
                 QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacers', function(Racers)
-                    QBCore.Functions.TriggerCallback('test:getplayers', function(players)
+                    QBCore.Functions.TriggerCallback('cw-racingapp:Server:getplayers', function(players)
                         if useDebug then
                             print('Doing ghosting stuff')
                             print('PLAYERS', dump(players))
@@ -2090,7 +2090,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
                     disableCombat = true,
                     }, {
                     }, {}, {}, function() -- Done
-                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
+                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType)
                         TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
                     end, function()
                         TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
