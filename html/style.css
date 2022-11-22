@@ -3,8 +3,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600&display=swap');
 
 :root {
-    --main-font-size: 2vh;
-    --big-font-size: 3vh;  
+    --main-font-size: 1vh;
+    --big-font-size: 2vh;  
     --huge-font-size: 10vh;
     --font-color: white;
     --text-shadow: 1px 1px 1px #3b3b3b;
@@ -159,7 +159,7 @@ body {
 
 
 .blocks {
-    max-width: 40vh;
+    max-width: 20vh;
     flex-grow: 4;
     display: flex;
     flex-direction: column;
