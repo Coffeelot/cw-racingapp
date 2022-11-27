@@ -2090,7 +2090,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
                     disableCombat = true,
                     }, {
                     }, {}, {}, function() -- Done
-                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType)
+                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
                         TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
                     end, function()
                         TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
@@ -2133,7 +2133,7 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a Master racing fob for '..trader.racingFobCost..' '..trader.moneyType,
+                label = 'Buy a Master racing fob for '..trader.racingFobMasterCost..' '..trader.moneyType,
                 purchaseType = trader,
                 fobType = 'master',
                 canInteract = function()
@@ -2181,7 +2181,7 @@ if Config.Laptop.active then
                     type = "client",
                     event = "cw-racingapp:client:OpenFobInput",
                     icon = "fas fa-flag-checkered",
-                    label = 'Buy a Master racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
+                    label = 'Buy a Master racing fob for '..laptop.racingFobMasterCost..' '.. laptop.moneyType,
                     purchaseType = laptop,
                     fobType = 'master',
                     canInteract = function()

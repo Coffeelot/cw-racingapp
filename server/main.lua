@@ -800,12 +800,25 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(sou
 end)
 
 local function createRacingFob(source, citizenid, racerName, type, purchaseType)
+    if useDebug then
+        print('Creating a racing fob. Input:')
+        print('citizenid', citizenid)
+        print('racerName', racerName)
+        print('type', type)
+        print('purchaseType', dump(purchaseType))
+    end
     local fobTypes = {
         ['basic'] = "fob_racing_basic",
         ['master'] = "fob_racing_master"
     }
     local Player = QBCore.Functions.GetPlayer(source)
-    Player.Functions.RemoveMoney(purchaseType.moneyType, purchaseType.racingFobCost)
+    local cost = nil
+    if type == 'master' then
+        cost = purchaseType.racingFobMasterCost
+    else
+        cost = purchaseType.racingFobCost
+    end
+    Player.Functions.RemoveMoney(purchaseType.moneyType, cost)
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
 end
