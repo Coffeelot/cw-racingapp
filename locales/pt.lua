@@ -90,7 +90,7 @@ local Translations = {
         no = "Não",
         useGhosting = "Usar Phasing?",
         ghostingTime = "Tempo de Duração do Phasing/s",
-        no_tracks_exist = "No tracks to show"
+        no_tracks_exist = "Não existe pistas"
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})
