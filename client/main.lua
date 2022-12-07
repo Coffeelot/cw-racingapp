@@ -2077,7 +2077,8 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
         local player = QBCore.Functions.GetPlayerData()
         if racerId == '' then
             print('racer id was left empty')
-            racerId = player.cid
+            racerId = GetPlayerServerId(PlayerId())
+            print('WHAT THE FUCK ', racerId, dump(player))
         end
         print(racerName, racerId)
         if player.money[purchaseType.moneyType] > purchaseType.racingFobCost then

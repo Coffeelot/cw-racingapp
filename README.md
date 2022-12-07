@@ -2,6 +2,7 @@
 
 This is a rework of the superb free resource [QB-Racing](https://github.com/ItsANoBrainer/qb-racing) by ItsANoBrainer.
 
+
 **Some of the added features:**
 - Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
 - Advanced leaderboard for each track and class showing everyones best times
@@ -65,11 +66,17 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 ['fob_racing_master'] = {['name'] = 'fob_racing_master', ['label'] = 'Master Racing Fob', ['weight'] = 500, ['type'] = 'item', ['image'] = 'fob_racing_master.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'This master fob allows someone to create custom races.'},
 ```
 4. Add the item images to your inventory image folder
+5. Setup your DB by running one of these commands:
+
+`/resetracetracks` - This command will remove the current `race_tracks` table and add a new one (good if you got bad data)  (warning: all tracks and records will be gone)
+`/updateracetracks` - This command will update the `race_tracks` table from how it's done in qb-racing. This DOES NOT reset any laptimes and **old ones WILL BREAK** the script. 
 
 ## Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)
 * [qb-input](https://github.com/qbcore-framework/qb-input)
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
+
+
 
 ## Example Usage
 ### Interface Images
@@ -89,15 +96,8 @@ Change from normal qb-racing: Sorted by track, added classes and added full list
 Change from normal qb-racing: Added classes to list. If you set up a race with A class, people can join with A and lower, but not higher.
 
 ![Interface](https://i.imgur.com/4r6iriO.png)
-# Commands
 
-## /resetracetracks
-This command will remove the current `race_tracks` table and add a new one (good if you got bad data)  (warning: all tracks and records will be gone)
-
-## /updateracetracks
-This command will update the `race_tracks` table from the old way, so that it works with cw-racingapp and qb-racing. Use this if you you have "creator" instead of "creatorid", and "creatorname" is missing
-
+# Uninstalling or full reset
 ## /removeracetracks
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
-
 ## Developed by Coffeelot#1586, Wuggie#1683
