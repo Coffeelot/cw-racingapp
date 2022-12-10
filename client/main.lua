@@ -35,6 +35,7 @@ local CurrentRaceData = {
     Ghosted = false,
 }
 
+local Classes = exports['cw-performance']:getPerformanceClasses()
 local Entities = {}
 
 -- for debug
@@ -1860,7 +1861,8 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             }, {
                 text = Lang:t("menu.number_laps"),
                 name = "laps",
-                type = "number",
+                type = "select",
+                options = Config.Options.Laps,
                 isRequired = true
             }}
 
@@ -1876,14 +1878,26 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             table.insert(options, {
                 text = Lang:t('menu.ghostingTime'),
                 name = "ghostingTime",
-                type = "text"
+                type = "select",
+                options = Config.Ghosting.Options
                 })
         end
+        
+        local classes = { {value = '', text = Lang:t('menu.no_class_limit'), number = 9000} }
+        for i, class in pairs(Config.Classes) do
+            print(i, Classes[i])
+            classes[#classes+1] = { value = i, text = i, number = Classes[i] }
+        end
 
+        table.sort(classes, function(a,b)
+            return a.number > b.number
+        end)
+        
         table.insert(options, {
-            text = "Max class (D, C, B, A, S) leave blank for open racing",
+            text =  Lang:t('menu.max_class'),
             name = "maxClass",
-            type = "text"
+            type = "select",
+            options = classes
         })
 
         local dialog = exports['qb-input']:ShowInput({
@@ -1891,6 +1905,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             submitText = "✓",
             inputs = options
         })
+        print('selected max class', dialog.maxClass)
         if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
             if not dialog or dialog.track == "none" then
                 TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
@@ -1984,7 +1999,8 @@ end)
 
 local function indexOf(array, value)
     for i, v in ipairs(array) do
-        if v == value then
+        print(i, value)
+        if i == value then
             return i
         end
     end
@@ -1995,9 +2011,8 @@ function myCarClassIsAllowed(maxClass, myClass)
     if maxClass == nil or maxClass == '' then
         return true
     end
-    local classes = { 'D', 'C', 'B', 'A', 'S', 'S+'}
-    local myClassIndex = indexOf(classes, myClass)
-    local maxClassIndex = indexOf(classes, maxClass) 
+    local myClassIndex = Classes[myClass]
+    local maxClassIndex = Classes[maxClass]
     if myClassIndex > maxClassIndex then
         return false
     end

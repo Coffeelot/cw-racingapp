@@ -61,6 +61,7 @@ local Translations = {
         current_race = "Current Race",
         current_race_txt = "Options for your currently entered race.",
         available_races = "Available Races",
+        available_races_txt = "See all the currently available races right now.",
         race_records = "Race Records",
         race_records_txt = "See all records for races.",
         setup_race = "Setup a Race",
@@ -89,7 +90,8 @@ local Translations = {
         no = "No",
         useGhosting = "Use Ghosting?",
         ghostingTime = "Time (in seconds) until Ghosting turns off",
-        no_tracks_exist = "No tracks to show"
+        no_class_limit = 'No class limit',
+        max_class = 'Max class allowed'
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})

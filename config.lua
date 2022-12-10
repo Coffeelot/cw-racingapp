@@ -21,12 +21,11 @@ Config.FlareTime = 10000 -- How long the flares are lit
 Config.StartAndFinishModel = `prop_golfflag`
 Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --`prop_flare_01b`
 Config.Classes = {
-    ['D'] = true,
     ['C'] = true,
     ['B'] = true,
     ['A'] = true,
     ['S'] = true
-}
+} -- These classes can be used (notice X missing for example). Only use classes from cw-performance here. 
 
 Config.MinRacerNameLength = 3
 Config.MaxRacerNameLength = 24
@@ -43,6 +42,22 @@ Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Co
     ['tuner'] = { basic = 2, master = 4},
     ['spongebob'] = { basic = 1 },
 }
+
+Config.Options = {
+    Laps = {
+        { value = '', text = 'Sprint' },
+        { value = 1, text = 1 },
+        { value = 2, text = 2 },
+        { value = 3, text = 3 },
+        { value = 4, text = 4 },
+        { value = 5, text = 5 },
+        { value = 6, text = 6 },
+        { value = 7, text = 7 },
+        { value = 8, text = 8 },
+        { value = 9, text = 9 },
+        { value = 10, text = 10 },
+    }
+} -- The options for laps. Who the fuck would want to do 10 laps??
 
 Config.Trader = {
     active = true,
@@ -71,5 +86,12 @@ Config.Ghosting = {
     Enabled = true, --adding ability to toggle per started race soon
     NearestDistanceLimit = 20, -- Distance (in meters) a racer needs to be to a non-racer for the ghosting to turn off
     Timer = 0, -- Default timer, in seconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
-    DistanceLoopTime = 1000 -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly. 
+    DistanceLoopTime = 1000, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly. 
+    Options = {
+        { value = '', text = 'Never' },
+        { value = 10, text = 10 },
+        { value = 30, text = 30 },
+        { value = 60, text = 60 },
+        { value = 120, text = 120 },
+    }
 }
