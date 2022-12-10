@@ -69,7 +69,10 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 5. Setup your DB by running one of these commands:
 
 `/resetracetracks` - This command will remove the current `race_tracks` table and add a new one (good if you got bad data)  (warning: all tracks and records will be gone)
-`/updateracetracks` - This command will update the `race_tracks` table from how it's done in qb-racing. This DOES NOT reset any laptimes and **old ones WILL BREAK** the script. 
+
+`/updateracetracks` - This command will update the `race_tracks` table from how it's done in qb-racing. This DOES NOT reset any laptimes and **old ones WILL BREAK** the script. If you're still getting issues consider wiping old records or using the other command.
+
+Then restart cw-racingapp
 
 ## Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)
