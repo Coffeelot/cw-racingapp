@@ -1885,7 +1885,6 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
         
         local classes = { {value = '', text = Lang:t('menu.no_class_limit'), number = 9000} }
         for i, class in pairs(Config.Classes) do
-            print(i, Classes[i])
             classes[#classes+1] = { value = i, text = i, number = Classes[i] }
         end
 
@@ -1905,7 +1904,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             submitText = "✓",
             inputs = options
         })
-        print('selected max class', dialog.maxClass)
+
         if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
             if not dialog or dialog.track == "none" then
                 TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
