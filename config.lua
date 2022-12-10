@@ -45,7 +45,7 @@ Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Co
 
 Config.Options = {
     Laps = {
-        { value = '', text = 'Sprint' },
+        { value = 0, text = 'Sprint' },
         { value = 1, text = 1 },
         { value = 2, text = 2 },
         { value = 3, text = 3 },
