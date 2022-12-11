@@ -56,8 +56,19 @@ Config.Options = {
         { value = 8, text = 8 },
         { value = 9, text = 9 },
         { value = 10, text = 10 },
-    }
-} -- The options for laps. Who the fuck would want to do 10 laps??
+    },
+    BuyIns = {
+        { value = 0, text = 'Nothing' },
+        { value = 100, text = 100 },
+        { value = 200, text = 200 },
+        { value = 500, text = 500 },
+        { value = 1000, text = 1000 },
+        { value = 2000, text = 2000 },
+        { value = 5000, text = 5000 },
+        { value = 10000, text = 10000 }
+    },
+    MoneyType = 'cash'
+}
 
 Config.Trader = {
     active = true,

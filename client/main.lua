@@ -748,10 +748,24 @@ function DeleteCurrentRaceCheckpoints()
     RaceData.InRace = false
 end
 
+-- local currentTotalTime = 0
+
+-- CreateThread(function()
+--     while true do
+--         if CurrentRaceData.RaceName ~= nil then
+--             if CurrentRaceData.Started then
+--                 currentTotalTime = currentTotalTime+10;
+--             end
+--             Wait(10)
+--         end
+--         Wait(1000)
+--     end
+-- end)
+
 function FinishRace()
     local PlayerPed = PlayerPedId()
     local info, class, perfRating, vehicleModel = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
-    
+    -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel)
     QBCore.Functions.Notify(Lang:t("success.race_finished") .. SecondsToClock(CurrentRaceData.TotalTime*60), 'success')
@@ -808,6 +822,8 @@ end
 ----   Threads     ----
 -----------------------
 
+
+
 CreateThread(function()
     while true do
         if RaceData.InCreator then
@@ -835,14 +851,13 @@ CreateThread(function()
     end
 end)
 
+-- Racing
 CreateThread(function()
     while true do
-
-        local ped = PlayerPedId()
-        local pos = GetEntityCoords(ped)
-
         if CurrentRaceData.RaceName ~= nil then
             if CurrentRaceData.Started then
+                local ped = PlayerPedId()
+                local pos = GetEntityCoords(ped)
                 local cp = 0
                 if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then
                     cp = 1
@@ -940,6 +955,7 @@ CreateThread(function()
     end
 end)
 
+-- Creator
 CreateThread(function()
     while true do
         if RaceData.InCreator then
@@ -988,7 +1004,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     else
         QBCore.Functions.Notify('You are not in a vehicle', 'error')
     end
-
+    
     if myCarClassIsAllowed(RaceData.MaxClass, class) then
         RaceData.RacerName = RaceData.SetupRacerName
         RaceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
@@ -1864,6 +1880,13 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                 type = "select",
                 options = Config.Options.Laps,
                 isRequired = true
+            },
+            {
+                text = Lang:t("menu.buyIn"),
+                name = "buyIn",
+                type = "select",
+                options = Config.Options.BuyIns,
+                isRequired = true
             }}
 
         if Config.Ghosting.Enabled then
@@ -1885,6 +1908,9 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
         
         local classes = { {value = '', text = Lang:t('menu.no_class_limit'), number = 9000} }
         for i, class in pairs(Config.Classes) do
+            if useDebug then
+                print(i, Classes[i])
+            end
             classes[#classes+1] = { value = i, text = i, number = Classes[i] }
         end
 
@@ -1904,7 +1930,9 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             submitText = "✓",
             inputs = options
         })
-
+        if useDebug then
+            print('selected max class', dialog.maxClass)
+        end
         if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
             if not dialog or dialog.track == "none" then
                 TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
@@ -1926,7 +1954,8 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                         data.name,
                         dialog.maxClass,
                         toboolean(dialog.ghosting),
-                        tonumber(dialog.ghostingTime)
+                        tonumber(dialog.ghostingTime),
+                        tonumber(dialog.buyIn)
                     )
                 else 
                     QBCore.Functions.Notify('Your car is not the correct class', 'error')
