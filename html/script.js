@@ -21,9 +21,11 @@ function secondsTimeSpanToHMS(s) {
 
 function UpdateCountdown(data) {
     if(typeof data.data.value == 'number') {
+        $(".number-holder").show();
         $("#countdown-number").show();
         $("#countdown-number").html(data.data.value);
         $("#countdown-number").fadeOut(900);
+        $(".number-holder").fadeOut(900);
     } else {
         $("#countdown-text").show();
         $("#countdown-text").html(data.data.value);

@@ -12,7 +12,7 @@
     --huge-text-shadow: 5px 5px 5px #3b3b3b;  
     --text-font: 'Michroma', sans-serif;
     --countdown-font: 'Oswald', sans-serif;
-    --box-color-main: rgba(31, 37, 52, 0.437);
+    --box-color-main: rgba(34, 37, 46, 0.882);
     --debug: none;
 }
 
@@ -44,9 +44,16 @@ body {
 }
 
 .countdown-holder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
+}
+
+.number-holder {
+    display: var(--debug);
+    background-color: var(--box-color-main);
+    width: 15vh;
+    height: 15vh;
+    border-radius: 10vh;
+    text-align: center;
 }
 
 #countdown-number {
@@ -57,7 +64,6 @@ body {
     /* font-weight:900; */
     /* -webkit-text-stroke: 1px #000000; */
     text-transform: uppercase;
-    text-shadow: var(--huge-text-shadow);
 }
 
 #countdown-text {
@@ -66,7 +72,6 @@ body {
     font-family: var(--text-font);
     color: var(--font-color);
     text-transform: uppercase;
-    text-shadow: var(--big-text-shadow);
 }
 
 .editor {
