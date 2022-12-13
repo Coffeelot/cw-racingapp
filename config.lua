@@ -1,6 +1,7 @@
 Config = Config or {}
 Config.Debug = false
 
+
 Config.Permissions = {
     ['fob_racing_basic'] = {
         ['join'] = true,
@@ -17,9 +18,9 @@ Config.Permissions = {
 }
 
 Config.FlareTime = 10000 -- How long the flares are lit
-
 Config.StartAndFinishModel = `prop_golfflag`
 Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --`prop_flare_01b`
+
 Config.Classes = {
     ['C'] = true,
     ['B'] = true,
@@ -37,6 +38,8 @@ Config.MaxTireDistance = 30.0 -- Max distance between checkpoint tire piles
 
 Config.MinTrackNameLength = 3 -- Min track name length to submit
 Config.MaxTrackNameLength = 24 -- Max track name length to submit
+
+Config.JoinDistance = 200
 
 Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Config.Trader/Config.Laptop"
     ['tuner'] = { basic = 2, master = 4},

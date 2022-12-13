@@ -1359,55 +1359,25 @@ RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, Rac
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:WaitingDistanceCheck', function()
-    Wait(1000)
-    CreateThread(function()
-        while true do
-            if not CurrentRaceData.Started then
-                local ped = PlayerPedId()
-                local pos = GetEntityCoords(ped)
-                if CurrentRaceData.Checkpoints[1] ~= nil then
-                    local cpcoords = CurrentRaceData.Checkpoints[1].coords
-                    local dist = #(pos - vector3(cpcoords.x, cpcoords.y, cpcoords.z))
-                    if dist > 115.0 then
-                        if ToFarCountdown ~= 0 then
-                            ToFarCountdown = ToFarCountdown - 1
-                            QBCore.Functions.Notify(Lang:t("error.return_to_start") .. ToFarCountdown .. 's', 'error',
-                                500)
-                        else
-                            TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData)
-                            ToFarCountdown = 10
-                            break
-                        end
-                        Wait(1000)
-                    else
-                        if ToFarCountdown ~= 10 then
-                            ToFarCountdown = 10
-                        end
-                    end
-                end
-            else
-                break
-            end
-            Wait(0)
-        end
-    end)
+RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x,y)
+    QBCore.Functions.Notify(Lang:t('error.not_close_enough_to_join'), 'error')
+    SetNewWaypoint(x, y)
 end)
 
 RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     local type = data.type
     local name = data.name
     local info, class, perfRating = '', '', ''
-    local subtitle = 'You are not in a vehicle'
+    local subtitle = Lang:t('menu.not_in_a_vehicle')
 
     local PlayerPed = PlayerPedId()
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
 
     if PlayerIsInVehicle then
         info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
-        subtitle = 'You are currently in an ' .. class .. perfRating.. " class car"
+        subtitle = Lang:t('menu.currently_in') .. class .. perfRating.. Lang:t('menu.class_car')
     else
-        QBCore.Functions.Notify('You are not in a vehicle', 'error')
+        QBCore.Functions.Notify(Lang:t('menu.not_in_a_vehicle'), 'error')
     end
 
 
@@ -1579,8 +1549,16 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
                     text = text..' ('..race.GhostingTime..'s)'
                 end
             end
+            local header = RaceData.RaceName
+            if RaceData.BuyIn > 0 then
+                local currency = 'Crypto '
+                if Config.Options.MoneyType == 'cash' or Config.Options.MoneyType == 'bank' then
+                    currency = '$'
+                end
+                header = header.. ' | ('..currency .. RaceData.BuyIn..')'
+            end
             menu[#menu + 1] = {
-                header = RaceData.RaceName,
+                header = header,
                 txt = text,
                 disabled = CurrentRaceData.RaceId == RaceData.RaceId,
                 params = {

@@ -306,6 +306,10 @@ RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerNa
     end
 end)
 
+local function isToFarAway(src, RaceId)
+    return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Races[RaceId].Checkpoints[1].coords.x, Races[RaceId].Checkpoints[1].coords.y))
+end
+
 RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -316,6 +320,10 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     local CurrentRace = GetCurrentRace(Player.PlayerData.citizenid)
     local RacerName = RaceData.RacerName
 
+    if isToFarAway(src, RaceId) then
+        TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Races[RaceId].Checkpoints[1].coords.x, Races[RaceId].Checkpoints[1].coords.y)
+        return
+    end
     if not Races[RaceId].Started then
         if useDebug then
             print('Join: BUY IN', RaceData.BuyIn)
@@ -451,6 +459,10 @@ end)
 RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
+    if isToFarAway(src, RaceId) then
+        TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Races[RaceId].Checkpoints[1].coords.x, Races[RaceId].Checkpoints[1].coords.y)
+        return
+    end
     if BuyIn > 0 and Player.PlayerData.money[Config.Options.MoneyType] < BuyIn then
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
     else
