@@ -23,7 +23,8 @@ local Translations = {
         editor_canceled = "You canceled the editor.",
         can_not_afford = "You can't afford this",
         could_not_find_person = "Could not find the person",
-        not_enough_money = "Not enough money to join"
+        not_enough_money = "Not enough money to join",
+        not_close_enough_to_join = "Not close enough to join. A waypoint was set to the start."
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",
@@ -94,6 +95,9 @@ local Translations = {
         no_class_limit = "No class limit",
         max_class = "Max class allowed",
         buyIn = "Buy in",
+        not_in_a_vehicle = "You are not in a vehicle",
+        currently_in = "You're currently in a ", -- note the spaces on this
+        class_car = " class car" -- note the spaces on this
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})
