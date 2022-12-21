@@ -683,12 +683,17 @@ end
 
 function IsPermissioned(CitizenId, type)
     local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
-
     local HasMaster = Player.Functions.GetItemsByName('fob_racing_master')
     if HasMaster then
         for _, item in ipairs(HasMaster) do
-            if item.info.owner == CitizenId and Config.Permissions['fob_racing_master'][type] then
-                return true
+            if Config.Inventory == 'ox' then
+                if item.metadata.owner == CitizenId and Config.Permissions['fob_racing_master'][type] then
+                    return true
+                end
+            else
+                if item.info.owner == CitizenId and Config.Permissions['fob_racing_master'][type] then
+                    return true
+                end
             end
         end
     end
@@ -696,8 +701,14 @@ function IsPermissioned(CitizenId, type)
     local HasBasic = Player.Functions.GetItemsByName('fob_racing_basic')
     if HasBasic then
         for _, item in ipairs(HasBasic) do
-            if item.info.owner == CitizenId and Config.Permissions['fob_racing_basic'][type] then
-                return true
+            if Config.Inventory == 'ox' then
+                if item.metadata.owner == CitizenId and Config.Permissions['fob_racing_basic'][type] then
+                    return true
+                end
+            else
+                if item.info.owner == CitizenId and Config.Permissions['fob_racing_basic'][type] then
+                    return true
+                end
             end
         end
     end

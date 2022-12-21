@@ -1,7 +1,7 @@
 Config = Config or {}
 Config.Debug = false
 
-
+Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support
 Config.Permissions = {
     ['fob_racing_basic'] = {
         ['join'] = true,
