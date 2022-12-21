@@ -18,7 +18,7 @@ Config.Permissions = {
 }
 
 Config.FlareTime = 10000 -- How long the flares are lit
-Config.StartAndFinishModel = `prop_golfflag`
+Config.StartAndFinishModel = `prop_beachflag_le`
 Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --`prop_flare_01b`
 
 Config.Classes = {
@@ -40,6 +40,15 @@ Config.MinTrackNameLength = 3 -- Min track name length to submit
 Config.MaxTrackNameLength = 24 -- Max track name length to submit
 
 Config.JoinDistance = 200
+
+Config.Blips = {
+    Generic = { Size = 1.0, Color = 38 },
+    Next = { Size = 1.3, Color = 47 },
+    Passed = { Size = 0.6, Color = 62 }
+}
+
+-- Colors for blips: https://docs.fivem.net/docs/game-references/blips/
+
 
 Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Config.Trader/Config.Laptop"
     ['tuner'] = { basic = 2, master = 4},

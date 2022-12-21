@@ -329,9 +329,9 @@ function CreateCheckpointBlip(coords, id)
 
     SetBlipSprite(Blip, 1)
     SetBlipDisplay(Blip, 4)
-    SetBlipScale(Blip, 0.8)
+    SetBlipScale(Blip, Config.Blips.Generic.Size)
     SetBlipAsShortRange(Blip, true)
-    SetBlipColour(Blip, 26)
+    SetBlipColour(Blip, Config.Blips.Generic.Color)
     ShowNumberOnBlip(Blip, id)
     SetBlipShowCone(Blip, false)
     BeginTextCommandSetBlipName("STRING")
@@ -851,6 +851,27 @@ CreateThread(function()
     end
 end)
 
+local function genericBlip(Blip)
+    SetBlipScale(Blip, Config.Blips.Generic.Size)
+    SetBlipColour(Blip, Config.Blips.Generic.Color)
+end
+
+local function nextBlip(Blip)
+    SetBlipScale(Blip, Config.Blips.Next.Size)
+    SetBlipColour(Blip, Config.Blips.Next.Color)
+end
+
+local function passedBlip(Blip)
+    SetBlipScale(Blip, Config.Blips.Passed.Size)
+    SetBlipColour(Blip, Config.Blips.Passed.Color)
+end
+
+local function resetBlips()
+    for i, checkpoint in pairs(CurrentRaceData.Checkpoints) do
+        genericBlip(checkpoint.blip)
+    end
+end
+
 -- Racing
 CreateThread(function()
     while true do
@@ -868,7 +889,7 @@ CreateThread(function()
                 local CheckpointDistance = #(pos - vector3(data.coords.x, data.coords.y, data.coords.z))
                 local MaxDistance = GetMaxDistance(CurrentRaceData.Checkpoints[cp].offset)
                 if CheckpointDistance < MaxDistance then
-                    if CurrentRaceData.TotalLaps == 0 then
+                    if CurrentRaceData.TotalLaps == 0 then -- Sprint
                         if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
@@ -877,8 +898,8 @@ CreateThread(function()
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
-                            SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip, 0.6)
-                            SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, 1.0)
+                            passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                            nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                         else
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
@@ -887,9 +908,9 @@ CreateThread(function()
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                             FinishRace()
                         end
-                    else
-                        if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then
-                            if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then
+                    else -- Circuit
+                        if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then -- If new lap
+                            if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then -- if finish
                                 DoPilePfx()
                                 PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
@@ -901,8 +922,9 @@ CreateThread(function()
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                                 FinishRace()
-                            else
+                            else -- if next lap
                                 DoPilePfx()
+                                resetBlips()
                                 PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
@@ -917,8 +939,10 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
+                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                             end
-                        else
+                        else -- if next checkpoint 
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
                                 AddPointToGpsMultiRoute(
@@ -926,16 +950,15 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
-                                SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip, 0.6)
-                                SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip,
-                                    1.0)
+                                    passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                    nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                             else
                                 AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
                                     CurrentRaceData.Checkpoints[1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
-                                SetBlipScale(CurrentRaceData.Checkpoints[#CurrentRaceData.Checkpoints].blip, 0.6)
-                                SetBlipScale(CurrentRaceData.Checkpoints[1].blip, 1.0)
+                                    passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                    nextBlip(CurrentRaceData.Checkpoints[1].blip)
                             end
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
@@ -946,6 +969,7 @@ CreateThread(function()
                 local data = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
                 DrawMarker(4, data.coords.x, data.coords.y, data.coords.z + 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
                     1.5, 255, 255, 255, 255, 0, 1, 0, 0, 0, 0, 0)
+                    nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1].blip)
             end
         else
             Wait(1000)
@@ -1305,7 +1329,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             --QBCore.Functions.Notify(Lang:t("success.race_go"), 'success', 1000)
             updateCountdown(Lang:t("success.race_go"))
-            SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, 1.0)
+            SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, Config.Blips.Generic.Size)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             DoPilePfx()
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
@@ -1555,7 +1579,7 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
                 if Config.Options.MoneyType == 'cash' or Config.Options.MoneyType == 'bank' then
                     currency = '$'
                 end
-                header = header.. ' | ('..currency .. RaceData.BuyIn..')'
+                header = header.. ' | '..currency .. RaceData.BuyIn
             end
             menu[#menu + 1] = {
                 header = header,
