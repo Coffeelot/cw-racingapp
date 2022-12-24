@@ -781,11 +781,18 @@ end
 function UseRacingFob(source, item)
     local Player = QBCore.Functions.GetPlayer(source)
     local citizenid = Player.PlayerData.citizenid
-
-    if item.info.owner == citizenid then
-        TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.info.name})
-    else
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.unowned_dongle"), "error")
+    if Config.Inventory == 'qb' then
+        if item.info.owner == citizenid then
+            TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.info.name})
+        else
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.unowned_dongle"), "error")
+        end
+    elseif Config.Inventory == 'ox' then
+        if item.metadata.owner == citizenid then
+            TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.metadata.name})
+        else
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.unowned_dongle"), "error")
+        end
     end
 end
 
