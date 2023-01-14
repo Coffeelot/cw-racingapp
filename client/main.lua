@@ -12,12 +12,20 @@ local RaceData = {
     ClosestCheckpoint = 0
 }
 
+local LastCheckPointDeleted = nil
+local PreCheckpoints = {}
+local PostCheckpoints = {}
+local NewCheckpoint = {}
+
+local EditingCheckpoint = false
 local CreatorData = {
     RaceName = nil,
     RacerName = nil,
     Checkpoints = {},
     TireDistance = 3.0,
-    ConfirmDelete = false
+    ConfirmDelete = false,
+    IsEdit = false,
+    RaceId = nil
 }
 
 local CurrentRaceData = {
@@ -133,10 +141,13 @@ function DeleteAllCheckpoints()
     end
 end
 
-function DeleteCheckpoint()
+local function DeleteCheckpoint()
     local NewCheckpoints = {}
     if RaceData.ClosestCheckpoint ~= 0 then
         local ClosestCheckpoint = CreatorData.Checkpoints[RaceData.ClosestCheckpoint]
+        if useDebug then
+           print('deleting checkpoint', dump(ClosestCheckpoint))
+        end
 
         if ClosestCheckpoint then
             local Blip = ClosestCheckpoint.blip
@@ -226,7 +237,6 @@ function SaveRace()
     end
 
     CreatorData.RaceDistance = RaceDistance
-
     TriggerServerEvent('cw-racingapp:server:SaveRace', CreatorData)
     Lang:t("error.slow_down")
     QBCore.Functions.Notify(Lang:t("success.race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
@@ -237,6 +247,8 @@ function SaveRace()
     CreatorData.RaceName = nil
     CreatorData.RacerName = nil
     CreatorData.Checkpoints = {}
+    CreatorData.IsEdit = false
+    CreatorData.RaceId = nil
 end
 
 function GetClosestCheckpoint()
@@ -289,40 +301,6 @@ function CreatorUI()
     end)
 end
 
-function AddCheckpoint()
-    local PlayerPed = PlayerPedId()
-    local PlayerPos = GetEntityCoords(PlayerPed)
-    local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
-    local Offset = {
-        left = {
-            x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
-            y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).y,
-            z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).z
-        },
-        right = {
-            x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).x,
-            y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).y,
-            z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
-        }
-    }
-
-    CreatorData.Checkpoints[#CreatorData.Checkpoints + 1] = {
-        coords = {
-            x = PlayerPos.x,
-            y = PlayerPos.y,
-            z = PlayerPos.z
-        },
-        offset = Offset
-    }
-
-    for id, CheckpointData in pairs(CreatorData.Checkpoints) do
-        if CheckpointData.blip ~= nil then
-            RemoveBlip(CheckpointData.blip)
-        end
-
-        CheckpointData.blip = CreateCheckpointBlip(CheckpointData.coords, id)
-    end
-end
 
 function CreateCheckpointBlip(coords, id)
     local Blip = AddBlipForCoord(coords.x, coords.y, coords.z)
@@ -341,7 +319,93 @@ function CreateCheckpointBlip(coords, id)
     return Blip
 end
 
+local function redrawBlips()
+    for id, CheckpointData in pairs(CreatorData.Checkpoints) do
+        RemoveBlip(CheckpointData.blip)
+        CheckpointData.blip = CreateCheckpointBlip(CheckpointData.coords, id)
+    end
+end
+
+local function AddCheckpoint(checkpointId)
+    local PlayerPed = PlayerPedId()
+    local PlayerPos = GetEntityCoords(PlayerPed)
+    local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
+    local Offset = {
+        left = {
+            x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
+            y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).y,
+            z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).z
+        },
+        right = {
+            x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).x,
+            y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).y,
+            z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
+        }
+    }
+    if checkpointId ~= nil then
+        RemoveBlip(tonumber(CreatorData.Checkpoints[tonumber(checkpointId)].blip))
+        local PileLeft = CreatorData.Checkpoints[tonumber(checkpointId)].pileleft
+        if PileLeft then
+            DeleteClosestObject(CreatorData.Checkpoints[tonumber(checkpointId)].offset.left, Config.StartAndFinishModel)
+            DeleteClosestObject(CreatorData.Checkpoints[tonumber(checkpointId)].offset.left, Config.CheckpointPileModel)
+            PileLeft = nil
+        end
+
+        local PileRight = CreatorData.Checkpoints[tonumber(checkpointId)].pileright
+        if PileRight then
+            DeleteClosestObject(CreatorData.Checkpoints[tonumber(checkpointId)].offset.right, Config.StartAndFinishModel)
+            DeleteClosestObject(CreatorData.Checkpoints[tonumber(checkpointId)].offset.right, Config.CheckpointPileModel)
+            PileRight = nil
+        end
+
+        CreatorData.Checkpoints[tonumber(checkpointId)] = {
+            coords = {
+                x = PlayerPos.x,
+                y = PlayerPos.y,
+                z = PlayerPos.z
+            },
+            offset = Offset
+        }
+    else
+        CreatorData.Checkpoints[#CreatorData.Checkpoints + 1] = {
+            coords = {
+                x = PlayerPos.x,
+                y = PlayerPos.y,
+                z = PlayerPos.z
+            },
+            offset = Offset
+        }
+    end
+
+    redrawBlips()
+end
+
+
+local function MoveCheckpoint()
+    
+    local dialog = exports['qb-input']:ShowInput({
+        header = Lang:t("menu.edit_checkpoint_header"),
+        submitText = Lang:t("menu.confirm"),
+        inputs = {
+            {
+                text = "Checkpoint number", -- text you want to be displayed as a place holder
+                name = "number", -- name of the input should be unique otherwise it might override
+                type = "number", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+                isRequired = true, -- Optional [accepted values: true | false] but will submit the form if no value is inputted
+            },
+        },
+    })
+    
+    if dialog ~= nil then
+        if useDebug then
+            print('Moving checkpoint', dialog.number)
+         end
+        AddCheckpoint(dialog.number)
+    end
+end
+
 function CreatorLoop()
+    redrawBlips()
     CreateThread(function()
         while RaceData.InCreator do
             local PlayerPed = PlayerPedId()
@@ -360,12 +424,20 @@ function CreatorLoop()
                     end
                 end
 
+                if IsControlJustPressed(0, 159) or IsDisabledControlJustPressed(0, 159) then
+                    print('hehe')
+                    if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
+                        MoveCheckpoint()
+                    else
+                        QBCore.Functions.Notify(Lang:t("error.no_checkpoints_to_edit"), 'error')
+                    end
+                end
+
                 if IsControlJustPressed(0, 311) or IsDisabledControlJustPressed(0, 311) then
                     if CreatorData.Checkpoints and #CreatorData.Checkpoints >= Config.MinimumCheckpoints then
                         SaveRace()
                     else
-                        QBCore.Functions.Notify(Lang:t("error.not_enough_checkpoints") .. '(' ..
-                                                    Config.MinimumCheckpoints .. ')', 'error')
+                        QBCore.Functions.Notify(Lang:t("error.not_enough_checkpoints") .. '(' ..Config.MinimumCheckpoints .. ')', 'error')
                     end
                 end
 
@@ -1038,13 +1110,39 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, RacerName)
+local function openRaceUi()
+    CreatorUI()
+    CreatorLoop()
+end
+
+RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, RacerName, RaceId)
     if not RaceData.InCreator then
         CreatorData.RaceName = RaceName
         CreatorData.RacerName = RacerName
         RaceData.InCreator = true
-        CreatorUI()
-        CreatorLoop()
+        if RaceId then
+            QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTrackData', function(track)
+                if track then
+                    CreatorData.RaceName = RaceName
+                    CreatorData.RacerName = RacerName
+                    CreatorData.RaceId = RaceId
+                    CreatorData.CheckPoints = {}
+                    CreatorData.TireDistance = 3.0
+                    CreatorData.ConfirmDelete = false
+                    CreatorData.IsEdit = true
+                    for i, checkpoint in pairs(track.Checkpoints) do
+                        CreatorData.Checkpoints[#CreatorData.Checkpoints+1] = checkpoint
+                    end
+                    openRaceUi()
+                    
+                else
+                    print('Something went wrong with fetching this track')
+                end
+            end, RaceId)
+        else
+            CreatorData.IsEdit = false
+            openRaceUi()
+        end
     else
         QBCore.Functions.Notify(Lang:t("error.already_making_race"), 'error')
     end
@@ -1114,6 +1212,9 @@ RegisterNetEvent("cw-racingapp:Client:ClearLeaderboardConfirmed", function(data)
     TriggerServerEvent("cw-racingapp:Server:ClearLeaderboard", data.RaceId)
 end)
 
+RegisterNetEvent("cw-racingapp:Client:EditTrack", function(data)
+    TriggerEvent("cw-racingapp:client:StartRaceEditor", data.RaceName, data.name, data.RaceId)
+end)
 
 RegisterNetEvent("cw-racingapp:Client:DeleteTrack", function(data)
     local menu = {{
@@ -1203,6 +1304,20 @@ RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
         }
     }
     menu[#menu + 1] = {
+        header = Lang:t("menu.edit_track"),
+        icon = "fas fa-wrench",
+        params = {
+            event = "cw-racingapp:Client:EditTrack",
+            args = {
+                type = data.type,
+                name = data.name,
+                RaceId = data.RaceId,
+                RaceName = data.RaceName
+            }
+        }
+    }
+
+    menu[#menu + 1] = {
         header = Lang:t("menu.delete_track"),
         icon = "fas fa-trash-can",
         params = {
@@ -1268,6 +1383,10 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
             }
         end
 
+        table.sort(menu, function (a,b)
+            return a.header < b.header
+        end)
+
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
             params = {
@@ -1278,10 +1397,6 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
                 }
             }
         }
-
-        table.sort(menu, function (a,b)
-            return a.header < b.header
-        end)
 
         table.insert(menu, 1, {
             header = Lang:t("menu.my_tracks"),

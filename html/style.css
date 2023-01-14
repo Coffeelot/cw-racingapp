@@ -7,13 +7,35 @@
     --big-font-size: 2vh;  
     --huge-font-size: 10vh;
     --font-color: white;
-    --text-shadow: 1px 1px 1px #3b3b3b;
+    --text-shadow: 2px 2px 2px #3b3b3b;
     --big-text-shadow: 3px 3px 3px #3b3b3b;
     --huge-text-shadow: 5px 5px 5px #3b3b3b;  
     --text-font: 'Michroma', sans-serif;
     --countdown-font: 'Oswald', sans-serif;
-    --box-color-main: rgba(34, 37, 46, 0.882);
+    --box-color-main: rgb(7 8 10 / 83%);
     --debug: none;
+}
+
+:root {
+    --primary-color: #ff4603 ;
+	--primary-color-light: #ffa303;
+	--primary-color-dark: #c30000;
+    --primary: linear-gradient(131deg, var(--primary-color) 0%, var(--primary-color-light) 100%);
+    --secondary-color: #90aeff;
+	--secondary-color-light: #5d7fcb;
+	--secondary-color-dark: #c4e0ff;
+	--positive-color: #66bb6a;
+	--negative-color:  #c62828;
+	--background-color: #1C1C21;
+	--background-color-lighter: #36363e;
+	--background-color-dark: #1f1f24;
+    --background: linear-gradient(131deg, var(--background-color) 0%, var(--background-color-lighter) 100%);
+    --shadow: hsl(0, 3%, 6%);
+	--text-color: #ffffff;
+	--text-color-disabled: #dcdcdc;
+    --accent-color: #c0392b;
+	--border-radius: 3px;
+    --border: 1px solid;
 }
 
 body {
@@ -78,75 +100,34 @@ body {
     display: none;
 }
 
-#editor-racename {
-    position: absolute;
+.editor-holder {
     left: 2vh;
     top: 2vh;
     font-family: var(--text-font);
     font-size: var(--main-font-size);
     color: var(--font-color);
     text-shadow: var(--text-shadow);
+    height: fit-content;
+    background: var(--background);
+    border-radius: var(--border-radius);
 }
 
-#editor-checkpoints {
-    position: absolute;
-    left: 2vh;
-    top: 5vh;
+#editor-racename {
+    text-decoration: underline;
+}
+
+.editor-text {
+    text-align: left;
+    padding: 10px;
+    padding-right: 15px;
+    padding-left: 15px;
     font-family: var(--text-font);
     font-size: var(--main-font-size);
     color: var(--font-color);
     text-shadow: var(--text-shadow);
+    font-weight: 600;
 }
 
-#editor-keys-tiredistance {
-    position: absolute;
-    left: 2vh;
-    top: 8vh;
-    font-family: var(--text-font);
-    font-size: var(--main-font-size);
-    color: var(--font-color);
-    text-shadow: var(--text-shadow);
-}
-
-#editor-keys-add {
-    position: absolute;
-    left: 2vh;
-    top: 11vh;
-    font-family: var(--text-font);
-    font-size: var(--main-font-size);
-    color: var(--font-color);
-    text-shadow: var(--text-shadow);
-}
-
-#editor-keys-delete {
-    position: absolute;
-    left: 2vh;
-    top: 14vh;
-    font-family: var(--text-font);
-    font-size: var(--main-font-size);
-    color: var(--font-color);
-    text-shadow: var(--text-shadow);
-}
-
-#editor-keys-cancel {
-    position: absolute;
-    left: 2vh;
-    top: 17vh;
-    font-family: var(--text-font);
-    font-size: var(--main-font-size);
-    color: var(--font-color);
-    text-shadow: var(--text-shadow);
-}
-
-#editor-keys-save {
-    position: absolute;
-    left: 2vh;
-    top: 20vh;
-    font-family: var(--text-font);
-    font-size: var(--main-font-size);
-    color: var(--font-color);
-    text-shadow: var(--text-shadow);
-}
 
 /* RACE */
 

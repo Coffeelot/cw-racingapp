@@ -40,7 +40,9 @@ function UpdateUI(type, data) {
                 CreatorActive = true;
                 $(".editor").fadeIn(300);
                 $("#editor-racename").html('Race: ' + data.data.RaceName);
-                $("#editor-checkpoints").html('Checkpoints: ' + data.racedata.Checkpoints.length + ' / ?');
+                if (data.racedata.Checkpoints) {
+                    $("#editor-checkpoints").html('Checkpoints: ' + data.racedata.Checkpoints.length + ' / ?');
+                }
                 $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">+ ] </span> / <span style="color: rgb(255, 43, 43);">- [</span> - Tire Distance ['+data.data.TireDistance+'.0]');
                 if (data.racedata.ClosestCheckpoint !== undefined && data.racedata.ClosestCheckpoint !== 0) {
                     $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">8</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');
@@ -49,7 +51,9 @@ function UpdateUI(type, data) {
                 }
             } else {
                 $("#editor-racename").html('Race: ' + data.data.RaceName);
-                $("#editor-checkpoints").html('Checkpoints: ' + data.data.Checkpoints.length + ' / ?');
+                if (data.racedata.Checkpoints) {
+                    $("#editor-checkpoints").html('Checkpoints: ' + data.racedata.Checkpoints.length + ' / ?');
+                }
                 $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">+ ] </span> / <span style="color: rgb(255, 43, 43);">- [</span> - Tire Distance ['+data.data.TireDistance+'.0]');
                 if (data.racedata.ClosestCheckpoint !== undefined && data.racedata.ClosestCheckpoint !== 0) {
                     $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">8</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');

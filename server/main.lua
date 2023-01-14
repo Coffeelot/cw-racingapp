@@ -609,7 +609,12 @@ end)
 RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    local RaceId = GenerateRaceId()
+    local RaceId = ''
+    if RaceData.RaceId ~= nil then
+        RaceId = RaceData.RaceId
+    else
+        RaceId = GenerateRaceId()
+    end
     local Checkpoints = {}
     for k, v in pairs(RaceData.Checkpoints) do
         Checkpoints[k] = {
@@ -618,21 +623,28 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
         }
     end
 
-    Races[RaceId] = {
-        RaceName = RaceData.RaceName,
-        Checkpoints = Checkpoints,
-        Records = {},
-        Creator = Player.PlayerData.citizenid,
-        CreatorName = RaceData.RacerName,
-        RaceId = RaceId,
-        Started = false,
-        Waiting = false,
-        Distance = math.ceil(RaceData.RaceDistance),
-        Racers = {},
-        LastLeaderboard = {}
-    }
-    MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid) VALUES (?, ?, ?, ?, ?, ?)',
-        {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId})
+    if RaceData.IsEdit then
+        print('Saving over previous track', RaceData.RaceId)
+        MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?', { json.encode(Checkpoints), RaceData.RaceId})
+        Races[RaceId].Checkpoints = Checkpoints
+    else
+        print('Creating new track', RaceId)
+        Races[RaceId] = {
+            RaceName = RaceData.RaceName,
+            Checkpoints = Checkpoints,
+            Records = {},
+            Creator = Player.PlayerData.citizenid,
+            CreatorName = RaceData.RacerName,
+            RaceId = RaceId,
+            Started = false,
+            Waiting = false,
+            Distance = math.ceil(RaceData.RaceDistance),
+            Racers = {},
+            LastLeaderboard = {}
+        }
+        MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid) VALUES (?, ?, ?, ?, ?, ?)',
+            {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId})
+    end
 end)
 
 RegisterNetEvent('cw-racingapp:Server:DeleteTrack', function(RaceId)
@@ -840,17 +852,10 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:IsAuthorizedToCreateRaces',
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(source, cb, RaceId)
-    local result = MySQL.Sync.fetchAll('SELECT * FROM players WHERE citizenid = ?', {Races[RaceId].Creator})
-    if result[1] ~= nil then
-        result[1].charinfo = json.decode(result[1].charinfo)
-        cb(Races[RaceId], result[1])
+    if Races[RaceId] then
+        cb(Races[RaceId])
     else
-        cb(Races[RaceId], {
-            charinfo = {
-                firstname = "Unknown",
-                lastname = "Unknown"
-            }
-        })
+        cb(false)
     end
 end)
 

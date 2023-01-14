@@ -53,6 +53,9 @@ Config Options per Dongle:
 # Preview 📽
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/APtMydz4gF8/0.jpg)](https://youtu.be/APtMydz4gF8)
 
+Update to track editor:
+
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/N_HI0jAsgbg/0.jpg)](https://youtu.be/N_HI0jAsgbg)
 ## Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
@@ -73,6 +76,8 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 `/updateracetracks` - This command will update the `race_tracks` table from how it's done in qb-racing. This DOES NOT reset any laptimes and **old ones WILL BREAK** the script. If you're still getting issues consider wiping old records or using the other command.
 
 Then restart cw-racingapp
+
+Also, note that you **CAN NOT** spawn the racing fobs with `/giveitem`. Spawn them with the built in command `/createracingfob` or get one at the trader or laptop
 
 ## Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)

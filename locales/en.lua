@@ -24,7 +24,9 @@ local Translations = {
         can_not_afford = "You can't afford this",
         could_not_find_person = "Could not find the person",
         not_enough_money = "Not enough money to join",
-        not_close_enough_to_join = "Not close enough to join. A waypoint was set to the start."
+        not_close_enough_to_join = "Not close enough to join. A waypoint was set to the start.",
+        no_checkpoints_to_edit = "No checkpoints to edit",
+        you_have_to_place_a_new_checkpoint_down_first = "You have to place down a new checkpoint first"
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",
@@ -97,7 +99,10 @@ local Translations = {
         buyIn = "Buy in",
         not_in_a_vehicle = "You are not in a vehicle",
         currently_in = "You're currently in a ", -- note the spaces on this
-        class_car = " class car" -- note the spaces on this
+        class_car = " class car", -- note the spaces on this,
+        edit_checkpoint_header = "Edit checkpoint",
+        confirm = "Confirm",
+        edit_track = "Edit track",
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})
