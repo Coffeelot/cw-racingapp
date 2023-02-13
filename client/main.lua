@@ -6,6 +6,9 @@ local Countdown = 10
 local ToFarCountdown = 10
 local FinishedUITimeout = false
 local useDebug = Config.Debug
+local object1, object2
+local cpobject
+local start
 local RaceData = {
     InCreator = false,
     InRace = false,
@@ -382,7 +385,6 @@ end
 
 
 local function MoveCheckpoint()
-    
     local dialog = exports['qb-input']:ShowInput({
         header = Lang:t("menu.edit_checkpoint_header"),
         submitText = Lang:t("menu.confirm"),
@@ -395,7 +397,6 @@ local function MoveCheckpoint()
             },
         },
     })
-    
     if dialog ~= nil then
         if useDebug then
             print('Moving checkpoint', dialog.number)
@@ -472,6 +473,7 @@ function CreatorLoop()
                     CreatorData.RaceName = nil
                     CreatorData.Checkpoints = {}
                     QBCore.Functions.Notify(Lang:t("error.editor_canceled"), 'error')
+                    cleanupObjects()
                     CreatorData.ConfirmDelete = false
                 end
             end
@@ -1051,14 +1053,26 @@ CreateThread(function()
     end
 end)
 
+function RequestModelAndLoad(hash)
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do
+      Wait(0)
+    end
+end
+
 -- Creator
 CreateThread(function()
     while true do
         if RaceData.InCreator then
             local PlayerPed = PlayerPedId()
             local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
+            if object1 and object2 ~= nil then
+                cleanupObjects()
+            end
+            cpobject = Config.CheckpointPileModel
 
             if PlayerVeh ~= 0 then
+                RequestModelAndLoad(cpobject)
                 local Offset = {
                     left = {
                         x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
@@ -1071,14 +1085,26 @@ CreateThread(function()
                         z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
                     }
                 }
+                object1 = CreateObjectNoOffset(cpobject, Offset.left.x, Offset.left.y, Offset.left.z, false, false, false)
+                object2 = CreateObjectNoOffset(cpobject, Offset.right.x, Offset.right.y, Offset.right.z, false, false, false)
+                PlaceObjectOnGroundProperly(object1)
+                PlaceObjectOnGroundProperly(object2)
 
-                DrawText3Ds(Offset.left.x, Offset.left.y, Offset.left.z, Lang:t("text.checkpoint_left"))
-                DrawText3Ds(Offset.right.x, Offset.right.y, Offset.right.z, Lang:t("text.checkpoint_right"))
+                SetEntityCollision(object1, false, false)
+                SetEntityCollision(object2, false, false)
+
+                SetModelAsNoLongerNeeded(cpobject)
             end
         end
         Wait(0)
     end
 end)
+
+function cleanupObjects()
+    DeleteObject(object1)
+    DeleteObject(object2)
+    object1, object2 = nil, nil
+end
 
 -----------------------
 ---- Client Events ----
@@ -1148,7 +1174,7 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
     end
 end)
 
-local function getIndex (Positions) 
+local function getIndex (Positions)
     for k,v in pairs(Positions) do
         if v.RacerName == CurrentRaceData.RacerName then return k end
     end
@@ -1192,7 +1218,6 @@ local function getKeysSortedByValue(tbl, sortFunction)
     for key in pairs(tbl) do
       table.insert(keys, key)
     end
-  
     table.sort(keys, function(a, b)
       return sortFunction(tbl[a], tbl[b])
     end)
@@ -1287,6 +1312,7 @@ end)
 RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
     local menu = {{
         header = data.RaceName,
+        icon = "fas fa-flag-checkered",
         isMenuHeader = true
     }}
 
@@ -1333,6 +1359,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
 
     menu[#menu + 1] = {
         header = Lang:t("menu.go_back"),
+        icon = "fas fa-clock-rotate-left",
         params = {
             event = "cw-racingapp:Client:ListMyTracks",
             args = {
@@ -1371,6 +1398,7 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
         for i, track in pairs(filterTracksByRacer(Tracks)) do      
             menu[#menu + 1] = {
                 header = track.RaceName.. ' | '.. track.Distance..'m',
+                icon = "fas fa-flag-checkered",
                 params = {
                     event = "cw-racingapp:Client:TrackInfo",
                     args = {
@@ -1389,6 +1417,7 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
+            icon = "fas fa-clock-rotate-left",
             params = {
                 event = "cw-racingapp:Client:OpenMainMenu",
                 args = {
@@ -1400,6 +1429,7 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
 
         table.insert(menu, 1, {
             header = Lang:t("menu.my_tracks"),
+            icon = "fas fa-route",
             isMenuHeader = true
         })
         if #menu == 2 then
@@ -1412,25 +1442,24 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
         end
         exports['qb-menu']:openMenu(menu)
     end, class)
-
     exports['qb-menu']:openMenu(menu)
 end)
 
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     SetGpsMultiRouteRender(true)
-    CurrentRaceData.TotalRacers = TotalRacers    
+    CurrentRaceData.TotalRacers = TotalRacers
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then
                 if Countdown == 10 then
                     --QBCore.Functions.Notify(Lang:t("primary.race_will_start"), 'primary', 2500)
                     updateCountdown(Lang:t("primary.race_will_start"))
-                    PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
+                    PlaySoundFrontend(-1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS")
                 elseif Countdown <= 5 then
                     --QBCore.Functions.Notify(Countdown, 'primary', 500)
                     updateCountdown(Countdown)
-                    PlaySound(-1, "slow", "SHORT_PLAYER_SWITCH_SOUND_SET", 0, 0, 1)
+                    PlaySoundFrontend(-1, "Oneshot_Final", "MP_MISSION_COUNTDOWN_SOUNDSET")
                 end
                 Countdown = Countdown - 1
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), true)
@@ -1455,7 +1484,6 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
                             print('PLAYERS', dump(players))
                             print('Racers', dump(Racers))
                         end
-
                         for index,player in ipairs(players) do
                             if useDebug then
                                 print('checking if exists in racers:', player.citizenid)
@@ -1523,6 +1551,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     exports['qb-menu']:openMenu({{
         header = Lang:t("menu.ready_to_race") .. name .. '?',
         txt = subtitle,
+        icon = 'fas fa-car-burst',
         isMenuHeader = true
     }, {
         header = Lang:t("menu.current_race"),
@@ -1538,7 +1567,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
         }
     }, {
         header = Lang:t("menu.available_races"),
-        txt = Lang:t("menu.available_races"),
+        txt = Lang:t("menu.available_races_txt"),
         icon = "fas fa-flag-checkered",
         disabled = not Config.Permissions[type].join,
         params = {
@@ -1600,6 +1629,7 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
     }, {
         header = Lang:t("menu.close"),
         txt = "",
+        icon = "fas fa-x",
         params = {
             event = "qb-menu:client:closeMenu"
         }
@@ -1647,7 +1677,7 @@ RegisterNetEvent("cw-racingapp:Client:CurrentRaceMenu", function(data)
         }
     }, {
         header = Lang:t("menu.go_back"),
-        icon = "fas fa-left-long",
+        icon = "fas fa-clock-rotate-left",
         params = {
             event = "cw-racingapp:Client:OpenMainMenu",
             args = {
@@ -1676,7 +1706,6 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
 
             race.RacerName = data.name
 
-                
             local maxClass = 'open'
             if (RaceData.MaxClass ~= nil and RaceData.MaxClass ~= "") then
                 maxClass = RaceData.MaxClass
@@ -1710,6 +1739,7 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
+            icon = "fas fa-clock-rotate-left",
             params = {
                 event = "cw-racingapp:Client:OpenMainMenu",
                 args = {
@@ -1746,6 +1776,7 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
         for i, track in pairs(Tracks) do      
             menu[#menu + 1] = {
                 header = track.RaceName.. ' | '.. track.Distance..'m',
+                icon = "fas fa-hourglass-start",
                 params = {
                     event = "cw-racingapp:Client:ClassesList",
                     args = {
@@ -1757,23 +1788,13 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
             }
         end
 
-        menu[#menu + 1] = {
-            header = Lang:t("menu.go_back"),
-            params = {
-                event = "cw-racingapp:Client:OpenMainMenu",
-                args = {
-                    type = data.type,
-                    name = data.name
-                }
-            }
-        }
-
         table.sort(menu, function (a,b)
             return a.header < b.header
         end)
 
         table.insert(menu, 1, {
             header = Lang:t("menu.choose_a_track"),
+            icon = "fas fa-route",
             isMenuHeader = true
         })
         if #menu == 2 then
@@ -1784,6 +1805,18 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
             })
             return
         end
+
+        menu[#menu + 1] = {
+            header = Lang:t("menu.go_back"),
+            icon = "fas fa-clock-rotate-left",
+            params = {
+                event = "cw-racingapp:Client:OpenMainMenu",
+                args = {
+                    type = data.type,
+                    name = data.name
+                }
+            }
+        }
         exports['qb-menu']:openMenu(menu)
     end, class)
 
@@ -1812,10 +1845,12 @@ RegisterNetEvent("cw-racingapp:Client:ClassesList", function(data)
 
     local menu = {{
         header = Lang:t("menu.choose_a_class"),
+        icon = 'fas fa-car',
         isMenuHeader = true
     }}
     menu[#menu + 1] = {
         header = Lang:t("menu.all"),
+        icon = 'fas fa-globe',
         params = {
             event = "cw-racingapp:Client:TrackRecordList",
             args = {
@@ -1827,9 +1862,10 @@ RegisterNetEvent("cw-racingapp:Client:ClassesList", function(data)
         }
     }
 
-    for value, class in pairs(sortedClasses) do      
+    for value, class in pairs(sortedClasses) do
         menu[#menu + 1] = {
             header = class,
+            icon = 'fas fa-taxi',
             params = {
                 event = "cw-racingapp:Client:TrackRecordList",
                 args = {
@@ -1844,6 +1880,7 @@ RegisterNetEvent("cw-racingapp:Client:ClassesList", function(data)
 
     menu[#menu + 1] = {
         header = Lang:t("menu.go_back"),
+        icon = "fas fa-clock-rotate-left",
         params = {
             event = "cw-racingapp:Client:RaceRecordsMenu",
             args = {
@@ -1875,6 +1912,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
         end
         local menu = {{
             header = data.trackName..' | '..data.class,
+            icon = "fas fa-globe",
             isMenuHeader = true
         }}
         if useDebug then
@@ -1924,6 +1962,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
 
             menu[#menu + 1] = {
                 header = header,
+                icon = "fas fa-hourglass-start",
                 text = text,
                 disabled = true
             }
@@ -1931,6 +1970,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
+            icon = "fas fa-clock-rotate-left",
             params = {
                 event = "cw-racingapp:Client:ClassesList",
                 args = {
@@ -2012,7 +2052,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                 name = "ghosting", 
                 type = "radio", 
                 options = {
-                    { value = true, text = Lang:t("menu.yes"), checked = true }, 
+                    { value = true, text = Lang:t("menu.yes"), checked = true },
                     { value = false, text = Lang:t("menu.no")},
                 }})
             table.insert(options, {
@@ -2034,7 +2074,6 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
         table.sort(classes, function(a,b)
             return a.number > b.number
         end)
-        
         table.insert(options, {
             text =  Lang:t('menu.max_class'),
             name = "maxClass",
@@ -2079,7 +2118,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                 end
             else
                 QBCore.Functions.Notify('You are not in a vehicle', 'error')
-            end 
+            end
         else
             QBCore.Functions.Notify('The class you chose does not exist', 'error')
         end
@@ -2091,7 +2130,7 @@ RegisterNetEvent("cw-racingapp:Client:CreateRaceMenu", function(data)
         header = Lang:t("menu.name_track_question"),
         submitText = "✓",
         inputs = {{
-            text = Lang:t("menu.name_track"),
+            text = Lang:t("menu.name_track_question"),
             name = "trackname",
             type = "text",
             isRequired = true
@@ -2106,8 +2145,17 @@ RegisterNetEvent("cw-racingapp:Client:CreateRaceMenu", function(data)
         return
     end
 
+    if not #dialog.trackname then
+        QBCore.Functions.Notify("This track need to have a name", 'error')
+        TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
+            type = data.type,
+            name = data.name
+        })
+        return
+    end
+
     if #dialog.trackname < Config.MinTrackNameLength then
-        QBCore.Functions.Notify(Lang:t("error.name_too_short"), "error")
+        QBCore.Functions.Notify(Lang:t("error.name_too_short"), 'error')
         TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
             type = data.type,
             name = data.name
@@ -2116,7 +2164,7 @@ RegisterNetEvent("cw-racingapp:Client:CreateRaceMenu", function(data)
     end
 
     if #dialog.trackname > Config.MaxTrackNameLength then
-        QBCore.Functions.Notify(Lang:t("error.name_too_long"), "error")
+        QBCore.Functions.Notify(Lang:t("error.name_too_long"), 'error')
         TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
             type = data.type,
             name = data.name
@@ -2130,7 +2178,7 @@ RegisterNetEvent("cw-racingapp:Client:CreateRaceMenu", function(data)
                 return
             end
             if not NameAvailable then
-                QBCore.Functions.Notify(Lang:t("error.race_name_exists"), "error")
+                QBCore.Functions.Notify(Lang:t("error.race_name_exists"), 'error')
                 TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
                     type = data.type,
                     name = data.name
@@ -2170,10 +2218,10 @@ local function racerNameIsValid(name)
         if #name < Config.MaxRacerNameLength then
             return true
         else
-            QBCore.Functions.Notify(Lang:t('error.name_too_long'), "error")
+            QBCore.Functions.Notify(Lang:t('error.name_too_long'), 'error')
         end
     else
-        QBCore.Functions.Notify(Lang:t('error.name_too_short'), "error")
+        QBCore.Functions.Notify(Lang:t('error.name_too_short'), 'error')
     end
     return false
 end
@@ -2187,7 +2235,6 @@ local function hasAuth(tradeType, fobType)
            print('Player job: ', Player.job.name)
            print('Allowed jobs: ', dump(Config.AllowedJobs))
         end
-        
         if playerHasJob then
             if useDebug then
                print('Player job level: ', Player.job.grade.level)
@@ -2202,7 +2249,7 @@ local function hasAuth(tradeType, fobType)
                         return true
                     end
                 end
-            end      
+            end
         end
         return false
     else
