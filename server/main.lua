@@ -557,7 +557,9 @@ local function placements(RaceId)
             end
         end
     end)
-    print(QBCore.Debug(tempPositions))
+    if useDebug then
+        print('placement function temp pos:', QBCore.Debug(tempPositions))
+    end
     return tempPositions
 end 
 
