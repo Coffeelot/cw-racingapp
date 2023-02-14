@@ -26,7 +26,8 @@ local Translations = {
         not_enough_money = "Not enough money to join",
         not_close_enough_to_join = "Not close enough to join. A waypoint was set to the start.",
         no_checkpoints_to_edit = "No checkpoints to edit",
-        you_have_to_place_a_new_checkpoint_down_first = "You have to place down a new checkpoint first"
+        you_have_to_place_a_new_checkpoint_down_first = "You have to place down a new checkpoint first",
+        need_a_name = "The track need to have a name"
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",

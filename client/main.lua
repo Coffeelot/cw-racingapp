@@ -2,12 +2,14 @@
 ----   Variables   ----
 -----------------------
 local QBCore = exports['qb-core']:GetCoreObject()
+
+local Players = {}
 local Countdown = 10
 local ToFarCountdown = 10
 local FinishedUITimeout = false
 local useDebug = Config.Debug
-local object1, object2
-local cpobject
+local creatorObjectLeft, creatorObjectRight
+local creatorCheckpointObject
 local start
 local RaceData = {
     InCreator = false,
@@ -72,6 +74,12 @@ local function LoadModel(model)
         RequestModel(model)
         Wait(10)
     end
+end
+
+local function cleanupObjects()
+    DeleteObject(creatorObjectLeft)
+    DeleteObject(creatorObjectRight)
+    creatorObjectLeft, creatorObjectRight = nil, nil
 end
 
 local function DeleteClosestObject(coords, model)
@@ -469,11 +477,11 @@ function CreatorLoop()
                 else
                     DeleteCreatorCheckpoints()
 
+                    cleanupObjects()
                     RaceData.InCreator = false
                     CreatorData.RaceName = nil
                     CreatorData.Checkpoints = {}
                     QBCore.Functions.Notify(Lang:t("error.editor_canceled"), 'error')
-                    cleanupObjects()
                     CreatorData.ConfirmDelete = false
                 end
             end
@@ -481,8 +489,6 @@ function CreatorLoop()
         end
     end)
 end
-
-local Players = {}
 
 local function playerIswithinDistance()
     local ply = GetPlayerPed(-1)
@@ -1053,26 +1059,19 @@ CreateThread(function()
     end
 end)
 
-function RequestModelAndLoad(hash)
-    RequestModel(hash)
-    while not HasModelLoaded(hash) do
-      Wait(0)
-    end
-end
-
 -- Creator
 CreateThread(function()
     while true do
         if RaceData.InCreator then
             local PlayerPed = PlayerPedId()
             local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
-            if object1 and object2 ~= nil then
+            if creatorObjectLeft and creatorObjectRight ~= nil then
                 cleanupObjects()
             end
-            cpobject = Config.CheckpointPileModel
+            creatorCheckpointObject = Config.CheckpointPileModel
 
             if PlayerVeh ~= 0 then
-                RequestModelAndLoad(cpobject)
+                LoadModel(creatorCheckpointObject)
                 local Offset = {
                     left = {
                         x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
@@ -1085,26 +1084,20 @@ CreateThread(function()
                         z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
                     }
                 }
-                object1 = CreateObjectNoOffset(cpobject, Offset.left.x, Offset.left.y, Offset.left.z, false, false, false)
-                object2 = CreateObjectNoOffset(cpobject, Offset.right.x, Offset.right.y, Offset.right.z, false, false, false)
-                PlaceObjectOnGroundProperly(object1)
-                PlaceObjectOnGroundProperly(object2)
+                creatorObjectLeft = CreateObjectNoOffset(creatorCheckpointObject, Offset.left.x, Offset.left.y, Offset.left.z, false, false, false)
+                creatorObjectRight = CreateObjectNoOffset(creatorCheckpointObject, Offset.right.x, Offset.right.y, Offset.right.z, false, false, false)
+                PlaceObjectOnGroundProperly(creatorObjectLeft)
+                PlaceObjectOnGroundProperly(creatorObjectRight)
 
-                SetEntityCollision(object1, false, false)
-                SetEntityCollision(object2, false, false)
+                SetEntityCollision(creatorObjectLeft, false, false)
+                SetEntityCollision(creatorObjectRight, false, false)
 
-                SetModelAsNoLongerNeeded(cpobject)
+                SetModelAsNoLongerNeeded(creatorCheckpointObject)
             end
         end
         Wait(0)
     end
 end)
-
-function cleanupObjects()
-    DeleteObject(object1)
-    DeleteObject(object2)
-    object1, object2 = nil, nil
-end
 
 -----------------------
 ---- Client Events ----
@@ -1359,7 +1352,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
 
     menu[#menu + 1] = {
         header = Lang:t("menu.go_back"),
-        icon = "fas fa-clock-rotate-left",
+        icon = "fas fa-arrow-left",
         params = {
             event = "cw-racingapp:Client:ListMyTracks",
             args = {
@@ -1417,7 +1410,7 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
-            icon = "fas fa-clock-rotate-left",
+            icon = "fas fa-arrow-left",
             params = {
                 event = "cw-racingapp:Client:OpenMainMenu",
                 args = {
@@ -1677,7 +1670,7 @@ RegisterNetEvent("cw-racingapp:Client:CurrentRaceMenu", function(data)
         }
     }, {
         header = Lang:t("menu.go_back"),
-        icon = "fas fa-clock-rotate-left",
+        icon = "fas fa-arrow-left",
         params = {
             event = "cw-racingapp:Client:OpenMainMenu",
             args = {
@@ -1739,7 +1732,7 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
-            icon = "fas fa-clock-rotate-left",
+            icon = "fas fa-arrow-left",
             params = {
                 event = "cw-racingapp:Client:OpenMainMenu",
                 args = {
@@ -1808,7 +1801,7 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
-            icon = "fas fa-clock-rotate-left",
+            icon = "fas fa-arrow-left",
             params = {
                 event = "cw-racingapp:Client:OpenMainMenu",
                 args = {
@@ -1880,7 +1873,7 @@ RegisterNetEvent("cw-racingapp:Client:ClassesList", function(data)
 
     menu[#menu + 1] = {
         header = Lang:t("menu.go_back"),
-        icon = "fas fa-clock-rotate-left",
+        icon = "fas fa-arrow-left",
         params = {
             event = "cw-racingapp:Client:RaceRecordsMenu",
             args = {
@@ -1970,7 +1963,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
 
         menu[#menu + 1] = {
             header = Lang:t("menu.go_back"),
-            icon = "fas fa-clock-rotate-left",
+            icon = "fas fa-arrow-left",
             params = {
                 event = "cw-racingapp:Client:ClassesList",
                 args = {
@@ -2089,38 +2082,40 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
         if useDebug then
             print('selected max class', dialog.maxClass)
         end
-        if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
-            if not dialog or dialog.track == "none" then
-                TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
-                    type = data.type,
-                    name = data.name
-                })
-                return
-            end
-
-            local PlayerPed = PlayerPedId()
-            local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
-
-            if PlayerIsInVehicle then
-                local info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
-                if myCarClassIsAllowed(dialog.maxClass, class) then
-                    TriggerServerEvent('cw-racingapp:server:SetupRace',
-                        dialog.track,
-                        tonumber(dialog.laps),
-                        data.name,
-                        dialog.maxClass,
-                        toboolean(dialog.ghosting),
-                        tonumber(dialog.ghostingTime),
-                        tonumber(dialog.buyIn)
-                    )
-                else 
-                    QBCore.Functions.Notify('Your car is not the correct class', 'error')
+        if dialog ~= nil then
+            if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
+                if not dialog or dialog.track == "none" then
+                    TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
+                        type = data.type,
+                        name = data.name
+                    })
+                    return
+                end
+    
+                local PlayerPed = PlayerPedId()
+                local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
+    
+                if PlayerIsInVehicle then
+                    local info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
+                    if myCarClassIsAllowed(dialog.maxClass, class) then
+                        TriggerServerEvent('cw-racingapp:server:SetupRace',
+                            dialog.track,
+                            tonumber(dialog.laps),
+                            data.name,
+                            dialog.maxClass,
+                            toboolean(dialog.ghosting),
+                            tonumber(dialog.ghostingTime),
+                            tonumber(dialog.buyIn)
+                        )
+                    else 
+                        QBCore.Functions.Notify('Your car is not the correct class', 'error')
+                    end
+                else
+                    QBCore.Functions.Notify('You are not in a vehicle', 'error')
                 end
             else
-                QBCore.Functions.Notify('You are not in a vehicle', 'error')
+                QBCore.Functions.Notify('The class you chose does not exist', 'error')
             end
-        else
-            QBCore.Functions.Notify('The class you chose does not exist', 'error')
         end
     end)
 end)
