@@ -529,9 +529,17 @@ RegisterNetEvent('cw-racingapp:server:UpdateRaceState', function(RaceId, Started
     Races[RaceId].Started = Started
 end)
 
+local function copyWihoutId(original)
+	local copy = {}
+	for key, value in pairs(original) do
+		copy[#copy+1] = value
+	end
+	return copy
+end
 
-local function placements()
-    table.sort(racersSortedByPosition, function(a,b) 
+local function placements(RaceId)
+    local tempPositions = copyWihoutId(Races[RaceId].Racers)
+    table.sort(tempPositions, function(a,b) 
         if a.Lap > b.Lap then return true
         elseif a.Lap < b.Lap then return false
         elseif a.Lap == b.Lap then
@@ -548,9 +556,10 @@ local function placements()
                 end
             end
         end
-        print('I SHOULD NOT BE HERE')
     end)
-end
+    print(QBCore.Debug(tempPositions))
+    return tempPositions
+end 
 
 RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
     local src = source
@@ -564,11 +573,11 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         if useDebug then
            print('before', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
         end
-        placements()
+        local newPositions = placements(RaceId)
         if useDebug then
-           print('after', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
+           print('after', newPositions[1].RacerName, newPositions[2].RacerName)
         end
-        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId], racersSortedByPosition)
+        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId], newPositions)
     else
         -- Attemt to make sure script dont break if something goes wrong
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.youre_not_in_the_race"), 'error')
