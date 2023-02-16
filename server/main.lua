@@ -117,7 +117,7 @@ local function getLatestRecordsById(RaceId)
     end
 end
 
-local function getLatestRecordsByName(RaceName)    
+local function getLatestRecordsByName(RaceName)
     local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE name = ?', {RaceName})[1]
     if results.records then
         if useDebug then
@@ -157,7 +157,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         if useDebug then
            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
         end
-        TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.new_pb"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
+        TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.new_pb"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         local playerPlacement = {
             Time = PlayerTime,
             Holder = RacerName,
@@ -172,7 +172,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         return true
 
     elseif not PersonalBest then
-        TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.time_added"), RaceData.RaceName, SecondsToClock(PlayerTime)), 'success')
+        TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         if useDebug then
            print('had no pb')
         end
@@ -226,9 +226,9 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     end
     local BLap = 0
     if TotalLaps < 2 then
-        BLap = TotalTime*60
+        BLap = TotalTime
     else
-        BLap = BestLap*60
+        BLap = BestLap
     end
 
     if LastRaces[RaceData.RaceId] ~= nil then
@@ -265,7 +265,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         }
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode({ Races[RaceData.RaceId].Records }), RaceData.RaceId})
-            TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, SecondsToClock(BLap)), 'success')
+            TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
     end
     AvailableRaces[AvailableKey].RaceData = Races[RaceData.RaceId]
     TriggerClientEvent('cw-racingapp:client:PlayerFinish', -1, RaceData.RaceId, PlayersFinished, RacerName)
@@ -354,7 +354,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             end
 
             if RaceData.BuyIn > 0 then
-                Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn)
+                Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn, "Bought into Race")
             end
 
             Races[RaceId].Waiting = true
@@ -689,18 +689,22 @@ end)
 ----   Functions   ----
 -----------------------
 
-function SecondsToClock(seconds)
-    local seconds = tonumber(seconds)
-    local retval = 0
-    if seconds <= 0 then
-        retval = "00:00:00";
+function MilliToTime(milli)
+    local milliseconds = milli % 1000;
+    milliseconds = tostring(milliseconds)
+    local seconds = math.floor((milli / 1000) % 60);
+    local minutes = math.floor((milli / (60 * 1000)) % 60);
+    if minutes < 10 then
+        minutes = "0"..tostring(minutes);
     else
-        hours = string.format("%02.f", math.floor(seconds / 3600));
-        mins = string.format("%02.f", math.floor(seconds / 60 - (hours * 60)));
-        secs = string.format("%02.f", math.floor(seconds - hours * 3600 - mins * 60));
-        retval = hours .. ":" .. mins .. ":" .. secs
+        minutes = tostring(minutes)
     end
-    return retval
+    if seconds < 10 then
+        seconds = "0"..tostring(seconds);
+    else
+        seconds = tostring(seconds)
+    end
+    return minutes..":"..seconds.."."..milliseconds;
 end
 
 
@@ -889,7 +893,7 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     else
         cost = purchaseType.racingFobCost
     end
-    Player.Functions.RemoveMoney(purchaseType.moneyType, cost)
+    Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type)
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
 end

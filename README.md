@@ -9,11 +9,11 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - By-class leaderboard
 - Replacement of tire-piles lamps
 - Increased size of checkpoints
-- Not as harsh checkpoint-pass detection
+- Not as harsh checkpoint-pass detection compared to qb-racing
 - Remove race tracks you have created
 - See your position in the race
 - Updated HUD
-- Accurate time (old one would vary depending on computer performance)
+- Accurate time (old one would vary depending on computer performance) **NOW IN MS!**
 - Ability to reset/run the SQL scripts from in game
 - Phasing/Ghosting of racers
 

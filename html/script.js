@@ -13,11 +13,39 @@ $(document).ready(function(){
     });
 });
 
-function secondsTimeSpanToHMS(s) {
-    var m = Math.floor(s/60); //Get remaining minutes
-    s -= m*60;
-    return (m < 10 ? '0'+m : m)+":"+(s < 10 ? '0'+s : s); //zero padding on minutes and seconds
+// function secondsTimeSpanToHMS(duration) {
+//     var milliseconds = Math.floor((duration % 1000) / 100),
+//     seconds = Math.floor((duration / 1000) % 60),
+//     minutes = Math.floor((duration / (1000 * 60)) % 60),
+//     hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+//     hours = (hours < 10) ? "0" + hours : hours;
+//     minutes = (minutes < 10) ? "0" + minutes : minutes;
+//     seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+//     return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+// }
+
+function roundUpToPrecision(n, d) {
+    var round = n.toPrecision(d);
+
+    if(round === n.toString()) {
+        return n;
+    }
+
+    return +(n + 0.5 * Math.pow(10, Math.floor(Math.log(n) * Math.LOG10E) - 1)).toPrecision(d);
 }
+
+function secondsTimeSpanToHMS(milli) {
+    var milliseconds = milli % 1000;
+    var seconds = Math.floor((milli / 1000) % 60);
+    var minutes = Math.floor((milli / (60 * 1000)) % 60);
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return minutes + ":" + seconds + "." + String(milliseconds).slice(0,2);
+}
+
 
 function UpdateCountdown(data) {
     if(typeof data.data.value == 'number') {

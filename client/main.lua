@@ -522,9 +522,9 @@ local function actuallyValidateTime(Timer)
         end
         return true
     else
-        if GetTimeDifference(GetCloudTimeAsInt(), ghostLoopStart) < Timer then
+        if GetTimeDifference(GetGameTimer(), ghostLoopStart) < Timer then
             if useDebug then
-               print('Timer has NOT been reached', GetTimeDifference(GetCloudTimeAsInt(), ghostLoopStart) )
+               print('Timer has NOT been reached', GetTimeDifference(GetGameTimer(), ghostLoopStart) )
             end
             return true
         end
@@ -544,7 +544,7 @@ local function validateTime()
 end
 
 function CreateGhostLoop()
-    ghostLoopStart = GetCloudTimeAsInt()
+    ghostLoopStart = GetGameTimer()
     if useDebug then
        print('non racers', dump(Players))
     end
@@ -602,8 +602,8 @@ function RaceUI()
         while true do
             if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
                 if CurrentRaceData.Started then
-                    CurrentRaceData.RaceTime = GetTimeDifference(GetCloudTimeAsInt(), lapStartTime)
-                    CurrentRaceData.TotalTime = GetTimeDifference(GetCloudTimeAsInt(), startTime)
+                    CurrentRaceData.RaceTime = GetTimeDifference(GetGameTimer(), lapStartTime)
+                    CurrentRaceData.TotalTime = GetTimeDifference(GetGameTimer(), startTime)
                 end
                 SendNUIMessage({
                     action = "Update",
@@ -776,18 +776,22 @@ local function GetMaxDistance(OffsetCoords)
     return Retval
 end
 
-function SecondsToClock(seconds)
-    local seconds = tonumber(seconds)
-    local retval = 0
-    if seconds <= 0 then
-        retval = "00:00:00";
+function MilliToTime(milli)
+    local milliseconds = milli % 1000;
+    milliseconds = tostring(milliseconds)
+    local seconds = math.floor((milli / 1000) % 60);
+    local minutes = math.floor((milli / (60 * 1000)) % 60);
+    if minutes < 10 then
+        minutes = "0"..tostring(minutes);
     else
-        hours = string.format("%02.f", math.floor(seconds / 3600));
-        mins = string.format("%02.f", math.floor(seconds / 60 - (hours * 60)));
-        secs = string.format("%02.f", math.floor(seconds - hours * 3600 - mins * 60));
-        retval = hours .. ":" .. mins .. ":" .. secs
+        minutes = tostring(minutes)
     end
-    return retval
+    if seconds < 10 then
+        seconds = "0"..tostring(seconds);
+    else
+        seconds = tostring(seconds)
+    end
+    return minutes..":"..seconds.."."..milliseconds;
 end
 
 function DeleteCurrentRaceCheckpoints()
@@ -848,9 +852,9 @@ function FinishRace()
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel)
-    QBCore.Functions.Notify(Lang:t("success.race_finished") .. SecondsToClock(CurrentRaceData.TotalTime*60), 'success')
+    QBCore.Functions.Notify(Lang:t("success.race_finished") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
     if CurrentRaceData.BestLap ~= 0 then
-        QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. SecondsToClock(CurrentRaceData.BestLap*60), 'success')
+        QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
     end
     UnGhostPlayer()
     ClearGpsMultiRoute()
@@ -1011,7 +1015,7 @@ CreateThread(function()
                                 elseif CurrentRaceData.BestLap == 0 then
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
-                                lapStartTime = GetCloudTimeAsInt()
+                                lapStartTime = GetGameTimer()
                                 CurrentRaceData.Lap = CurrentRaceData.Lap + 1
                                 CurrentRaceData.CurrentCheckpoint = 1
                                 AddPointToGpsMultiRoute(
@@ -1498,8 +1502,8 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
                     end)
                 end, CurrentRaceData.RaceId)
             end
-            lapStartTime = GetCloudTimeAsInt()
-            startTime = GetCloudTimeAsInt()
+            lapStartTime = GetGameTimer()
+            startTime = GetGameTimer()
             CurrentRaceData.Started = true
             Countdown = 10
         else
@@ -1948,7 +1952,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
             else
                 header = i..'. '..holder
             end
-            text = SecondsToClock(time).. ' | '..vehicle
+            text = MilliToTime(time).. ' | '..vehicle
             if data.class == 'all' then
                 text = text.. ' | '..class
             end
@@ -1995,17 +1999,23 @@ local function toboolean(str)
     return bool
 end
 
+local function sortByName(table)
+
+end
+
 RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetListedRaces', function(Races)
         local tracks = {{
             value = "none",
-            text = Lang:t("menu.choose_a_track")
+            text = Lang:t("menu.choose_a_track"),
+            name = 'none'
         }}
         for id, track in pairs(Races) do
             if not track.Waiting then
                 tracks[#tracks + 1] = {
                     value = id,
-                    text = string.format("%s | %s | %sm", track.RaceName, track.CreatorName, track.Distance)
+                    text = string.format("%s | %s | %sm", track.RaceName, track.CreatorName, track.Distance),
+                    name = track.RaceName
                 }
             end
         end
@@ -2018,6 +2028,8 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             })
             return
         end
+
+        table.sort(tracks, function(a, b) return a.name < b.name end)
 
         local options = {{
                 text = Lang:t("menu.select_track"),
