@@ -253,6 +253,7 @@ function SaveRace()
     QBCore.Functions.Notify(Lang:t("success.race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
 
     DeleteCreatorCheckpoints()
+    cleanupObjects()
 
     RaceData.InCreator = false
     CreatorData.RaceName = nil
