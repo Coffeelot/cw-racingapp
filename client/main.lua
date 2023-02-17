@@ -109,6 +109,50 @@ local function UnGhostPlayer()
     SetGhostedEntityAlpha(254)
 end
 
+local function isFinishOrStart(CurrentRaceData, checkpoint)
+    if CurrentRaceData.TotalLaps == 0 then
+        if checkpoint == 1 or checkpoint == #CurrentRaceData.Checkpoints then
+            return true
+        else 
+            return false
+        end
+    else
+        if checkpoint == 1 then
+            return true
+        else 
+            return false
+        end  
+    end
+end
+
+local function doGPSForRace(started)
+    ClearGpsMultiRoute()
+    StartGpsMultiRoute(6, started , false)
+    for k, v in pairs(CurrentRaceData.Checkpoints) do
+        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
+        if started then
+            ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
+            if isFinishOrStart(CurrentRaceData,k) then
+                CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
+                CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.StartAndFinishModel)
+            else
+                CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.CheckpointPileModel)
+                CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.CheckpointPileModel)
+            end
+            CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
+        end
+    end
+    if CurrentRaceData.TotalLaps > 0 then 
+        for k=1, CurrentRaceData.TotalLaps-1, 1 do
+            for k=1, #CurrentRaceData.Checkpoints, 1 do
+                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
+            end
+        end
+        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+    end
+    SetGpsMultiRouteRender(true)
+end
+
 function DeleteAllCheckpoints()
     for k, v in pairs(CreatorData.Checkpoints) do
         local CurrentCheckpoint = CreatorData.Checkpoints[k]
@@ -647,22 +691,6 @@ function RaceUI()
     end)
 end
 
-local function isFinishOrStart(CurrentRaceData, checkpoint)
-    if CurrentRaceData.TotalLaps == 0 then
-        if checkpoint == 1 or checkpoint == #CurrentRaceData.Checkpoints then
-            return true
-        else 
-            return false
-        end
-    else
-        if checkpoint == 1 then
-            return true
-        else 
-            return false
-        end  
-    end
-end
-
 local function SetupRace(RaceData, Laps)
     CurrentRaceData = {
         RaceId = RaceData.RaceId,
@@ -684,29 +712,7 @@ local function SetupRace(RaceData, Laps)
         Racers = {},
         Position = 0
     }
-    ClearGpsMultiRoute()
-    StartGpsMultiRoute(6, false , false)
-    for k, v in pairs(CurrentRaceData.Checkpoints) do
-        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
-        ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
-        if isFinishOrStart(CurrentRaceData,k) then
-            CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
-            CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.StartAndFinishModel)
-        else
-            CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.CheckpointPileModel)
-            CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.CheckpointPileModel)
-        end
-        
-        CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
-    end
-    if CurrentRaceData.TotalLaps > 0 then 
-        for k=1, CurrentRaceData.TotalLaps-1, 1 do
-            for k=1, #CurrentRaceData.Checkpoints, 1 do
-                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
-            end
-        end
-        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
-    end
+    doGPSForRace()
     RaceUI()
 end
 
@@ -1110,6 +1116,7 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
+        ClearGpsMultiRoute()
         DeleteAllCheckpoints()
     end
 end)
@@ -1444,8 +1451,8 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
 end)
 
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
+    doGPSForRace(true)
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
-    SetGpsMultiRouteRender(true)
     CurrentRaceData.TotalRacers = TotalRacers
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
