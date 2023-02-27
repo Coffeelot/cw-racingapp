@@ -1383,7 +1383,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
         }
     }
 
-    if #menu == 2 then
+    if #menu == 1 then
         QBCore.Functions.Notify(Lang:t("primary.no_races_exist"))
         TriggerEvent('cw-racingapp:Client:ListMyTracks', {
             type = data.type,
@@ -1446,7 +1446,7 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
             icon = "fas fa-route",
             isMenuHeader = true
         })
-        if #menu == 2 then
+        if #menu == 1 then
             QBCore.Functions.Notify(Lang:t("menu.no_tracks_exist"))
             TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
                 type = data.type,
@@ -1763,7 +1763,7 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
             }
         }
 
-        if #menu == 2 then
+        if #menu == 1 then
             QBCore.Functions.Notify(Lang:t("primary.no_pending_races"))
             TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
                 type = data.type,
@@ -1811,7 +1811,7 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
             icon = "fas fa-route",
             isMenuHeader = true
         })
-        if #menu == 2 then
+        if #menu == 1 then
             QBCore.Functions.Notify(Lang:t("menu.no_tracks_exist"))
             TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
                 type = data.type,
@@ -1995,7 +1995,7 @@ RegisterNetEvent("cw-racingapp:Client:TrackRecordList", function(data)
             }
         }
 
-        if #menu == 2 then
+        if #menu == 1 then
             QBCore.Functions.Notify(Lang:t("primary.no_races_exist"))
             TriggerEvent('cw-racingapp:Client:RaceRecordsMenu', {
                 type = data.type,
