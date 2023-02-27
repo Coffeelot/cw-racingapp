@@ -105,8 +105,21 @@ local function GhostPlayers()
 end
 
 local function UnGhostPlayer()
-    SetLocalPlayerAsGhost(false)
+    if useDebug then
+        print('DE GHOSTED')
+     end
+    CurrentRaceData.Ghosted = false
     SetGhostedEntityAlpha(254)
+    SetLocalPlayerAsGhost(false)
+end
+
+local function GhostPlayer()
+    if useDebug then
+        print('GHOSTED')
+     end
+    CurrentRaceData.Ghosted = true
+    SetGhostedEntityAlpha(254)
+    SetLocalPlayerAsGhost(true)
 end
 
 local function isFinishOrStart(CurrentRaceData, checkpoint)
@@ -538,21 +551,29 @@ end
 local function playerIswithinDistance()
     local ply = GetPlayerPed(-1)
     local plyCoords = GetEntityCoords(ply, 0)    
+    local playerSource = GetPlayerServerId(GetPlayerIndex())
+    if useDebug then
+        print('You', ply, plyCoords.x..','..plyCoords.y)
+    end
     for index,player in ipairs(Players) do
-        local playerIdx = GetPlayerFromServerId(player.sourceplayer)
+        local playerIdx = GetPlayerFromServerId(tonumber(player.id))
         local target = GetPlayerPed(playerIdx)
+        local targetCoords = GetEntityCoords(target, 0)
+        
         if useDebug then
-           print('player id', player.id, player.name)
+           print('playeridx', playerIdx)
+           print('target', target)
+           print('comparing to player', ply, target)
+           print(ply,target, 'is same:', ply == target)
+           print('Target locations', targetCoords.x..','..targetCoords.y)
         end
-        if(target ~= ply) then
-            local targetCoords = GetEntityCoords(target, 0)
-            local distance = #(targetCoords.xy-plyCoords.xy)
-            if useDebug then
-               print('distance', distance)
-            end
-            if(distance < Config.Ghosting.NearestDistanceLimit) then
-                return true
-            end
+    
+        local distance = #(targetCoords.xy-plyCoords.xy)
+        if useDebug then
+           print('distance', distance)
+        end
+        if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
+            return true
         end
     end  
     return false
@@ -598,19 +619,9 @@ function CreateGhostLoop()
             if validateTime() then
                 if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
                     if playerIswithinDistance() then
-                        if useDebug then
-                           print('DE GHOSTED')
-                        end
-                        CurrentRaceData.Ghosted = false
-                        SetLocalPlayerAsGhost(false)
-                        SetGhostedEntityAlpha(254)
+                        UnGhostPlayer()
                     else
-                        if useDebug then
-                           print('GHOSTED')
-                        end
-                        CurrentRaceData.Ghosted = true
-                        SetLocalPlayerAsGhost(true)
-                        SetGhostedEntityAlpha(254)
+                        GhostPlayer()
                     end
                 else
                     break
@@ -619,9 +630,7 @@ function CreateGhostLoop()
                 if useDebug then
                    print('Breaking due to time')
                 end
-                CurrentRaceData.Ghosted = false
-                SetLocalPlayerAsGhost(false)
-                SetGhostedEntityAlpha(254)
+                UnGhostPlayer()
                 break
             end
             Wait(Config.Ghosting.DistanceLoopTime)
