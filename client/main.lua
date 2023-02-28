@@ -559,6 +559,7 @@ local function playerIswithinDistance()
         local playerIdx = GetPlayerFromServerId(tonumber(player.id))
         local target = GetPlayerPed(playerIdx)
         local targetCoords = GetEntityCoords(target, 0)
+        local distance = #(targetCoords.xy-plyCoords.xy)
         
         if useDebug then
            print('playeridx', playerIdx)
@@ -566,12 +567,9 @@ local function playerIswithinDistance()
            print('comparing to player', ply, target)
            print(ply,target, 'is same:', ply == target)
            print('Target locations', targetCoords.x..','..targetCoords.y)
-        end
-    
-        local distance = #(targetCoords.xy-plyCoords.xy)
-        if useDebug then
            print('distance', distance)
         end
+
         if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
             return true
         end
@@ -873,6 +871,7 @@ function FinishRace()
         QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
     end
     UnGhostPlayer()
+    Players = {}
     ClearGpsMultiRoute()
     DeleteCurrentRaceCheckpoints()
 end
@@ -1461,6 +1460,7 @@ end)
 
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     doGPSForRace(true)
+    Players = {}
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
     if CurrentRaceData.RaceId ~= nil then
