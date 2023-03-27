@@ -79,6 +79,8 @@ Then restart cw-racingapp
 
 Also, note that you **CAN NOT** spawn the racing fobs with `/giveitem`. Spawn them with the built in command `/createracingfob` or get one at the trader or laptop
 
+> NOTE: If you're getting errors after a later update (released 27th March 2023) do `/addAccessCol`
+
 ## Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)
 * [qb-input](https://github.com/qbcore-framework/qb-input)

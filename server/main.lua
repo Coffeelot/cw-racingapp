@@ -51,7 +51,8 @@ local function updateRaces()
                 Distance = v.distance,
                 LastLeaderboard = {},
                 Racers = {},
-                MaxClass = nil
+                MaxClass = nil,
+                Access = json.decode(v.access)
             }
         end
     end
@@ -61,6 +62,7 @@ end
 ----   Threads     ----
 -----------------------
 MySQL.ready(function ()
+    MySQL.query("ALTER TABLE race_tracks ADD COLUMN IF NOT EXISTS access TEXT DEFAULT '{}'")
     updateRaces()
 end)
 
@@ -539,7 +541,7 @@ end
 
 local function placements(RaceId)
     local tempPositions = copyWihoutId(Races[RaceId].Racers)
-    table.sort(tempPositions, function(a,b) 
+    table.sort(tempPositions, function(a,b)
         if a.Lap > b.Lap then return true
         elseif a.Lap < b.Lap then return false
         elseif a.Lap == b.Lap then
@@ -561,7 +563,7 @@ local function placements(RaceId)
         print('placement function temp pos:', QBCore.Debug(tempPositions))
     end
     return tempPositions
-end 
+end
 
 RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
     local src = source
@@ -858,20 +860,46 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetTracks', function(source
     cb(Races)
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:HasCreatedRace', function(source, cb)
-    cb(HasOpenedRace(QBCore.Functions.GetPlayer(source).PlayerData.citizenid))
-end)
-
-QBCore.Functions.CreateCallback('cw-racingapp:server:IsAuthorizedToCreateRaces', function(source, cb, TrackName)
-    cb(IsPermissioned(QBCore.Functions.GetPlayer(source).PlayerData.citizenid, 'create'), IsNameAvailable(TrackName))
-end)
-
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(source, cb, RaceId)
     if Races[RaceId] then
         cb(Races[RaceId])
     else
         cb(false)
     end
+end)
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:GetAccess', function(source, cb, raceId)
+    local res = MySQL.Sync.fetchAll('SELECT access FROM race_tracks WHERE raceid = ?', {raceId})
+    if res then
+        if res[1] then
+            cb(json.decode(res[1].access))
+        else
+            cb('NOTHING')
+        end
+    end
+end)
+
+RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
+    local src = source
+    if useDebug then
+        print('source ', src, 'has updated access for', raceId)
+        print(json.encode(access))
+    end
+    local res = MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', {json.encode(access), raceId})
+    if res then
+        if res == 1 then
+            TriggerClientEvent('QBCore:Notify', src, Lang:t('success.access_updated'), "success")
+        end
+        Races[raceId].Access = access
+    end
+end)
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:HasCreatedRace', function(source, cb)
+    cb(HasOpenedRace(QBCore.Functions.GetPlayer(source).PlayerData.citizenid))
+end)
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:IsAuthorizedToCreateRaces', function(source, cb, TrackName)
+    cb(IsPermissioned(QBCore.Functions.GetPlayer(source).PlayerData.citizenid, 'create'), IsNameAvailable(TrackName))
 end)
 
 local function createRacingFob(source, citizenid, racerName, type, purchaseType)
@@ -952,7 +980,7 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
 
     QBCore.Functions.GetPlayer(source).Functions.AddItem(type, 1, nil, { owner = citizenid, name = name })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[type], 'add', 1)
-end, 'admin')
+end, 'dev')
 
 QBCore.Functions.CreateUseableItem("fob_racing_basic", function(source, item)
     UseRacingFob(source, item)
@@ -963,7 +991,7 @@ QBCore.Functions.CreateUseableItem("fob_racing_master", function(source, item)
 end)
 
 local function generateRacetrackTable ()
-    MySQL.query('CREATE TABLE IF NOT EXISTS race_tracks ( id int(11) NOT NULL AUTO_INCREMENT, name varchar(50) DEFAULT NULL, checkpoints text DEFAULT NULL, records text DEFAULT NULL, creatorid varchar(50) DEFAULT NULL, creatorname varchar(50) DEFAULT NULL, distance int(11) DEFAULT NULL, raceid varchar(50) DEFAULT NULL, PRIMARY KEY (id))')
+    MySQL.query('CREATE TABLE IF NOT EXISTS race_tracks ( id int(11) NOT NULL AUTO_INCREMENT, name varchar(50) DEFAULT NULL, checkpoints text DEFAULT NULL, records text DEFAULT NULL, creatorid varchar(50) DEFAULT NULL, creatorname varchar(50) DEFAULT NULL, distance int(11) DEFAULT NULL, raceid varchar(50) DEFAULT NULL, access TEXT DEFAULT "[]" PRIMARY KEY (id))')
 end
 
 local function dropRacetrackTable()
@@ -971,8 +999,17 @@ local function dropRacetrackTable()
 end
 
 local function updateRaceTrackTable()
-    MySQL.query('ALTER TABLE race_tracks RENAME COLUMN creator TO creatorid; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL AFTER creatorid;')
+    MySQL.query('ALTER TABLE race_tracks RENAME COLUMN creator TO creatorid; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL ADD access TEXT DEFAULT "[]" AFTER creatorid;')
 end
+
+local function addAccessCol()
+    MySQL.query("ALTER TABLE race_tracks ADD access TEXT DEFAULT '{}'")
+end
+
+
+QBCore.Commands.Add('addAccessCol', 'Add Access column', {}, true, function(source, args)
+    addAccessCol()
+end, 'admin')
 
 QBCore.Commands.Add('resetracetracks', 'Reset the race track table', {}, true, function(source, args)
     dropRacetrackTable()

@@ -50,7 +50,8 @@ local Translations = {
         race_finished = "You finished the race in ",
         race_best_lap = "You got a best lap of ",
         new_pb = "You got a new personal best!",
-        time_added = "Your time has been added to the leaderboard"
+        time_added = "Your time has been added to the leaderboard",
+        access_updated = "Access updated"
     },
     commands = {
         create_racing_fob_command = 'createracingfob',
@@ -104,6 +105,9 @@ local Translations = {
         edit_checkpoint_header = "Edit checkpoint",
         confirm = "Confirm",
         edit_track = "Edit track",
+        edit_access = "Edit access",
+        access_race = "Race access. Separate by commas",
+        access_list = "Access List",
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})

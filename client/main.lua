@@ -1254,6 +1254,70 @@ RegisterNetEvent("cw-racingapp:Client:EditTrack", function(data)
     TriggerEvent("cw-racingapp:client:StartRaceEditor", data.RaceName, data.name, data.RaceId)
 end)
 
+function split(source)
+    local str = source:gsub("%s+", "")
+    str = string.gsub(str, "%s+", "")
+    local result, i = {}, 1
+    while true do
+        local a, b = str:find(',')
+        if not a then break end
+        local candidat = str:sub(1, a - 1)
+        if candidat ~= "" then 
+            result[i] = candidat
+        end i=i+1
+        str = str:sub(b + 1)
+    end
+    if str ~= "" then 
+        result[i] = str
+    end
+    return result
+end
+
+RegisterNetEvent("cw-racingapp:Client:EditAccess", function(data)
+    QBCore.Functions.TriggerCallback('cw-racingapp:server:GetAccess', function(accessTable)
+        if accessTable == 'NOTHING' then
+            if useDebug then
+               print('Access table was empty')
+            end
+            accessTable = { race = ''}
+        else            
+            local raceText = ''
+            if accessTable.race then
+                for i, v in pairs(accessTable.race) do
+                    if i == 1 then raceText = v else
+                        raceText = raceText..', '..v
+                    end
+                end
+                accessTable = { race = raceText}
+            else
+            accessTable.race = ''
+            end
+        end
+
+        local dialog = exports['qb-input']:ShowInput({
+            header = Lang:t("menu.access_list"),
+            submitText = "Submit Access",
+            inputs = {
+                {
+                    text = Lang:t('menu.access_race'), -- text you want to be displayed as a place holder
+                    name = "accessRace", -- name of the input should be unique otherwise it might override
+                    type = "text", -- type of the input
+                    default = accessTable.race, -- Default text option, this is optional
+                }
+            },
+        })
+        if dialog ~= nil then
+            if dialog.accessRace then
+                local newAccess = {
+                    race = split(dialog.accessRace)
+                }
+                TriggerServerEvent("cw-racingapp:server:SetAccess", data.RaceId, newAccess)
+            end
+        end
+    end, data.RaceId)
+
+end)
+
 RegisterNetEvent("cw-racingapp:Client:DeleteTrack", function(data)
     local menu = {{
         header = Lang:t("menu.are_you_sure_you_want_to_delete_track")..' ('..data.RaceName..')' ,
@@ -1355,7 +1419,19 @@ RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
             }
         }
     }
-
+    menu[#menu + 1] = {
+            header = Lang:t("menu.edit_access"),
+            icon = "fas fa-user-lock",
+            params = {
+                event = "cw-racingapp:Client:EditAccess",
+                args = {
+                    type = data.type,
+                    name = data.name,
+                    RaceId = data.RaceId,
+                    RaceName = data.RaceName
+                }
+            }
+    }        
     menu[#menu + 1] = {
         header = Lang:t("menu.delete_track"),
         icon = "fas fa-trash-can",
@@ -2016,8 +2092,24 @@ local function toboolean(str)
     return bool
 end
 
-local function sortByName(table)
-
+local function verifyTrackAccess(track, type)
+    if track.Access[type] ~= nil then
+        if track.Access[type][1] == nil then print('no values', track.RaceName) return true end -- if list is added but emptied 
+        local playerCid = QBCore.Functions.GetPlayerData().citizenid
+        if track.Creator == playerCid then return true end -- if creator default to true
+        if useDebug then
+            print('track', track.RaceName, 'has access limitations for', type)
+            print('player cid', playerCid)
+        end
+        for i, citizenId in pairs(track.Access[type]) do
+            if useDebug then
+               print(i, citizenId)
+            end
+            if citizenId == playerCid then return true end -- if one of the players in the list
+        end
+        return false
+    end
+    return true
 end
 
 RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
@@ -2028,7 +2120,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             name = 'none'
         }}
         for id, track in pairs(Races) do
-            if not track.Waiting then
+            if not track.Waiting and verifyTrackAccess(track, 'race') then
                 tracks[#tracks + 1] = {
                     value = id,
                     text = string.format("%s | %s | %sm", track.RaceName, track.CreatorName, track.Distance),
@@ -2108,10 +2200,10 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
             submitText = "✓",
             inputs = options
         })
-        if useDebug then
-            print('selected max class', dialog.maxClass)
-        end
         if dialog ~= nil then
+            if useDebug then
+                print('selected max class', dialog.maxClass)
+            end
             if dialog.maxClass == '' or Config.Classes[dialog.maxClass] then
                 if not dialog or dialog.track == "none" then
                     TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
@@ -2432,6 +2524,10 @@ if Config.Laptop.active then
             })
     end)
 end
+
+AddEventHandler('playerDropped', function()
+    TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData)
+end)
 
 AddEventHandler('onResourceStop', function (resource)
    if resource ~= GetCurrentResourceName() then return end
