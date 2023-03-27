@@ -16,6 +16,7 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Accurate time (old one would vary depending on computer performance) **NOW IN MS!**
 - Ability to reset/run the SQL scripts from in game
 - Phasing/Ghosting of racers
+- Ability to lock tracks down to people by citizen ID
 
 
 **Original features by ItsANoBrainer:**
