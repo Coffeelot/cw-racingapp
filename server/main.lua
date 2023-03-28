@@ -672,6 +672,18 @@ RegisterNetEvent('cw-racingapp:Server:ClearLeaderboard', function(RaceId)
     MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?',
     {RaceId})
 end)
+
+local function GetPlayers()
+    local players = {}
+    for _, player in ipairs(GetActivePlayers()) do
+        local ped = GetPlayerPed(player)
+        if DoesEntityExist(ped) then
+            table.insert(players, player)
+        end
+    end
+    return players
+end
+
 QBCore.Functions.CreateCallback('cw-racingapp:Server:getplayers', function(_, cb)
     local players = GetPlayers()
     local playerIds = {}
