@@ -673,21 +673,17 @@ RegisterNetEvent('cw-racingapp:Server:ClearLeaderboard', function(RaceId)
     {RaceId})
 end)
 
-local function GetPlayers()
-    local players = {}
-    for _, player in ipairs(GetActivePlayers()) do
-        local ped = GetPlayerPed(player)
-        if DoesEntityExist(ped) then
-            table.insert(players, player)
-        end
-    end
-    return players
-end
-
 QBCore.Functions.CreateCallback('cw-racingapp:Server:getplayers', function(_, cb)
     local players = GetPlayers()
+    if useDebug then
+        print(json.encode(players))
+    end
     local playerIds = {}
     for index, player in ipairs(players) do
+        if useDebug then
+            local name = GetPlayerName(player)
+            print('adding', name, ' to list')
+        end
         local playerData = QBCore.Functions.GetPlayer(tonumber(player)).PlayerData
         playerIds[#playerIds+1] = {
             citizenid = playerData.citizenid,
