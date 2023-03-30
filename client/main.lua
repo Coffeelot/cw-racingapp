@@ -971,7 +971,18 @@ local function resetBlips()
     end
 end
 
+local timeWhenLastCheckpointWasPassed = 0
 -- Racing
+
+local function checkCheckPointTime()
+    if GetTimeDifference(GetGameTimer(), timeWhenLastCheckpointWasPassed) > Config.KickTime then
+        if useDebug then
+           print('Getting kicked for idling')
+        end
+        TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData)
+    end
+end
+
 CreateThread(function()
     while true do
         if CurrentRaceData.RaceName ~= nil then
@@ -999,6 +1010,7 @@ CreateThread(function()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                             passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                             nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+                            timeWhenLastCheckpointWasPassed = GetGameTimer()
                         else
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
@@ -1006,6 +1018,7 @@ CreateThread(function()
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                             FinishRace()
+                            timeWhenLastCheckpointWasPassed = GetGameTimer()
                         end
                     else -- Circuit
                         if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then -- If new lap
@@ -1021,6 +1034,7 @@ CreateThread(function()
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                                 FinishRace()
+                                timeWhenLastCheckpointWasPassed = GetGameTimer()
                             else -- if next lap
                                 DoPilePfx()
                                 resetBlips()
@@ -1040,6 +1054,7 @@ CreateThread(function()
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+                                timeWhenLastCheckpointWasPassed = GetGameTimer()
                             end
                         else -- if next checkpoint 
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
@@ -1058,11 +1073,15 @@ CreateThread(function()
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                                     passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                     nextBlip(CurrentRaceData.Checkpoints[1].blip)
+                                timeWhenLastCheckpointWasPassed = GetGameTimer()
+
                             end
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                         end
                     end
+                else
+                    checkCheckPointTime()
                 end
             else
                 local data = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
@@ -1598,6 +1617,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             lapStartTime = GetGameTimer()
             startTime = GetGameTimer()
             CurrentRaceData.Started = true
+            timeWhenLastCheckpointWasPassed = GetGameTimer()
             Countdown = 10
         else
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
@@ -2232,7 +2252,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                         QBCore.Functions.Notify('Your car is not the correct class', 'error')
                     end
                 else
-                    QBCore.Functions.Notify('You are not in a vehicle', 'error')
+                        QBCore.Functions.Notify('You are not in a vehicle', 'error')
                 end
             else
                 QBCore.Functions.Notify('The class you chose does not exist', 'error')
