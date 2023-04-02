@@ -641,7 +641,6 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
         MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?', { json.encode(Checkpoints), RaceData.RaceId})
         Races[RaceId].Checkpoints = Checkpoints
     else
-        print('Creating new track', RaceId)
         Races[RaceId] = {
             RaceName = RaceData.RaceName,
             Checkpoints = Checkpoints,
@@ -653,6 +652,7 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
             Waiting = false,
             Distance = math.ceil(RaceData.RaceDistance),
             Racers = {},
+            Access = {},
             LastLeaderboard = {}
         }
         MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid) VALUES (?, ?, ?, ?, ?, ?)',
