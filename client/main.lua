@@ -2533,7 +2533,7 @@ if Config.Laptop.active then
                     end
                 }
             }
-            laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, true,  true, true)
+            laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, false,  false, true)
             SetEntityHeading(laptopEntity, laptop.location.w)
             CreateObject(laptopEntity)
             FreezeEntityPosition(laptopEntity, true)
