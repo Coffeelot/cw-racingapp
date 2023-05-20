@@ -138,11 +138,21 @@ local function isFinishOrStart(CurrentRaceData, checkpoint)
     end
 end
 
+local function AddPointToGpsRoute(cx, cy, offset)
+    local x = cx
+    local y = cy
+    if Config.DoOffsetGps then
+        x = (x + offset.right.x) / 2;
+        y = (y + offset.right.y) / 2;
+    end
+    AddPointToGpsMultiRoute(x,y)
+end
+
 local function doGPSForRace(started)
     ClearGpsMultiRoute()
     StartGpsMultiRoute(6, started , false)
     for k, v in pairs(CurrentRaceData.Checkpoints) do
-        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
+        AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, v.offset)
         if started then
             ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
             if isFinishOrStart(CurrentRaceData,k) then
@@ -158,10 +168,10 @@ local function doGPSForRace(started)
     if CurrentRaceData.TotalLaps > 0 then 
         for k=1, CurrentRaceData.TotalLaps-1, 1 do
             for k=1, #CurrentRaceData.Checkpoints, 1 do
-                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y)
+                AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, CurrentRaceData.Checkpoints[k].offset)
             end
         end
-        AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+        AddPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
     end
     SetGpsMultiRouteRender(true)
 end

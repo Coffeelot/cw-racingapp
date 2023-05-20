@@ -1,7 +1,8 @@
 Config = Config or {}
 Config.Debug = false
 
-Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support
+Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
+Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
 Config.Permissions = {
     ['fob_racing_basic'] = {
         ['join'] = true,
@@ -27,7 +28,7 @@ Config.Classes = {
     ['B'] = true,
     ['A'] = true,
     ['S'] = true
-} -- These classes can be used (notice X missing for example). Only use classes from cw-performance here. 
+} -- These classes can be used (notice X missing for example). Only use classes from cw-performance here.
 
 Config.MinRacerNameLength = 3
 Config.MaxRacerNameLength = 24
@@ -110,7 +111,7 @@ Config.Ghosting = {
     Enabled = true, --adding ability to toggle per started race soon
     NearestDistanceLimit = 20, -- Distance (in meters) a racer needs to be to a non-racer for the ghosting to turn off
     Timer = 0, -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
-    DistanceLoopTime = 1000, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly. 
+    DistanceLoopTime = 1000, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly.
     Options = {
         { value = '', text = 'Never' },
         { value = 10, text = 10 },
