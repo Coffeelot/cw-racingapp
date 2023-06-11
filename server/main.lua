@@ -674,12 +674,12 @@ RegisterNetEvent('cw-racingapp:Server:ClearLeaderboard', function(RaceId)
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:Server:getplayers', function(_, cb)
-    local players = GetPlayers()
+    local players = QBCore.Functions.GetPlayers()
     if useDebug then
         print(json.encode(players))
     end
     local playerIds = {}
-    for index, player in ipairs(players) do
+    for index, player in pairs(players) do
         if useDebug then
             local name = GetPlayerName(player)
             print('adding', name, ' to list')
@@ -722,7 +722,7 @@ function IsPermissioned(CitizenId, type)
     local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
     local HasMaster = Player.Functions.GetItemsByName('fob_racing_master')
     if HasMaster then
-        for _, item in ipairs(HasMaster) do
+        for _, item in pairs(HasMaster) do
             if Config.Inventory == 'ox' then
                 if item.metadata.owner == CitizenId and Config.Permissions['fob_racing_master'][type] then
                     return true
@@ -737,7 +737,7 @@ function IsPermissioned(CitizenId, type)
 
     local HasBasic = Player.Functions.GetItemsByName('fob_racing_basic')
     if HasBasic then
-        for _, item in ipairs(HasBasic) do
+        for _, item in pairs(HasBasic) do
             if Config.Inventory == 'ox' then
                 if item.metadata.owner == CitizenId and Config.Permissions['fob_racing_basic'][type] then
                     return true
