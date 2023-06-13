@@ -5,7 +5,7 @@
 -- Use these queries on your database if you are converting your existing qb-lapraces table to qb-racing
 -- This will conserve all tracks previously created
 ALTER TABLE `lapraces` RENAME TO `race_tracks`;
-ALTER TABLE `race_tracks` RENAME COLUMN `creator` TO `creatorid`;
+ALTER TABLE race_tracks CHANGE COLUMN creator creatorid VARCHAR(50) NULL;
 ALTER TABLE `race_tracks` ADD COLUMN `creatorname` VARCHAR(50) NULL DEFAULT NULL AFTER `creatorid`;
 
 -- OPTION 2
