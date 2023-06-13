@@ -1007,7 +1007,7 @@ local function dropRacetrackTable()
 end
 
 local function updateRaceTrackTable()
-    MySQL.query('ALTER TABLE race_tracks RENAME COLUMN creator TO creatorid; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL ADD access TEXT DEFAULT "[]" AFTER creatorid;')
+    MySQL.query('ALTER TABLE race_tracks CHANGE COLUMN creator creatorid VARCHAR(50) NULL; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL ADD access TEXT DEFAULT "[]" AFTER creatorid;')
 end
 
 local function addAccessCol()
