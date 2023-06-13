@@ -63,6 +63,7 @@ local Translations = {
         get_in_vehicle = "Get in a vehicle to start!",
     },
     menu = {
+        open_tuning_overlay = "Toggle Tuning Overlay",
         ready_to_race = "Ready to Race, ",
         current_race = "Current Race",
         current_race_txt = "Options for your currently entered race.",

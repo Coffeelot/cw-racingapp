@@ -1746,7 +1746,19 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
                 name = name
             }
         }
-    }, {
+    },
+    {
+        header = Lang:t("menu.open_tuning_overlay"),
+        txt = "",
+        icon = "fas fa-wrench",
+        hidden = not Config.ShowMechToolOption,
+        params = {
+            event = "cw-mechtool:client:openTuning",
+            args = { fromObd = false}
+
+        }
+    },
+    {
         header = Lang:t("menu.close"),
         txt = "",
         icon = "fas fa-x",

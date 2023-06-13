@@ -1,6 +1,7 @@
 Config = Config or {}
 Config.Debug = false
 
+Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
 Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
 Config.Permissions = {
