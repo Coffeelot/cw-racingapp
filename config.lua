@@ -1,6 +1,8 @@
 Config = Config or {}
 Config.Debug = false
 
+Config.UseResetTimer = true -- If true then a timer will run server side to make sure theres activity in the race 
+Config.RaceResetTimer = 300000 -- in MS, by default it's 5 minutes - 
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
 Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 

@@ -681,8 +681,9 @@ function RaceUI()
                         TotalTime = CurrentRaceData.TotalTime,
                         BestLap = CurrentRaceData.BestLap,
                         Position = CurrentRaceData.Position,
+                        Positions = CurrentRaceData.Positions,
                         TotalRacers = CurrentRaceData.TotalRacers,
-                        Ghosted = CurrentRaceData.Ghosted
+                        Ghosted = CurrentRaceData.Ghosted,
                     },
                     racedata = RaceData,
                     active = true
@@ -874,11 +875,12 @@ function FinishRace()
     local PlayerPed = PlayerPedId()
     local info, class, perfRating, vehicleModel = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
+    if useDebug then print('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime) end
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel)
     QBCore.Functions.Notify(Lang:t("success.race_finished") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
     if CurrentRaceData.BestLap ~= 0 then
-        QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
+        QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. MilliToTime(CurrentRaceData.BestLap), 'success')
     end
     UnGhostPlayer()
     Players = {}
@@ -1037,7 +1039,9 @@ CreateThread(function()
                                 PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
+                                    if useDebug then print('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap) end
                                 elseif CurrentRaceData.BestLap == 0 then
+                                    if useDebug then print('bestlap == 0', CurrentRaceData.BestLap) end
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
                                 CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
@@ -1050,8 +1054,10 @@ CreateThread(function()
                                 resetBlips()
                                 PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
+                                    if useDebug then print('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap) end
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 elseif CurrentRaceData.BestLap == 0 then
+                                    if useDebug then print('bestlap == 0', CurrentRaceData.BestLap) end
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
                                 lapStartTime = GetGameTimer()
@@ -1227,6 +1233,7 @@ RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(RaceId, Rac
         local MyPosition = getIndex(Positions)
         CurrentRaceData.Racers = RaceData.Racers
         CurrentRaceData.Position = MyPosition
+        CurrentRaceData.Positions = Positions
     end
 end)
 
@@ -1563,11 +1570,12 @@ RegisterNetEvent("cw-racingapp:Client:ListMyTracks", function(data)
     exports['qb-menu']:openMenu(menu)
 end)
 
-RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
+RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Positions)
     doGPSForRace(true)
     Players = {}
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
+    CurrentRaceData.Positions = Positions
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then
@@ -2566,10 +2574,6 @@ if Config.Laptop.active then
             })
     end)
 end
-
-AddEventHandler('playerDropped', function()
-    TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData)
-end)
 
 AddEventHandler('onResourceStop', function (resource)
    if resource ~= GetCurrentResourceName() then return end

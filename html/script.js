@@ -61,6 +61,15 @@ function UpdateCountdown(data) {
     }
 }
 
+function updatePositions(positions) {
+    $(".racer-positions").html('');
+
+    $.each(positions, function(i, driver) {
+        let element = `<span class="racer-position"><span class="racer-position-number"> ${i+1 } : </span><span id="${i}" class="racer-position-name"> ${driver.RacerName}  </span></span>`;
+        $(".racer-positions").append(element);
+    });
+}
+
 function UpdateUI(type, data) {
     if (type == "creator") {
         if (data.active) {
@@ -118,6 +127,7 @@ function UpdateUI(type, data) {
                     $("#race-besttime").html('N/A');
                 }
                 $("#race-totaltime").html(secondsTimeSpanToHMS(data.data.TotalTime));
+                updatePositions(data.data.Positions)
             } else {
                 $("#race-racename").html(data.data.RaceName);
                 let totalRacers = data.data.TotalRacers
@@ -146,6 +156,7 @@ function UpdateUI(type, data) {
                     $("#race-ghosted-value").html('');
                     $("#race-ghosted-span").hide();
                 }
+                updatePositions(data.data.Positions)
             }
         } else {
             RaceActive = false;
