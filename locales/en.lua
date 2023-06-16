@@ -107,7 +107,7 @@ local Translations = {
         confirm = "Confirm",
         edit_track = "Edit track",
         edit_access = "Edit access",
-        access_race = "Race access. Separate by commas",
+        access_race = "Race access by citizenId. Separate by commas",
         access_list = "Access List",
     }
 }
