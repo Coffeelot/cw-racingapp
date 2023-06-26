@@ -207,7 +207,7 @@ local function giveSplit(src, racers, position, pot)
     local total = 0
     if racers == 2 and position == 1 then
         total = pot
-    elseif racers == 3 and position == 1 or position == 2 then
+    elseif racers == 3 and (position == 1 or position == 2) then
         total = Config.Splits['three'][position]*pot
         if useDebug then print('Payout for ', position, total) end
     elseif racers > 3 then
