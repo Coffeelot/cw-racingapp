@@ -128,9 +128,11 @@ Config.Ghosting = {
     }
 }
 
+
+-- Splits work as follows: [x] = y means position x gets y % of the profit
 Config.Splits = {
-    three = { [1] = 0.7, [2] = 0.3 }, -- if only two winner takes it all
-    more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 }
+    three = { [1] = 0.7, [2] = 0.3 }, -- If three racers
+    more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 } -- If more than 3 
 }
 
 Config.ParticpationTrophies = {
