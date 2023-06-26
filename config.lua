@@ -1,11 +1,13 @@
 Config = Config or {}
 Config.Debug = false
 
-Config.UseResetTimer = true -- If true then a timer will run server side to make sure theres activity in the race 
-Config.RaceResetTimer = 300000 -- in MS, by default it's 5 minutes - 
+Config.UseResetTimer = true
+Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
 Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
+Config.UseRenewedCrypto = false -- set to true if you use Renewed Crypto
+
 Config.Permissions = {
     ['fob_racing_basic'] = {
         ['join'] = true,
@@ -76,15 +78,16 @@ Config.Options = {
     },
     BuyIns = {
         { value = 0, text = 'Nothing' },
+        { value = 10, text = 10 },
+        { value = 20, text = 20 },
+        { value = 50, text = 50 },
         { value = 100, text = 100 },
         { value = 200, text = 200 },
         { value = 500, text = 500 },
-        { value = 1000, text = 1000 },
-        { value = 2000, text = 2000 },
-        { value = 5000, text = 5000 },
-        { value = 10000, text = 10000 }
+        { value = 1000, text = 1000 }
     },
-    MoneyType = 'cash'
+    MoneyType = 'crypto',
+    CryptoType = 'cdc' -- relevant if you use Renewed Crypto and above is crypto
 }
 
 Config.Trader = {
@@ -94,19 +97,20 @@ Config.Trader = {
     model = 'csb_paige',
     animation = 'csb_paige_dual',
     location = vector4(195.48, -3167.38, 5.79, 92.36),
-    moneyType = 'cash',
-    racingFobCost = 2500,
-    racingFobMasterCost = 10000,
+    moneyType = 'crypto',
+    racingFobCost = 10,
+    racingFobMasterCost = 100,
 }
 
 Config.Laptop = {
     active = true,
-    jobRequirement = { basic = false, master = true},
+    jobRequirement = { basic = true, master = true},
     requireToken = false,
     model = 'xm_prop_x17_laptop_lester_01',
     location = vector4(241.10, -2941.14, 6.03, -262.82),
     moneyType = 'crypto',
-    racingFobCost = 25,
+    cryptoType = 'cdc', -- relevant if you use Renewed Crypto and above is crypto
+    racingFobCost = 10,
     racingFobMasterCost = 100,
 }
 
@@ -122,4 +126,18 @@ Config.Ghosting = {
         { value = 60, text = 60 },
         { value = 120, text = 120 },
     }
+}
+
+Config.Splits = {
+    three = { [1] = 0.7, [2] = 0.3 }, -- if only two winner takes it all
+    more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 }
+}
+
+Config.ParticpationTrophies = {
+    enabled = true, -- false if you dont want players getting particpation trophies
+    minimumOfRacers = 6, -- minimum of racers to hand out particpation trophies
+    type = 'crypto', -- cash, bank or crypto
+    amount = { [1] = 60, [2] = 40, [3] = 20, [4] = 10,  [5] = 5 }, -- [<position>] = <amount>
+    cryptoType = 'cdc', -- name of your crypto (if you have Renewed)
+    minumumRaceLength = 3000
 }

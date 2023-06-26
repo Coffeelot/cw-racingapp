@@ -203,6 +203,43 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
     return false
 end
 
+local function giveSplit(src, racers, position, pot)
+    local total = 0
+    if racers == 2 and position == 1 then
+        total = pot
+    elseif racers == 3 and position == 1 or position == 2 then
+        total = Config.Splits['three'][position]*pot
+        if useDebug then print('Payout for ', position, total) end
+    elseif racers > 3 then
+        total = Config.Splits['more'][position]*pot
+        if useDebug then print('Payout for ', position, total) end
+    else
+        if useDebug then print('No one got a payout') end
+    end
+    local Player = QBCore.Functions.GetPlayer(src)
+    if total > 0 then
+        if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
+            exports['qb-phone']:AddCrypto(src, Config.Options.CryptoType, math.floor(total))
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.CryptoType, 'success')
+        else
+            Player.Functions.AddMoney(Config.Options.MoneyType, math.floor(total))
+        end
+    end
+end
+
+local function handOutParticipationTrophy(src, position)
+    local Player = QBCore.Functions.GetPlayer(src)
+    if Config.ParticpationTrophies.amount[position] then
+        if Config.ParticpationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
+            exports['qb-phone']:AddCrypto(src, Config.ParticpationTrophies.cryptoType, Config.ParticpationTrophies.amount[position])
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..Config.ParticpationTrophies.amount[position].. ' '.. Config.ParticpationTrophies.cryptoType, 'success')
+        else
+            Player.Functions.AddMoney(Config.ParticpationTrophies.MoneyType, Config.ParticpationTrophies.amount[position])
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..Config.ParticpationTrophies.amount[position], 'success')
+        end
+    end
+end
+
 -----------------------
 ---- Server Events ----
 -----------------------
@@ -219,15 +256,29 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         end
         AmountOfRacers = AmountOfRacers + 1
     end
+
     if useDebug then
         print('Total: ', TotalTime)
         print('Best Lap: ', BestLap)
         print('Place:', PlayersFinished, Races[RaceData.RaceId].BuyIn)
     end
-    if PlayersFinished == 1 and Races[RaceData.RaceId].BuyIn > 0 then
-        local Player = QBCore.Functions.GetPlayer(src)
-        Player.Functions.AddMoney(Config.Options.MoneyType, Races[RaceData.RaceId].BuyIn*AmountOfRacers)
+    if PlayersFinished == 1 or PlayersFinished == 2 or PlayersFinished == 3 and Races[RaceData.RaceId].BuyIn > 0 then
+        local distance = Races[RaceData.RaceId].Distance
+        if TotalLaps > 1 then
+            distance = distance*TotalLaps
+        end
+        if distance > Config.ParticpationTrophies.minumumRaceLength then
+            giveSplit(src, AmountOfRacers, PlayersFinished, Races[RaceData.RaceId].BuyIn)
+        else
+            if useDebug then print('Race length was to short: ', distance,' Minumum required:', Config.ParticpationTrophies.minumumRaceLength) end
+        end
     end
+
+    if Config.ParticpationTrophies.enabled and Config.ParticpationTrophies.minimumOfRacers <= AmountOfRacers then
+        if useDebug then print('Participation Trophies are enabled. Handing out to', src) end
+        handOutParticipationTrophy(src, PlayersFinished)
+    end
+
     local BLap = 0
     if TotalLaps < 2 then
         if useDebug then
@@ -321,6 +372,28 @@ local function isToFarAway(src, RaceId)
     return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Races[RaceId].Checkpoints[1].coords.x, Races[RaceId].Checkpoints[1].coords.y))
 end
 
+local function hasEnoughMoney(source, cost)
+    print(source, cost)
+    if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
+        if useDebug then print('Is using crypto and renewed crypto') end
+        if exports['qb-phone']:hasEnough(source, Config.Options.CryptoType, math.floor(cost)) then
+            return true
+        else
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+            return false
+        end
+    else
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player.PlayerData.money[Config.Options.MoneyType] < cost then
+            return true
+        else
+            return false
+        end
+
+    end    
+
+end
+
 RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -339,7 +412,8 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
         if useDebug then
             print('Join: BUY IN', RaceData.BuyIn)
         end
-        if RaceData.BuyIn > 0 and Player.PlayerData.money[Config.Options.MoneyType] < RaceData.BuyIn then
+
+        if RaceData.BuyIn > 0 and not hasEnoughMoney(src, RaceData.BuyIn) then
             TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
         else
             if CurrentRace ~= nil then
@@ -365,7 +439,12 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             end
 
             if RaceData.BuyIn > 0 then
-                Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn, "Bought into Race")
+                if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
+                    exports['qb-phone']:RemoveCrypto(src, Config.Options.CryptoType, math.floor(RaceData.BuyIn))
+                    TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.CryptoType, 'success')
+                else
+                    Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn, "Bought into Race")
+                end
             end
 
             Races[RaceId].Waiting = true
@@ -397,7 +476,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
 end)
 
 RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
-    if useDebug then print('Player left race', source) end
+    print('Player left race', source)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local RacerName = RaceData.RacerName
@@ -476,7 +555,7 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
         TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Races[RaceId].Checkpoints[1].coords.x, Races[RaceId].Checkpoints[1].coords.y)
         return
     end
-    if BuyIn > 0 and Player.PlayerData.money[Config.Options.MoneyType] < BuyIn then
+    if BuyIn > 0 and not hasEnoughMoney(src, BuyIn) then
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
     else
         if Races[RaceId] ~= nil then
@@ -1002,7 +1081,18 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     else
         cost = purchaseType.racingFobCost
     end
-    Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type)
+    if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
+        if exports['qb-phone']:hasEnough(source, Config.Options.CryptoType, math.floor(cost)) then
+            exports['qb-phone']:RemoveCrypto(source, Config.Options.CryptoType, math.floor(cost))
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'success')
+        else
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+        end
+    else
+        if not Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type) then
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+        end
+    end
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
 end
@@ -1086,7 +1176,6 @@ end
 local function addAccessCol()
     MySQL.query("ALTER TABLE race_tracks ADD access TEXT DEFAULT '{}'")
 end
-
 
 QBCore.Commands.Add('addAccessCol', 'Add Access column', {}, true, function(source, args)
     addAccessCol()

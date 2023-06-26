@@ -65,7 +65,7 @@ function updatePositions(positions) {
     $(".racer-positions").html('');
 
     $.each(positions, function(i, driver) {
-        let element = `<span class="racer-position"><span class="racer-position-number"> ${i+1 } : </span><span id="${i}" class="racer-position-name"> ${driver.RacerName}  </span></span>`;
+        let element = `<span class="racer-position"><span class="racer-position-number"> ${i+1}: </span><span id="${i}" class="racer-position-name"> ${driver.RacerName}  </span></span>`;
         $(".racer-positions").append(element);
     });
 }

@@ -89,13 +89,14 @@ local function DeleteClosestObject(coords, model)
 end
 
 local function CreatePile(offset, model)
-    ClearAreaOfObjects(offset.x, offset.y, offset.z, 50.0, 0)
     LoadModel(model)
-
     local Obj = CreateObject(model, offset.x, offset.y, offset.z, 0, 0, 0) -- CHANGE ONE OF THESE TO MAKE NETWORKED???
     PlaceObjectOnGroundProperly(Obj)
-    -- FreezeEntityPosition(Obj, 1)
+    FreezeEntityPosition(Obj, 1)
     SetEntityAsMissionEntity(Obj, 1, 1)
+    SetEntityCollision(Obj, false, true)
+    SetEntityCanBeDamaged(Obj, false)
+    SetEntityInvincible(Obj, true)
 
     return Obj
 end
@@ -148,13 +149,19 @@ local function AddPointToGpsRoute(cx, cy, offset)
     AddPointToGpsMultiRoute(x,y)
 end
 
+local function clearBlips()
+    for i,v in pairs(CurrentRaceData.Checkpoints) do
+        
+    end
+end
+
 local function doGPSForRace(started)
+    DeleteAllCheckpoints()
     ClearGpsMultiRoute()
     StartGpsMultiRoute(6, started , false)
     for k, v in pairs(CurrentRaceData.Checkpoints) do
         AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, v.offset)
         if started then
-            ClearAreaOfObjects(v.offset.right.x, v.offset.right.y, v.offset.right.z, 50.0, 0)
             if isFinishOrStart(CurrentRaceData,k) then
                 CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
                 CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.StartAndFinishModel)
@@ -162,8 +169,8 @@ local function doGPSForRace(started)
                 CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.CheckpointPileModel)
                 CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.CheckpointPileModel)
             end
-            CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
         end
+        CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
     end
     if CurrentRaceData.TotalLaps > 0 then 
         for k=1, CurrentRaceData.TotalLaps-1, 1 do
@@ -194,6 +201,11 @@ function DeleteAllCheckpoints()
                 DeleteClosestObject(CurrentCheckpoint.offset.right, Config.CheckpointPileModel)
                 RightPile = nil
             end
+            local Blip = CurrentCheckpoint.blip
+            if Blip then
+                RemoveBlip(Blip)
+                Blip = nil
+            end
         end
     end
 
@@ -214,6 +226,11 @@ function DeleteAllCheckpoints()
                 DeleteClosestObject(CurrentRaceData.Checkpoints[k].offset.right, Config.StartAndFinishModel)
                 DeleteClosestObject(CurrentRaceData.Checkpoints[k].offset.right, Config.CheckpointPileModel)
                 RightPile = nil
+            end
+            local Blip = CurrentCheckpoint.blip
+            if Blip then
+                RemoveBlip(Blip)
+                Blip = nil
             end
         end
     end
@@ -1145,7 +1162,6 @@ CreateThread(function()
 
                 SetEntityCollision(creatorObjectLeft, false, false)
                 SetEntityCollision(creatorObjectRight, false, false)
-
                 SetModelAsNoLongerNeeded(creatorCheckpointObject)
             end
         end
@@ -1859,9 +1875,11 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
             end
             local header = RaceData.RaceName
             if RaceData.BuyIn > 0 then
-                local currency = 'Crypto '
+                local currency = ''
                 if Config.Options.MoneyType == 'cash' or Config.Options.MoneyType == 'bank' then
                     currency = '$'
+                else
+                    currency = Config.Options.CryptoType
                 end
                 header = header.. ' | '..currency .. RaceData.BuyIn
             end
@@ -2190,6 +2208,13 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
 
         table.sort(tracks, function(a, b) return a.name < b.name end)
 
+        local currency = ''
+        if Config.Options.MoneyType == 'cash' or Config.Options.MoneyType == 'bank' then
+            currency = '$'
+        else
+            currency = Config.Options.CryptoType
+        end
+
         local options = {{
                 text = Lang:t("menu.select_track"),
                 name = "track",
@@ -2203,7 +2228,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                 isRequired = true
             },
             {
-                text = Lang:t("menu.buyIn"),
+                text = Lang:t("menu.buyIn")..' ('..currency..')',
                 name = "buyIn",
                 type = "select",
                 options = Config.Options.BuyIns,
@@ -2216,8 +2241,8 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
                 name = "ghosting", 
                 type = "radio", 
                 options = {
-                    { value = true, text = Lang:t("menu.yes"), checked = true },
-                    { value = false, text = Lang:t("menu.no")},
+                    { value = false, text = Lang:t("menu.no"), checked = true },
+                    { value = true, text = Lang:t("menu.yes")},
                 }})
             table.insert(options, {
                 text = Lang:t('menu.ghostingTime'),
@@ -2449,31 +2474,25 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
         local racerId = dialog["racerId"]
         local player = QBCore.Functions.GetPlayerData()
         if racerId == '' then
-            print('racer id was left empty')
             racerId = GetPlayerServerId(PlayerId())
-            print('WHAT THE FUCK ', racerId, dump(player))
         end
-        print(racerName, racerId)
-        if player.money[purchaseType.moneyType] > purchaseType.racingFobCost then
-            if racerNameIsValid(racerName) then
-                TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
-                QBCore.Functions.Progressbar("item_check", 'Creating Racing Fob', 2000, false, true, {
-                    disableMovement = true,
-                    disableCarMovement = true,
-                    disableMouse = false,
-                    disableCombat = true,
-                    }, {
-                    }, {}, {}, function() -- Done
-                        TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
-                        TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
-                    end, function()
-                        TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
-                    end)
-            else
-                TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
-            end
+
+        if racerNameIsValid(racerName) then
+            TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
+            QBCore.Functions.Progressbar("item_check", 'Creating Racing Fob', 2000, false, true, {
+                disableMovement = true,
+                disableCarMovement = true,
+                disableMouse = false,
+                disableCombat = true,
+                }, {
+                }, {}, {}, function() -- Done
+                    TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
+                    TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
+                end, function()
+                    TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
+                end)
         else
-            QBCore.Functions.Notify(Lang:t('error.can_not_afford'), "error")
+            TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
         end
     else
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
@@ -2491,12 +2510,19 @@ if Config.Trader.active then
             animation = "WORLD_HUMAN_STAND_IMPATIENT"
         end
     
+        local currency = ''
+        if trader.moneyType == 'cash' or trader.moneyType == 'bank' then
+            currency = '$'
+        else
+            currency = Config.Options.CryptoType
+        end
+
         local options = {
             { 
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a racing fob for '..trader.racingFobCost..' '..trader.moneyType,
+                label = 'Buy a racing fob for '..trader.racingFobCost..' '..currency,
                 purchaseType = trader,
                 fobType = 'basic',
                 canInteract = function()
@@ -2507,7 +2533,7 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a Master racing fob for '..trader.racingFobMasterCost..' '..trader.moneyType,
+                label = 'Buy a Master racing fob for '..trader.racingFobMasterCost..' '..currency,
                 purchaseType = trader,
                 fobType = 'master',
                 canInteract = function()
@@ -2539,39 +2565,45 @@ local laptopEntity
 if Config.Laptop.active then
     CreateThread(function()        
         local laptop = Config.Laptop
-            local options = {
-                { 
-                    type = "client",
-                    event = "cw-racingapp:client:OpenFobInput",
-                    icon = "fas fa-flag-checkered",
-                    label = 'Buy a racing fob for '..laptop.racingFobCost..' '.. laptop.moneyType,
-                    purchaseType = laptop,
-                    fobType = 'basic',
-                    canInteract = function()
-                        return hasAuth(laptop,'basic')
-                    end
-                },
-                { 
-                    type = "client",
-                    event = "cw-racingapp:client:OpenFobInput",
-                    icon = "fas fa-flag-checkered",
-                    label = 'Buy a Master racing fob for '..laptop.racingFobMasterCost..' '.. laptop.moneyType,
-                    purchaseType = laptop,
-                    fobType = 'master',
-                    canInteract = function()
-                        return hasAuth(laptop,'master')
-                    end
-                }
+        local currency = ''
+        if laptop.moneyType == 'cash' or laptop.moneyType == 'bank' then
+            currency = '$'
+        else
+            currency = Config.Options.CryptoType
+        end
+        local options = {
+            { 
+                type = "client",
+                event = "cw-racingapp:client:OpenFobInput",
+                icon = "fas fa-flag-checkered",
+                label = 'Buy a racing fob for '..laptop.racingFobCost..' '.. currency,
+                purchaseType = laptop,
+                fobType = 'basic',
+                canInteract = function()
+                    return hasAuth(laptop,'basic')
+                end
+            },
+            { 
+                type = "client",
+                event = "cw-racingapp:client:OpenFobInput",
+                icon = "fas fa-flag-checkered",
+                label = 'Buy a Master racing fob for '..laptop.racingFobMasterCost..' '.. currency,
+                purchaseType = laptop,
+                fobType = 'master',
+                canInteract = function()
+                    return hasAuth(laptop,'master')
+                end
             }
-            laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, false,  false, true)
-            SetEntityHeading(laptopEntity, laptop.location.w)
-            CreateObject(laptopEntity)
-            FreezeEntityPosition(laptopEntity, true)
-            Entities[#Entities+1] = laptopEntity
-            exports['qb-target']:AddTargetEntity(laptopEntity, {
-                options = options,
-                distance = 3.0 
-            })
+        }
+        laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, false,  false, true)
+        SetEntityHeading(laptopEntity, laptop.location.w)
+        CreateObject(laptopEntity)
+        FreezeEntityPosition(laptopEntity, true)
+        Entities[#Entities+1] = laptopEntity
+        exports['qb-target']:AddTargetEntity(laptopEntity, {
+            options = options,
+            distance = 3.0 
+        })
     end)
 end
 
