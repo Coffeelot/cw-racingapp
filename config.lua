@@ -86,8 +86,8 @@ Config.Options = {
         { value = 500, text = 500 },
         { value = 1000, text = 1000 }
     },
-    MoneyType = 'crypto',
-    CryptoType = 'cdc' -- relevant if you use Renewed Crypto and above is crypto
+    MoneyType = 'cash', --Determines buyins and payouts. cash/bank/crypto
+    CryptoType = 'cdc' -- rname of your crypto
 }
 
 Config.Trader = {
@@ -97,7 +97,8 @@ Config.Trader = {
     model = 'csb_paige',
     animation = 'csb_paige_dual',
     location = vector4(195.48, -3167.38, 5.79, 92.36),
-    moneyType = 'crypto',
+    moneyType = 'cash', -- cash/bank/crypto
+    cryptoType = 'cdc', -- name of your crypto
     racingFobCost = 10,
     racingFobMasterCost = 100,
 }
@@ -128,18 +129,18 @@ Config.Ghosting = {
     }
 }
 
-
 -- Splits work as follows: [x] = y means position x gets y % of the profit
 Config.Splits = {
     three = { [1] = 0.7, [2] = 0.3 }, -- If three racers
     more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 } -- If more than 3 
 }
 
+
 Config.ParticpationTrophies = {
     enabled = true, -- false if you dont want players getting particpation trophies
     minimumOfRacers = 6, -- minimum of racers to hand out particpation trophies
     type = 'crypto', -- cash, bank or crypto
     amount = { [1] = 60, [2] = 40, [3] = 20, [4] = 10,  [5] = 5 }, -- [<position>] = <amount>
-    cryptoType = 'cdc', -- name of your crypto (if you have Renewed)
+    cryptoType = 'cdc', -- name of your crypto
     minumumRaceLength = 3000
 }

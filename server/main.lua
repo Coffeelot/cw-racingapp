@@ -373,7 +373,6 @@ local function isToFarAway(src, RaceId)
 end
 
 local function hasEnoughMoney(source, cost)
-    print(source, cost)
     if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
         if useDebug then print('Is using crypto and renewed crypto') end
         if exports['qb-phone']:hasEnough(source, Config.Options.CryptoType, math.floor(cost)) then
@@ -384,7 +383,7 @@ local function hasEnoughMoney(source, cost)
         end
     else
         local Player = QBCore.Functions.GetPlayer(source)
-        if Player.PlayerData.money[Config.Options.MoneyType] < cost then
+        if Player.PlayerData.money[Config.Options.MoneyType] >= cost then
             return true
         else
             return false
@@ -434,10 +433,16 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                     AvailableRaces[PreviousRaceKey].RaceData = Races[CurrentRace]
                     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[CurrentRace])
                 end
-            else
-                Races[RaceId].OrganizerCID = Player.PlayerData.citizenid
             end
 
+            local AmountOfRacers = 0
+            for _,_ in pairs(Races[RaceId].Racers) do
+                AmountOfRacers = AmountOfRacers + 1
+            end
+            if AmountOfRacers == 0 then
+                if useDebug then print('setting creator') end
+                Races[RaceId].OrganizerCID = Player.PlayerData.citizenid
+            end
             if RaceData.BuyIn > 0 then
                 if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
                     exports['qb-phone']:RemoveCrypto(src, Config.Options.CryptoType, math.floor(RaceData.BuyIn))
@@ -464,7 +469,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             table.insert(racersSortedByPosition, Races[RaceId].Racers[Player.PlayerData.citizenid] )
             AvailableRaces[AvailableKey].RaceData = Races[RaceId]
             TriggerClientEvent('cw-racingapp:client:JoinRace', src, Races[RaceId], RaceData.Laps, RacerName)
-            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', src, RaceId, Races[RaceId].Racers)
+            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', -1, RaceId, Races[RaceId].Racers)
             local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
             if creatorsource ~= Player.PlayerData.source then
                 TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
@@ -475,8 +480,19 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     end
 end)
 
+local function assignNewOrganizer(RaceId, src)
+    for i,v in pairs(Races[RaceId].Racers) do
+        if i ~= QBCore.Functions.GetPlayer(src).PlayerData.citizenid then
+            Races[RaceId].OrganizerCID = i
+            TriggerClientEvent('QBCore:Notify', v.RacerSource, Lang:t("text.new_host"))
+            TriggerClientEvent('cw-racingapp:client:UpdateOrganizer', -1, RaceId, i)
+            return
+        end
+    end
+end
+
 RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
-    print('Player left race', source)
+    if useDebug then print('Player left race', source) end
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local RacerName = RaceData.RacerName
@@ -512,6 +528,9 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
         }
     end
     Races[RaceId].Racers[Player.PlayerData.citizenid] = nil
+    if Races[RaceId].OrganizerCID == QBCore.Functions.GetPlayer(src).PlayerData.citizenid then
+        assignNewOrganizer(RaceId, src)
+    end
     if (AmountOfRacers - 1) == 0 then
         if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[RaceId] ~= nil and next(NotFinished[RaceId]) ~=
             nil then
@@ -545,7 +564,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
         AvailableRaces[AvailableKey].RaceData = Races[RaceId]
         TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[RaceId])
     end
-    TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', src, RaceId, Races[RaceId].Racers)
+    TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', -1, RaceId, Races[RaceId].Racers)
 end)
 
 RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn)

@@ -1271,6 +1271,14 @@ RegisterNetEvent('cw-racingapp:client:UpdateRaceRacers', function(RaceId, Racers
     end
 end)
 
+
+RegisterNetEvent('cw-racingapp:client:UpdateOrganizer', function(RaceId, organizer)
+    if CurrentRaceData.RaceId == RaceId then
+        if useDebug then print('updating organizer') end
+        CurrentRaceData.OrganizerCID = organizer
+    end
+end)
+
 RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     ClearGpsMultiRoute()
     UnGhostPlayer()
@@ -2185,14 +2193,14 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
         local tracks = {{
             value = "none",
             text = Lang:t("menu.choose_a_track"),
-            name = 'none'
+            name = 'none',
         }}
         for id, track in pairs(Races) do
             if not track.Waiting and verifyTrackAccess(track, 'race') then
                 tracks[#tracks + 1] = {
                     value = id,
                     text = string.format("%s | %s | %sm", track.RaceName, track.CreatorName, track.Distance),
-                    name = track.RaceName
+                    name = track.RaceName,
                 }
             end
         end
