@@ -234,7 +234,7 @@ local function handOutParticipationTrophy(src, position)
             exports['qb-phone']:AddCrypto(src, Config.ParticpationTrophies.cryptoType, Config.ParticpationTrophies.amount[position])
             TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..Config.ParticpationTrophies.amount[position].. ' '.. Config.ParticpationTrophies.cryptoType, 'success')
         else
-            Player.Functions.AddMoney(Config.ParticpationTrophies.MoneyType, Config.ParticpationTrophies.amount[position])
+            Player.Functions.AddMoney(Config.ParticpationTrophies.type, Config.ParticpationTrophies.amount[position])
             TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..Config.ParticpationTrophies.amount[position], 'success')
         end
     end
@@ -1087,10 +1087,12 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
             TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'success')
         else
             TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+            return
         end
     else
         if not Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type) then
             TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+            return
         end
     end
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
