@@ -9,6 +9,7 @@ CREATE TABLE `race_tracks` (
 	`distance` INT(11) NULL DEFAULT NULL,
 	`raceid` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`access` TEXT NULL DEFAULT '{}' COLLATE 'utf8_general_ci',
+	`curated` TINYINT(4) NULL DEFAULT '0',
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `raceid` (`raceid`) USING BTREE
 )
