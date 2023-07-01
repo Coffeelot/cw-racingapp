@@ -31,6 +31,9 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 **Planned:** 
 - Better track editing
 
+> As of update posted on 1st July -23, racer names are unique. The max limit is by default 3 but can be set individually. If you want to remove names from DB without openign it up, an admin can use `/remracename <racerName>`
+
+
 # Developed by Coffeelot and Wuggie
 [More scripts by us](https://github.com/stars/Coffeelot/lists/cw-scripts)  👈
 
@@ -65,10 +68,8 @@ Update to track editor:
 ## Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
-1. Update or insert the database table. Instructions are found in the `racing.sql` file
-* Option 1: Updating from qb-lapraces must follow OPTION 1 to update their database table and preserve their race tracks
-* Option 2: NOT updating from qb-lapraces must follow OPTION 2 to create the database table 
-2. Adjust values in the `config.lua` file to your likings
+1. Update or insert the database tables. These are found in the `racing.sql` file
+2. Adjust values in the `config.lua` file to your liking
 3. Add the items to your `qb-core/shared/items.lua`
 ```lua
 ['fob_racing_basic'] = {['name'] = 'fob_racing_basic', ['label'] = 'Basic Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'fob_racing_basic.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'This basic GPS allows someone to join custom races.'},
@@ -81,11 +82,9 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 
 `/updateracetracks` - This command will update the `race_tracks` table from how it's done in qb-racing. This DOES NOT reset any laptimes and **old ones WILL BREAK** the script. If you're still getting issues consider wiping old records or using the other command.
 
-Then restart cw-racingapp
+Then restart the server
 
-Also, note that you **CAN NOT** spawn the racing fobs with `/giveitem`. Spawn them with the built in command `/createracingfob` or get one at the trader or laptop
-
-> NOTE: If you're getting errors after a later update (released 27th March 2023) do `/addAccessCol`
+> NOTE: You **CAN NOT** spawn the racing fobs with `/giveitem`. Spawn them with the built in command `/createracingfob` or get one at the trader or laptop
 
 ## Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)

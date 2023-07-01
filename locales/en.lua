@@ -4,7 +4,7 @@ local Translations = {
         name_too_long = 'The name is too long.',
         unowned_dongle = "It doesn't seem to respond do you.",
         id_not_found = "Citizen by that ID was not found.",
-        invalid_fob_type = "Invalid fob type.",
+        invalid_fob_type = "Invalid GPS type.",
         not_in_race = "You are not in a race.",
         race_already_started = "The race has already started!",
         race_doesnt_exist = "This race does not exist :(",
@@ -21,13 +21,15 @@ local Translations = {
         min_tire_distance = "The min distance allowed is ",
         editor_confirm = "Press [9] again to confirm.",
         editor_canceled = "You canceled the editor.",
-        can_not_afford = "You can't afford this",
+        can_not_afford = "You can't afford ",
         could_not_find_person = "Could not find the person",
         not_enough_money = "Not enough money to join",
         not_close_enough_to_join = "Not close enough to join. A waypoint was set to the start.",
         no_checkpoints_to_edit = "No checkpoints to edit",
         you_have_to_place_a_new_checkpoint_down_first = "You have to place down a new checkpoint first",
-        need_a_name = "The track need to have a name"
+        need_a_name = "The track need to have a name",
+        name_is_used = "Name is used: ",
+        to_many_names = "This person has enough unique Racer Names already..."
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",
@@ -58,12 +60,13 @@ local Translations = {
     },
     commands = {
         create_racing_fob_command = 'createracingfob',
-        create_racing_fob_description = 'Create a Racing Fob (Admin)',
+        create_racing_fob_description = 'Create a Racing GPS (Admin)',
     },
     text = {
         checkpoint_left = "Left Checkpoint",
         checkpoint_right = "Right Checkpoint",
         get_in_vehicle = "Get in a vehicle to start!",
+        new_host = 'You are the new organizer'
     },
     menu = {
         open_tuning_overlay = "Toggle Tuning Overlay",

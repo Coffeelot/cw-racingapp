@@ -2459,48 +2459,73 @@ end
 RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
+
+    local inputs = {
+        {
+            text = 'Racer Name', -- text you want to be displayed as a place holder
+            name = "racerName", -- name of the input should be unique otherwise it might override
+            type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+        },
+    }
+
+    if not purchaseType.useSlimmed then
+        inputs[#inputs+1] = {
+            text = 'Paypal/temp id (leave empty if for you)', -- text you want to be displayed as a place holder
+            name = "racerId", -- name of the input should be unique otherwise it might override
+            type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+        }
+    end
+
     local dialog = exports['qb-input']:ShowInput({
         header = 'Creating a '..fobType..' racing fob',
         submitText = 'Submit',
-        inputs = {
-            {
-                text = 'Racer Name', -- text you want to be displayed as a place holder
-                name = "racerName", -- name of the input should be unique otherwise it might override
-                type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
-            },
-            {
-                text = 'Current Citizen Id (leave empty if for you)', -- text you want to be displayed as a place holder
-                name = "racerId", -- name of the input should be unique otherwise it might override
-                type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
-            },
-        },
-        
+        inputs = inputs
     })
 
     if dialog ~= nil then
         local racerName = dialog["racerName"]
         local racerId = dialog["racerId"]
-        local player = QBCore.Functions.GetPlayerData()
-        if racerId == '' then
+        if racerId == nil or racerId == ''then
             racerId = GetPlayerServerId(PlayerId())
         end
-
         if racerNameIsValid(racerName) then
-            TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
-            QBCore.Functions.Progressbar("item_check", 'Creating Racing Fob', 2000, false, true, {
-                disableMovement = true,
-                disableCarMovement = true,
-                disableMouse = false,
-                disableCombat = true,
-                }, {
-                }, {}, {}, function() -- Done
-                    TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
-                    TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
-                end, function()
-                    TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
-                end)
+            QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
+                if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
+                local maxRacerNames = Config.MaxRacerNames
+                if #playerNames > 1 and playerNames[1].citizenid and Config.CustomAmounts[playerNames[1].citizenid] then
+                    maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
+                end
+
+                if useDebug then print('Racer names allowed for', racerId, maxRacerNames) end
+                if playerNames == nil or #playerNames < maxRacerNames then
+                    QBCore.Functions.TriggerCallback('cw-racingapp:server:NameIsAvailable', function(nameIsNotTaken)
+                        if nameIsNotTaken then
+                            TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
+                            QBCore.Functions.Progressbar("item_check", 'Creating Racing Fob', 2000, false, true, {
+                                disableMovement = true,
+                                disableCarMovement = true,
+                                disableMouse = false,
+                                disableCombat = true,
+                                }, {
+                                }, {}, {}, function() -- Done
+                                    TriggerServerEvent('cw-racingapp:server:CreateFob', racerId, racerName, fobType, purchaseType)
+                                    TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
+                                end, function()
+                                    TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
+                                end)
+                        else
+                            QBCore.Functions.Notify( Lang:t("error.name_is_used")..racerName, 'error')
+                            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+                        end
+                    end, racerName, racerId)
+                else
+                    QBCore.Functions.Notify( Lang:t("error.to_many_names"), 'error')
+                    TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+                end
+            end, racerId)
+
         else
-            TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
+            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
         end
     else
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
@@ -2530,7 +2555,7 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a racing fob for '..trader.racingFobCost..' '..currency,
+                label = 'Buy a racing GPS for '..trader.racingFobCost..' '..currency,
                 purchaseType = trader,
                 fobType = 'basic',
                 canInteract = function()
@@ -2541,7 +2566,7 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Buy a Master racing fob for '..trader.racingFobMasterCost..' '..currency,
+                label = 'Buy a Master racing GPS for '..trader.racingFobMasterCost..' '..currency,
                 purchaseType = trader,
                 fobType = 'master',
                 canInteract = function()

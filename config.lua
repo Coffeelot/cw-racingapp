@@ -6,7 +6,13 @@ Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
 Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
-Config.UseRenewedCrypto = false -- set to true if you use Renewed Crypto
+Config.UseRenewedCrypto = false -- set to true if you use Renewed crypto
+Config.UseNameValidation = true -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
+Config.MaxRacerNames = 3 -- Maximum allowed amount of unique names per character
+
+Config.CustomAmounts = { -- custom max amout of racer names
+    ['SYY99260'] = 4 -- example: the player with this CID can have 4 unique names rather than 3
+}
 
 Config.Permissions = {
     ['fob_racing_basic'] = {
@@ -98,9 +104,11 @@ Config.Trader = {
     animation = 'csb_paige_dual',
     location = vector4(195.48, -3167.38, 5.79, 92.36),
     moneyType = 'cash', -- cash/bank/crypto
-    cryptoType = 'cdc', -- name of your crypto
-    racingFobCost = 10,
-    racingFobMasterCost = 100,
+    cryptoType = 'cdc', -- name of your crypto, irrelevant if you dont have renewed phone
+    racingFobCost = 1000,
+    racingFobMasterCost = 10000,
+    profiteer = { job = 'tuner', cut = 0.7 }, -- if you use Renewed Banking you can set this to allow money to go to businesses, wont work with crypto (yet)
+    useSlimmed = true -- set to true if you want menu to cut out cid input
 }
 
 Config.Laptop = {

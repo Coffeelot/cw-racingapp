@@ -168,7 +168,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         }
         records[index] = playerPlacement
         records = sortRecordsByTime(records)
-        print('records being sent to db', dump(records))
+        if useDebug then print('records being sent to db', dump(records)) end
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode(records), RaceData.RaceId})
         return true
@@ -240,6 +240,14 @@ local function handOutParticipationTrophy(src, position)
     end
 end
 
+local function updateRacerNameLastRaced(racerName, Position)
+    local query = 'UPDATE racer_names SET races = races + 1 WHERE racername = "'..racerName..'"'
+    if Position == 1 then
+        query = 'UPDATE racer_names SET races = races + 1, wins = wins + 1 WHERE racername = "'..racerName..'"'
+    end
+    MySQL.Async.execute(query)
+end
+
 -----------------------
 ---- Server Events ----
 -----------------------
@@ -250,13 +258,17 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     local PlayersFinished = 0
     local AmountOfRacers = 0
 
+
     for k, v in pairs(Races[RaceData.RaceId].Racers) do
         if v.Finished then
             PlayersFinished = PlayersFinished + 1
         end
         AmountOfRacers = AmountOfRacers + 1
     end
-
+    print('Racers', AmountOfRacers)
+    if AmountOfRacers > 1 then
+        updateRacerNameLastRaced(RacerName, PlayersFinished)
+    end
     if useDebug then
         print('Total: ', TotalTime)
         print('Best Lap: ', BestLap)
@@ -1081,6 +1093,51 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:IsAuthorizedToCreateRaces',
     cb(IsPermissioned(QBCore.Functions.GetPlayer(source).PlayerData.citizenid, 'create'), IsNameAvailable(TrackName))
 end)
 
+local function nameIsValid(racerName, citizenId)
+    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1]
+    if result then
+        if result.citizenid == citizenId then
+            return true
+        end
+        return false
+    else
+        return true
+    end
+end
+
+local function addRacerName(citizenId, racerName)
+    if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', {racerName, citizenId})[1] then
+        MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername) VALUES (?, ?)',
+        {citizenId, racerName})
+    end
+end
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(source, cb, racerName, serverId)
+    if Config.UseNameValidation then
+        local Player = QBCore.Functions.GetPlayer(serverId)
+        local citizenId = Player.PlayerData.citizenid
+        if nameIsValid(racerName, citizenId) then
+            cb(true)
+        else
+            cb(false)
+        end
+    else
+        cb(true)
+    end
+end)
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source, cb, serverId)
+    if Config.UseNameValidation then
+        local Player = QBCore.Functions.GetPlayer(serverId)
+        local citizenId = Player.PlayerData.citizenid
+        local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
+        print('res', json.encode(result))
+        cb(result)
+    else
+        cb(nil)
+    end
+end)
+
 local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     if useDebug then
         print('Creating a racing fob. Input:')
@@ -1093,6 +1150,7 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
         ['basic'] = "fob_racing_basic",
         ['master'] = "fob_racing_master"
     }
+
     local Player = QBCore.Functions.GetPlayer(source)
     local cost = nil
     if type == 'master' then
@@ -1100,6 +1158,7 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     else
         cost = purchaseType.racingFobCost
     end
+
     if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
         if exports['qb-phone']:hasEnough(source, Config.Options.CryptoType, math.floor(cost)) then
             exports['qb-phone']:RemoveCrypto(source, Config.Options.CryptoType, math.floor(cost))
@@ -1110,12 +1169,16 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
         end
     else
         if not Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type) then
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford")..' $'.. math.floor(cost), 'error')
             return
         end
     end
+    if purchaseType.profiteer then
+        exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, cost)
+    end
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
+    addRacerName(citizenid, racerName)
 end
 
 RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type, purchaseType)
@@ -1143,9 +1206,7 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
         ['master'] = "fob_racing_master"
     }
 
-    if fobTypes[type:lower()] then
-        type = fobTypes[type:lower()]
-    else
+    if not fobTypes[type:lower()] then
         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.invalid_fob_type"), "error")
         return
     end
@@ -1169,10 +1230,22 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.name_too_long"), "error")
         return
     end
+    
+    local tradeType = {
+        racingFobMasterCost = 0,
+        racingFobCost = 0,
+        moneyType = 'cash',
+        profiteer = 'your mom'
+    }
 
-    QBCore.Functions.GetPlayer(source).Functions.AddItem(type, 1, nil, { owner = citizenid, name = name })
-    TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[type], 'add', 1)
-end, 'dev')
+    createRacingFob(source, citizenid, name, type:lower(), tradeType)
+end, 'admin')
+
+QBCore.Commands.Add('remracename', 'Remove Racing Name From Database', { {name='name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
+    local name = args[1]
+    print('name of racer to delete:', name)
+    MySQL.query('DELETE FROM racer_names WHERE racername = ?', {name} )
+end, 'admin')
 
 QBCore.Functions.CreateUseableItem("fob_racing_basic", function(source, item)
     UseRacingFob(source, item)
@@ -1191,7 +1264,7 @@ local function dropRacetrackTable()
 end
 
 local function updateRaceTrackTable()
-    MySQL.query('ALTER TABLE race_tracks CHANGE COLUMN creator creatorid VARCHAR(50) NULL; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL ADD access TEXT DEFAULT "[]" AFTER creatorid;')
+    MySQL.query('ALTER TABLE race_tracks RENAME COLUMN creator TO creatorid; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL ADD access TEXT DEFAULT "[]" AFTER creatorid;')
 end
 
 local function addAccessCol()
