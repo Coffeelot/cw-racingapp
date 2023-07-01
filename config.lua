@@ -14,6 +14,12 @@ Config.CustomAmounts = { -- custom max amout of racer names
     ['SYY99260'] = 4 -- example: the player with this CID can have 4 unique names rather than 3
 }
 
+Config.LimitTracks = true -- set to true to limit tracks per citizenid. Below two fields are irrelevent if this is false
+Config.MaxCharacterTracks = 3 -- Amount of tracks allowed per citizenid
+Config.CustomAmountsOfTracks = { -- custom max amout of tracks per citizenid
+    ['CITIZENID'] = 10
+}
+
 Config.Permissions = {
     ['fob_racing_basic'] = {
         ['join'] = true,

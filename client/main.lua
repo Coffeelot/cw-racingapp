@@ -2325,68 +2325,81 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
 end)
 
 RegisterNetEvent("cw-racingapp:Client:CreateRaceMenu", function(data)
-    local dialog = exports['qb-input']:ShowInput({
-        header = Lang:t("menu.name_track_question"),
-        submitText = "✓",
-        inputs = {{
-            text = Lang:t("menu.name_track_question"),
-            name = "trackname",
-            type = "text",
-            isRequired = true
-        }}
-    })
-
-    if not dialog then
-        TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
-            type = data.type,
-            name = data.name
-        })
-        return
-    end
-
-    if not #dialog.trackname then
-        QBCore.Functions.Notify("This track need to have a name", 'error')
-        TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
-            type = data.type,
-            name = data.name
-        })
-        return
-    end
-
-    if #dialog.trackname < Config.MinTrackNameLength then
-        QBCore.Functions.Notify(Lang:t("error.name_too_short"), 'error')
-        TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
-            type = data.type,
-            name = data.name
-        })
-        return
-    end
-
-    if #dialog.trackname > Config.MaxTrackNameLength then
-        QBCore.Functions.Notify(Lang:t("error.name_too_long"), 'error')
-        TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
-            type = data.type,
-            name = data.name
-        })
-        return
-    end
-
-    QBCore.Functions.TriggerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces',
-        function(IsAuthorized, NameAvailable)
-            if not IsAuthorized then
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingapp:server:GetAmountOfTracks', function(tracks)
+        local maxCharacterTracks = Config.MaxCharacterTracks
+        if Config.CustomAmountsOfTracks[citizenId] then
+            maxCharacterTracks = Config.CustomAmountsOfTracks[citizenId]
+        end
+        if useDebug then print('Max allowed for you:', maxCharacterTracks, "You have this many tracks:", tracks) end
+        if Config.LimitTracks and tracks >= maxCharacterTracks then
+            QBCore.Functions.Notify("You already have ".. maxCharacterTracks.." tracks")
+            return
+        else
+            local dialog = exports['qb-input']:ShowInput({
+                header = Lang:t("menu.name_track_question"),
+                submitText = "✓",
+                inputs = {{
+                    text = Lang:t("menu.name_track_question"),
+                    name = "trackname",
+                    type = "text",
+                    isRequired = true
+                }}
+            })
+        
+            if not dialog then
+                TriggerEvent('cw-racingapp:Client:OpenMainMenu', {
+                    type = data.type,
+                    name = data.name
+                })
                 return
             end
-            if not NameAvailable then
-                QBCore.Functions.Notify(Lang:t("error.race_name_exists"), 'error')
+        
+            if not #dialog.trackname then
+                QBCore.Functions.Notify("This track need to have a name", 'error')
                 TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
                     type = data.type,
                     name = data.name
                 })
                 return
             end
-
-            TriggerServerEvent('cw-racingapp:server:CreateLapRace', dialog.trackname, data.name)
-        end, dialog.trackname)
+        
+            if #dialog.trackname < Config.MinTrackNameLength then
+                QBCore.Functions.Notify(Lang:t("error.name_too_short"), 'error')
+                TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
+                    type = data.type,
+                    name = data.name
+                })
+                return
+            end
+        
+            if #dialog.trackname > Config.MaxTrackNameLength then
+                QBCore.Functions.Notify(Lang:t("error.name_too_long"), 'error')
+                TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
+                    type = data.type,
+                    name = data.name
+                })
+                return
+            end
+        
+            QBCore.Functions.TriggerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces',
+                function(IsAuthorized, NameAvailable)
+                    if not IsAuthorized then
+                        return
+                    end
+                    if not NameAvailable then
+                        QBCore.Functions.Notify(Lang:t("error.race_name_exists"), 'error')
+                        TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
+                            type = data.type,
+                            name = data.name
+                        })
+                        return
+                    end
+        
+                    TriggerServerEvent('cw-racingapp:server:CreateLapRace', dialog.trackname, data.name)
+                end, dialog.trackname)
+            end
+    end, citizenId)
 end)
 
 local function indexOf(array, value)
@@ -2460,6 +2473,8 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
 
+    QBCore.Functions.Notify("Max "..Config.MaxRacerNames.. " unique names per person.")
+
     local inputs = {
         {
             text = 'Racer Name', -- text you want to be displayed as a place holder
@@ -2477,7 +2492,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     end
 
     local dialog = exports['qb-input']:ShowInput({
-        header = 'Creating a '..fobType..' racing fob',
+        header = 'Creating a '..fobType..' Racing GPS',
         submitText = 'Submit',
         inputs = inputs
     })

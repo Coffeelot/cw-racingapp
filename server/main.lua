@@ -1113,9 +1113,9 @@ local function addRacerName(citizenId, racerName)
     end
 end
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetAmountOfTracks', function(source, cb, racerName)
+QBCore.Functions.CreateCallback('cw-racingapp:server:GetAmountOfTracks', function(source, cb, citizenid)
     if Config.UseNameValidation then
-        local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorname = ?', {racerName})
+        local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorid = ?', {citizenid})
         cb(#tracks)
     else
         cb(nil)
