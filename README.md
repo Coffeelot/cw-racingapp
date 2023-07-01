@@ -98,19 +98,21 @@ Then restart the server
 
 **Main Menu**
 
-![Interface](https://i.imgur.com/49027bo.png)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1124705899257266236/image.png)
 
 **Leaderboards**
 Change from normal qb-racing: Sorted by track, added classes and added full list of laptimes. Each person can have one entry per class + track, so you can have multiple times on a track, with different classes, but the script keeps track of your best times.
 
-![Interface](https://i.imgur.com/8480LVX.png)
-![Interface](https://i.imgur.com/H7Trlzz.png)
-![Interface](https://i.imgur.com/5FthsBY.png)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1124705965816680468/image.png)
+
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1124706008057511976/image.png)
+
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1124706061652332594/image.png)
 
 **Setting up a Race**
 Change from normal qb-racing: Added classes to list. If you set up a race with A class, people can join with A and lower, but not higher.
 
-![Interface](https://i.imgur.com/4r6iriO.png)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1124706228547891270/image.png)
 
 # Uninstalling or full reset
 ## /removeracetracks
