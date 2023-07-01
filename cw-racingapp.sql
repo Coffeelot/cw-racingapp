@@ -21,5 +21,6 @@ CREATE TABLE `racer_names` (
 	`lasttouched` TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
 	`races` INT(11) NOT NULL DEFAULT '0',
 	`wins` INT(11) NOT NULL DEFAULT '0',
+	`tracks` INT(11) NOT NULL DEFAULT '0',
 	INDEX `id` (`id`) USING BTREE
 )
