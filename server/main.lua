@@ -802,16 +802,6 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     if Config.UseResetTimer then startTimer(RaceId) end
 end)
 
-local function increaseTracksAmount(racerName)
-    local query = 'UPDATE racer_names SET tracks = tracks + 1 WHERE racername = "'..racerName..'"'
-    MySQL.Async.execute(query)
-end
-
-local function decreaseTracksAmount(racerName)
-    local query = 'UPDATE racer_names SET tracks = tracks - 1 WHERE racername = "'..racerName..'"'
-    MySQL.Async.execute(query)
-end
-
 RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -850,7 +840,6 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
         }
         MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid) VALUES (?, ?, ?, ?, ?, ?)',
             {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId})
-        if Config.UseNameValidation then increaseTracksAmount(RaceData.RacerName) end
     end
 end)
 
@@ -859,7 +848,6 @@ RegisterNetEvent('cw-racingapp:Server:DeleteTrack', function(RaceId)
     Races[RaceId] = nil
     local result = MySQL.Sync.fetchAll('SELECT creatorname FROM race_tracks WHERE raceid = ?', {RaceId})[1]
     MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', {RaceId} )
-    if Config.UseNameValidation then decreaseTracksAmount(result.creatorname) end
 end)
 
 RegisterNetEvent('cw-racingapp:Server:ClearLeaderboard', function(RaceId)
@@ -1120,11 +1108,24 @@ end
 
 local function addRacerName(citizenId, racerName)
     if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', {racerName, citizenId})[1] then
-        local previousTracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorname = ? AND creatorid = ?', {racerName, citizenId})
-        MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, tracks) VALUES (?, ?, ?)',
-        {citizenId, racerName, #previousTracks})
+        MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername) VALUES (?, ?)',
+        {citizenId, racerName})
     end
 end
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:GetAmountOfTracks', function(source, cb, racerName)
+    if Config.UseNameValidation then
+        local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorname = ?', {racerName})
+        cb(#tracks)
+    else
+        cb(nil)
+    end
+end)
+
+QBCore.Commands.Add('blabla', 'toggle debug for racing', {}, true, function(source, args)
+    local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorname = ?', {'as'})
+    print('tracks', #tracks)
+end, 'dev')
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(source, cb, racerName, serverId)
     if Config.UseNameValidation then
