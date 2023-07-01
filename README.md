@@ -94,7 +94,7 @@ Then restart the server
 
 
 ## Example Usage
-### Interface Images
+### Interface Images *(Using our custom skin on QB-Menu and QB-Input)*
 
 **Main Menu**
 
