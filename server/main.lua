@@ -1250,7 +1250,6 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
         racingFobMasterCost = 0,
         racingFobCost = 0,
         moneyType = 'cash',
-        profiteer = 'your mom'
     }
 
     createRacingFob(source, citizenid, name, type:lower(), tradeType)
