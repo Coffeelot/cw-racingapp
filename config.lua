@@ -5,20 +5,26 @@ Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
-Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
-Config.UseRenewedCrypto = false -- set to true if you use Renewed crypto
+Config.Inventory = 'ox' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
+Config.UseRenewedCrypto = true -- set to true if you use Renewed crypto
+Config.UseRenewedBanking = true -- set this to true if you use Renewed Banking
 Config.UseNameValidation = true -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
-Config.MaxRacerNames = 3 -- Maximum allowed amount of unique names per character
+Config.MaxRacerNames = 2 -- Maximum allowed amount of unique names per character
 
 Config.CustomAmounts = { -- custom max amout of racer names
-    ['SYY99260'] = 4 -- example: the player with this CID can have 4 unique names rather than 3
+    ['QBQ16539'] = 100,
+    ['FMN22732'] = 100,
+    ['SYY99260'] = 100,
 }
 
 Config.LimitTracks = true -- set to true to limit tracks per citizenid. Below two fields are irrelevent if this is false
-Config.MaxCharacterTracks = 3 -- Amount of tracks allowed per citizenid
+Config.MaxCharacterTracks = 2 -- Amount of tracks allowed per citizenid
 Config.CustomAmountsOfTracks = { -- custom max amout of tracks per citizenid
-    ['CITIZENID'] = 10
+    ['QBQ16539'] = 100,
+    ['FMN22732'] = 100,
+    ['SYY99260'] = 100,
 }
+
 
 Config.Permissions = {
     ['fob_racing_basic'] = {
@@ -98,7 +104,7 @@ Config.Options = {
         { value = 500, text = 500 },
         { value = 1000, text = 1000 }
     },
-    MoneyType = 'cash', --Determines buyins and payouts. cash/bank/crypto
+    MoneyType = 'crypto', --Determines buyins and payouts. cash/bank/crypto
     CryptoType = 'cdc' -- rname of your crypto
 }
 
@@ -107,13 +113,13 @@ Config.Trader = {
     jobRequirement = { basic = false, master = true},
     requireToken = false,
     model = 'csb_paige',
-    animation = 'csb_paige_dual',
-    location = vector4(195.48, -3167.38, 5.79, 92.36),
+    animation = 'WORLD_HUMAN_SEAT_WALL_TABLET',
+    location = vector4(852.58, -1543.87, 30.12, 230.19),
     moneyType = 'cash', -- cash/bank/crypto
-    cryptoType = 'cdc', -- name of your crypto, irrelevant if you dont have renewed phone
+    -- cryptoType = 'cdc', -- name of your crypto
     racingFobCost = 1000,
     racingFobMasterCost = 10000,
-    profiteer = { job = 'tuner', cut = 0.7 }, -- if you use Renewed Banking you can set this to allow money to go to businesses, wont work with crypto (yet)
+    profiteer = { job = 'tuner', cut = 0.9 }, -- if you use Renewed Banking you can set this to allow money to go to businesses, wont work with crypto (yet), UseRenewedBanking in top of this file NEEDS TO BE TRUE
     useSlimmed = true -- set to true if you want menu to cut out cid input
 }
 
@@ -121,10 +127,10 @@ Config.Laptop = {
     active = true,
     jobRequirement = { basic = true, master = true},
     requireToken = false,
-    model = 'xm_prop_x17_laptop_lester_01',
-    location = vector4(241.10, -2941.14, 6.03, -262.82),
-    moneyType = 'crypto',
-    cryptoType = 'cdc', -- relevant if you use Renewed Crypto and above is crypto
+    model = 'xm_prop_x17_laptop_mrsr',
+    location = vector4(938.56, -1549.8, 34.37, 163.59),
+    moneyType = 'crypto', -- cash/bank/crypto
+    cryptoType = 'cdc', -- name of your crypto
     racingFobCost = 10,
     racingFobMasterCost = 100,
 }

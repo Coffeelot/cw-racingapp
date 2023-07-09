@@ -1188,7 +1188,7 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
             return
         end
     end
-    if purchaseType.profiteer then
+    if Config.UseRenewedBanking and purchaseType.profiteer and cost > 0 then
         exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, cost)
     end
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
