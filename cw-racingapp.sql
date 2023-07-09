@@ -1,4 +1,5 @@
 -- ADD RACE TRACK TABLE (MAKE SURE TO DELETE race_tracks FIRST IF YOU ALREADY HAVE IT!!!!)
+-- DROP TABLE IF EXISTS race_tracks;
 CREATE TABLE `race_tracks` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
@@ -13,8 +14,13 @@ CREATE TABLE `race_tracks` (
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `raceid` (`raceid`) USING BTREE
 )
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=0
+;
 
--- ADD RACER NAME TABLE
+
+-- DROP TABLE IF EXISTS racer_names;
 CREATE TABLE `racer_names` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`citizenid` TEXT NOT NULL COLLATE 'utf8mb4_general_ci',
@@ -22,5 +28,10 @@ CREATE TABLE `racer_names` (
 	`lasttouched` TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
 	`races` INT(11) NOT NULL DEFAULT '0',
 	`wins` INT(11) NOT NULL DEFAULT '0',
+	`tracks` INT(11) NOT NULL DEFAULT '0',
 	INDEX `id` (`id`) USING BTREE
 )
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=0
+;
