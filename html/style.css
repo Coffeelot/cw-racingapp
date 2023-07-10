@@ -29,7 +29,7 @@
 	--background-color: #1C1C21;
 	--background-color-lighter: #36363e;
 	--background-color-dark: #1f1f24;
-    --background: linear-gradient(131deg, var(--background-color) 0%, var(--background-color-lighter) 100%);
+    --background: #1f1f24;
     --shadow: hsl(0, 3%, 6%);
 	--text-color: #ffffff;
 	--text-color-disabled: #dcdcdc;
@@ -104,8 +104,9 @@ body {
     color: var(--font-color);
     text-shadow: var(--text-shadow);
     height: fit-content;
-    background: var(--background);
-    border-radius: var(--border-radius);
+    background: var(--background-color-dark);
+    width: fit-content;
+    padding: 1em;
 }
 
 #editor-racename {

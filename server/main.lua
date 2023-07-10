@@ -1190,6 +1190,7 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     end
     if Config.UseRenewedBanking and purchaseType.profiteer and cost > 0 then
         exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, cost)
+        exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: "..type,  "Unknown", QBCore.Shared.Jobs[purchaseType.profiteer.job].label , "deposit")
     end
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
     TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
