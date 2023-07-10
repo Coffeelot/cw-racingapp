@@ -76,13 +76,6 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 ['fob_racing_master'] = {['name'] = 'fob_racing_master', ['label'] = 'Master Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'fob_racing_master.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'This master GPS allows someone to create custom races.'},
 ```
 4. Add the item images to your inventory image folder
-5. Setup your DB by running one of these commands:
-
-`/resetracetracks` - This command will remove the current `race_tracks` table and add a new one (good if you got bad data)  (warning: all tracks and records will be gone)
-
-`/updateracetracks` - This command will update the `race_tracks` table from how it's done in qb-racing. This DOES NOT reset any laptimes and **old ones WILL BREAK** the script. If you're still getting issues consider wiping old records or using the other command.
-
-Then restart the server
 
 > NOTE: You **CAN NOT** spawn the racing fobs with `/giveitem`. Spawn them with the built in command `/createracingfob` or get one at the trader or laptop
 
