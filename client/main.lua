@@ -1142,7 +1142,6 @@ CreateThread(function()
             creatorCheckpointObject = Config.CheckpointPileModel
 
             if PlayerVeh ~= 0 then
-                LoadModel(creatorCheckpointObject)
                 local Offset = {
                     left = {
                         x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
@@ -1155,14 +1154,8 @@ CreateThread(function()
                         z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
                     }
                 }
-                creatorObjectLeft = CreateObjectNoOffset(creatorCheckpointObject, Offset.left.x, Offset.left.y, Offset.left.z, false, false, false)
-                creatorObjectRight = CreateObjectNoOffset(creatorCheckpointObject, Offset.right.x, Offset.right.y, Offset.right.z, false, false, false)
-                PlaceObjectOnGroundProperly(creatorObjectLeft)
-                PlaceObjectOnGroundProperly(creatorObjectRight)
-
-                SetEntityCollision(creatorObjectLeft, false, false)
-                SetEntityCollision(creatorObjectRight, false, false)
-                SetModelAsNoLongerNeeded(creatorCheckpointObject)
+                DrawMarker(22, Offset.left.x, Offset.left.y, Offset.left.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
+                DrawMarker(22, Offset.right.x, Offset.right.y, Offset.right.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
             end
         end
         Wait(0)
