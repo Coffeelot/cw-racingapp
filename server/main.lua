@@ -1122,11 +1122,6 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetAmountOfTracks', functio
     end
 end)
 
-QBCore.Commands.Add('blabla', 'toggle debug for racing', {}, true, function(source, args)
-    local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorname = ?', {'as'})
-    print('tracks', #tracks)
-end, 'dev')
-
 QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(source, cb, racerName, serverId)
     if Config.UseNameValidation then
         local Player = QBCore.Functions.GetPlayer(serverId)
@@ -1189,7 +1184,8 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
         end
     end
     if Config.UseRenewedBanking and purchaseType.profiteer and cost > 0 then
-        exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, cost)
+        local profit = math.floor(cost * purchaseType.profiteer.cut)
+        exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, profit)
         exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: "..type,  "Unknown", QBCore.Shared.Jobs[purchaseType.profiteer.job].label , "deposit")
     end
     Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
@@ -1270,33 +1266,24 @@ QBCore.Functions.CreateUseableItem("fob_racing_master", function(source, item)
     UseRacingFob(source, item)
 end)
 
-local function generateRacetrackTable ()
-    MySQL.query('CREATE TABLE IF NOT EXISTS race_tracks ( id int(11) NOT NULL AUTO_INCREMENT, name varchar(50) DEFAULT NULL, checkpoints text DEFAULT NULL, records text DEFAULT NULL, creatorid varchar(50) DEFAULT NULL, creatorname varchar(50) DEFAULT NULL, distance int(11) DEFAULT NULL, raceid varchar(50) DEFAULT NULL, access TEXT DEFAULT "[]" PRIMARY KEY (id))')
-end
-
 local function dropRacetrackTable()
     MySQL.query('DROP TABLE IF EXISTS race_tracks')
-end
-
-local function updateRaceTrackTable()
-    MySQL.query('ALTER TABLE race_tracks RENAME COLUMN creator TO creatorid; ALTER TABLE race_tracks ADD COLUMN creatorname VARCHAR(50) NULL DEFAULT NULL ADD access TEXT DEFAULT "[]" AFTER creatorid;')
 end
 
 local function addAccessCol()
     MySQL.query("ALTER TABLE race_tracks ADD access TEXT DEFAULT '{}'")
 end
 
+local function addCuratedCol()
+    MySQL.query("ALTER TABLE race_tracks ADD curated TEXT DEFAULT '{}'")
+end
+
 QBCore.Commands.Add('addAccessCol', 'Add Access column', {}, true, function(source, args)
     addAccessCol()
 end, 'admin')
 
-QBCore.Commands.Add('resetracetracks', 'Reset the race track table', {}, true, function(source, args)
-    dropRacetrackTable()
-    generateRacetrackTable()
-end, 'admin')
-
-QBCore.Commands.Add('updateracetracks', 'Update the race track table to fit qb-racing/cw-racingapp', {}, true, function(source, args)
-    updateRaceTrackTable()
+QBCore.Commands.Add('addCuratedCol', 'Add Curated column', {}, true, function(source, args)
+    addCuratedCol()
 end, 'admin')
 
 QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
