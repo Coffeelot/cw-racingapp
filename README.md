@@ -19,6 +19,7 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Ability to lock tracks down to people by citizen ID
 - Support for Renewed Crypto
 - Participation payouts
+- Post race leaderboard
 
 **Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize
