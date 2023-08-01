@@ -1723,6 +1723,16 @@ RegisterNetEvent("cw-racingapp:Client:OpenMainMenu", function(data)
             }
         }
     }, {
+        header = Lang:t("menu.race_results"),
+        txt = Lang:t("menu.race_results_txt"),
+        icon = "fas fa-list-ol",
+        params = {
+            event = "cw-racingapp:Client:RaceResultsMenu",
+            args = {
+                type = type,
+            }
+        }
+    }, {
         header = Lang:t("menu.race_records"),
         txt = Lang:t("menu.race_records_txt"),
         icon = "fas fa-trophy",
@@ -1978,8 +1988,69 @@ RegisterNetEvent("cw-racingapp:Client:RaceRecordsMenu", function(data)
         }
         exports['qb-menu']:openMenu(menu)
     end, class)
+end)
 
-    exports['qb-menu']:openMenu(menu)
+
+RegisterNetEvent("cw-racingapp:Client:RaceResultMenu", function(data)
+    local raceData = data.raceData
+    local raceResults = data.raceResults
+
+    local first = '🥇 '
+    local second = '🥈 '
+    local third = '🥉 '
+
+    print(json.encode(data))
+    print(json.encode(raceResults))
+    if #raceResults > 0 then
+        local menu = {}
+        for i, result in ipairs(raceResults) do
+            local header = ''
+            if i == 1 then
+                header = first
+            elseif i == 2 then
+                header = second
+            elseif i == 3 then
+                header = third
+            else
+                header = i..'. '
+            end
+
+            menu[#menu + 1] = {
+                header = header .. result.RacerName,
+                text = 'Time: '.. MilliToTime(result.TotalTime)..' | BL: '..MilliToTime(result.BestLap).. ' | Vehicle: '..result.VehicleModel .. ' | Class: '..result.CarClass,
+                disabled = true
+            }
+        end
+        exports['qb-menu']:openMenu(menu)
+    else
+        QBCore.Functions.Notify( Lang:t("error.not_done_yet"), 'error')
+    end
+end)
+
+RegisterNetEvent("cw-racingapp:Client:RaceResultsMenu", function(data)
+    QBCore.Functions.TriggerCallback('cw-racingapp:server:getRaceResults', function(RaceResults)
+        if useDebug then print('Results: ', json.encode(RaceResults)) end
+        if RaceResults then
+            local menu = {}
+            for i, race in pairs(RaceResults) do    
+                menu[#menu + 1] = {
+                    header = race.Data.RaceData.RaceName.. ' | '.. race.Data.Laps..' laps',
+                    icon = "fas fa-list-ol",
+                    params = {
+                        event = "cw-racingapp:Client:RaceResultMenu",
+                        args = {
+                            raceData = race.Data.RaceData,
+                            raceResults = race.Result
+                        }
+                    }
+                }
+            end
+            exports['qb-menu']:openMenu(menu)
+        else
+            if useDebug then print('No Results to show') end
+            QBCore.Functions.Notify( Lang:t("error.no_results"), 'error')
+        end
+    end)
 end)
 
 local function getKeysSortedByValue(tbl, sortFunction)

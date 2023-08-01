@@ -29,7 +29,9 @@ local Translations = {
         you_have_to_place_a_new_checkpoint_down_first = "You have to place down a new checkpoint first",
         need_a_name = "The track need to have a name",
         name_is_used = "Name is used: ",
-        to_many_names = "This person has enough unique Racer Names already..."
+        to_many_names = "This person has enough unique Racer Names already...",
+        no_results = "No Results to browse yet",
+        not_done_yet = "No racers have passed the finish line yet",
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",
@@ -115,6 +117,8 @@ local Translations = {
         edit_access = "Edit access",
         access_race = "Race access by citizenId. Separate by commas",
         access_list = "Access List",
+        race_results = "Race Results",
+        race_results_txt = "See results from previous races",
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})

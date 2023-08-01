@@ -8,6 +8,8 @@ local LastRaces = {}
 local NotFinished = {}
 local racersSortedByPosition = {}
 local useDebug = Config.Debug
+local RaceResults = {}
+
 
 -- for debug
 local function dump(o)
@@ -258,14 +260,13 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     local PlayersFinished = 0
     local AmountOfRacers = 0
 
-
+    RaceResults[RaceData.RaceId].Result[#RaceResults[RaceData.RaceId].Result+1] = { TotalTime = TotalTime, BestLap = BestLap, CarClass = CarClass, VehicleModel = VehicleModel, RacerName = RacerName}  
     for k, v in pairs(Races[RaceData.RaceId].Racers) do
         if v.Finished then
             PlayersFinished = PlayersFinished + 1
         end
         AmountOfRacers = AmountOfRacers + 1
     end
-    print('Racers', AmountOfRacers)
     if AmountOfRacers > 1 then
         updateRacerNameLastRaced(RacerName, PlayersFinished)
     end
@@ -403,7 +404,7 @@ local function hasEnoughMoney(source, cost)
             return false
         end
 
-    end    
+    end
 
 end
 
@@ -615,7 +616,7 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
                     AvailableRaces[#AvailableRaces+1] = allRaceData
                     TriggerClientEvent('QBCore:Notify', src,  Lang:t("success.race_created"), 'success')
                     TriggerClientEvent('cw-racingapp:client:ReadyJoinRace', src, allRaceData)
-
+                    RaceResults[RaceId] = { Data = allRaceData, Result = {}}
                     CreateThread(function()
                         local count = 0
                         while Races[RaceId].Waiting do
@@ -729,7 +730,7 @@ local function timer(raceId)
             end
             for i,racer in pairs(Races[raceId].Racers) do
                 TriggerClientEvent('cw-racingapp:client:LeaveRace', racer.RacerSource, Races[raceId] )
-                
+
             end
             Races[raceId].LastLeaderboard = LastRaces[raceId]
             Races[raceId].Racers = {}
@@ -888,6 +889,12 @@ QBCore.Functions.CreateCallback('cw-racingapp:Server:getplayers', function(_, cb
     end
     cb(playerIds)
 end)
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:getRaceResults', function(_, cb)
+    print('Fetching results', QBCore.Debug(RaceResults))
+    cb(RaceResults)
+end)
+
 
 -----------------------
 ----   Functions   ----
@@ -1252,7 +1259,7 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.name_too_long"), "error")
         return
     end
-    
+
     local tradeType = {
         racingFobMasterCost = 0,
         racingFobCost = 0,
