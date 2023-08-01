@@ -342,7 +342,9 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
             TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
     end
     AvailableRaces[AvailableKey].RaceData = Races[RaceData.RaceId]
-    TriggerClientEvent('cw-racingapp:client:PlayerFinish', -1, RaceData.RaceId, PlayersFinished, RacerName)
+    for cid, racer in pairs(Races[RaceData.RaceId].Racers) do
+        TriggerClientEvent('cw-racingapp:client:PlayerFinish', racer.RacerSource, RaceData.RaceId, PlayersFinished, RacerName)
+    end
     if PlayersFinished == AmountOfRacers then
         if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[RaceData.RaceId] ~= nil and
             next(NotFinished[RaceData.RaceId]) ~= nil then
@@ -481,7 +483,9 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             table.insert(racersSortedByPosition, Races[RaceId].Racers[Player.PlayerData.citizenid] )
             AvailableRaces[AvailableKey].RaceData = Races[RaceId]
             TriggerClientEvent('cw-racingapp:client:JoinRace', src, Races[RaceId], RaceData.Laps, RacerName)
-            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', -1, RaceId, Races[RaceId].Racers)
+            for cid, racer in pairs(Races[RaceId].Racers) do
+                TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Races[RaceId].Racers)
+            end
             local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
             if creatorsource ~= Player.PlayerData.source then
                 TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
@@ -497,7 +501,9 @@ local function assignNewOrganizer(RaceId, src)
         if i ~= QBCore.Functions.GetPlayer(src).PlayerData.citizenid then
             Races[RaceId].OrganizerCID = i
             TriggerClientEvent('QBCore:Notify', v.RacerSource, Lang:t("text.new_host"))
-            TriggerClientEvent('cw-racingapp:client:UpdateOrganizer', -1, RaceId, i)
+            for cid, racer in pairs(Races[RaceId].Racers) do
+                TriggerClientEvent('cw-racingapp:client:UpdateOrganizer', racer.RacerSource, RaceId, i)
+            end
             return
         end
     end
@@ -576,7 +582,9 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
         AvailableRaces[AvailableKey].RaceData = Races[RaceId]
         TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Races[RaceId])
     end
-    TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', -1, RaceId, Races[RaceId].Racers)
+    for cid, racer in pairs(Races[RaceId].Racers) do
+        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Races[RaceId].Racers)
+    end
 end)
 
 RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn)
@@ -762,7 +770,9 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         if useDebug and racersSortedByPosition[2] then
            print('after', newPositions[1].RacerName, newPositions[2].RacerName)
         end
-        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', -1, RaceId, Races[RaceId], newPositions)
+        for cid, racer in pairs(Races[RaceId].Racers) do
+            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Races[RaceId], newPositions)
+        end
     else
         -- Attemt to make sure script dont break if something goes wrong
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.youre_not_in_the_race"), 'error')
