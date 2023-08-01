@@ -1999,8 +1999,6 @@ RegisterNetEvent("cw-racingapp:Client:RaceResultMenu", function(data)
     local second = '🥈 '
     local third = '🥉 '
 
-    print(json.encode(data))
-    print(json.encode(raceResults))
     if #raceResults > 0 then
         local menu = {}
         for i, result in ipairs(raceResults) do

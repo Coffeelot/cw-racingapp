@@ -891,7 +891,7 @@ QBCore.Functions.CreateCallback('cw-racingapp:Server:getplayers', function(_, cb
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:getRaceResults', function(_, cb)
-    print('Fetching results', QBCore.Debug(RaceResults))
+    if useDebug then print('Fetching results', QBCore.Debug(RaceResults)) end
     cb(RaceResults)
 end)
 
