@@ -50,6 +50,7 @@ local CurrentRaceData = {
 
 local Classes = exports['cw-performance']:getPerformanceClasses()
 local Entities = {}
+local Kicked = false
 
 -- for debug
 local function dump(o)
@@ -1010,13 +1011,17 @@ local function checkCheckPointTime()
         if useDebug then
            print('Getting kicked for idling')
         end
-        TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData)
+        if not Kicked then
+            Kicked = true
+            QBCore.Functions.Notify(Lang:t('error.kicked'), 'error')
+            TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData)
+        end
     end
 end
 
 CreateThread(function()
     while true do
-        if CurrentRaceData.RaceName ~= nil then
+        if not Kicked and CurrentRaceData.RaceName ~= nil then
             if CurrentRaceData.Started then
                 local ped = PlayerPedId()
                 local pos = GetEntityCoords(ped)
@@ -1041,7 +1046,6 @@ CreateThread(function()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                             passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                             nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
-                            timeWhenLastCheckpointWasPassed = GetGameTimer()
                         else
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
@@ -1049,8 +1053,8 @@ CreateThread(function()
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                             FinishRace()
-                            timeWhenLastCheckpointWasPassed = GetGameTimer()
                         end
+                        timeWhenLastCheckpointWasPassed = GetGameTimer()
                     else -- Circuit
                         if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then -- If new lap
                             if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then -- if finish
@@ -1067,7 +1071,6 @@ CreateThread(function()
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                                 FinishRace()
-                                timeWhenLastCheckpointWasPassed = GetGameTimer()
                             else -- if next lap
                                 DoPilePfx()
                                 resetBlips()
@@ -1089,8 +1092,8 @@ CreateThread(function()
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
-                                timeWhenLastCheckpointWasPassed = GetGameTimer()
                             end
+                            timeWhenLastCheckpointWasPassed = GetGameTimer()
                         else -- if next checkpoint 
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
@@ -1099,18 +1102,17 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
-                                    passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
-                                    nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                             else
                                 AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
                                     CurrentRaceData.Checkpoints[1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
-                                    passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
-                                    nextBlip(CurrentRaceData.Checkpoints[1].blip)
-                                timeWhenLastCheckpointWasPassed = GetGameTimer()
-
+                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                nextBlip(CurrentRaceData.Checkpoints[1].blip)
                             end
+                            timeWhenLastCheckpointWasPassed = GetGameTimer()
                             DoPilePfx()
                             PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                         end
@@ -1592,6 +1594,7 @@ end)
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Positions)
     doGPSForRace(true)
     Players = {}
+    Kicked = false
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
     CurrentRaceData.Positions = Positions

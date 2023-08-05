@@ -522,9 +522,15 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
 
     local RaceId = GetRaceId(RaceName)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
-    local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
+    
+    local creator = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
+    local creatorsource = nil
 
-    if creatorsource ~= Player.PlayerData.source then
+    if creator.PlayerData then
+        local creatorsource = creator.PlayerData.source
+    end
+
+    if creatorsource and creatorsource ~= Player.PlayerData.source then
         TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_left"))
     end
 
