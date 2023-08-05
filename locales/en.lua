@@ -119,6 +119,7 @@ local Translations = {
         access_list = "Access List",
         race_results = "Race Results",
         race_results_txt = "See results from previous races",
+
     }
 }
 Lang = Locale:new({phrases = Translations, warnOnMissing = true})

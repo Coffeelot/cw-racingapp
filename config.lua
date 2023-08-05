@@ -5,7 +5,7 @@ Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
-Config.Inventory = 'ox' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
+Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works. 
 Config.UseRenewedCrypto = true -- set to true if you use Renewed crypto
 Config.UseRenewedBanking = true -- set this to true if you use Renewed Banking
 Config.UseNameValidation = true -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
@@ -155,7 +155,6 @@ Config.Splits = {
     more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 } -- If more than 3 
 }
 
-
 Config.ParticpationTrophies = {
     enabled = true, -- false if you dont want players getting particpation trophies
     minimumOfRacers = 6, -- minimum of racers to hand out particpation trophies
@@ -163,4 +162,15 @@ Config.ParticpationTrophies = {
     amount = { [1] = 60, [2] = 40, [3] = 20, [4] = 10,  [5] = 5 }, -- [<position>] = <amount>
     cryptoType = 'cdc', -- name of your crypto
     minumumRaceLength = 3000
+}
+
+Config.UseOxLibForKeybind = false -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
+Config.Buttons = {
+    AddCheckpoint = 'INSERT',
+    DeleteCheckpoint = 'DELETE',
+    MoveCheckpoint = 'HOME',
+    SaveRace = '0',
+    IncreaseDistance = 'PAGEUP',
+    DecreaseDistance = 'PAGEDOWN',
+    Exit = '9'
 }

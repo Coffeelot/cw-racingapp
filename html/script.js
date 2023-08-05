@@ -80,23 +80,31 @@ function UpdateUI(type, data) {
                 if (data.racedata.Checkpoints) {
                     $("#editor-checkpoints").html('Checkpoints: ' + data.racedata.Checkpoints.length + ' / ?');
                 }
-                $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">+ ] </span> / <span style="color: rgb(255, 43, 43);">- [</span> - Tire Distance ['+data.data.TireDistance+'.0]');
+                $("#editor-keys-add-button").html(data.buttons.AddCheckpoint);
+                $("#editor-keys-delete-button").html(data.buttons.DeleteCheckpoint);
+                $("#editor-keys-edit-button").html(data.buttons.MoveCheckpoint);
+                $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">'+ data.buttons.IncreaseDistance +' </span> / <span style="color: rgb(255, 43, 43);">'+ data.buttons.DecreaseDistance+'</span> - Tire Distance ['+data.data.TireDistance+'.0]');
                 if (data.racedata.ClosestCheckpoint !== undefined && data.racedata.ClosestCheckpoint !== 0) {
-                    $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">8</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');
+                    $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">'+data.buttons.DeleteCheckpoint+'</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');
                 } else {
                     $("#editor-keys-delete").html("");
                 }
+                $("#editor-keys-cancel-button").html(data.buttons.Exit);
+                $("#editor-keys-save-button").html(data.buttons.SaveRace);
+
             } else {
                 $("#editor-racename").html('Race: ' + data.data.RaceName);
                 if (data.racedata.Checkpoints) {
                     $("#editor-checkpoints").html('Checkpoints: ' + data.racedata.Checkpoints.length + ' / ?');
                 }
-                $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">+ ] </span> / <span style="color: rgb(255, 43, 43);">- [</span> - Tire Distance ['+data.data.TireDistance+'.0]');
+                $("#editor-keys-tiredistance").html('<span style="color: rgb(0, 201, 0);">'+ data.buttons.IncreaseDistance +' </span> / <span style="color: rgb(255, 43, 43);">'+ data.buttons.DecreaseDistance+'</span> - Tire Distance ['+data.data.TireDistance+'.0]');
                 if (data.racedata.ClosestCheckpoint !== undefined && data.racedata.ClosestCheckpoint !== 0) {
-                    $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">8</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');
+                    $("#editor-keys-delete").html('<span style="color: rgb(255, 43, 43);">'+data.buttons.DeleteCheckpoint+'</span> - Delete Checkpoint [' + data.racedata.ClosestCheckpoint + ']');
                 } else {
                     $("#editor-keys-delete").html("");
                 }
+                $("#editor-keys-cancel-button").html(data.buttons.Exit);
+                $("#editor-keys-save-button").html(data.buttons.SaveRace);
             }
         } else {
             CreatorActive = false;

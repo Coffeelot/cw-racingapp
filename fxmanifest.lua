@@ -11,7 +11,8 @@ ui_page 'html/index.html'
 shared_scripts {
     'config.lua',
     '@qb-core/shared/locale.lua',
-    'locales/en.lua', 
+    'locales/en.lua',
+    --'@ox_lib/init.lua',
 }
 
 client_script 'client/main.lua'
@@ -25,7 +26,6 @@ files {
     'html/*.html',
     'html/*.css',
     'html/*.js',
-    'html/fonts/*.otf',
     'html/img/*'
 }
 

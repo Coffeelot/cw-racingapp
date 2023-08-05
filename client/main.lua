@@ -380,6 +380,7 @@ function CreatorUI()
                     type = "creator",
                     data = CreatorData,
                     racedata = RaceData,
+                    buttons = Config.Buttons,
                     active = true
                 })
             else
@@ -388,6 +389,7 @@ function CreatorUI()
                     type = "creator",
                     data = CreatorData,
                     racedata = RaceData,
+                    buttons = Config.Buttons,
                     active = false
                 })
                 break
@@ -498,6 +500,67 @@ local function MoveCheckpoint()
     end
 end
 
+local function clickAddCheckpoint()
+    AddCheckpoint()
+end
+
+local function clickDeleteCheckpoint()
+    if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
+        DeleteCheckpoint()
+    else
+        QBCore.Functions.Notify(Lang:t("error.no_checkpoints_to_delete"), 'error')
+    end
+end
+
+local function clickMoveCheckpoint()
+    if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
+        MoveCheckpoint()
+    else
+        QBCore.Functions.Notify(Lang:t("error.no_checkpoints_to_edit"), 'error')
+    end
+end
+
+local function clickSaveRace()
+    if CreatorData.Checkpoints and #CreatorData.Checkpoints >= Config.MinimumCheckpoints then
+        SaveRace()
+    else
+        QBCore.Functions.Notify(Lang:t("error.not_enough_checkpoints") .. '(' ..Config.MinimumCheckpoints .. ')', 'error')
+    end
+end
+
+local function clickIncreaseDistance()
+    if CreatorData.TireDistance < Config.MaxTireDistance then
+        CreatorData.TireDistance = CreatorData.TireDistance + 1.0
+    else
+        QBCore.Functions.Notify(Lang:t("error.max_tire_distance") .. Config.MaxTireDistance)
+    end
+end
+
+local function clickDecreaseDistance()
+    if CreatorData.TireDistance > Config.MinTireDistance then
+        CreatorData.TireDistance = CreatorData.TireDistance - 1.0
+    else
+        QBCore.Functions.Notify(Lang:t("error.min_tire_distance") .. Config.MinTireDistance)
+    end
+end
+
+local function clickExit()
+    if not CreatorData.ConfirmDelete then
+        CreatorData.ConfirmDelete = true
+        QBCore.Functions.Notify(Lang:t("error.editor_confirm"), 'error')
+    else
+        DeleteCreatorCheckpoints()
+
+        cleanupObjects()
+        RaceData.InCreator = false
+        CreatorData.RaceName = nil
+        CreatorData.Checkpoints = {}
+        QBCore.Functions.Notify(Lang:t("error.editor_canceled"), 'error')
+        CreatorData.ConfirmDelete = false
+    end
+end
+
+
 function CreatorLoop()
     redrawBlips()
     CreateThread(function()
@@ -505,72 +568,11 @@ function CreatorLoop()
             local PlayerPed = PlayerPedId()
             local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
 
-            if PlayerVeh ~= 0 then
-                if IsControlJustPressed(0, 161) or IsDisabledControlJustPressed(0, 161) then
-                    AddCheckpoint()
-                end
-
-                if IsControlJustPressed(0, 162) or IsDisabledControlJustPressed(0, 162) then
-                    if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
-                        DeleteCheckpoint()
-                    else
-                        QBCore.Functions.Notify(Lang:t("error.no_checkpoints_to_delete"), 'error')
-                    end
-                end
-
-                if IsControlJustPressed(0, 159) or IsDisabledControlJustPressed(0, 159) then
-                    print('hehe')
-                    if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
-                        MoveCheckpoint()
-                    else
-                        QBCore.Functions.Notify(Lang:t("error.no_checkpoints_to_edit"), 'error')
-                    end
-                end
-
-                if IsControlJustPressed(0, 311) or IsDisabledControlJustPressed(0, 311) then
-                    if CreatorData.Checkpoints and #CreatorData.Checkpoints >= Config.MinimumCheckpoints then
-                        SaveRace()
-                    else
-                        QBCore.Functions.Notify(Lang:t("error.not_enough_checkpoints") .. '(' ..Config.MinimumCheckpoints .. ')', 'error')
-                    end
-                end
-
-                if IsControlJustPressed(0, 40) or IsDisabledControlJustPressed(0, 40) then
-                    if CreatorData.TireDistance < Config.MaxTireDistance then
-                        CreatorData.TireDistance = CreatorData.TireDistance + 1.0
-                    else
-                        QBCore.Functions.Notify(Lang:t("error.max_tire_distance") .. Config.MaxTireDistance)
-                    end
-                end
-
-                if IsControlJustPressed(0, 39) or IsDisabledControlJustPressed(0, 39) then
-                    if CreatorData.TireDistance > Config.MinTireDistance then
-                        CreatorData.TireDistance = CreatorData.TireDistance - 1.0
-                    else
-                        QBCore.Functions.Notify(Lang:t("error.min_tire_distance") .. Config.MinTireDistance)
-                    end
-                end
-            else
+            if PlayerVeh == 0 then
                 local coords = GetEntityCoords(PlayerPedId())
                 DrawText3Ds(coords.x, coords.y, coords.z, Lang:t("text.get_in_vehicle"))
             end
-
-            if IsControlJustPressed(0, 163) or IsDisabledControlJustPressed(0, 163) then
-                if not CreatorData.ConfirmDelete then
-                    CreatorData.ConfirmDelete = true
-                    QBCore.Functions.Notify(Lang:t("error.editor_confirm"), 'error')
-                else
-                    DeleteCreatorCheckpoints()
-
-                    cleanupObjects()
-                    RaceData.InCreator = false
-                    CreatorData.RaceName = nil
-                    CreatorData.Checkpoints = {}
-                    QBCore.Functions.Notify(Lang:t("error.editor_canceled"), 'error')
-                    CreatorData.ConfirmDelete = false
-                end
-            end
-            Wait(0)
+            Wait(10)
         end
     end)
 end
@@ -1193,7 +1195,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     end
 end)
 
-local function openRaceUi()
+local function openCreatorUi()
     CreatorUI()
     CreatorLoop()
 end
@@ -1216,7 +1218,7 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
                     for i, checkpoint in pairs(track.Checkpoints) do
                         CreatorData.Checkpoints[#CreatorData.Checkpoints+1] = checkpoint
                     end
-                    openRaceUi()
+                    openCreatorUi()
                     
                 else
                     print('Something went wrong with fetching this track')
@@ -1224,7 +1226,7 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
             end, RaceId)
         else
             CreatorData.IsEdit = false
-            openRaceUi()
+            openCreatorUi()
         end
     else
         QBCore.Functions.Notify(Lang:t("error.already_making_race"), 'error')
@@ -2726,3 +2728,164 @@ AddEventHandler('onResourceStop', function (resource)
        end
     end
 end)
+--- CREATOR BUTTONS
+if Config.UseOxLibForKeybind then
+    if not lib then
+        print('UseOxLibForKeybind is enabled but no lib was found. Might be missing from fxmanifest')
+    else
+        local keyb= lib.addKeybind({
+            name = 'clickAddCheckpoint',
+            description = '(Track Creator) Add checkpoint',
+            defaultKey = Config.Buttons.AddCheckpoint,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickAddCheckpoint()
+                end
+            end
+        })
+        lib.addKeybind({
+            name = 'clickDeleteCheckpoint',
+            description = '(Track Creator) Remove checkpoint',
+            defaultKey = Config.Buttons.DeleteCheckpoint,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickDeleteCheckpoint()
+                end
+            end
+        })
+        lib.addKeybind({
+            name = 'clickMoveCheckpoint',
+            description = '(Track Creator) Move checkpoint',
+            defaultKey = Config.Buttons.MoveCheckpoint,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickMoveCheckpoint()
+                end
+            end
+        })
+        lib.addKeybind({
+            name = 'clickSaveRace',
+            description = '(Track Creator) Save track',
+            defaultKey = Config.Buttons.SaveRace,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickSaveRace()
+                end
+            end
+        })
+        lib.addKeybind({
+            name = 'clickIncreaseDistance',
+            description = '(Track Creator) Increase Checkpoint Size',
+            defaultKey = Config.Buttons.IncreaseDistance,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickIncreaseDistance()
+                end
+            end
+        })
+        lib.addKeybind({
+            name = 'clickDecreaseDistance',
+            description = '(Track Creator) Decrease Checkpoint Size',
+            defaultKey = Config.Buttons.DecreaseDistance,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickDecreaseDistance()
+                end
+            end
+        })
+        lib.addKeybind({
+            name = 'clickExit',
+            description = '(Track Creator) Exit track creation',
+            defaultKey = Config.Buttons.Exit,
+            onPressed = function(self)
+                if RaceData.InCreator then
+                    clickExit()
+                end
+            end
+        })
+    end 
+else
+    RegisterCommand("clickAddCheckpoint", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickAddCheckpoint()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickAddCheckpoint", "(Track Creator) Add checkpoint", "keyboard", Config.Buttons.AddCheckpoint)
+    
+    RegisterCommand("clickDeleteCheckpoint", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickDeleteCheckpoint()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickDeleteCheckpoint", "(Track Creator) Remove checkpoint", "keyboard", Config.Buttons.DeleteCheckpoint)
+    
+    RegisterCommand("clickMoveCheckpoint", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickMoveCheckpoint()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickMoveCheckpoint", "(Track Creator) Move checkpoint", "keyboard", Config.Buttons.MoveCheckpoint)
+    
+    RegisterCommand("clickSaveRace", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickSaveRace()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickSaveRace", "(Track Creator) Save track", "keyboard", Config.Buttons.SaveRace)
+    
+    RegisterCommand("clickIncreaseDistance", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickIncreaseDistance()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickIncreaseDistance", "(Track Creator) Increase Checkpoint Size", "keyboard", Config.Buttons.IncreaseDistance)
+    
+    RegisterCommand("clickDecreaseDistance", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickDecreaseDistance()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickDecreaseDistance", "(Track Creator) Decrease Checkpoint Size", "keyboard", Config.Buttons.DecreaseDistance)
+    
+    RegisterCommand("clickExit", function()
+        if RaceData.InCreator then
+            local Player = PlayerPedId()
+            local vehicle = GetVehiclePedIsUsing(Player)
+            if vehicle ~= 0 then
+                clickExit()
+            end
+        end
+    end, false)
+    
+    RegisterKeyMapping("clickExit", "(Track Creator) Exit track creation", "keyboard", Config.Buttons.Exit)
+end
