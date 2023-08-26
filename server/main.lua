@@ -8,8 +8,139 @@ local LastRaces = {}
 local NotFinished = {}
 local racersSortedByPosition = {}
 local useDebug = Config.Debug
-local RaceResults = {}
-
+local RaceResults = {
+    ["LR-7666"]= {
+        ["Data"]= {
+            ["Ghosting"] = false,
+            ["SetupRacerName"] = "PAODPOAS2",
+            ["BuyIn"] = 0,
+            ["Laps"] = 3,
+            ["MaxClass"] = "",
+            ["GhostingTime"] = 0,
+            ["RaceId"] = "LR-7666",
+            ["RaceData"] = {
+                ["Ghosting"]= false,
+                ["Started"]= false,
+                ["Waiting"]= false,
+                ["Records"]= {
+                    {
+                        ["Holder"]= "mamamamamam",
+                        ["Time"]= 24262,
+                        ["Class"]= "X",
+                        ["Vehicle"]= "Osiris FR",
+                        ["RaceType"]= "Circuit",
+                    },
+                    {
+                        ["Holder"]= "mamamamamam",
+                        ["Time"]= 26305,
+                        ["Class"]= "S",
+                        ["Vehicle"]= "model not found",
+                        ["RaceType"]= "Sprint",
+                    },
+                },
+                ["Distance"]= 1045,
+                ["Creator"]= "SYY99260",
+                ["BuyIn"]= 0,
+                ["Racers"]= {},
+                ["GhostingTime"] = 0,
+                ["OrganizerCID"] = "SYY99260",
+                ["CreatorName"] = "xXxCoolChadxXx69",
+                ["RaceId"] = "LR-7666",
+                ["Access"] = {},
+                ["RaceName"] = "Elysian",
+                ["LastLeaderboard"] = {
+                    {
+                        ["TotalTime"] = 34128,
+                        ["BestLap"] = 34128,
+                        ["Holder"] = "PAODPOAS2"
+                    }
+                }
+            },
+            ["SetupCitizenId"] = "SYY99260"
+        },
+        ["Result"] = {
+            {
+                ["VehicleModel"] = "Euros ZR300",
+                ["RacerName"] = "PAODPOAS2",
+                ["TotalTime"] = 74128,
+                ["CarClass"] = "S",
+                ["BestLap"] = 30404
+            }
+        }
+    },
+    ["LR-1123"]= {
+        ["Data"]= {
+            ["Ghosting"] = false,
+            ["SetupRacerName"] = "PAODPOAS2",
+            ["BuyIn"] = 0,
+            ["Laps"] = 0,
+            ["MaxClass"] = "",
+            ["GhostingTime"] = 0,
+            ["RaceId"] = "LR-1123",
+            ["RaceData"] = {
+                ["Ghosting"]= false,
+                ["Started"]= false,
+                ["Waiting"]= false,
+                ["Records"]= {
+                    {
+                        ["Holder"]= "mamamamamam",
+                        ["Time"]= 24262,
+                        ["Class"]= "X",
+                        ["Vehicle"]= "Osiris FR",
+                        ["RaceType"]= "Circuit",
+                    
+                    },
+                    {
+                        ["Holder"]= "mamamamamam",
+                        ["Time"]= 26305,
+                        ["Class"]= "S",
+                        ["Vehicle"]= "model not found",
+                        ["RaceType"]= "Sprint",
+                    },
+                },
+                ["Distance"]= 1045,
+                ["Creator"]= "SYY99260",
+                ["BuyIn"]= 0,
+                ["Racers"]= {},
+                ["GhostingTime"] = 0,
+                ["OrganizerCID"] = "SYY99260",
+                ["CreatorName"] = "xXxCoolChadxXx69",
+                ["RaceId"] = "LR-7666",
+                ["Access"] = {},
+                ["RaceName"] = "Elysian",
+                ["LastLeaderboard"] = {
+                    {
+                        ["TotalTime"] = 34128,
+                        ["BestLap"] = 34128,
+                        ["Holder"] = "PAODPOAS2"
+                    },
+                    {
+                        ["TotalTime"] = 34128,
+                        ["BestLap"] = 34128,
+                        ["Holder"] = "PAODPOAS2"
+                    }
+                }
+            },
+            ["SetupCitizenId"] = "SYY99260"
+        },
+        ["Result"] = {
+            {
+                ["VehicleModel"] = "Euros ZR300",
+                ["RacerName"] = "PAODPOAS2",
+                ["TotalTime"] = 34128,
+                ["CarClass"] = "S",
+                ["BestLap"] = 0
+            },
+            {
+                ["VehicleModel"] = "A cool car",
+                ["RacerName"] = "YOMOM",
+                ["TotalTime"] = 134128,
+                ["CarClass"] = "A",
+                ["BestLap"] = 0
+            },
+        }
+    }
+}
 
 -- for debug
 local function dump(o)
@@ -137,7 +268,7 @@ local function getLatestRecordsByName(RaceName)
     end
 end
 
-local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel)
+local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType)
     local records = getLatestRecordsById(RaceData.RaceId)
     local FilteredLeaderboard = {}
     local PersonalBest, index = nil, nil
@@ -166,11 +297,13 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Time = PlayerTime,
             Holder = RacerName,
             Class = CarClass,
-            Vehicle = VehicleModel
+            Vehicle = VehicleModel,
+            RaceType = RaceType
         }
         records[index] = playerPlacement
         records = sortRecordsByTime(records)
         if useDebug then print('records being sent to db', dump(records)) end
+        Races[RaceData.RaceId].Records = records
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode(records), RaceData.RaceId})
         return true
@@ -187,7 +320,8 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Time = PlayerTime,
             Holder = RacerName,
             Class = CarClass,
-            Vehicle = VehicleModel
+            Vehicle = VehicleModel,
+            RaceType = RaceType
         }
         if useDebug then
            print('records', dump(records))
@@ -197,6 +331,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         if useDebug then
            print('new records', dump(records))
         end
+        Races[RaceData.RaceId].Records = records
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode(records), RaceData.RaceId})
         return true
@@ -321,7 +456,9 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     end
 
     if Races[RaceData.RaceId].Records ~= nil and next(Races[RaceData.RaceId].Records) ~= nil then
-        local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel)
+        local RaceType = 'Sprint'
+        if TotalLaps > 0 then RaceType = 'Circuit' end
+        local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel, RaceType)
         if newRecord then
             if useDebug then
                print('Player got a record', BLap)
@@ -332,12 +469,12 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
             end
         end
     else
-        Races[RaceData.RaceId].Records = {
+        Races[RaceData.RaceId].Records = {{
             Time = BLap,
             Holder = RacerName,
             Class = CarClass,
             Vehicle = VehicleModel
-        }
+        }}
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode({ Races[RaceData.RaceId].Records }), RaceData.RaceId})
             TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
@@ -1072,6 +1209,7 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingData', function(so
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetTracks', function(source, cb)
+    if useDebug then print('Getting all tracks') end
     cb(Races)
 end)
 
@@ -1273,13 +1411,13 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
     }
 
     createRacingFob(source, citizenid, name, type:lower(), tradeType)
-end, 'admin')
+end, 'dev')
 
 QBCore.Commands.Add('remracename', 'Remove Racing Name From Database', { {name='name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
     local name = args[1]
     print('name of racer to delete:', name)
     MySQL.query('DELETE FROM racer_names WHERE racername = ?', {name} )
-end, 'admin')
+end, 'dev')
 
 QBCore.Functions.CreateUseableItem("fob_racing_basic", function(source, item)
     UseRacingFob(source, item)

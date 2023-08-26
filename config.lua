@@ -1,6 +1,7 @@
 Config = Config or {}
 Config.Debug = false
 
+Config.UseCustomUi = true
 Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
@@ -42,7 +43,7 @@ Config.Permissions = {
 }
 
 Config.FlareTime = 10000 -- How long the flares are lit
-Config.KickTime = 300000 -- How long (in ms) until you get kicked if not being at race
+Config.KickTime = 10*60*1000 -- How long (in ms) until you get kicked if not being at race
 Config.StartAndFinishModel = `prop_beachflag_le`
 Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --`prop_flare_01b`
 

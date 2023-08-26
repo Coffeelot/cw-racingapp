@@ -5,10 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Racing App by Coffeelot and Wuggie</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <link rel="stylesheet" type="text/css" href="hud.css">
+    <link rel="stylesheet" type="text/css" href="ui.css">
 </head>
     <body>
-        <div class="container">
+        <div class="ui-container">
+            <img class="screen-frame" src="./screen-frame.png" alt="screen-frame" >
+            <div class="screen-container">
+                <div class="topbar">
+                    <div>
+                    </div>
+                    <div class="inline">
+                        <i class="fas fa-signal icon-topbar"></i>
+                        <i class="fas fa-battery-three-quarters icon-topbar"></i> 75%
+                    </div>
+                </div>
+                <div class="app-container">
+                    <div class="sidebar">
+                        <button class="pagelink" onclick="openPage('RacingPage', this)" id="defaultOpenPage"><span id="racing-stab">Racing</span></button>
+                        <button class="pagelink" onclick="openPage('ResultsPage', this)"><span id="results-stab">Results</span></button>
+                        <button class="pagelink" onclick="openPage('MyTracksPage', this)"><span id="tracks-stab">My Tracks</span></button>
+                    </div>
+                    <div class="confirmation-box">
+                        <div class="confirmation-card">
+                            <div class="confirmation-header">Header</div>
+                            <div class="confirmation-body">Body</div>
+                            <div class="inline full-width standardGap">
+                                <button class="action-button small secondary-button" onclick="CloseConfirmation('${track}')" id="mytracks-delete-button"><span id="create-tab">Close</span></button>
+                                <div class="confirmation-footer"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tabs-container">
+                        <div id="RacingPage" class="pagecontent">
+                            <div class="inline tablinks">
+                                <button class="tablink" onclick="openTabs('Current', this)" id="defaultOpenTab-RacingPage"><span id="available-tab"><span id="current-tab">Current Race</span></button>
+                                <button class="tablink" onclick="openTabs('Available', this)">Available Races</span></button>
+                                <button class="tablink" onclick="openTabs('SetupRace', this)"><span id="create-tab">Setup Race</span></button>
+                            </div>
+                            <div id="SetupRace" class="tabcontent">
+                                <div class="tracks-container">
+                                    <div class="subheader"><h3>Pick A Track</h3> <span class="inline standardGap">Show Only Curated: <input type="checkbox" id="race-setup-curated-checkbox" checked></span></div>
+                                    <div class="loading-container " id="track-items-loader"><span class="loader"></span></div>
+                                    <div class="tracks-items"></div>
+                                </div>
+                                <div class="setup-container page-container">
+                                    <div class="subheader">
+                                        <div class="subheader"><h4>Track Chosen: <span id="setup-race-track-chosen"></span></h4></div>
+                                        <div class="inline clickableText" onclick="setupRaceGoBack()"><i class="fas fa-chevron-left icon-topbar inline"></i><h4>Go Back</h4></div>
+                                    </div>
+                                    <div class="setup-options">
+                                        <div class="option">
+                                            <span class="option-title">Laps</span>
+                                            <select class="custom-select" name="setup-race-laps" id="setup-race-laps">
+                                            </select>
+                                        </div>
+                                        <div class="option">
+                                            <span class="option-title">Buy In</span>
+                                            <select class="custom-select" name="setup-race-buyin" id="setup-race-buyin">
+                                            </select>                                        
+                                        </div>
+                                        <div class="option" id="ghosting-option-setup">
+                                            <span class="option-title">Ghosting</span>
+                                            <select class="custom-select" name="setup-race-time" id="setup-race-time">
+                                            </select>
+                                        </div>
+                                        <div class="option">
+                                            <span class="option-title">Max Class</span>
+                                            <select class="custom-select" name="setup-race-class" id="setup-race-class">
+                                            </select>
+                                        </div>
+                                        <div class="inline spaced">
+                                            <span></span>
+                                            <button class="action-button" onclick="confirmSetupRace(this)" id="setup-race-button">
+                                                <span id="create-tab">Start</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div id="Current" class="tabcontent">
+                                <div class="current-race-container page-container">
+                                    <div id="current-race-selection"></div>
+                                    <div id="current-race-none">
+                                        <h3 class="inline centered">No race</h3>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div id="Available" class="tabcontent">
+                                <div class="available-container page-container">
+                                    <div class="subheader">
+                                        <h3>Available Races</h3>
+                                        <div class="inline clickableText" onclick="GetListedRaces()"><i class="fas fa-sync icon-topbar inline"></i><h4>Refresh</h4></div>
+                                    </div>
+                                    <div class="loading-container" id="available-races-loader"><span class="loader"></span></div>
+                                    <div class="available-races"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="ResultsPage" class="pagecontent">
+                            <div class="inline">
+                                <button class="tablink" onclick="openTabs('Results', this)" id="defaultOpenTab-ResultsPage"><span id="results-tab">Race Results</span></button>
+                                <button class="tablink" onclick="openTabs('Records', this)" ><span id="records-tab">Race Records</span></button>
+                            </div>
+                            <div id="Results" class="tabcontent">
+                                <div class="results-container page-container">
+                                    <div class="inline standardGap">
+                                            <h3 style="width: 160px;">Select Race</h3>
+                                            <select class="custom-select full-width center-text" onchange="HandleUpdateResults()" name="results-track-selector" id="results-track-selector"></select>
+                                    </div>
+                                    <div class="loading-container" id="results-items-loader"><span class="loader"></span></div>
+                                    <div class="results-items">
+                                        <div class="subheader underlined result-subheader">
+                                            <span>Type: <span class="bold" id="result-race-type"></span></span>
+                                            <span>Host: <span class="bold" id="result-race-host"></span></span>
+                                            <span>Track Creator: <span class="bold" id="result-race-creator"></span></span>
+                                        </div>
+                                        <table id="results-items-table"></table>
+                                        <div id="results-items-table-none">
+                                            <h3 class="inline centered">No Data</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div id="Records" class="tabcontent">
+                                <div class="records-container page-container">
+                                    <div class="filters">
+                                        <div class="inline standardGap standard-margin-bot">
+                                                <span style="width: 160px;">Select Race</span>
+                                                <select class="custom-select full-width center-text" onchange="HandleUpdateRecords()" name="records-track-selector" id="records-track-selector"></select>
+                                        </div>
+                                        <div class="inline standardGap">
+                                                <span style="width: 160px;">Select Class</span>
+                                                <select class="custom-select full-width center-text" onchange="HandleUpdateRecords()" name="records-class-selector" id="records-class-selector"></select>
+                                        </div>
+                                    </div>
+                                    <div class="loading-container" id="records-items-loader"><span class="loader"></span></div>
+                                    <div class="records-items">
+                                        <div class="subheader underlined result-subheader">
+                                            <span>Track Creator: <span class="bold" id="record-race-creator"></span></span>
+                                        </div>
+                                        <table id="records-items-table"></table>
+                                        <div id="records-items-table-none">
+                                            <h3 class="inline centered">No Data</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="MyTracksPage" class="pagecontent">
+                            <div class="inline">
+                                <button class="tablink" onclick="openTabs('MyTracks', this)" id="defaultOpenTab-MyTracksPage"><span id="create-tab">My Tracks</span></button>
+                                <button class="tablink" onclick="openTabs('CreateTrack', this)"><span id="create-tab">Create Track</span></button>
+                            </div>
+                            <div id="MyTracks" class="tabcontent">
+                                <div class="mytracks-container page-container">
+                                    <div class="subheader">
+                                        <h3>My Tracks</h3>
+                                    </div>
+                                    <div class="loading-container" id="mytracks-items-loader"><span class="loader"></span></div>
+                                    <div class="mytracks-items"></div>
+                                    <div id="mytracks-items-none">
+                                        <h3 class="inline centered">No Data</h3>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div id="CreateTrack" class="tabcontent">
+                                <div class="create-track-container page-container">
+                                    <div class="subheader">
+                                        <h3>Create a track</h3>
+                                    </div>
+                                    <div class="create-track-inputs">
+                                        <input type="text" placeholder="Fancy name goes here" id="create-track-input" />
+                                        <button class="action-button" onclick="HandleCreateTrack()" id="create-track-button">
+                                            <span id="create-tab">Open Race Creator</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hud-container">
             <div class="countdown-container">
                 <div class="countdown-holder">
                     <div class="number-holder"><span id="countdown-number">1</span></div>
@@ -62,5 +252,6 @@
             </div>
         </div>
     </body>
-    <script src="./script.js"></script>
+    <script src="./hud.js"></script>
+    <script src="./ui.js"></script>
 </html>

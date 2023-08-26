@@ -20,6 +20,7 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Support for Renewed Crypto
 - Participation payouts
 - Post race leaderboard
+- Custom UI
 
 **Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize
@@ -29,10 +30,9 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Locale Support
 - Create Custom Races Tracks
 
-**Planned:** 
-- Better track editing
-
 > As of update posted on 1st July -23, racer names are unique. The max limit is by default 3 but can be set individually. If you want to remove names from DB without openign it up, an admin can use `/remracename <racerName>`
+
+> As of update posted on 26th August -23 we will no longer support qb-menu usage. 
 
 
 # Developed by Coffeelot and Wuggie
@@ -61,9 +61,12 @@ Options:
  
 
 # Preview 📽
+### Note: Before new UI was added
+
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/APtMydz4gF8/0.jpg)](https://youtu.be/APtMydz4gF8)
 
 Update to track editor:
+### Note: Before new UI was added
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/N_HI0jAsgbg/0.jpg)](https://youtu.be/N_HI0jAsgbg)
 ## Setup
@@ -92,21 +95,16 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 
 **Main Menu**
 
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1124705899257266236/image.png)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989065402405005/image.png?width=781&height=522)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989080665473084/image.png?width=781&height=506)
 
 **Leaderboards**
-Change from normal qb-racing: Sorted by track, added classes and added full list of laptimes. Each person can have one entry per class + track, so you can have multiple times on a track, with different classes, but the script keeps track of your best times.
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989096062754876/image.png?width=781&height=510)
 
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1124705965816680468/image.png)
-
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1124706008057511976/image.png)
-
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1124706061652332594/image.png)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989109425811517/image.png?width=781&height=525)
 
 **Setting up a Race**
-Change from normal qb-racing: Added classes to list. If you set up a race with A class, people can join with A and lower, but not higher.
-
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1124706228547891270/image.png)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989123430584411/image.png?width=781&height=521)
 
 # Uninstalling or full reset
 ## /removeracetracks

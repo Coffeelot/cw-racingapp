@@ -23,14 +23,10 @@ server_scripts {
 }
 
 files {
-    'html/*.html',
-    'html/*.css',
-    'html/*.js',
-    'html/img/*'
+    'html/*'
 }
 
 dependencies {
-    'qb-menu',
     'qb-core',
     'cw-performance'
 }
