@@ -3,6 +3,8 @@ let RacingAppData = {}
 
 let SelectedTrackIdSetup = undefined
 
+let curatedDiv = `<span data-tooltip="This track is curated">⭐</span>`
+
 function roundUpToPrecision(n, d) {
     let round = n.toPrecision(d);
 
@@ -394,12 +396,14 @@ function GetResults() {
             })
             if(amountResults == 0) {
                 $('.results-container').hide()
+                ToggleEmptyOn('results-container')
+            } else {
+                ToggleEmptyOff('results-container')
+                ToggleLoaderOff('results-items')
+                ToggleLoaderOff('records-items')
+                HandleUpdateResults()
+                HandleUpdateRecords()
             }
-
-            ToggleLoaderOff('results-items')
-            ToggleLoaderOff('records-items')
-            HandleUpdateResults()
-            HandleUpdateRecords()
         }
     })
 }
@@ -411,6 +415,7 @@ function JoinRace(RaceId) {
     })
 }
 
+// FOR AVAILABLE RACES TAB
 function PopulateAvailableRaces(data) {
     $(".available-races").html('');
     joinableTracks = data
@@ -453,18 +458,24 @@ function GetListedRaces() {
     })
 }
 
-function PopulateListedRaces(data) {
+let AvailableTracks
+// FOR SETUP TAB
+
+function PopulateAvailableTracks() {
     $(".tracks-items").html('');
-    $.each(data, function(i, track) {
-        let element = `
-        <div id="${track.value}-${i}" class="card" onclick="handleSelectRaceSetup('${track.value}', '${track.name}')">
-            <div class="card-content">
-                <div class="card-header">${track.name}</div>
-                <div class="card-body">${track.creator}</div>
-                <div class="card-footer">${track.lenght} m</div>
-        </div>
-        `;
-        $(".tracks-items").append(element);
+    let curatedOnly = $("#race-setup-curated-checkbox").is(':checked');
+    $.each(AvailableTracks, function(i, track) {
+        if (!curatedOnly || (curatedOnly && track.Curated)) {
+            let element = `
+            <div id="${track.value}" class="card" onclick="handleSelectRaceSetup('${track.value}', '${track.name}')">
+                <div class="card-content">
+                    <div class="card-header">${track.RaceName} ${track.Curated? curatedDiv:''}</div>
+                    <div class="card-body">${track.CreatorName}</div>
+                    <div class="card-footer">${track.Distance} m</div>
+            </div>
+            `;
+            $(".tracks-items").append(element);
+        }
     })
 }
 
@@ -473,7 +484,8 @@ function GetAvailableTracks() {
     $('.tracks-items').hide()
     $.post('https://cw-racingapp/UiGetAvailableTracks', function(result){
         if (result) {
-            PopulateListedRaces(result)
+            AvailableTracks = result
+            PopulateAvailableTracks()
             $('#track-items-loader').hide()
             $('.tracks-items').show()
         }
@@ -609,9 +621,9 @@ function GetMyTracks() {
                 let element = `
                     <div id="${track.RaceId}-${i}" class="big-card">
                         <div class="card-content">
-                            <div class="card-header">${track.RaceName} - ${track.RaceId}</div>
+                            <div class="card-header">${track.RaceName} | ${track.RaceId} ${track.Curated ? ' | ' + curatedDiv :'' }</div>
                             <div class="card-body">${track.Distance+ 'm'} | ${track.Checkpoints.length + ' checkpoints'}</div>
-                            <div class="card-footer standardGap inline">${clearLeaderboardButton}${editTrackButton}${editAccessButton}${deleteTrackButton}</div>
+                            <div class="card-footer standardGap inline">${clearLeaderboardButton}${!track.Curated ? editTrackButton:''}${editAccessButton}${deleteTrackButton}</div>
                     </div>
                 `;
                 $('.mytracks-items').append(element)

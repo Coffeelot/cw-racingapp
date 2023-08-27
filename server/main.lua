@@ -8,139 +8,140 @@ local LastRaces = {}
 local NotFinished = {}
 local racersSortedByPosition = {}
 local useDebug = Config.Debug
-local RaceResults = {
-    ["LR-7666"]= {
-        ["Data"]= {
-            ["Ghosting"] = false,
-            ["SetupRacerName"] = "PAODPOAS2",
-            ["BuyIn"] = 0,
-            ["Laps"] = 3,
-            ["MaxClass"] = "",
-            ["GhostingTime"] = 0,
-            ["RaceId"] = "LR-7666",
-            ["RaceData"] = {
-                ["Ghosting"]= false,
-                ["Started"]= false,
-                ["Waiting"]= false,
-                ["Records"]= {
-                    {
-                        ["Holder"]= "mamamamamam",
-                        ["Time"]= 24262,
-                        ["Class"]= "X",
-                        ["Vehicle"]= "Osiris FR",
-                        ["RaceType"]= "Circuit",
-                    },
-                    {
-                        ["Holder"]= "mamamamamam",
-                        ["Time"]= 26305,
-                        ["Class"]= "S",
-                        ["Vehicle"]= "model not found",
-                        ["RaceType"]= "Sprint",
-                    },
-                },
-                ["Distance"]= 1045,
-                ["Creator"]= "SYY99260",
-                ["BuyIn"]= 0,
-                ["Racers"]= {},
-                ["GhostingTime"] = 0,
-                ["OrganizerCID"] = "SYY99260",
-                ["CreatorName"] = "xXxCoolChadxXx69",
-                ["RaceId"] = "LR-7666",
-                ["Access"] = {},
-                ["RaceName"] = "Elysian",
-                ["LastLeaderboard"] = {
-                    {
-                        ["TotalTime"] = 34128,
-                        ["BestLap"] = 34128,
-                        ["Holder"] = "PAODPOAS2"
-                    }
-                }
-            },
-            ["SetupCitizenId"] = "SYY99260"
-        },
-        ["Result"] = {
-            {
-                ["VehicleModel"] = "Euros ZR300",
-                ["RacerName"] = "PAODPOAS2",
-                ["TotalTime"] = 74128,
-                ["CarClass"] = "S",
-                ["BestLap"] = 30404
-            }
-        }
-    },
-    ["LR-1123"]= {
-        ["Data"]= {
-            ["Ghosting"] = false,
-            ["SetupRacerName"] = "PAODPOAS2",
-            ["BuyIn"] = 0,
-            ["Laps"] = 0,
-            ["MaxClass"] = "",
-            ["GhostingTime"] = 0,
-            ["RaceId"] = "LR-1123",
-            ["RaceData"] = {
-                ["Ghosting"]= false,
-                ["Started"]= false,
-                ["Waiting"]= false,
-                ["Records"]= {
-                    {
-                        ["Holder"]= "mamamamamam",
-                        ["Time"]= 24262,
-                        ["Class"]= "X",
-                        ["Vehicle"]= "Osiris FR",
-                        ["RaceType"]= "Circuit",
+local RaceResults = {}
+-- local RaceResults = {
+--     ["LR-7666"]= {
+--         ["Data"]= {
+--             ["Ghosting"] = false,
+--             ["SetupRacerName"] = "PAODPOAS2",
+--             ["BuyIn"] = 0,
+--             ["Laps"] = 3,
+--             ["MaxClass"] = "",
+--             ["GhostingTime"] = 0,
+--             ["RaceId"] = "LR-7666",
+--             ["RaceData"] = {
+--                 ["Ghosting"]= false,
+--                 ["Started"]= false,
+--                 ["Waiting"]= false,
+--                 ["Records"]= {
+--                     {
+--                         ["Holder"]= "mamamamamam",
+--                         ["Time"]= 24262,
+--                         ["Class"]= "X",
+--                         ["Vehicle"]= "Osiris FR",
+--                         ["RaceType"]= "Circuit",
+--                     },
+--                     {
+--                         ["Holder"]= "mamamamamam",
+--                         ["Time"]= 26305,
+--                         ["Class"]= "S",
+--                         ["Vehicle"]= "model not found",
+--                         ["RaceType"]= "Sprint",
+--                     },
+--                 },
+--                 ["Distance"]= 1045,
+--                 ["Creator"]= "SYY99260",
+--                 ["BuyIn"]= 0,
+--                 ["Racers"]= {},
+--                 ["GhostingTime"] = 0,
+--                 ["OrganizerCID"] = "SYY99260",
+--                 ["CreatorName"] = "xXxCoolChadxXx69",
+--                 ["RaceId"] = "LR-7666",
+--                 ["Access"] = {},
+--                 ["RaceName"] = "Elysian",
+--                 ["LastLeaderboard"] = {
+--                     {
+--                         ["TotalTime"] = 34128,
+--                         ["BestLap"] = 34128,
+--                         ["Holder"] = "PAODPOAS2"
+--                     }
+--                 }
+--             },
+--             ["SetupCitizenId"] = "SYY99260"
+--         },
+--         ["Result"] = {
+--             {
+--                 ["VehicleModel"] = "Euros ZR300",
+--                 ["RacerName"] = "PAODPOAS2",
+--                 ["TotalTime"] = 74128,
+--                 ["CarClass"] = "S",
+--                 ["BestLap"] = 30404
+--             }
+--         }
+--     },
+--     ["LR-1123"]= {
+--         ["Data"]= {
+--             ["Ghosting"] = false,
+--             ["SetupRacerName"] = "PAODPOAS2",
+--             ["BuyIn"] = 0,
+--             ["Laps"] = 0,
+--             ["MaxClass"] = "",
+--             ["GhostingTime"] = 0,
+--             ["RaceId"] = "LR-1123",
+--             ["RaceData"] = {
+--                 ["Ghosting"]= false,
+--                 ["Started"]= false,
+--                 ["Waiting"]= false,
+--                 ["Records"]= {
+--                     {
+--                         ["Holder"]= "mamamamamam",
+--                         ["Time"]= 24262,
+--                         ["Class"]= "X",
+--                         ["Vehicle"]= "Osiris FR",
+--                         ["RaceType"]= "Circuit",
                     
-                    },
-                    {
-                        ["Holder"]= "mamamamamam",
-                        ["Time"]= 26305,
-                        ["Class"]= "S",
-                        ["Vehicle"]= "model not found",
-                        ["RaceType"]= "Sprint",
-                    },
-                },
-                ["Distance"]= 1045,
-                ["Creator"]= "SYY99260",
-                ["BuyIn"]= 0,
-                ["Racers"]= {},
-                ["GhostingTime"] = 0,
-                ["OrganizerCID"] = "SYY99260",
-                ["CreatorName"] = "xXxCoolChadxXx69",
-                ["RaceId"] = "LR-7666",
-                ["Access"] = {},
-                ["RaceName"] = "Elysian",
-                ["LastLeaderboard"] = {
-                    {
-                        ["TotalTime"] = 34128,
-                        ["BestLap"] = 34128,
-                        ["Holder"] = "PAODPOAS2"
-                    },
-                    {
-                        ["TotalTime"] = 34128,
-                        ["BestLap"] = 34128,
-                        ["Holder"] = "PAODPOAS2"
-                    }
-                }
-            },
-            ["SetupCitizenId"] = "SYY99260"
-        },
-        ["Result"] = {
-            {
-                ["VehicleModel"] = "Euros ZR300",
-                ["RacerName"] = "PAODPOAS2",
-                ["TotalTime"] = 34128,
-                ["CarClass"] = "S",
-                ["BestLap"] = 0
-            },
-            {
-                ["VehicleModel"] = "A cool car",
-                ["RacerName"] = "YOMOM",
-                ["TotalTime"] = 134128,
-                ["CarClass"] = "A",
-                ["BestLap"] = 0
-            },
-        }
-    }
-}
+--                     },
+--                     {
+--                         ["Holder"]= "mamamamamam",
+--                         ["Time"]= 26305,
+--                         ["Class"]= "S",
+--                         ["Vehicle"]= "model not found",
+--                         ["RaceType"]= "Sprint",
+--                     },
+--                 },
+--                 ["Distance"]= 1045,
+--                 ["Creator"]= "SYY99260",
+--                 ["BuyIn"]= 0,
+--                 ["Racers"]= {},
+--                 ["GhostingTime"] = 0,
+--                 ["OrganizerCID"] = "SYY99260",
+--                 ["CreatorName"] = "xXxCoolChadxXx69",
+--                 ["RaceId"] = "LR-7666",
+--                 ["Access"] = {},
+--                 ["RaceName"] = "Elysian",
+--                 ["LastLeaderboard"] = {
+--                     {
+--                         ["TotalTime"] = 34128,
+--                         ["BestLap"] = 34128,
+--                         ["Holder"] = "PAODPOAS2"
+--                     },
+--                     {
+--                         ["TotalTime"] = 34128,
+--                         ["BestLap"] = 34128,
+--                         ["Holder"] = "PAODPOAS2"
+--                     }
+--                 }
+--             },
+--             ["SetupCitizenId"] = "SYY99260"
+--         },
+--         ["Result"] = {
+--             {
+--                 ["VehicleModel"] = "Euros ZR300",
+--                 ["RacerName"] = "PAODPOAS2",
+--                 ["TotalTime"] = 34128,
+--                 ["CarClass"] = "S",
+--                 ["BestLap"] = 0
+--             },
+--             {
+--                 ["VehicleModel"] = "A cool car",
+--                 ["RacerName"] = "YOMOM",
+--                 ["TotalTime"] = 134128,
+--                 ["CarClass"] = "A",
+--                 ["BestLap"] = 0
+--             },
+--         }
+--     }
+-- }
 
 -- for debug
 local function dump(o)
@@ -185,7 +186,8 @@ local function updateRaces()
                 LastLeaderboard = {},
                 Racers = {},
                 MaxClass = nil,
-                Access = json.decode(v.access)
+                Access = json.decode(v.access),
+                Curated = v.curated
             }
         end
     end
@@ -423,8 +425,12 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     end
 
     if Config.ParticpationTrophies.enabled and Config.ParticpationTrophies.minimumOfRacers <= AmountOfRacers then
-        if useDebug then print('Participation Trophies are enabled. Handing out to', src) end
-        handOutParticipationTrophy(src, PlayersFinished)
+        if useDebug then print('Participation Trophies are enabled') end
+        if not Config.ParticpationTrophies.requireBuyins or (Config.ParticpationTrophies.requireBuyins and Config.ParticpationTrophies.buyInMinimum >= Races[RaceData.RaceId].BuyIn) then 
+            if useDebug then print('Participation Trophies buy in check passed, handing out to', src) end
+            handOutParticipationTrophy(src, PlayersFinished)
+        end
+            
     end
 
     local BLap = 0
@@ -476,7 +482,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
             Vehicle = VehicleModel
         }}
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            {json.encode({ Races[RaceData.RaceId].Records }), RaceData.RaceId})
+            {json.encode(Races[RaceData.RaceId].Records ), RaceData.RaceId})
             TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
     end
     AvailableRaces[AvailableKey].RaceData = Races[RaceData.RaceId]
@@ -1452,6 +1458,22 @@ end, 'admin')
 QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
     dropRacetrackTable()
 end, 'admin')
+
+QBCore.Commands.Add('racingappcurated', 'Mark/Unmark track as curated', { {name='trackid', help='Track ID (not name). Use quotation marks!!!'}, {name='curated', help='true/false'}  }, true, function(source, args)
+    print('Curating track: ', args[1], args[2])
+    local curated = 0
+    if args[2] == 'true' then
+        curated = 1
+    end
+    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', {curated, args[1]})
+    if res == 1 then
+        Races[args[1]].Curated = curated
+        TriggerClientEvent('QBCore:Notify', source, 'Successfully set track curated as '..args[2])
+    else
+        TriggerClientEvent('QBCore:Notify', source, 'Your input seems to be lacking...')
+    end
+end, 'admin')
+
 
 QBCore.Commands.Add('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
     useDebug = not useDebug

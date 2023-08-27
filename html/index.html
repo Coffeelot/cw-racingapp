@@ -47,7 +47,16 @@
                             </div>
                             <div id="SetupRace" class="tabcontent">
                                 <div class="tracks-container">
-                                    <div class="subheader"><h3>Pick A Track</h3> <span class="inline standardGap">Show Only Curated: <input type="checkbox" id="race-setup-curated-checkbox" checked></span></div>
+                                    <div class="subheader">
+                                        <h3>Pick A Track</h3>
+                                        <span class="inline standardGap">
+                                            Show Only Curated:
+                                            <label class="checkbox-container">
+                                                <input type="checkbox" onclick="PopulateAvailableTracks()" id="race-setup-curated-checkbox" checked>
+                                                <span class="checkmark"></span>
+                                              </label>
+                                        </span>
+                                    </div>
                                     <div class="loading-container " id="track-items-loader"><span class="loader"></span></div>
                                     <div class="tracks-items"></div>
                                 </div>
@@ -127,10 +136,13 @@
                                             <span>Track Creator: <span class="bold" id="result-race-creator"></span></span>
                                         </div>
                                         <table id="results-items-table"></table>
-                                        <div id="results-items-table-none">
+                                        <div id="results-container-none">
                                             <h3 class="inline centered">No Data</h3>
                                         </div>
                                     </div>
+                                </div>
+                                <div id="results-container-none">
+                                    <h3 class="inline centered">No Data Posted Yet</h3>
                                 </div>
                             </div>
     

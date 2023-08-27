@@ -2942,6 +2942,16 @@ RegisterNetEvent("cw-racingapp:client:openUi", function(data)
 end)
 
 -- UI CALLBACKS
+
+local function sortTracksByName(tracks)
+    local temp = tracks
+    table.sort(temp, function (a,b)
+        return a.RaceName > b.RaceName
+    end)
+    return temp
+end
+
+
 RegisterNUICallback('UiCloseUi', function(_, cb)
     uiIsOpen = false
     SetNuiFocus(false,false)
@@ -3077,19 +3087,10 @@ RegisterNUICallback('UiGetAvailableTracks', function(data, cb)
         local tracks = {}
         for id, track in pairs(Races) do
             if not track.Waiting and verifyTrackAccess(track, 'race') then
-                tracks[id] = {
-                    value = id,
-                    creator = track.CreatorName,
-                    lenght = track.Distance,
-                    name = track.RaceName,
-                }
+                tracks[#tracks+1] = track
             end
         end
-
-        if #tracks > 1 then
-            table.sort(tracks, function(a, b) return a.name < b.name end)
-        end
-        cb(tracks)
+        cb(sortTracksByName(tracks))
     end)
 end)
 
@@ -3118,7 +3119,8 @@ RegisterNUICallback('UiGetListedRaces', function(data, cb)
                 availableRaces[#availableRaces+1] = race
             end
         end
-        cb(availableRaces)
+        
+        cb(sortTracksByName(availableRaces))
     end)
 end)
 
@@ -3133,10 +3135,12 @@ end)
 
 RegisterNUICallback('UiGetMyTracks', function(data, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTracks', function(Tracks)
-        table.sort(Tracks, function (a,b)
-            return a.RaceName < b.RaceName
+        
+        local filtered = filterTracksByRacer(Tracks)
+        table.sort(filtered, function (a,b)
+            return a.RaceName > b.RaceName
         end)
-        cb(filterTracksByRacer(Tracks))
+        cb(filtered)
     end)
 end)
 

@@ -157,6 +157,9 @@ Config.Splits = {
 }
 
 Config.ParticpationTrophies = {
+    requireCurated = false, -- Only give out particpation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
+    requireBuyIns = false, -- If this is true, participation money will only be handed out if the race had a buyin
+    buyInMinimum = 50, -- If the above is true, this will be the minimum limit of when participation money is handed out
     enabled = true, -- false if you dont want players getting particpation trophies
     minimumOfRacers = 6, -- minimum of racers to hand out particpation trophies
     type = 'crypto', -- cash, bank or crypto

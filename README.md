@@ -21,6 +21,7 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Participation payouts
 - Post race leaderboard
 - Custom UI
+- Track curation
 
 **Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize
@@ -59,6 +60,10 @@ Options:
  - List your own tracks
  - Open a slimmed down version of [cw-mechtool](https://github.com/Coffeelot/cw-mechtool) (disable in config if you dont have this)
  
+ ### Track Curation
+ Our idea with this feature is to allow admins to flag a track as "DONE". The track can no longer be edited. Additional features of curated tracks might be only allowing participation money to be paid out on those tracks, for example.
+
+ Currently you can only curate/uncurate a track via admin command: `/racingappcurated "<race-id>" true/false` **QUOTATION MARKS AROUND RACE ID IS IMPORTANT**
 
 # Preview 📽
 ### Note: Before new UI was added
