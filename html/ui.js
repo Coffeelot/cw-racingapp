@@ -183,14 +183,7 @@ function ToggleEmptyOn(className) {
     $(`#${className}-none`).show()
 }
 
-function OpenConfirmation(header, body, footer) {
-    $(".confirmation-header").html(header)
-    $(".confirmation-body").html(body)
-    $(".confirmation-footer").html(footer)
-    $('.confirmation-box').animate({
-        bottom: '+=150px',
-    });
-}
+let ConfirmIsOpen = false
 
 function CloseConfirmation() {
     $('.confirmation-box').animate({
@@ -200,8 +193,27 @@ function CloseConfirmation() {
         $(".confirmation-header").html('')
         $(".confirmation-body").html('')
         $(".confirmation-footer").html('')
+        ConfirmIsOpen = false
     }, 500)
 }
+
+
+function OpenConfirmation(header, body, footer) {
+    if (ConfirmIsOpen) {
+        $(".confirmation-header").html(header)
+        $(".confirmation-body").html(body)
+        $(".confirmation-footer").html(footer)  
+    } else {
+        ConfirmIsOpen = true
+        $(".confirmation-header").html(header)
+        $(".confirmation-body").html(body)
+        $(".confirmation-footer").html(footer)
+        $('.confirmation-box').animate({
+            bottom: '+=150px',
+        });
+    }
+}
+
 
 // Get the element with id="defaultOpenPage" and click on it
 document.getElementById("defaultOpenPage").click();
@@ -597,7 +609,7 @@ function GetMyTracks() {
                 let element = `
                     <div id="${track.RaceId}-${i}" class="big-card">
                         <div class="card-content">
-                            <div class="card-header">${track.RaceName}</div>
+                            <div class="card-header">${track.RaceName} - ${track.RaceId}</div>
                             <div class="card-body">${track.Distance+ 'm'} | ${track.Checkpoints.length + ' checkpoints'}</div>
                             <div class="card-footer standardGap inline">${clearLeaderboardButton}${editTrackButton}${editAccessButton}${deleteTrackButton}</div>
                     </div>
