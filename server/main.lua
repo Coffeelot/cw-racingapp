@@ -1298,11 +1298,13 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source, cb, serverId)
+    if useDebug then print('Getting racer names for serverid', serverId) end
     if Config.UseNameValidation then
         local Player = QBCore.Functions.GetPlayer(serverId)
         local citizenId = Player.PlayerData.citizenid
+        if useDebug then print('Racer citizenid', citizenId) end
         local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
-        print('res', json.encode(result))
+        if useDebug then print('Racer Names found:', json.encode(result)) end
         cb(result)
     else
         cb(nil)
