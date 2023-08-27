@@ -3237,3 +3237,41 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
     end, citizenId)
 end)
 
+local trackIsBeingDisplayed = false
+local checkpointsPreview = {}
+
+local function HideTrack()
+    local trackIsBeingDisplayed = false
+    ClearGpsMultiRoute()
+    for i, blip in pairs(checkpointsPreview) do
+        RemoveBlip(blip)
+    end
+end
+
+local function DisplayTrack(track)
+    if #checkpointsPreview > 0 then
+        HideTrack()
+    end
+    QBCore.Functions.Notify("Displaying track on your map for 20 seconds")
+    ClearGpsMultiRoute()
+    StartGpsMultiRoute(6, false , false)
+    for i, checkpoint in pairs(track.Checkpoints) do
+        AddPointToGpsRoute(checkpoint.coords.x,checkpoint.coords.y, checkpoint.offset)
+        checkpointsPreview[#checkpointsPreview+1] = CreateCheckpointBlip(checkpoint.coords, i)
+        SetGpsMultiRouteRender(true)
+    end
+    local trackIsBeingDisplayed = true
+end
+
+RegisterNUICallback('UiShowTrack', function(RaceId, cb)
+    if useDebug then print('displaying track', RaceId) end
+    QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTracks', function(tracks)
+        DisplayTrack(tracks[RaceId])
+        SetTimeout(20*1000, function()
+            FinishedUITimeout = false
+            HideTrack()
+        end)
+        cb(true)
+    end)
+end)
+

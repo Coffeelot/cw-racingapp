@@ -216,6 +216,18 @@ function OpenConfirmation(header, body, footer) {
     }
 }
 
+function createCard(id, header, body, footer) {
+    let element = `
+        <div id="${id}" class="card">
+            <div class="card-content">
+                ${header}
+                ${body}
+                ${footer}
+            </div>
+        </div>
+    `
+    return element
+}
 
 // Get the element with id="defaultOpenPage" and click on it
 document.getElementById("defaultOpenPage").click();
@@ -461,19 +473,25 @@ function GetListedRaces() {
 let AvailableTracks
 // FOR SETUP TAB
 
+function handleShowTrack(RaceId) {
+    $.post('https://cw-racingapp/UiShowTrack', JSON.stringify(RaceId), function(success){
+        CloseRacingApp()
+    })
+}
+
 function PopulateAvailableTracks() {
     $(".tracks-items").html('');
     let curatedOnly = $("#race-setup-curated-checkbox").is(':checked');
     $.each(AvailableTracks, function(i, track) {
         if (!curatedOnly || (curatedOnly && track.Curated)) {
-            let element = `
-            <div id="${track.value}" class="card" onclick="handleSelectRaceSetup('${track.value}', '${track.name}')">
-                <div class="card-content">
-                    <div class="card-header">${track.RaceName} ${track.Curated? curatedDiv:''}</div>
-                    <div class="card-body">${track.CreatorName}</div>
-                    <div class="card-footer">${track.Distance} m</div>
-            </div>
-            `;
+            let setupTrackButton = `<button class="action-button small" onclick="handleSelectRaceSetup('${track.RaceId}', '${track.RaceName}')" id="setup-start-button"><span id="create-tab">Setup</span></button>`
+            let showTrack = `<button class="action-button secondary-button small" onclick="handleShowTrack('${track.RaceId}')" id="setup-start-button"><span id="create-tab">Show Track</span></button>`
+
+
+            let header = `<div class="card-header">${track.RaceName} ${track.Curated? curatedDiv:''}</div>`
+            let body = `<div class="card-body">Creator: ${track.CreatorName} </br> Length: ${track.Distance} m</div>`
+            let footer = `<div class="card-footer inline standardGap">${showTrack} ${setupTrackButton}</div>`
+            let element = createCard(track.value, header, body, footer)
             $(".tracks-items").append(element);
         }
     })
