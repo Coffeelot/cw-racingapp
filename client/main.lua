@@ -1916,7 +1916,7 @@ RegisterNetEvent("cw-racingapp:Client:AvailableRacesMenu", function(data)
                 if Config.Options.MoneyType == 'cash' or Config.Options.MoneyType == 'bank' then
                     currency = '$'
                 else
-                    currency = Config.Options.CryptoType
+                    currency = Config.Options.cryptoType
                 end
                 header = header.. ' | '..currency .. RaceData.BuyIn
             end
@@ -2308,7 +2308,7 @@ RegisterNetEvent("cw-racingapp:Client:SetupRaceMenu", function(data)
         if Config.Options.MoneyType == 'cash' or Config.Options.MoneyType == 'bank' then
             currency = '$'
         else
-            currency = Config.Options.CryptoType
+            currency = Config.Options.cryptoType
         end
 
         local options = {{
@@ -2637,7 +2637,7 @@ if Config.Trader.active then
         if trader.moneyType == 'cash' or trader.moneyType == 'bank' then
             currency = '$'
         else
-            currency = Config.Options.CryptoType
+            currency = Config.Options.cryptoType
         end
 
         local options = {
@@ -2692,7 +2692,7 @@ if Config.Laptop.active then
         if laptop.moneyType == 'cash' or laptop.moneyType == 'bank' then
             currency = '$'
         else
-            currency = Config.Options.CryptoType
+            currency = Config.Options.cryptoType
         end
         local options = {
             { 
@@ -2922,7 +2922,7 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         laps = Config.Options.Laps,
         buyIns = Config.Options.BuyIns,
         moneyType = Config.Options.MoneyType,
-        cryptoType = Config.Options.CryptoType,
+        cryptoType = Config.Options.cryptoType,
         ghostingEnabled = Config.Ghosting.Enabled,
         ghostingTimes = Config.Ghosting.Options,
     }

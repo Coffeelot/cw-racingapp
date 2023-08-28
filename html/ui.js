@@ -436,7 +436,7 @@ function PopulateAvailableRaces(data) {
         if (track.Ghosting) {
             ghostingText = ' | 👻'
             if (track.GhostingTime) {
-                ghostingText = ghostingText + ' ('+race.GhostingTime+'s)'
+                ghostingText = ghostingText + ' ('+track.GhostingTime+'s)'
             }
         }
 
