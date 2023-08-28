@@ -642,6 +642,7 @@ function GetMyTracks() {
                             <div class="card-header">${track.RaceName} | ${track.RaceId} ${track.Curated ? ' | ' + curatedDiv :'' }</div>
                             <div class="card-body">${track.Distance+ 'm'} | ${track.Checkpoints.length + ' checkpoints'}</div>
                             <div class="card-footer standardGap inline">${clearLeaderboardButton}${!track.Curated ? editTrackButton:''}${editAccessButton}${deleteTrackButton}</div>
+                        </div>
                     </div>
                 `;
                 $('.mytracks-items').append(element)
