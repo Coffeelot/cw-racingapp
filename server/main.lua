@@ -358,8 +358,8 @@ local function giveSplit(src, racers, position, pot)
     local Player = QBCore.Functions.GetPlayer(src)
     if total > 0 then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.Options.CryptoType, math.floor(total))
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.CryptoType, 'success')
+            exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, math.floor(total))
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.cryptoType, 'success')
         else
             Player.Functions.AddMoney(Config.Options.MoneyType, math.floor(total))
         end
@@ -533,10 +533,10 @@ end
 local function hasEnoughMoney(source, cost)
     if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
         if useDebug then print('Is using crypto and renewed crypto') end
-        if exports['qb-phone']:hasEnough(source, Config.Options.CryptoType, math.floor(cost)) then
+        if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
             return true
         else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
             return false
         end
     else
@@ -603,8 +603,8 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             end
             if RaceData.BuyIn > 0 then
                 if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
-                    exports['qb-phone']:RemoveCrypto(src, Config.Options.CryptoType, math.floor(RaceData.BuyIn))
-                    TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.CryptoType, 'success')
+                    exports['qb-phone']:RemoveCrypto(src, Config.Options.cryptoType, math.floor(RaceData.BuyIn))
+                    TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.cryptoType, 'success')
                 else
                     Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn, "Bought into Race")
                 end
@@ -1339,11 +1339,11 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
     end
 
     if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
-        if exports['qb-phone']:hasEnough(source, Config.Options.CryptoType, math.floor(cost)) then
-            exports['qb-phone']:RemoveCrypto(source, Config.Options.CryptoType, math.floor(cost))
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'success')
+        if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
+            exports['qb-phone']:RemoveCrypto(source, Config.Options.cryptoType, math.floor(cost))
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'success')
         else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.CryptoType, 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
             return
         end
     else

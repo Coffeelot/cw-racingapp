@@ -106,7 +106,7 @@ Config.Options = {
         { value = 1000, text = 1000 }
     },
     MoneyType = 'crypto', --Determines buyins and payouts. cash/bank/crypto
-    CryptoType = 'cdc' -- rname of your crypto
+    cryptoType = 'cdc' -- rname of your crypto
 }
 
 Config.Trader = {
