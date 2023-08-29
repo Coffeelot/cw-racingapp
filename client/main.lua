@@ -55,6 +55,7 @@ local CurrentRaceData = {
 local Classes = exports['cw-performance']:getPerformanceClasses()
 local Entities = {}
 local Kicked = false
+local traderPed
 
 -- for debug
 local function dump(o)
@@ -2622,7 +2623,6 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     end
 end)
 
-local traderEntity
 if Config.Trader.active then
     local trader = Config.Trader
     CreateThread(function()
@@ -2665,22 +2665,35 @@ if Config.Trader.active then
             }
         }
 
-        traderEntity = exports['qb-target']:SpawnPed({
-            model = trader.model,
-            coords = trader.location,
-            minusOne = true,
-            freeze = true,
-            invincible = true,
-            blockevents = true,
-            scenario = animation,
-            target = {
-                options = options,
-                distance = 3.0 
-            },
-            spawnNow = true,
-            currentpednumber = 4,
+        
+        RequestModel(trader.model)
+        while not HasModelLoaded(trader.model) do
+            Wait(0)
+        end
+
+        traderPed = CreatePed(4, trader.model, trader.location, false, false)
+        SetEntityAsMissionEntity(traderPed, true, true)
+        SetPedHearingRange(traderPed, 0.0)
+        SetPedSeeingRange(traderPed, 0.0)
+        SetPedAlertness(traderPed, 0.0)
+        SetPedFleeAttributes(traderPed, 0, 0)
+        SetBlockingOfNonTemporaryEvents(traderPed, true)
+        SetPedCombatAttributes(traderPed, 46, true)
+        TaskStartScenarioInPlace(traderPed, trader.animation, 0, true)
+        SetEntityInvincible(traderPed, true)
+        SetEntityCanBeDamaged(traderPed,false)
+        SetEntityProofs(traderPed, true, true, true, true, true, true, 1, true)
+        FreezeEntityPosition(traderPed, true)
+
+        if Config.Sundown then
+            exports['sundown-utils']:addPedToBanlist(traderPed)
+        end
+
+        exports['qb-target']:AddTargetEntity(traderPed, {
+            options = options,
+            distance = 2.0
         })
-        Entities[#Entities+1] = traderEntity
+        Entities[#Entities+1] = traderPed
     end)
 end
 

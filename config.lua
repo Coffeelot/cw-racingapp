@@ -114,8 +114,8 @@ Config.Trader = {
     jobRequirement = { basic = false, master = true},
     requireToken = false,
     model = 'csb_paige',
-    animation = 'WORLD_HUMAN_SEAT_WALL_TABLET',
-    location = vector4(852.58, -1543.87, 30.12, 230.19),
+    animation = 'WORLD_HUMAN_STAND_MOBILE',
+    location = vector4(195.5, -3167.44, 4.79, 96.91),
     moneyType = 'cash', -- cash/bank/crypto
     -- cryptoType = 'cdc', -- name of your crypto
     racingFobCost = 1000,
