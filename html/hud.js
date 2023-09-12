@@ -23,7 +23,6 @@ function secondsTimeSpanToHMS(milli) {
 
 
 function UpdateCountdown(data) {
-    console.log('HOHO')
     if(typeof data.data.value == 'number') {
         $(".number-holder").show();
         $("#countdown-number").show();

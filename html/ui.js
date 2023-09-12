@@ -37,6 +37,7 @@ function confirmSetupRace() {
         laps: laps,
         buyIn: buyin,
         maxClass: maxClass,
+        ghostingOn: ghostingTime !== -1,
         ghostingTime: ghostingTime
     }
     $.post('https://cw-racingapp/UiSetupRace', JSON.stringify(data), function(success){

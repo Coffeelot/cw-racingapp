@@ -142,11 +142,12 @@ Config.Ghosting = {
     Timer = 0, -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
     DistanceLoopTime = 1000, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly.
     Options = {
-        { value = 0, text = 'Never' },
-        { value = 10, text = 10 },
-        { value = 30, text = 30 },
-        { value = 60, text = 60 },
-        { value = 120, text = 120 },
+        { value = -1, text = 'Off' },
+        { value = 0, text = 'Always' },
+        { value = 10*1000, text = "10 s" },
+        { value = 30*1000, text = "30 s" },
+        { value = 60*1000, text = "60 s" },
+        { value = 120*1000, text = "120 s" },
     }
 }
 

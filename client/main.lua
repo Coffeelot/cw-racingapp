@@ -3182,7 +3182,7 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
                 tonumber(setupData.laps),
                 currentName,
                 setupData.maxClass,
-                tonumber(setupData.ghostingTime) > 0,
+                setupData.ghostingOn,
                 tonumber(setupData.ghostingTime),
                 tonumber(setupData.buyIn)
             )
@@ -3287,4 +3287,3 @@ RegisterNUICallback('UiShowTrack', function(RaceId, cb)
         cb(true)
     end)
 end)
-
