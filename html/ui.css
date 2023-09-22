@@ -325,16 +325,12 @@ body {
 .card {
     color: var(--text-color);
     width: 258px;
-    height: 80px;
+    height: 100px;
     padding: 15px;
-    cursor: pointer;
     border-radius: var(--border-radius);
     border: var(--border);
 }
 
-.card:hover {
-    background-color: var(--background-color-lighter);
-}
 .card-header {
     margin-bottom: 10px;
     font-weight: bold;
@@ -369,6 +365,10 @@ body {
 
 #results-items-table {
     width: 100%;
+}
+
+.records-items {
+    max-height: 324px;
 }
 
 #records-items-table {
