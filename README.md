@@ -74,6 +74,10 @@ Update to track editor:
 ### Note: Before new UI was added
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/N_HI0jAsgbg/0.jpg)](https://youtu.be/N_HI0jAsgbg)
+
+### UI Update:
+
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/j0KKvy-2VWc/0.jpg)](https://youtu.be/j0KKvy-2VWc)
 ## Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
