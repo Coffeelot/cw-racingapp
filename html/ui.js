@@ -5,6 +5,24 @@ let SelectedTrackIdSetup = undefined
 
 let curatedDiv = `<span data-tooltip="This track is curated">⭐</span>`
 
+function ToggleLoaderOff(className) {
+    $(`#${className}-loader`).hide()
+    $(`.${className}`).show()
+}
+function ToggleLoaderOn(className) {
+    $(`.${className}`).hide()
+    $(`#${className}-loader`).css('display', 'flex')
+}
+
+function ToggleEmptyOff(className) {
+    $(`#${className}-none`).hide()
+    $(`.${className}`).show()
+}
+function ToggleEmptyOn(className) {
+    $(`.${className}`).hide()
+    $(`#${className}-none`).show()
+}
+
 function roundUpToPrecision(n, d) {
     let round = n.toPrecision(d);
 
@@ -40,14 +58,13 @@ function confirmSetupRace() {
         ghostingOn: ghostingTime !== -1,
         ghostingTime: ghostingTime
     }
+    ToggleLoaderOn('setup-container')
     $.post('https://cw-racingapp/UiSetupRace', JSON.stringify(data), function(success){
-        if (success) {
-            if (Debug) console.log('Started a race')
-            setTimeout(function(){
-                $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
-            }, 200)
-            
-        }
+        if (Debug) console.log('Created a race')
+        setTimeout(function(){
+            ToggleLoaderOff('setup-container')
+            $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
+        }, 1000)
     })
 }
 
@@ -100,7 +117,7 @@ function StartRace(raceId) {
     }, raceId )
     setTimeout(function(){
         $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
-    }, 1000)
+    }, 11000)
 }
 function LeaveRace(raceId) {
     $.post('https://cw-racingapp/UiLeaveCurrentRace',JSON.stringify(raceId), function(success){
@@ -166,24 +183,6 @@ function openTabs(tabName, elmnt) {
     if(tabName == "Records") GetRecords()
     if(tabName == "MyTracks") GetMyTracks()
 
-}
-
-function ToggleLoaderOff(className) {
-    $(`#${className}-loader`).hide()
-    $(`.${className}`).show()
-}
-function ToggleLoaderOn(className) {
-    $(`.${className}`).hide()
-    $(`#${className}-loader`).css('display', 'flex')
-}
-
-function ToggleEmptyOff(className) {
-    $(`#${className}-none`).hide()
-    $(`.${className}`).show()
-}
-function ToggleEmptyOn(className) {
-    $(`.${className}`).hide()
-    $(`#${className}-none`).show()
 }
 
 let ConfirmIsOpen = false
@@ -312,7 +311,7 @@ function HandleUpdateRecords() {
     let selectedClass = $("#records-class-selector option:selected").val();
     if (Debug) console.log('Selected track:', selectedTrack)
     if (Debug) console.log('Selected class:', selectedClass)
-    if (selectedTrack) {
+    if (selectedTrack && Tracks[selectedTrack]) {
         if (Debug) console.log('Selected records:', JSON.stringify(Tracks[selectedTrack]))
     
         $('#record-race-creator').html(Tracks[selectedTrack].CreatorName)
@@ -525,7 +524,7 @@ function HandleCreateTrack() {
     let name = $("#create-track-input").val();
     $.post('https://cw-racingapp/UiCreateTrack', JSON.stringify({name: name}), function(success){
         if (success) {
-            if (Debug) console.log('Started a race')
+            if (Debug) console.log('Created a track')
             setTimeout(function(){
                 $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
             }, 200)
