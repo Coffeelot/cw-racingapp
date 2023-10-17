@@ -107,16 +107,18 @@ local function DeleteClosestObject(coords, model)
 end
 
 local function CreatePile(offset, model)
-    LoadModel(model)
-    local Obj = CreateObject(model, offset.x, offset.y, offset.z, 0, 0, 0) -- CHANGE ONE OF THESE TO MAKE NETWORKED???
-    PlaceObjectOnGroundProperly(Obj)
-    FreezeEntityPosition(Obj, 1)
-    SetEntityAsMissionEntity(Obj, 1, 1)
-    SetEntityCollision(Obj, false, true)
-    SetEntityCanBeDamaged(Obj, false)
-    SetEntityInvincible(Obj, true)
-
-    return Obj
+    if model then
+        LoadModel(model)
+        local Obj = CreateObject(model, offset.x, offset.y, offset.z, 0, 0, 0) -- CHANGE ONE OF THESE TO MAKE NETWORKED???
+        PlaceObjectOnGroundProperly(Obj)
+        FreezeEntityPosition(Obj, 1)
+        SetEntityAsMissionEntity(Obj, 1, 1)
+        SetEntityCollision(Obj, false, true)
+        SetEntityCanBeDamaged(Obj, false)
+        SetEntityInvincible(Obj, true)
+    
+        return Obj
+    end        
 end
 
 local function GhostPlayers()

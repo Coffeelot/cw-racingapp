@@ -45,8 +45,8 @@ Config.Permissions = {
 
 Config.FlareTime = 10000 -- How long the flares are lit
 Config.KickTime = 10*60*1000 -- How long (in ms) until you get kicked if not being at race
-Config.StartAndFinishModel = `prop_beachflag_le`
-Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --`prop_flare_01b`
+Config.StartAndFinishModel = `prop_beachflag_le` -- comment this line out if you dont want props for start/finish line
+Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --good alternative: `prop_flare_01b` - comment this line out if you dont want entities for checkpoints
 
 Config.Classes = {
     ['C'] = true,
