@@ -3242,6 +3242,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             QBCore.Functions.TriggerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces',
                 function(IsAuthorized, NameAvailable)
                     if not IsAuthorized then
+                        QBCore.Functions.Notify("Not Authorized", 'error')
                         return
                     end
                     if not NameAvailable then
