@@ -11,6 +11,7 @@ Config.UseRenewedCrypto = true -- set to true if you use Renewed crypto
 Config.UseRenewedBanking = true -- set this to true if you use Renewed Banking
 Config.UseNameValidation = true -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
 Config.MaxRacerNames = 2 -- Maximum allowed amount of unique names per character
+Config.MaxCheckpoints = 60 -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
 
 Config.CustomAmounts = { -- custom max amout of racer names
     ['QBQ16539'] = 100,

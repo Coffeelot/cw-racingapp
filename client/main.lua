@@ -492,7 +492,9 @@ local function AddCheckpoint(checkpointId)
             offset = Offset
         }
     end
-
+    if #CreatorData.Checkpoints > Config.MaxCheckpoints then
+        QBCore.Functions.Notify('You have over '..Config.MaxCheckpoints.. '. To many checkpoints might cause issues.', 'error')
+    end
     redrawBlips()
 end
 
@@ -3186,8 +3188,10 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
                 tonumber(setupData.ghostingTime),
                 tonumber(setupData.buyIn)
             )
-        else 
+        else
+            cb(false)
             QBCore.Functions.Notify('Your car is not the correct class', 'error')
+            return
         end
         cb(true)
     else
@@ -3217,16 +3221,19 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
 
             if not #createData.name then
                 QBCore.Functions.Notify("This track need to have a name", 'error')
+                cb(false)
                 return
             end
         
             if #createData.name < Config.MinTrackNameLength then
                 QBCore.Functions.Notify(Lang:t("error.name_too_short"), 'error')
+                cb(false)
                 return
             end
         
             if #createData.name > Config.MaxTrackNameLength then
                 QBCore.Functions.Notify(Lang:t("error.name_too_long"), 'error')
+                cb(false)
                 return
             end
         
@@ -3237,13 +3244,10 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
                     end
                     if not NameAvailable then
                         QBCore.Functions.Notify(Lang:t("error.race_name_exists"), 'error')
-                        TriggerEvent("cw-racingapp:Client:CreateRaceMenu", {
-                            type = data.type,
-                            name = data.name
-                        })
+                        cb(false)
                         return
                     end
-        
+                    cb(true)
                     TriggerServerEvent('cw-racingapp:server:CreateLapRace', createData.name, currentName)
                 end, createData.name)
             end

@@ -62,8 +62,10 @@ function confirmSetupRace() {
     $.post('https://cw-racingapp/UiSetupRace', JSON.stringify(data), function(success){
         if (Debug) console.log('Created a race')
         setTimeout(function(){
+            if (success) {
+                $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
+            }
             ToggleLoaderOff('setup-container')
-            $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
         }, 1000)
     })
 }
@@ -526,9 +528,11 @@ function HandleCreateTrack() {
         if (success) {
             if (Debug) console.log('Created a track')
             setTimeout(function(){
+                $("#create-track-input").val("");
                 $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
             }, 200)
-            
+        } else {
+
         }
     })
 }
