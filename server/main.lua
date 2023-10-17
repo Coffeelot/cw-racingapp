@@ -1186,16 +1186,24 @@ function GenerateRaceId()
     return RaceId
 end
 
-function UseRacingFob(source, item)
+local function UseRacingFob(source, item)
     local Player = QBCore.Functions.GetPlayer(source)
     local citizenid = Player.PlayerData.citizenid
     if Config.Inventory == 'qb' then
+        if item.info.owner == nil then
+            TriggerClientEvent('QBCore:Notify', source, "The person who gave you this item is an idiot who can't read Readmes", "error")
+            return
+        end
         if item.info.owner == citizenid then
             TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.info.name})
         else
             TriggerClientEvent('QBCore:Notify', source, Lang:t("error.unowned_dongle"), "error")
         end
     elseif Config.Inventory == 'ox' then
+        if item.metadata.owner == nil then
+            TriggerClientEvent('QBCore:Notify', source, "The person who gave you this item is an idiot who can't read Readmes", "error")
+            return
+        end
         if item.metadata.owner == citizenid then
             TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.metadata.name})
         else
