@@ -58,12 +58,20 @@ Options:
  - Create a new race track
  - Modify old tracks
  - List your own tracks
- - Open a slimmed down version of [cw-mechtool](https://github.com/Coffeelot/cw-mechtool) (disable in config if you dont have this)
- 
+
  ### Track Curation
  Our idea with this feature is to allow admins to flag a track as "DONE". The track can no longer be edited. Additional features of curated tracks might be only allowing participation money to be paid out on those tracks, for example.
 
  Currently you can only curate/uncurate a track via admin command: `/racingappcurated "<race-id>" true/false` **QUOTATION MARKS AROUND RACE ID IS IMPORTANT**
+
+# Track Creation
+The key to this script working is making GOOD tracks. If you're trying to do 200 checkpoint style races with checkpoints randomly thrown around the map, this is not the script for you. There is a max checkpoint variable in the config that will warn users when they reached the level. Some PCs might struggle with different lower/higher amounts tho, so keep that in mind.
+
+- Avoid placing checkpoints on/under/near bridges/overpasses. 
+- GTA GPS can't handle opposite-directions on roads: Place checkpoints on the correct side of the road
+- Alleys can cause issues. Use with caution.
+- The script spawns 2 entities + 1 emitter for EVERY checkpoint. If you have 100 checkpoints that might just crash peoples games. 
+
 
 # Preview 📽
 ### Note: Before new UI was added
@@ -78,7 +86,7 @@ Update to track editor:
 ### UI Update:
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/j0KKvy-2VWc/0.jpg)](https://youtu.be/j0KKvy-2VWc)
-## Setup
+# Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
 1. Update or insert the database tables. These are found in the `racing.sql` file
