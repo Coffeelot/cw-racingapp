@@ -2549,6 +2549,15 @@ local function hasAuth(tradeType, fobType)
     end
 end
 
+local function racerNameExists(listOfNames, racerName)
+    for i, data in pairs(listOfNames) do
+        if data.racername == racerName then
+            return true
+        end
+    end
+    return false
+end
+
 RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
@@ -2592,7 +2601,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
                 end
 
                 if useDebug then print('Racer names allowed for', racerId, maxRacerNames) end
-                if playerNames == nil or #playerNames < maxRacerNames then
+                if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
                     QBCore.Functions.TriggerCallback('cw-racingapp:server:NameIsAvailable', function(nameIsNotTaken)
                         if nameIsNotTaken then
                             TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
