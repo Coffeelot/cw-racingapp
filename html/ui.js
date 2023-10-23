@@ -527,6 +527,7 @@ function HandleCreateTrack() {
     $.post('https://cw-racingapp/UiCreateTrack', JSON.stringify({name: name}), function(success){
         if (success) {
             if (Debug) console.log('Created a track')
+            CloseRacingApp()
             setTimeout(function(){
                 $("#create-track-input").val("");
                 $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
