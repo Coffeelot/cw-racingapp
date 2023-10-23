@@ -32,6 +32,7 @@ local Translations = {
         to_many_names = "This person has enough unique Racer Names already...",
         no_results = "No Results to browse yet",
         not_done_yet = "No racers have passed the finish line yet",
+        kicked = "You got kicked out of the race for idling",
     },
     primary = {
         race_last_person = "You were the last person in that race so it was canceled.",
@@ -44,7 +45,8 @@ local Translations = {
         no_races_exist = "No times have been set on this track",
         no_available_tracks = "There are no available tracks at the moment to use.",
         has_been_removed = " has been removed",
-        leaderboard_has_been_cleared = "leaderboard has been cleared"
+        leaderboard_has_been_cleared = "leaderboard has been cleared",
+        no_tracks_exist = "No Tracks Available"
     },
     success = {
         race_created = "The race was created!",
