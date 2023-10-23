@@ -1017,7 +1017,8 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
             Distance = math.ceil(RaceData.RaceDistance),
             Racers = {},
             Access = {},
-            LastLeaderboard = {}
+            LastLeaderboard = {},
+            NumStarted = 0,
         }
         MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated) VALUES (?, ?, ?, ?, ?, ?, ?)',
             {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0})
