@@ -59,7 +59,7 @@ function confirmSetupRace() {
         laps: laps,
         buyIn: buyin,
         maxClass: maxClass,
-        ghostingOn: toInt(ghostingTime) !== -1,
+        ghostingOn: parseInt(ghostingTime) !== -1,
         ghostingTime: ghostingTime
     }
     ToggleLoaderOn('setup-container')
