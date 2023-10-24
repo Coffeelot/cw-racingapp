@@ -220,6 +220,18 @@ local function filterLeaderboardsByClass(Leaderboard, class)
     return sortRecordsByTime(filteredLeaderboard)
 end
 
+local function getAmountOfRacers(RaceId)
+    local AmountOfRacers = 0
+    local PlayersFinished = 0
+    for k, v in pairs(Tracks[RaceId].Racers) do
+        if v.Finished then
+            PlayersFinished = PlayersFinished + 1
+        end
+        AmountOfRacers = AmountOfRacers + 1
+    end
+    return AmountOfRacers, PlayersFinished
+end
+
 local function racerHasPreviousRecordInClass(Records, RacerName, CarClass)
     if Records then
         if useDebug then
@@ -604,7 +616,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             for _,_ in pairs(Tracks[RaceId].Racers) do
                 AmountOfRacers = AmountOfRacers + 1
             end
-            if AmountOfRacers == 0 then
+            if AmountOfRacers == 0 and not Tracks[RaceId].Automated then
                 if useDebug then print('setting creator') end
                 Tracks[RaceId].OrganizerCID = Player.PlayerData.citizenid
             end
@@ -637,9 +649,11 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             for cid, racer in pairs(Tracks[RaceId].Racers) do
                 TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Tracks[RaceId].Racers)
             end
-            local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
-            if creatorsource ~= Player.PlayerData.source then
-                TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
+            if not Tracks[RaceId].Automated then
+                local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
+                if creatorsource ~= Player.PlayerData.source then
+                    TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
+                end
             end
         end
     else
@@ -673,15 +687,17 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
     local RaceId = GetRaceId(RaceName)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
     
-    local creator = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
-    local creatorsource = nil
-
-    if creator.PlayerData then
-        local creatorsource = creator.PlayerData.source
-    end
-
-    if creatorsource and creatorsource ~= Player.PlayerData.source then
-        TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_left"))
+    if not Tracks[RaceData.RaceId].Automated then
+        local creator = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
+        local creatorsource = nil
+    
+        if creator.PlayerData then
+            local creatorsource = creator.PlayerData.source
+        end
+    
+        if creatorsource and creatorsource ~= Player.PlayerData.source then
+            TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_left"))
+        end 
     end
 
     local AmountOfRacers = 0
@@ -707,81 +723,112 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
         assignNewOrganizer(RaceId, src)
     end
     if (AmountOfRacers - 1) == 0 then
-        if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[RaceId] ~= nil and next(NotFinished[RaceId]) ~=
-            nil then
-            for k, v in pairs(NotFinished[RaceId]) do
-                if LastRaces[RaceId] ~= nil then
-                    LastRaces[RaceId][#LastRaces[RaceId]+1] = {
-                        TotalTime = v.TotalTime,
-                        BestLap = v.BestLap,
-                        Holder = v.Holder
-                    }
-                else
-                    LastRaces[RaceId] = {}
-                    LastRaces[RaceId][#LastRaces[RaceId]+1] = {
-                        TotalTime = v.TotalTime,
-                        BestLap = v.BestLap,
-                        Holder = v.Holder
-                    }
+        if not Tracks[RaceData.RaceId].Automated then
+            if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[RaceId] ~= nil and next(NotFinished[RaceId]) ~=
+                nil then
+                for k, v in pairs(NotFinished[RaceId]) do
+                    if LastRaces[RaceId] ~= nil then
+                        LastRaces[RaceId][#LastRaces[RaceId]+1] = {
+                            TotalTime = v.TotalTime,
+                            BestLap = v.BestLap,
+                            Holder = v.Holder
+                        }
+                    else
+                        LastRaces[RaceId] = {}
+                        LastRaces[RaceId][#LastRaces[RaceId]+1] = {
+                            TotalTime = v.TotalTime,
+                            BestLap = v.BestLap,
+                            Holder = v.Holder
+                        }
+                    end
                 end
             end
+            Tracks[RaceId].LastLeaderboard = LastRaces[RaceId]
+            Tracks[RaceId].Racers = {}
+            Tracks[RaceId].Started = false
+            Tracks[RaceId].Waiting = false
+            table.remove(AvailableRaces, AvailableKey)
+            TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
+            LastRaces[RaceId] = nil
+            NotFinished[RaceId] = nil
         end
-        Tracks[RaceId].LastLeaderboard = LastRaces[RaceId]
-        Tracks[RaceId].Racers = {}
-        Tracks[RaceId].Started = false
-        Tracks[RaceId].Waiting = false
-        table.remove(AvailableRaces, AvailableKey)
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
-        TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[RaceId])
-        LastRaces[RaceId] = nil
-        NotFinished[RaceId] = nil
     else
         AvailableRaces[AvailableKey].RaceData = Tracks[RaceId]
-        TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[RaceId])
     end
+    TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[RaceId])
     for cid, racer in pairs(Tracks[RaceId].Racers) do
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Tracks[RaceId].Racers)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn)
-    local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    if isToFarAway(src, RaceId) then
-        TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
-        return
-    end
-    if BuyIn > 0 and not hasEnoughMoney(src, BuyIn) then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
-    else
-        if Tracks[RaceId] ~= nil then
-            if not Tracks[RaceId].Waiting then
-                if not Tracks[RaceId].Started then
-                    Tracks[RaceId].Waiting = true
-                    Tracks[RaceId].NumStarted = Tracks[RaceId].NumStarted + 1
-                    local allRaceData = {
-                        RaceData = Tracks[RaceId],
-                        Laps = Laps,
-                        RaceId = RaceId,
-                        SetupCitizenId = Player.PlayerData.citizenid,
-                        SetupRacerName = RacerName,
-                        MaxClass = MaxClass,
-                        Ghosting = GhostingEnabled,
-                        GhostingTime = GhostingTime,
-                        BuyIn = BuyIn
-                    }
-                    AvailableRaces[#AvailableRaces+1] = allRaceData
+local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Automated, src)
+    if Tracks[RaceId] ~= nil then
+        if not Tracks[RaceId].Waiting then            
+            if not Tracks[RaceId].Started then
+                local Player = QBCore.Functions.GetPlayer(src)
+                local setupId = 0
+                if src then 
+                    setupId = Player.PlayerData.citizenid
+                end
+                Tracks[RaceId].Waiting = true
+                Tracks[RaceId].Automated = Automated
+                Tracks[RaceId].NumStarted = Tracks[RaceId].NumStarted + 1
+                local allRaceData = {
+                    RaceData = Tracks[RaceId],
+                    Laps = Laps,
+                    RaceId = RaceId,
+                    SetupCitizenId = setupId,
+                    SetupRacerName = RacerName,
+                    MaxClass = MaxClass,
+                    Ghosting = GhostingEnabled,
+                    GhostingTime = GhostingTime,
+                    BuyIn = BuyIn,
+                    ExpirationTime = os.date("%c", os.time()+60*Config.TimeOutTimerInMinutes)
+                }
+                AvailableRaces[#AvailableRaces+1] = allRaceData
+                if not Automated then
                     TriggerClientEvent('QBCore:Notify', src,  Lang:t("success.race_created"), 'success')
                     TriggerClientEvent('cw-racingapp:client:ReadyJoinRace', src, allRaceData)
-                    RaceResults[RaceId] = { Data = allRaceData, Result = {}}
-                    CreateThread(function()
-                        local count = 0
-                        while Tracks[RaceId].Waiting do
-                            Wait(1000)
-                            if count < 5 * 60 then
-                                count = count + 1
+                end
+                RaceResults[RaceId] = { Data = allRaceData, Result = {}}
+                if Config.NotifyRacers then TriggerClientEvent('cw-racingapp:client:notifyRacers', -1, 'New Race Available') end
+                CreateThread(function()
+                    local count = 0
+                    while Tracks[RaceId].Waiting do
+                        Wait(1000)
+                        if count < Config.TimeOutTimerInMinutes * 60 then
+                            count = count + 1
+                        else
+                            local AvailableKey = GetOpenedRaceKey(RaceId)
+                            if Tracks[RaceId].Automated then
+                                if useDebug then print('Track Timed Out. Automated') end
+                                local amountOfRacers = getAmountOfRacers(RaceId)
+                                if amountOfRacers > Config.AutomatedOptions.minimumParticipants -1 then
+                                    if useDebug then print('Enough Racers to start automated') end
+                                    TriggerEvent('cw-racingapp:server:StartRace', RaceId)
+                                else
+                                    if useDebug then print('NOT Enough Racers to start automated') end
+                                    if amountOfRacers > 0 then
+                                        for cid, _ in pairs(Tracks[RaceId].Racers) do
+                                            local RacerData = QBCore.Functions.GetPlayerByCitizenId(cid)
+                                            if RacerData ~= nil then
+                                                TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang:t("error.race_timed_out"), 'error')
+                                                TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
+                                            end
+                                        end
+                                    end
+                                    table.remove(AvailableRaces, AvailableKey)
+                                    Tracks[RaceId].LastLeaderboard = {}
+                                    Tracks[RaceId].Racers = {}
+                                    Tracks[RaceId].Started = false
+                                    Tracks[RaceId].Waiting = false
+                                    Tracks[RaceId].MaxClass = nil
+                                    Tracks[RaceId].Ghosting = false
+                                    Tracks[RaceId].GhostingTime = nil
+                                    LastRaces[RaceId] = nil
+                                end
                             else
-                                local AvailableKey = GetOpenedRaceKey(RaceId)
+                                if useDebug then print('Track Timed Out. NOT automated') end
                                 for cid, _ in pairs(Tracks[RaceId].Racers) do
                                     local RacerData = QBCore.Functions.GetPlayerByCitizenId(cid)
                                     if RacerData ~= nil then
@@ -800,18 +847,54 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
                                 LastRaces[RaceId] = nil
                             end
                         end
-                    end)
-                else
-                    TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"), 'error')
-                end
+                    end
+                end)
             else
                 TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"), 'error')
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_doesnt_exist"), 'error')
+            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"), 'error')
         end
+    else
+        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_doesnt_exist"), 'error')
+    end
+
+end
+
+RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Automated)
+    local src = source
+    if not Automated and isToFarAway(src, RaceId) then
+        TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+        return
+    end
+    if not Automated and (BuyIn > 0 and not hasEnoughMoney(src, BuyIn)) then
+        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
+    else
+        setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Automated, src)
     end
 end)
+
+-- AUTOMATED RACES SETUP
+
+local function GenerateAutomatedRace()
+    local race = Config.AutomatedRaces[math.random(1, #Config.AutomatedRaces)]
+    if Tracks[race.trackId].Waiting then
+        if useDebug then print('Automation: RaceId is already active') end
+        return
+    end
+    if useDebug then print('Creating new Automated Race from', race.trackId) end
+    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, true, nil)
+end
+
+if Config.AutomatedOptions and Config.AutomatedRaces then 
+    CreateThread(function()
+        while true do
+            if not useDebug then Wait(Config.AutomatedOptions.timeBetweenRaces) else Wait(1000) end
+            GenerateAutomatedRace()
+            Wait(Config.AutomatedOptions.timeBetweenRaces)
+        end
+    end)
+end
 
 RegisterNetEvent('cw-racingapp:server:UpdateRaceState', function(RaceId, Started, Waiting)
     Tracks[RaceId].Waiting = Waiting
@@ -954,7 +1037,6 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     local src = source
-    local MyPlayer = QBCore.Functions.GetPlayer(src)
     local AvailableKey = GetOpenedRaceKey(RaceId)
 
     if not RaceId then
@@ -1503,7 +1585,6 @@ QBCore.Commands.Add('racingappcurated', 'Mark/Unmark track as curated', { {name=
         TriggerClientEvent('QBCore:Notify', source, 'Your input seems to be lacking...')
     end
 end, 'admin')
-
 
 QBCore.Commands.Add('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
     useDebug = not useDebug

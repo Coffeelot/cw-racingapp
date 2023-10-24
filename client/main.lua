@@ -2955,6 +2955,21 @@ RegisterNUICallback('GetBaseData', function(_, cb)
     cb(setup)
 end)
 
+local function hasGps()
+    if Config.Inventory == 'qb' then
+        hasItem = QBCore.Functions.HasItem('fob_racing_basic') or QBCore.Functions.HasItem('fob_racing_master')
+        if hasItem then return true end
+    else
+        if exports.ox_inventory:Search('count', 'fob_racing_basic') >= 1 or exports.ox_inventory:Search('count', 'fob_racing_master') >= 1 then return true end
+    end
+    return false
+end
+
+RegisterNetEvent("cw-racingapp:client:notifyRacers", function(text)
+    if hasGps() then
+        QBCore.Functions.Notify(text)
+    end
+end)
 
 RegisterNetEvent("cw-racingapp:client:openUi", function(data)
     if not uiIsOpen then
@@ -2973,6 +2988,14 @@ local function sortTracksByName(tracks)
     local temp = tracks
     table.sort(temp, function (a,b)
         return a.RaceName > b.RaceName
+    end)
+    return temp
+end
+
+local function sorRacesByName(tracks)
+    local temp = tracks
+    table.sort(temp, function (a,b)
+        return a.RaceData.RaceName > b.RaceData.RaceName
     end)
     return temp
 end
@@ -3018,13 +3041,37 @@ end
 
 RegisterNUICallback('UiJoinRace', function(RaceId, cb)
     if useDebug then print('joining race with race id', RaceId) end
+    if CurrentRaceData.RaceId ~= nil then
+        QBCore.Functions.Notify('Already in a race', 'error')
+        cb(false)
+        return
+    end
+    local PlayerPed = PlayerPedId()
+    local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
+
+    local info, class, perfRating = '', '', ''
+    if PlayerIsInVehicle then
+        info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
+    else
+        QBCore.Functions.Notify('You are not in a vehicle', 'error')
+    end
+
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRaces', function(Races)
         local PlayerPed = PlayerPedId()
         local currentRace = getRaceByRaceId(Races, RaceId)
-        currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
-        currentRace.RacerName = currentName
 
-        TriggerServerEvent('cw-racingapp:server:JoinRace', currentRace)
+        if currentRace == nil then
+            QBCore.Functions.Notify("Race doesn't exist anymore", 'error')
+        else
+            if myCarClassIsAllowed(currentRace.MaxClass, class) then
+                currentRace.RacerName = currentRace.SetupRacerName
+                currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
+                TriggerServerEvent('cw-racingapp:server:JoinRace', currentRace)
+            else 
+                QBCore.Functions.Notify('Your car is not the correct class', 'error')
+                return
+            end
+        end
     end)
     cb(true)
 end)
@@ -3124,6 +3171,7 @@ RegisterNUICallback('UiGetListedRaces', function(data, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRaces', function(Races)
         local availableRaces = {}
         if #Races > 0 then
+            if useDebug then print('Fetching available races:', json.encode(Races)) end
             for _, race in pairs(Races) do
                 local RaceData = race.RaceData
                 local racers = 0
@@ -3146,7 +3194,7 @@ RegisterNUICallback('UiGetListedRaces', function(data, cb)
             end
         end
         
-        cb(sortTracksByName(availableRaces))
+        cb(sorRacesByName(availableRaces))
     end)
 end)
 

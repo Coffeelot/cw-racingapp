@@ -180,3 +180,28 @@ Config.Buttons = {
     DecreaseDistance = 'PAGEDOWN',
     Exit = '9'
 }
+
+Config.AutomatedRaces = {
+    {
+        trackId = 'LR-7666', -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2, -- Laps. 0 for sprint
+        racerName = 'AutoMate', -- Name on the Automation
+        maxClass = 'B', -- Max Class
+        ghostingEnabled = false, -- Use Ghosting
+        ghostingTime = 0, -- Ghosting Time
+        buyIn = 2000, -- amount to participate
+    },
+}
+
+Config.TimeOutTimerInMinutes = 5 -- Default = 5 minutes
+Config.NotifyRacers = true -- set to true and anyone holding a racing gps will get a notification when races are hosted
+
+Config.AutomatedOptions = {
+    timeBetweenRaces = 20*60*1000, -- Default = every 20 minutes - change 20 to whateer minutes you wanna use or go look up minutes to milliseconds and learn something
+    minimumParticipants = 1, -- The least amount of participants that are needed for the race to start
+    payouts = { -- Extra payouts from Automated Races
+        participation = 500,
+        winner = 1000,
+        perRacer = 50, -- Extra payment per racer, so if it's 50 then if 10 racers show you everyone gets 500 extra for finishing
+    }
+}

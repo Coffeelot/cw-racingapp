@@ -1,5 +1,9 @@
+
 let Debug = false
 let RacingAppData = {}
+
+let currentPage = ''
+let currentTab = ''
 
 let SelectedTrackIdSetup = undefined
 
@@ -55,7 +59,7 @@ function confirmSetupRace() {
         laps: laps,
         buyIn: buyin,
         maxClass: maxClass,
-        ghostingOn: ghostingTime !== -1,
+        ghostingOn: toInt(ghostingTime) !== -1,
         ghostingTime: ghostingTime
     }
     ToggleLoaderOn('setup-container')
@@ -108,6 +112,7 @@ function openPage(pageName, elmnt) {
   
     // Add the specific color to the button used to open the tab content
     elmnt.classList.add("selected-page");
+    currentPage = pageName
     document.getElementById("defaultOpenTab-"+pageName).click();
 
 }
@@ -176,9 +181,9 @@ function openTabs(tabName, elmnt) {
   
     // Show the specific tab content
     document.getElementById(tabName).style.display = "block";
-  
+    currentTab = tabName
     // Add the specific color to the button used to open the tab content
-    elmnt.classList.add("selected-tab");
+    if (elmnt) elmnt.classList.add("selected-tab");
     if(tabName == "Current") FetchCurrent()
     if(tabName == "Available") GetListedRaces()
     if(tabName == "Results") GetResults()
@@ -426,8 +431,16 @@ let joinableTracks
 
 function JoinRace(RaceId) {
     $.post('https://cw-racingapp/UiJoinRace', JSON.stringify(RaceId), function(success){
+        CloseRacingApp()
     })
 }
+
+function timeNow(i) {
+    var d = new Date(),
+      h = (d.getHours()<10?'0':'') + d.getHours(),
+      m = (d.getMinutes()<10?'0':'') + d.getMinutes();
+    i.value = h + ':' + m;
+  }
 
 // FOR AVAILABLE RACES TAB
 function PopulateAvailableRaces(data) {
@@ -442,19 +455,25 @@ function PopulateAvailableRaces(data) {
             }
         }
 
-        let lapsText = 'Sprint |'
+        let lapsText = 'Sprint | '
         if (track.laps>0) {
-            lapsText = track.Laps + ' lap(s) |'
+            lapsText = track.Laps + ' lap(s) | '
         }
-        let stringifiedTrack = JSON.stringify(track)
 
+        let buyInText = ''
+        if (track.BuyIn > 0 ) {
+            buyInText = '$' + track.BuyIn + ' Buy In | '
+        }
+        
         let joinButton = `<button class="action-button" onclick="JoinRace('${track.RaceData.RaceId}')" id="setup-race-button"><span id="create-tab">Join Race</span></button>`
+        let expirationTime = new Date(track.ExpirationTime)
 
+        let expirationTimeString = expirationTime.getHours() + ':' + (parseInt(expirationTime.getMinutes()) > 10 ? expirationTime.getMinutes() : '0'+expirationTime.getMinutes())
         let element = `
         <div id="${track.RaceData.RaceId}-${i}" class="big-card", '${track.RaceData.name}')">
             <div class="card-content">
-                <div class="card-header">${track.RaceData.RaceName}</div>
-                <div class="card-body">${lapsText + track.RaceData.Distance+ 'm | ' +track.racers+ ' racer(s) | Class: ' + track.maxClass + ghostingText}</div>
+                <div class="card-header">${track.RaceData.RaceName} | Hosted by ${track.SetupRacerName}</div>
+                <div class="card-body">${ lapsText + track.RaceData.Distance+ 'm | '+ buyInText + +track.racers+ ' racer(s) | Class: ' + track.MaxClass + ghostingText} | ${track.RaceData.Automated ? 'Starts: ': 'Expires: '} ~${expirationTimeString}</div>
                 <div class="card-footer">${!track.disabled ? joinButton : ''}</div>
         </div>
         `;
@@ -668,7 +687,7 @@ function OpenRacingApp() {
     $('.ui-container').animate({
         height: '+=10px',
     });;
-
+    if (currentTab !== '') openTabs(currentTab, undefined)
 }
 
 $(document).on('keydown', function(event) {
@@ -743,7 +762,6 @@ $(document).ready(function(){
     $('.ui-container').animate({
         height: '-=10px',
     });
-
     $.post('https://cw-racingapp/GetBaseData', function(setup){
         if (Debug) console.log(JSON.stringify(setup))
         RacingAppData = setup
@@ -752,7 +770,7 @@ $(document).ready(function(){
     window.addEventListener('message', function(event){
         let data = event.data;
         if (data.open == true) {
-            if (Debug) console.log(JSON.stringify(RacingAppData))
+            if (Debug) console.log(JSON.stringify(RacingAppData))    
             OpenRacingApp()
         }
     });
