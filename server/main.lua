@@ -357,7 +357,7 @@ end
 
 local function giveSplit(src, racers, position, pot)
     local total = 0
-    if racers == 2 and position == 1 then
+    if (racers == 2 or racers == 1) and position == 1 then
         total = pot
     elseif racers == 3 and (position == 1 or position == 2) then
         total = Config.Splits['three'][position]*pot
@@ -388,6 +388,19 @@ local function handOutParticipationTrophy(src, position)
         else
             Player.Functions.AddMoney(Config.ParticpationTrophies.type, Config.ParticpationTrophies.amount[position])
             TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..Config.ParticpationTrophies.amount[position], 'success')
+        end
+    end
+end
+
+local function handOutAutomationPayout(src, amount)
+    local Player = QBCore.Functions.GetPlayer(src)
+    if Config.Options.MoneyType then
+        if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
+            exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amount)
+            TriggerClientEvent('QBCore:Notify', source, "Extra payout: "..amount.. ' '.. Config.Options.cryptoType, 'success')
+        else
+            Player.Functions.AddMoney(Config.Options.MoneyType, amount)
+            TriggerClientEvent('QBCore:Notify', source, "Extra payout: "..amount, 'success')
         end
     end
 end
@@ -425,25 +438,41 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         print('Best Lap: ', BestLap)
         print('Place:', PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
     end
-    if PlayersFinished == 1 or PlayersFinished == 2 or PlayersFinished == 3 and Tracks[RaceData.RaceId].BuyIn > 0 then
+    if Tracks[RaceData.RaceId].BuyIn > 0 then
+        giveSplit(src, AmountOfRacers, PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
+    end
+
+    if Config.ParticpationTrophies.enabled and Config.ParticpationTrophies.minimumOfRacers <= AmountOfRacers then
+        if useDebug then print('Participation Trophies are enabled') end
         local distance = Tracks[RaceData.RaceId].Distance
         if TotalLaps > 1 then
             distance = distance*TotalLaps
         end
         if distance > Config.ParticpationTrophies.minumumRaceLength then
-            giveSplit(src, AmountOfRacers, PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
+            if not Config.ParticpationTrophies.requireBuyins or (Config.ParticpationTrophies.requireBuyins and Config.ParticpationTrophies.buyInMinimum >= Tracks[RaceData.RaceId].BuyIn) then 
+                if useDebug then print('Participation Trophies buy in check passed, handing out to', src) end
+                handOutParticipationTrophy(src, PlayersFinished)
+            end
         else
             if useDebug then print('Race length was to short: ', distance,' Minumum required:', Config.ParticpationTrophies.minumumRaceLength) end
         end
     end
 
-    if Config.ParticpationTrophies.enabled and Config.ParticpationTrophies.minimumOfRacers <= AmountOfRacers then
-        if useDebug then print('Participation Trophies are enabled') end
-        if not Config.ParticpationTrophies.requireBuyins or (Config.ParticpationTrophies.requireBuyins and Config.ParticpationTrophies.buyInMinimum >= Tracks[RaceData.RaceId].BuyIn) then 
-            if useDebug then print('Participation Trophies buy in check passed, handing out to', src) end
-            handOutParticipationTrophy(src, PlayersFinished)
+    if Tracks[RaceData.RaceId].Automated then
+        if useDebug then print('Race Was Automated', src) end
+        if Config.AutomatedOptions.payouts then
+            local payoutData = Config.AutomatedOptions.payouts
+            if useDebug then print('Automation Payouts exist', src) end
+            local total = 0
+            if payoutData.participation then total = total + payoutData.participation end
+            if payoutData.perRacer then 
+                total = total + payoutData.perRacer*AmountOfRacers
+            end
+            if PlayersFinished == 1 and payoutData.winner then 
+                total = total + payoutData.winner
+            end
+            handOutAutomationPayout(src, total)
         end
-            
     end
 
     local BLap = 0
