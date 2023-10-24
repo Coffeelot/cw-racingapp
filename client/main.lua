@@ -166,7 +166,12 @@ local function AddPointToGpsRoute(cx, cy, offset)
         x = (x + offset.right.x) / 2;
         y = (y + offset.right.y) / 2;
     end
-    AddPointToGpsMultiRoute(x,y)
+    if Config.IgnoreRoadsForGps then
+        AddPointToGpsCustomRoute(x,y)
+    else
+        AddPointToGpsMultiRoute(x,y)
+    end
+        
 end
 
 local function clearBlips()
@@ -177,11 +182,15 @@ end
 
 local function doGPSForRace(started)
     DeleteAllCheckpoints()
-    ClearGpsMultiRoute()
-    StartGpsMultiRoute(6, started , false)
-    print('CURRENT LAP', CurrentRaceData.Lap)
-    if CurrentRaceData.Lap > 1 then
-        for k=2, #CurrentRaceData.Checkpoints, 1 do
+    if Config.IgnoreRoadsForGps then
+        ClearGpsCustomRoute()
+        StartGpsMultiRoute(12, started, false)
+    else
+        StartGpsMultiRoute(12, started , false)
+        ClearGpsMultiRoute()
+    end
+    if started and CurrentRaceData.TotalLaps > 0 then
+        for k=1, #CurrentRaceData.Checkpoints, 1 do
             AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, CurrentRaceData.Checkpoints[k].offset)
             if started then
                 if isFinishOrStart(CurrentRaceData,k) then
@@ -191,11 +200,15 @@ local function doGPSForRace(started)
                     CurrentRaceData.Checkpoints[k].pileleft = CreatePile(CurrentRaceData.Checkpoints[k].offset.left, Config.CheckpointPileModel)
                     CurrentRaceData.Checkpoints[k].pileright = CreatePile(CurrentRaceData.Checkpoints[k].offset.right, Config.CheckpointPileModel)
                 end
-                CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[k].coords, k)
+                if k > 1 then
+                    CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[k].coords, k)
+                end
             end
         end
-        AddPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
-        CurrentRaceData.Checkpoints[1].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[1].coords, 1)
+        if not Config.IgnoreRoadsForGps then
+            AddPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
+        end
+        CurrentRaceData.Checkpoints[1].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[1].coords, #CurrentRaceData.Checkpoints+1)
     else
         -- First Lap setup
         for k, v in pairs(CurrentRaceData.Checkpoints) do
@@ -211,11 +224,15 @@ local function doGPSForRace(started)
             end
             CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
         end
-        if CurrentRaceData.TotalLaps > 1 then
+        if not Config.IgnoreRoadsForGps and CurrentRaceData.TotalLaps > 0 then
             AddPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
         end
     end
-    SetGpsMultiRouteRender(true)
+    if Config.IgnoreRoadsForGps then
+        SetGpsCustomRouteRender(true, 16, 16)
+    else
+        SetGpsMultiRouteRender(true)
+    end
 end
 
 function DeleteAllCheckpoints()
@@ -941,7 +958,11 @@ function FinishRace()
     end
     UnGhostPlayer()
     Players = {}
-    ClearGpsMultiRoute()
+    if Config.IgnoreRoadsForGps then
+        ClearGpsCustomRoute()
+    else
+        ClearGpsMultiRoute()
+    end
     DeleteCurrentRaceCheckpoints()
     CurrentRaceData.RaceId = nil
 end
@@ -1076,8 +1097,11 @@ CreateThread(function()
                     if CurrentRaceData.TotalLaps == 0 then -- Sprint
                         if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                            AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
-                                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                            if Config.IgnoreRoadsForGps then
+                                AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                            else
+                                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                            end
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                             DoPilePfx()
@@ -1123,9 +1147,11 @@ CreateThread(function()
                                 lapStartTime = GetGameTimer()
                                 CurrentRaceData.Lap = CurrentRaceData.Lap + 1
                                 CurrentRaceData.CurrentCheckpoint = 1
-                                AddPointToGpsMultiRoute(
-                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
-                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                if Config.IgnoreRoadsForGps then
+                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                else
+                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                end
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                                 doGPSForRace(true)
@@ -1136,16 +1162,21 @@ CreateThread(function()
                         else -- if next checkpoint 
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
-                                AddPointToGpsMultiRoute(
-                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
-                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                if Config.IgnoreRoadsForGps then
+                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                else
+                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                end
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                             else
-                                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
-                                    CurrentRaceData.Checkpoints[1].coords.y)
+                                if Config.IgnoreRoadsForGps then
+                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+                                else
+                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+                                end
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
@@ -1211,7 +1242,11 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
-        ClearGpsMultiRoute()
+        if Config.IgnoreRoadsForGps then
+            ClearGpsCustomRoute()
+        else
+            ClearGpsMultiRoute()
+        end
         DeleteAllCheckpoints()
     end
 end)
@@ -1316,7 +1351,11 @@ RegisterNetEvent('cw-racingapp:client:UpdateOrganizer', function(RaceId, organiz
 end)
 
 RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
-    ClearGpsMultiRoute()
+    if Config.IgnoreRoadsForGps then
+        ClearGpsCustomRoute()
+    else
+        ClearGpsMultiRoute()
+    end
     UnGhostPlayer()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
@@ -1656,8 +1695,12 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Posi
             Wait(1000)
         end
         if CurrentRaceData.RaceName ~= nil then
-            AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
-            CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+            if Config.IgnoreRoadsForGps then
+                AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+            else
+               AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+            end
+
             --QBCore.Functions.Notify(Lang:t("success.race_go"), 'success', 1000)
             updateCountdown(Lang:t("success.race_go"))
             SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, Config.Blips.Generic.Size)
@@ -3335,7 +3378,11 @@ local checkpointsPreview = {}
 
 local function HideTrack()
     local trackIsBeingDisplayed = false
-    ClearGpsMultiRoute()
+    if Config.IgnoreRoadsForGps then
+        ClearGpsCustomRoute()
+    else
+        ClearGpsMultiRoute()
+    end
     for i, blip in pairs(checkpointsPreview) do
         RemoveBlip(blip)
     end
@@ -3346,12 +3393,20 @@ local function DisplayTrack(track)
         HideTrack()
     end
     QBCore.Functions.Notify("Displaying track on your map for 20 seconds")
-    ClearGpsMultiRoute()
-    StartGpsMultiRoute(6, false , false)
+    if Config.IgnoreRoadsForGps then
+        ClearGpsCustomRoute()
+    else
+        ClearGpsMultiRoute()
+    end
+    StartGpsMultiRoute(12, false , false)
     for i, checkpoint in pairs(track.Checkpoints) do
         AddPointToGpsRoute(checkpoint.coords.x,checkpoint.coords.y, checkpoint.offset)
         checkpointsPreview[#checkpointsPreview+1] = CreateCheckpointBlip(checkpoint.coords, i)
-        SetGpsMultiRouteRender(true)
+        if Config.IgnoreRoadsForGps then
+            SetGpsCustomRouteRender(true, 16, 16)
+        else
+            SetGpsMultiRouteRender(true)
+        end
     end
     local trackIsBeingDisplayed = true
 end
@@ -3367,4 +3422,3 @@ RegisterNUICallback('UiShowTrack', function(RaceId, cb)
         cb(true)
     end)
 end)
-

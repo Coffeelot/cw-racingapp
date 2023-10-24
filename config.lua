@@ -13,6 +13,8 @@ Config.UseNameValidation = true -- set to true if you use the name validation - 
 Config.MaxRacerNames = 2 -- Maximum allowed amount of unique names per character
 Config.MaxCheckpoints = 60 -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
 
+Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
+
 Config.CustomAmounts = { -- custom max amout of racer names
     ['QBQ16539'] = 100,
     ['FMN22732'] = 100,
@@ -69,7 +71,7 @@ Config.MaxTrackNameLength = 24 -- Max track name length to submit
 Config.JoinDistance = 200
 
 Config.Blips = {
-    Generic = { Size = 1.0, Color = 38 },
+    Generic = { Size = 1.0, Color = 37 },
     Next = { Size = 1.3, Color = 47 },
     Passed = { Size = 0.6, Color = 62 }
 }
@@ -205,3 +207,4 @@ Config.AutomatedOptions = {
         perRacer = 50, -- Extra payment per racer, so if it's 50 then if 10 racers show you everyone gets 500 extra for finishing
     }
 }
+
