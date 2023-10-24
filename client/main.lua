@@ -179,26 +179,41 @@ local function doGPSForRace(started)
     DeleteAllCheckpoints()
     ClearGpsMultiRoute()
     StartGpsMultiRoute(6, started , false)
-    for k, v in pairs(CurrentRaceData.Checkpoints) do
-        AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, v.offset)
-        if started then
-            if isFinishOrStart(CurrentRaceData,k) then
-                CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
-                CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.StartAndFinishModel)
-            else
-                CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.CheckpointPileModel)
-                CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.CheckpointPileModel)
-            end
-        end
-        CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
-    end
-    if CurrentRaceData.TotalLaps > 0 then 
-        for k=1, CurrentRaceData.TotalLaps-1, 1 do
-            for k=1, #CurrentRaceData.Checkpoints, 1 do
-                AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, CurrentRaceData.Checkpoints[k].offset)
+    print('CURRENT LAP', CurrentRaceData.Lap)
+    if CurrentRaceData.Lap > 1 then
+        for k=2, #CurrentRaceData.Checkpoints, 1 do
+            AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, CurrentRaceData.Checkpoints[k].offset)
+            if started then
+                if isFinishOrStart(CurrentRaceData,k) then
+                    CurrentRaceData.Checkpoints[k].pileleft = CreatePile(CurrentRaceData.Checkpoints[k].offset.left, Config.StartAndFinishModel)
+                    CurrentRaceData.Checkpoints[k].pileright = CreatePile(CurrentRaceData.Checkpoints[k].offset.right, Config.StartAndFinishModel)
+                else
+                    CurrentRaceData.Checkpoints[k].pileleft = CreatePile(CurrentRaceData.Checkpoints[k].offset.left, Config.CheckpointPileModel)
+                    CurrentRaceData.Checkpoints[k].pileright = CreatePile(CurrentRaceData.Checkpoints[k].offset.right, Config.CheckpointPileModel)
+                end
+                CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[k].coords, k)
             end
         end
         AddPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
+        CurrentRaceData.Checkpoints[1].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[1].coords, 1)
+    else
+        -- First Lap setup
+        for k, v in pairs(CurrentRaceData.Checkpoints) do
+            AddPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, v.offset)
+            if started then
+                if isFinishOrStart(CurrentRaceData,k) then
+                    CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.StartAndFinishModel)
+                    CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.StartAndFinishModel)
+                else
+                    CurrentRaceData.Checkpoints[k].pileleft = CreatePile(v.offset.left, Config.CheckpointPileModel)
+                    CurrentRaceData.Checkpoints[k].pileright = CreatePile(v.offset.right, Config.CheckpointPileModel)
+                end
+            end
+            CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
+        end
+        if CurrentRaceData.TotalLaps > 1 then
+            AddPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
+        end
     end
     SetGpsMultiRouteRender(true)
 end
@@ -1113,6 +1128,7 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
+                                doGPSForRace(true)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                             end
