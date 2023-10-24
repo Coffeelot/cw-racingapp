@@ -69,6 +69,7 @@ The key to this script working is making GOOD tracks. If you're trying to do 200
 
 - Avoid placing checkpoints on/under/near bridges/overpasses. 
 - GTA GPS can't handle opposite-directions on roads: Place checkpoints on the correct side of the road
+- Intersections can be tricky for the GPS. We advice to not put checkpoints in the middle of them, but before or after, in the correct lane.
 - Alleys can cause issues. Use with caution.
 - The script spawns 2 entities + 1 emitter for EVERY checkpoint. If you have 100 checkpoints that might just crash peoples games. 
 
