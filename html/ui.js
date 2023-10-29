@@ -723,7 +723,7 @@ function GetMyTracks() {
                 let element = `
                     <div id="${track.RaceId}-${i}" class="big-card">
                         <div class="card-content">
-                            <div class="card-header track-header">${track.RaceName} | ${track.RaceId} ${track.Curated ? ' | ' + curatedDiv :'' } ${copyTrackButton}</div>
+                            <div class="card-header track-header"><span>${track.RaceName} | ${track.RaceId} ${track.Curated ? ' | ' + curatedDiv :'' }</span> ${copyTrackButton}</div>
                             <div class="card-body">${track.Distance+ 'm'} | ${track.Checkpoints.length + ' checkpoints'}</div>
                             <div class="card-footer standardGap inline">${clearLeaderboardButton}${!track.Curated ? editTrackButton:''}${editAccessButton}${deleteTrackButton}</div>
                         </div>
