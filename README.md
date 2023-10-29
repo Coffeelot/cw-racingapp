@@ -59,6 +59,9 @@ Options:
  - Modify old tracks
  - List your own tracks
 
+### GPS settings
+At the bottom left corner there's a cog wheel. Clicking this brings up the options menu (more stuff to come). But here you can toggle using the GPS route and the style of it.
+
 ### Track Curation
 Our idea with this feature is to allow admins to flag a track as "DONE". The track can no longer be edited. Additional features of curated tracks might be only allowing participation money to be paid out on those tracks, for example.
 
@@ -72,6 +75,12 @@ The key to this script working is making GOOD tracks. If you're trying to do 200
 - Intersections can be tricky for the GPS. We advice to not put checkpoints in the middle of them, but before or after, in the correct lane.
 - Alleys can cause issues. Use with caution.
 - The script spawns 2 entities + 1 emitter for EVERY checkpoint. If you have 100 checkpoints that might just crash peoples games. 
+
+### Track Sharing
+You can grab the checkpoints from either My Tracks tab in game, by using the copy button or directly from the database entry and then pasting to something like https://pastebin.com/
+There's an import function (if enabled in config) in the Create Track tab to import via paste.
+
+Hop into the [CW Discord](https://discord.gg/FJY4mtjaKr) and share some tracks in the racingapp-tracks channel! 
 
 ### Automated Races
 The script offers automated races. You can set these up in the config (`Config.AutomatedRaces`, `Config.AutomatedOptions`). If any of these are commented out/removed the automation will not start.
