@@ -3482,9 +3482,10 @@ end)
 
 local function toggleShowRoute(boolean)
     if boolean == nil then
-        
+        ShowGpsRoute = not ShowGpsRoute
+    else
+        ShowGpsRoute = boolean
     end
-    ShowGpsRoute = not ShowGpsRoute
     if ShowGpsRoute then
         QBCore.Functions.Notify("You have toggled GPS Route ON", 'success')
     else
