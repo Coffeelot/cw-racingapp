@@ -3153,7 +3153,7 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
             QBCore.Functions.Notify("Race doesn't exist anymore", 'error')
         else
             if myCarClassIsAllowed(currentRace.MaxClass, class) then
-                currentRace.RacerName = currentRace.SetupRacerName
+                currentRace.RacerName = currentName
                 currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
                 TriggerServerEvent('cw-racingapp:server:JoinRace', currentRace)
             else 
