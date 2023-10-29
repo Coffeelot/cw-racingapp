@@ -907,6 +907,14 @@ end)
 
 local function GenerateAutomatedRace()
     local race = Config.AutomatedRaces[math.random(1, #Config.AutomatedRaces)]
+    if race == nil or race.trackId == nil then
+        if useDebug then print('Race Id for generated track was nil, your Config might be incorrect') end
+        return  
+    end
+    if Tracks[race.trackId] == nil then
+        if useDebug then print('ID'.. race.trackId..' does not exist in tracks list') end
+        return
+    end
     if Tracks[race.trackId].Waiting then
         if useDebug then print('Automation: RaceId is already active') end
         return

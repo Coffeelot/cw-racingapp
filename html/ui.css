@@ -94,7 +94,6 @@ body {
 
 .spaced {
     justify-content: space-between;
-
 }
 
 .clickableText {
@@ -129,10 +128,39 @@ body {
 .sidebar {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     background-color: var(--background-color-sidebar);
     color: var(--text-color-inv);
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 2.6px 1.95px;
     z-index: 200;
+}
+
+.sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    color: var(--text-color-inv);
+    z-index: 201;
+}
+
+.settings-button {
+    width: 100%;
+    cursor: pointer;
+    top: 598px;
+    left: 479px;
+    z-index: 201;
+    color: white;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 12px;
+}
+.settings-button:hover {
+    color: rgb(199, 199, 199)
+}
+
+.settings-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .icon-topbar {

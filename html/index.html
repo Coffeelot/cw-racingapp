@@ -24,9 +24,12 @@
                 </div>
                 <div class="app-container">
                     <div class="sidebar">
-                        <button class="pagelink" onclick="openPage('RacingPage', this)" id="defaultOpenPage"><span id="racing-stab">Racing</span></button>
-                        <button class="pagelink" onclick="openPage('ResultsPage', this)"><span id="results-stab">Results</span></button>
-                        <button class="pagelink" onclick="openPage('MyTracksPage', this)"><span id="tracks-stab">My Tracks</span></button>
+                        <div class="sidebar-buttons">
+                            <button class="pagelink" onclick="openPage('RacingPage', this)" id="defaultOpenPage"><span id="racing-stab">Racing</span></button>
+                            <button class="pagelink" onclick="openPage('ResultsPage', this)"><span id="results-stab">Results</span></button>
+                            <button class="pagelink" onclick="openPage('MyTracksPage', this)"><span id="tracks-stab">My Tracks</span></button>
+                        </div>
+                        <div class="settings-button" id="settings-button" onclick="openSettings()"><i class="fas fa-cog icon-sidebar inline"></i></div>
                     </div>
                     <div class="confirmation-box">
                         <div class="confirmation-card">

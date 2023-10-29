@@ -223,6 +223,41 @@ function OpenConfirmation(header, body, footer) {
     }
 }
 
+let settings = {
+    IgnoreRoadsForGps: false,
+    ShowGpsRoute: true,
+    UseUglyWaypoint: true
+}
+
+function changeSettings(setting) {
+    let newValue = $("#settings-"+setting).is(':checked');
+    settings[setting] = $("#settings-"+setting).is(':checked');
+    $.post('https://cw-racingapp/UiUpdateSettings', JSON.stringify({setting: setting, value: newValue }), function(success){
+    })
+}
+
+function handleCheckedCheckBoxes() {
+    for (const key in settings) {
+        console.log('Setting ', key, 'to', settings[key])
+        $("#settings-"+key).attr('checked', settings[key]);
+    }
+}
+
+function openSettings() {
+
+    let header = `<span class="bold first">Settings</span>`
+    let body = `
+            <span class="bold underlined">GPS:</span>
+            <div class="settings-items">
+                <div class="inline spaced">Show Gps Route:<label class="checkbox-container"> <input type="checkbox" onclick="changeSettings('ShowGpsRoute')" id="settings-ShowGpsRoute" > <span class="checkmark"></span> </label></div>
+                <div class="inline spaced">Ignore Roads: <label class="checkbox-container"> <input type="checkbox" onclick="changeSettings('IgnoreRoadsForGps')" id="settings-IgnoreRoadsForGps" > <span class="checkmark"></span> </label></div>
+            </div>
+        `
+    let footer = ``
+    OpenConfirmation(header, body, footer)
+    handleCheckedCheckBoxes()
+}
+
 function createCard(id, header, body, footer) {
     let element = `
         <div id="${id}" class="card">
@@ -531,6 +566,12 @@ function GetAvailableTracks() {
     })
 }
 
+function GetSettings() {
+    $.post('https://cw-racingapp/UiGetSettings', function(result){
+        settings = result
+    })
+}
+
 function CloseRacingApp() {
     $('.ui-container').animate({
         height: '-=10px',
@@ -683,6 +724,7 @@ function GetMyTracks() {
 
 function OpenRacingApp() {
     GetAvailableTracks();
+    GetSettings();
     $('.ui-container').fadeIn(100);
     $('.ui-container').animate({
         height: '+=10px',
