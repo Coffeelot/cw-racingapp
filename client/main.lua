@@ -190,8 +190,8 @@ local function doGPSForRace(started)
         ClearGpsCustomRoute()
         StartGpsMultiRoute(12, started, false)
     else
-        StartGpsMultiRoute(12, started , false)
         ClearGpsMultiRoute()
+        StartGpsMultiRoute(12, started , false)
     end
     if started and CurrentRaceData.TotalLaps > 0 then
         for k=1, #CurrentRaceData.Checkpoints, 1 do
