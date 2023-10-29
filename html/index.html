@@ -197,13 +197,26 @@
                             <div id="CreateTrack" class="tabcontent">
                                 <div class="create-track-container page-container">
                                     <div class="subheader">
-                                        <h3>Create a track</h3>
+                                        <h3>Create a track with editor</h3>
                                     </div>
                                     <div class="create-track-inputs">
                                         <input type="text" placeholder="Fancy name goes here" id="create-track-input" />
                                         <button class="action-button" onclick="HandleCreateTrack()" id="create-track-button">
                                             <span id="create-tab">Open Race Creator</span>
                                         </button>
+                                    </div>
+                                    <div id="create-track-share-container">
+                                        <h2 class="full-width center-text"> - OR - </h2>
+                                        <div class="subheader">
+                                            <h3>Create a track from share</h3>
+                                        </div>
+                                        <div class="create-track-inputs">
+                                            <input type="text" placeholder="Fancy name goes here" id="create-track-input-name-share" />
+                                            <input type="text" placeholder="Paste Checkpoints Here" id="create-track-input-checkpoints-share" />
+                                            <button class="action-button" onclick="HandleCreateTrackFromShare()" id="create-track-button">
+                                                <span id="create-tab">Create Track</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

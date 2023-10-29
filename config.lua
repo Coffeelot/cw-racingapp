@@ -12,6 +12,7 @@ Config.UseRenewedBanking = true -- set this to true if you use Renewed Banking
 Config.UseNameValidation = true -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
 Config.MaxRacerNames = 2 -- Maximum allowed amount of unique names per character
 Config.MaxCheckpoints = 60 -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
+Config.AllowCreateFromShare = true -- toggle this to allow using the share track creation
 
 -- GPS stuff
 Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!

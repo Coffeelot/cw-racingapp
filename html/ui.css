@@ -34,6 +34,10 @@ body {
     overflow: hidden;
 }
 
+h2 {
+    margin-bottom: 0px;
+}
+
 .ui-container {
     z-index: 2000;
     width: 100%;
@@ -189,6 +193,10 @@ body {
     margin-right: auto;
     overflow: auto;
     max-height: 465px;
+}
+
+.create-track-container {
+    overflow-y: auto;
 }
 
 .setup-container {
@@ -363,6 +371,13 @@ body {
     margin-bottom: 10px;
     font-weight: bold;
 }
+
+.track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .card-body {
     margin-top: 5px;
     margin-top: 5px;

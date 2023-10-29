@@ -553,13 +553,13 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     end
 end)
 
-RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerName)
+RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerName, Checkpoints)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
 
     if IsPermissioned(Player.PlayerData.citizenid, 'create') then
         if IsNameAvailable(RaceName) then
-            TriggerClientEvent('cw-racingapp:client:StartRaceEditor', source, RaceName, RacerName)
+            TriggerClientEvent('cw-racingapp:client:StartRaceEditor', source, RaceName, RacerName, nil, Checkpoints)
         else
             TriggerClientEvent('QBCore:Notify', source, Lang:t("primary.race_name_exists"), 'error')
         end

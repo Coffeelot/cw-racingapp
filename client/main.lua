@@ -1299,11 +1299,17 @@ local function openCreatorUi()
     CreatorLoop()
 end
 
-RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, RacerName, RaceId)
+RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, RacerName, RaceId, Checkpoints)
     if not RaceData.InCreator then
         CreatorData.RaceName = RaceName
         CreatorData.RacerName = RacerName
         RaceData.InCreator = true
+        if type(Checkpoints) == 'table' then
+            if useDebug then print('Using shared, checkpoint existed') end
+            CreatorData.Checkpoints = Checkpoints
+            clickSaveRace()
+            return
+        end
         if RaceId then
             QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTrackData', function(track)
                 if track then
@@ -1632,7 +1638,7 @@ local function filterTracksByRacer(Tracks)
     local filteredTracks = {}
     for i, track in pairs(Tracks) do      
         if track.Creator == QBCore.Functions.GetPlayerData().citizenid then
-            table.insert(filteredTracks, track)
+            filteredTracks[i] = track
         end
     end
     return filteredTracks
@@ -3033,6 +3039,7 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         cryptoType = Config.Options.cryptoType,
         ghostingEnabled = Config.Ghosting.Enabled,
         ghostingTimes = Config.Ghosting.Options,
+        allowShare = Config.AllowCreateFromShare
     }
     cb(setup)
 end)
@@ -3345,11 +3352,34 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
     end
 end)
 
+local function verifyCheckpoints(checkpoints) 
+    for index, data in pairs(checkpoints) do
+        local coordsExist = data.coords.x and data.coords.y and data.coords.z
+        local offsetExists = data.offset.left.x and data.offset.left.y and data.offset.left.z and data.offset.right.x and data.offset.right.y and data.offset.right.z
+        if coordsExist and offsetExists then return true end
+    end
+    return false
+end
+
 RegisterNUICallback('UiCreateTrack', function(createData, cb)
     if useDebug then print('create data', json.encode(createData)) end
     if not createData or createData.name == "" then
         print('No data')
         return
+    end
+    
+    local checkpoints = createData.checkpoints
+    local decodedCheckpoints = json.decode(checkpoints)
+    if checkpoints ~= nil then
+        if type(decodedCheckpoints) == 'table' then
+            if not verifyCheckpoints(decodedCheckpoints) then
+                QBCore.Functions.Notify('Checkpoint data is corrupt')
+                return
+            end
+        else
+            QBCore.Functions.Notify('Not possible to decode input')
+            return
+        end
     end
 
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
@@ -3394,7 +3424,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
                         return
                     end
                     cb(true)
-                    TriggerServerEvent('cw-racingapp:server:CreateLapRace', createData.name, currentName)
+                    TriggerServerEvent('cw-racingapp:server:CreateLapRace', createData.name, currentName, decodedCheckpoints)
                 end, createData.name)
             end
     end, citizenId)
@@ -3488,7 +3518,5 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
         toggleIgnoreRoadsForGps(data.value)
     elseif data.setting =='ShowGpsRoute' then
         toggleShowRoute(data.value)
-    elseif data.setting =='UseUglyWaypoint' then
-        toggleUglyWaypoint(data.value)
     end
 end)

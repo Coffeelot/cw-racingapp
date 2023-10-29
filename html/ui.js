@@ -598,6 +598,24 @@ function HandleCreateTrack() {
     })
 }
 
+function HandleCreateTrackFromShare() {
+    let name = $("#create-track-input-name-share").val();
+    let checkpoints = $("#create-track-input-checkpoints-share").val();
+    $.post('https://cw-racingapp/UiCreateTrack', JSON.stringify({ name: name, checkpoints: checkpoints }), function(success){
+        if (success) {
+            if (Debug) console.log('Created a track using share')
+            CloseRacingApp()
+            setTimeout(function(){
+                $("#create-track-input-name-share").val("");
+                $("#create-track-input-checkpoints-share").val("");
+                $( "#defaultOpenTab-RacingPage" ).trigger( "click" );
+            }, 200)
+        } else {
+
+        }
+    })
+}
+
 function ClearLeaderboardConfirm(RaceId, RaceName) {
     if (Debug) console.log('Confirmed clear leaderboard for', RaceId)
     $.post('https://cw-racingapp/UiClearLeaderboard', JSON.stringify({RaceName: RaceName, RaceId: RaceId}), function(success){
@@ -701,10 +719,11 @@ function GetMyTracks() {
                 let editTrackButton = `<button class="action-button secondary-button small" onclick="EditTrack('${track.RaceId}', '${track.RaceName}')" id="mytracks-edit-button"><span id="create-tab">Edit</span></button>`
                 let editAccessButton = `<button class="action-button secondary-button small" onclick="EditAccessTrack('${track.RaceId}', '${track.RaceName}')" id="mytracks-edit-access-button"><span id="create-tab">Access</span></button>`
                 let deleteTrackButton = `<button class="action-button secondary-button small" onclick="DeleteTrack('${track.RaceId}', '${track.RaceName}')" id="mytracks-delete-button"><span id="create-tab">Delete</span></button>`
+                let copyTrackButton = `<div class="inline clickableText" onclick="copyToClipboard('${track.RaceId}')"><i class="fas fa-copy icon-topbar inline"></i>Copy</div>`
                 let element = `
                     <div id="${track.RaceId}-${i}" class="big-card">
                         <div class="card-content">
-                            <div class="card-header">${track.RaceName} | ${track.RaceId} ${track.Curated ? ' | ' + curatedDiv :'' }</div>
+                            <div class="card-header track-header">${track.RaceName} | ${track.RaceId} ${track.Curated ? ' | ' + curatedDiv :'' } ${copyTrackButton}</div>
                             <div class="card-body">${track.Distance+ 'm'} | ${track.Checkpoints.length + ' checkpoints'}</div>
                             <div class="card-footer standardGap inline">${clearLeaderboardButton}${!track.Curated ? editTrackButton:''}${editAccessButton}${deleteTrackButton}</div>
                         </div>
@@ -797,7 +816,22 @@ function DoSetup() {
         `;
         $('#records-class-selector').append(element)
     })
+
+    if (!RacingAppData.allowShare) {
+        $('#create-track-share-container').hide()
+    }
 }
+
+function copyToClipboard(raceId) {
+    if (raceId && Tracks[raceId]) {
+        const el = document.createElement('textarea');
+        el.value = JSON.stringify(Tracks[raceId].Checkpoints);
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+    }
+};
 
 $(document).ready(function(){
     $('.ui-container').hide();
@@ -811,6 +845,10 @@ $(document).ready(function(){
     })
     window.addEventListener('message', function(event){
         let data = event.data;
+        if (data.copy == true) {
+            copyToClipboard(data.checkpoints);
+            return
+        }
         if (data.open == true) {
             if (Debug) console.log(JSON.stringify(RacingAppData))    
             OpenRacingApp()
