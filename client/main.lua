@@ -235,7 +235,7 @@ local function doGPSForRace(started)
     if IgnoreRoadsForGps then
         SetGpsCustomRouteRender(ShowGpsRoute, 16, 16)
     else
-        SetGpsMultiRouteRender(ShowGpsRoute)
+        SetGpsMultiRouteRender(ShowGpsRoute, 16, 16)
     end
 end
 
@@ -3283,6 +3283,7 @@ RegisterNUICallback('UiGetListedRaces', function(data, cb)
                 race.maxClass = maxClass
                 race.racers = racers
                 race.disabled = CurrentRaceData.RaceId
+                race.laps = race.Laps
                 availableRaces[#availableRaces+1] = race
             end
         end
@@ -3462,7 +3463,7 @@ local function DisplayTrack(track)
         if IgnoreRoadsForGps then
             SetGpsCustomRouteRender(true, 16, 16)
         else
-            SetGpsMultiRouteRender(true)
+            SetGpsMultiRouteRender(true, 16, 16)
         end
     end
     local trackIsBeingDisplayed = true
@@ -3519,5 +3520,7 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
         toggleIgnoreRoadsForGps(data.value)
     elseif data.setting =='ShowGpsRoute' then
         toggleShowRoute(data.value)
+    elseif data.setting =='UseUglyWaypoint' then
+        toggleUglyWaypoint(data.value)
     end
 end)
