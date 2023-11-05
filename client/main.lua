@@ -2684,7 +2684,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
             QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
                 if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
                 local maxRacerNames = Config.MaxRacerNames
-                if #playerNames > 1 and playerNames[1].citizenid and Config.CustomAmounts[playerNames[1].citizenid] then
+                if Config.UseNameValidation and #playerNames > 1 and playerNames[1].citizenid and Config.CustomAmounts[playerNames[1].citizenid] then
                     maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
                 end
 
