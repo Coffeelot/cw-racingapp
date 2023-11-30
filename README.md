@@ -49,8 +49,6 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 
 # Racing App
 
-This script lets you manage your racing scene in a better way using items and custom racer names instead of player names! There are two items involved, the `master racing fob`, and the `basic racing fob`. At the moment, these are created using the `createracingfob` command by a qb-core admin, but you can implement any system you want. When created, the fob is bound to the citizenid it was created for, and has a racer name attached to it. Only the citizenid created for it can use it. Using the fob brings up the racing options menu (examples below) which is where you do all the interacting with the script. Each fob has an entry in the Config to tune it to your server to allow or deny certain usage abilities (listed below). By default the master racing fob is required to CREATE new race tracks, and both dongles allow you to do everything else.
-
 Options:
  - Join a race
  - View race records
@@ -58,6 +56,7 @@ Options:
  - Create a new race track
  - Modify old tracks
  - List your own tracks
+ - Manage racer users (for master and god rank users)
 
 ### GPS settings
 At the bottom left corner there's a cog wheel. Clicking this brings up the options menu (more stuff to come). But here you can toggle using the GPS route and the style of it.
