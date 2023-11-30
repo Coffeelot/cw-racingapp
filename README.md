@@ -141,6 +141,13 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 ```
 4. Add the item images to your inventory image folder
 
+Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. 
+
+Use the command `createracinguser` to do this. For example:
+`/createracinguser 1 god IReadTheReadme`
+This will create a racer account for the user with serverID 1 (probably you if you're on your dev server). 
+Spawn the item `racing_gps` normally and use it. 
+
 # Updating?
 If you're updating from a previous version these might be for you
 
@@ -153,7 +160,7 @@ ADD COLUMN createdby TEXT,
 ADD COLUMN revoked TINYINT DEFAULT 0;
 ```
 You also need to change out the old GPS/fob items to the new one, see setup section. 
-You might also want to read up on the new system, see Racing App section.
+You might also want to read up on the new system, see User Management section.
 
 # Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)
