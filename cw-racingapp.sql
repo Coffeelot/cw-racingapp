@@ -29,6 +29,9 @@ CREATE TABLE `racer_names` (
 	`races` INT(11) NOT NULL DEFAULT '0',
 	`wins` INT(11) NOT NULL DEFAULT '0',
 	`tracks` INT(11) NOT NULL DEFAULT '0',
+	`auth` TEXT DEFAULT 'racer',
+	`createdby` TEXT,
+	`revoked` TINYINT DEFAULT 0,
 	INDEX `id` (`id`) USING BTREE
 )
 COLLATE='utf8mb4_general_ci'

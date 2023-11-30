@@ -16,6 +16,7 @@
             <div class="screen-container">
                 <div class="topbar">
                     <div>
+                        User: <span id="racer-name"></span> | Auth: <span id="racer-auth"></span>
                     </div>
                     <div class="inline">
                         <i class="fas fa-signal icon-topbar"></i>
@@ -27,7 +28,8 @@
                         <div class="sidebar-buttons">
                             <button class="pagelink" onclick="openPage('RacingPage', this)" id="defaultOpenPage"><span id="racing-stab">Racing</span></button>
                             <button class="pagelink" onclick="openPage('ResultsPage', this)"><span id="results-stab">Results</span></button>
-                            <button class="pagelink" onclick="openPage('MyTracksPage', this)"><span id="tracks-stab">My Tracks</span></button>
+                            <button id="tracks-page-link" class="pagelink" onclick="openPage('MyTracksPage', this)"><span id="tracks-stab">My Tracks</span></button>
+                            <button id="racers-page-link" class="pagelink" onclick="openPage('RacersPage', this)"><span id="tracks-stab">Handle Racers</span></button>
                         </div>
                         <div class="settings-button" id="settings-button" onclick="openSettings()"><i class="fas fa-cog icon-sidebar inline"></i></div>
                     </div>
@@ -222,7 +224,32 @@
                             </div>
                         </div>
 
+                        <div id="RacersPage" class="pagecontent"> 
+                            <div class="inline">
+                                <button class="tablink" onclick="openTabs('RacersTab', this)" id="defaultOpenTab-RacersPage"><span id="create-tab">My Tracks</span></button>
+                            </div>  
+                            <div id="RacersTab" class="tabcontent">
+                                <div class="myRacers-container page-container">
+                                    <div class="inline spaced">
+                                        <h3 style="width: 160px;">Search Racer Name</h3>
+                                        <input type="text" placeholder="press enter to search" onchange="HandleUpdateMyRacers()" id="myRacers-racer-input" />
+                                    </div>
+                                    <div class="loading-container" id="myRacers-items-container-loader"><span class="loader"></span></div>
+                                    <div class="myRacers-items-container">
+                                    </div>
+                                    <div id="myRacers-items-container-none">
+                                        <h3 class="inline centered">Seems like you haven't created any racers</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                    </div>
+                    <div id="revoked-message-container">
+                        <div class="revoked-message-holder">
+                            <h3 id="revoked-access">Your current user has had it's access revoked</h3>
+                            <h3 id="not-logged-in">You need a user account to access this</h3>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -791,6 +791,9 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
 end)
 
 local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Automated, src)
+    if useDebug then 
+        print('Setting up race', json.encode({RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated}))
+    end
     if Tracks[RaceId] ~= nil then
         if not Tracks[RaceId].Waiting then            
             if not Tracks[RaceId].Started then
@@ -1144,21 +1147,21 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:Server:DeleteTrack', function(RaceId)
+RegisterNetEvent('cw-racingapp:server:DeleteTrack', function(RaceId)
     print('DELETING ', RaceId)
     Tracks[RaceId] = nil
     local result = MySQL.Sync.fetchAll('SELECT creatorname FROM race_tracks WHERE raceid = ?', {RaceId})[1]
     MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', {RaceId} )
 end)
 
-RegisterNetEvent('cw-racingapp:Server:ClearLeaderboard', function(RaceId)
+RegisterNetEvent('cw-racingapp:server:ClearLeaderboard', function(RaceId)
     print('CLEARING LEADERBOARD ', RaceId)
     Tracks[RaceId].Records = nil
     MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?',
     {RaceId})
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:Server:getplayers', function(_, cb)
+QBCore.Functions.CreateCallback('cw-racingapp:server:getplayers', function(_, cb)
     local players = QBCore.Functions.GetPlayers()
     if useDebug then
         print(json.encode(players))
@@ -1208,38 +1211,10 @@ function MilliToTime(milli)
     return minutes..":"..seconds.."."..milliseconds;
 end
 
-
 function IsPermissioned(CitizenId, type)
     local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
-    local HasMaster = Player.Functions.GetItemsByName('fob_racing_master')
-    if HasMaster then
-        for _, item in pairs(HasMaster) do
-            if Config.Inventory == 'ox' then
-                if item.metadata.owner == CitizenId and Config.Permissions['fob_racing_master'][type] then
-                    return true
-                end
-            else
-                if item.info.owner == CitizenId and Config.Permissions['fob_racing_master'][type] then
-                    return true
-                end
-            end
-        end
-    end
-
-    local HasBasic = Player.Functions.GetItemsByName('fob_racing_basic')
-    if HasBasic then
-        for _, item in pairs(HasBasic) do
-            if Config.Inventory == 'ox' then
-                if item.metadata.owner == CitizenId and Config.Permissions['fob_racing_basic'][type] then
-                    return true
-                end
-            else
-                if item.info.owner == CitizenId and Config.Permissions['fob_racing_basic'][type] then
-                    return true
-                end
-            end
-        end
-    end
+    local playerAuth = Player.PlayerData.metadata.selectedRacerAuth
+    return Config.Permissions[playerAuth][type]
 end
 
 function IsNameAvailable(RaceName)
@@ -1306,30 +1281,9 @@ function GenerateRaceId()
     return RaceId
 end
 
-local function UseRacingFob(source, item)
+local function UseRacingGps(source, item)
     local Player = QBCore.Functions.GetPlayer(source)
-    local citizenid = Player.PlayerData.citizenid
-    if Config.Inventory == 'qb' then
-        if item.info.owner == nil then
-            TriggerClientEvent('QBCore:Notify', source, "The person who gave you this item is an idiot who can't read Readmes", "error")
-            return
-        end
-        if item.info.owner == citizenid then
-            TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.info.name})
-        else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.unowned_dongle"), "error")
-        end
-    elseif Config.Inventory == 'ox' then
-        if item.metadata.owner == nil then
-            TriggerClientEvent('QBCore:Notify', source, "The person who gave you this item is an idiot who can't read Readmes", "error")
-            return
-        end
-        if item.metadata.owner == citizenid then
-            TriggerClientEvent('cw-racingapp:Client:OpenMainMenu', source, { type = item.name, name = item.metadata.name})
-        else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.unowned_dongle"), "error")
-        end
-    end
+    TriggerClientEvent('cw-racingapp:client:openUi', source, {name = Player.PlayerData.metadata.selectedRacerName, type = Player.PlayerData.metadata.selectedRacerAuth })
 end
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingLeaderboards', function(source, cb, class, trackName)
@@ -1422,11 +1376,12 @@ local function nameIsValid(racerName, citizenId)
     end
 end
 
-local function addRacerName(citizenId, racerName)
+local function addRacerName(citizenId, racerName, targetSource, auth, creatorCitizenId)
     if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', {racerName, citizenId})[1] then
-        MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername) VALUES (?, ?)',
-        {citizenId, racerName})
+        MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
+        {citizenId, racerName, auth, creatorCitizenId})
     end
+    TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(targetSource))
 end
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetAmountOfTracks', function(source, cb, citizenid)
@@ -1440,7 +1395,7 @@ end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(source, cb, racerName, serverId)
     if Config.UseNameValidation then
-        local Player = QBCore.Functions.GetPlayer(serverId)
+        local Player = QBCore.Functions.GetPlayer(tonumber(serverId))
         local citizenId = Player.PlayerData.citizenid
         if nameIsValid(racerName, citizenId) then
             cb(true)
@@ -1452,10 +1407,11 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(
     end
 end)
 
+
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source, cb, serverId)
     if useDebug then print('Getting racer names for serverid', serverId) end
     if Config.UseNameValidation then
-        local Player = QBCore.Functions.GetPlayer(serverId)
+        local Player = QBCore.Functions.GetPlayer(tonumber(serverId))
         local citizenId = Player.PlayerData.citizenid
         if useDebug then print('Racer citizenid', citizenId) end
         local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
@@ -1466,7 +1422,7 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacerNamesByPlayer', fun
     end
 end)
 
-local function createRacingFob(source, citizenid, racerName, type, purchaseType)
+local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource)
     if useDebug then
         print('Creating a racing fob. Input:')
         print('citizenid', citizenid)
@@ -1474,17 +1430,13 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
         print('type', type)
         print('purchaseType', dump(purchaseType))
     end
-    local fobTypes = {
-        ['basic'] = "fob_racing_basic",
-        ['master'] = "fob_racing_master"
-    }
 
     local Player = QBCore.Functions.GetPlayer(source)
-    local cost = nil
-    if type == 'master' then
-        cost = purchaseType.racingFobMasterCost
+    local cost = 1000
+    if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
+        cost = purchaseType.racingUserCosts[type]
     else
-        cost = purchaseType.racingFobCost
+        TriggerClientEvent('QBCore:Notify', source, 'The user type you entered does not exist, defaulting to $1000', 'error' )
     end
 
     if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
@@ -1506,24 +1458,83 @@ local function createRacingFob(source, citizenid, racerName, type, purchaseType)
         exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, profit)
         exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: "..type,  "Unknown", QBCore.Shared.Jobs[purchaseType.profiteer.job].label , "deposit")
     end
-    Player.Functions.AddItem(fobTypes[type], 1, nil, { owner = citizenid, name = racerName })
-    TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[fobTypes[type]], "add")
-    addRacerName(citizenid, racerName)
+    local creatorCitizenId = 'unknown'
+    if Player.PlayerData and Player.PlayerData.citizenid then creatorCitizenId = Player.PlayerData.citizenid end
+    addRacerName(citizenid, racerName, targetSource, type, creatorCitizenId)
 end
 
-RegisterNetEvent('cw-racingapp:server:CreateFob', function(playerId, racerName, type, purchaseType)
+local function getRacersCreatedByUser(src, citizenid, type)
+    if Config.Permissions[type] and Config.Permissions[type].controlAll then
+       if useDebug then  print('Fetching racers for a god') end
+        return MySQL.Sync.fetchAll('SELECT * FROM racer_names')
+    end
+    if useDebug then  print('Fetching racers for a master') end
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE createdby = ?', {citizenid})
+end
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacersCreatedByUser', function(source, cb, citizenid, type)
+    print('Fetching all racers created by ', citizenid)
+    local result = getRacersCreatedByUser(source, citizenid, type)
+    if useDebug then print('result from fetching racers created by user', citizenid, json.encode(result)) end
+    cb(result)
+end)
+
+local function changeRacerName(src, racerName)
+    local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1].auth
+    local Player = QBCore.Functions.GetPlayer(src)
+    if auth then
+        Player.Functions.SetMetaData("selectedRacerAuth", auth)
+    else
+        Player.Functions.SetMetaData("selectedRacerAuth", 'racer')
+    end
+    Player.Functions.SetMetaData("selectedRacerName", racerName)
+end
+
+QBCore.Functions.CreateCallback('cw-racingapp:server:ChangeRacerName', function(source, cb, racerNameInUse)
+    if useDebug then print('Changing Racer Name for (1) src to (2) name', source, racerNameInUse) end
+    changeRacerName(source, racerNameInUse)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if useDebug then
+       print('New names', Player.PlayerData.metadata.selectedRacerName, Player.PlayerData.metadata.selectedRacerAuth )
+    end
+    cb({ name = Player.PlayerData.metadata.selectedRacerName, type = Player.PlayerData.metadata.selectedRacerAuth })
+end)
+
+RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
+    if useDebug then print('removing racer with name', racername) end
+    if useDebug then print('removed by source', source, QBCore.Functions.GetPlayer(source).PlayerData.citizenid) end
+    MySQL.query('DELETE FROM racer_names WHERE racername = ?', {racername} )
+end)
+
+local function setRevokedRacerName(src, racerName, revoked)
+    if MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1] then
+        MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), racerName})
+        local readableRevoked = 'revoked'
+        if revoked == 0 then readableRevoked = 'active' end
+        TriggerClientEvent('QBCore:Notify', src, 'User is now set to '..readableRevoked, 'success')
+    else
+        TriggerClientEvent('QBCore:Notify', src, 'Race Name Not Found', 'error')
+    end
+end
+
+RegisterNetEvent('cw-racingapp:server:SetRevokedRacenameStatus', function(racername, revoked)
+    if useDebug then print('revoking racename', racername, revoked) end
+    setRevokedRacerName(source, racername, revoked)
+end)
+
+RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racerName, type, purchaseType)
     local player = QBCore.Functions.GetPlayer(tonumber(playerId))
     if player then
         local citizenId = player.PlayerData.citizenid
-        createRacingFob(source, citizenId, racerName, type, purchaseType)
+        createRacingName(source, citizenId, racerName, type, purchaseType, playerId)
     else
         TriggerClientEvent('QBCore:Notify', source, Lang:t("error.could_not_find_person"), "error")
     end
 end)
 
-QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_description"), { {name='type', help='Basic/Master'}, {name='identifier', help='CitizenID or ID'}, {name='Racer Name', help='Racer Name to associate with Fob'} }, true, function(source, args)
+QBCore.Commands.Add('createracinguser',"Create a racing user", { {name='type', help='racer/creator/master/god'}, {name='identifier', help='Server ID'}, {name='Racer Name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
     local type = args[1]
-    local citizenid = args[2]
+    local id = args[2]
 
     local name = {}
     for i = 3, #args do
@@ -1531,24 +1542,22 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
     end
     name = table.concat(name, ' ')
 
-    local fobTypes = {
-        ['basic'] = "fob_racing_basic",
-        ['master'] = "fob_racing_master"
-    }
-
-    if not fobTypes[type:lower()] then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.invalid_fob_type"), "error")
+    if not Config.Permissions[type:lower()] then
+        TriggerClientEvent('QBCore:Notify', source, "This user type does not exist", "error")
         return
     end
 
-    if tonumber(citizenid) then
-        local Player = QBCore.Functions.GetPlayer(tonumber(citizenid))
+    local citizenid
+    if tonumber(id) then
+        local Player = QBCore.Functions.GetPlayer(tonumber(id))
         if Player then
             citizenid = Player.PlayerData.citizenid
         else
             TriggerClientEvent('QBCore:Notify', source, Lang:t("error.id_not_found"), "error")
             return
         end
+    else
+        citizenid = id
     end
 
     if #name >= Config.MaxRacerNameLength then
@@ -1562,12 +1571,16 @@ QBCore.Commands.Add('createracingfob', Lang:t("commands.create_racing_fob_descri
     end
 
     local tradeType = {
-        racingFobMasterCost = 0,
-        racingFobCost = 0,
         moneyType = 'cash',
+        racingUserCosts = {
+            racer = 0,
+            creator = 0,
+            master = 0,
+            god = 0
+        },
     }
 
-    createRacingFob(source, citizenid, name, type:lower(), tradeType)
+    createRacingName(source, citizenid, name, type:lower(), tradeType, id)
 end, 'dev')
 
 QBCore.Commands.Add('remracename', 'Remove Racing Name From Database', { {name='name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
@@ -1576,12 +1589,8 @@ QBCore.Commands.Add('remracename', 'Remove Racing Name From Database', { {name='
     MySQL.query('DELETE FROM racer_names WHERE racername = ?', {name} )
 end, 'dev')
 
-QBCore.Functions.CreateUseableItem("fob_racing_basic", function(source, item)
-    UseRacingFob(source, item)
-end)
-
-QBCore.Functions.CreateUseableItem("fob_racing_master", function(source, item)
-    UseRacingFob(source, item)
+QBCore.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
+    UseRacingGps(source, item)
 end)
 
 local function dropRacetrackTable()

@@ -12,7 +12,7 @@ shared_scripts {
     'config.lua',
     '@qb-core/shared/locale.lua',
     'locales/en.lua',
-    --'@ox_lib/init.lua',
+    '@ox_lib/init.lua',
 }
 
 client_script 'client/main.lua'

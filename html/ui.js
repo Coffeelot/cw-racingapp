@@ -4,6 +4,7 @@ let RacingAppData = {}
 
 let currentPage = ''
 let currentTab = ''
+let myRacers = []
 
 let SelectedTrackIdSetup = undefined
 
@@ -189,7 +190,7 @@ function openTabs(tabName, elmnt) {
     if(tabName == "Results") GetResults()
     if(tabName == "Records") GetRecords()
     if(tabName == "MyTracks") GetMyTracks()
-
+    if(tabName == "RacersTab") GetMyRacers()
 }
 
 let ConfirmIsOpen = false
@@ -232,18 +233,40 @@ let settings = {
 function changeSettings(setting) {
     let newValue = $("#settings-"+setting).is(':checked');
     settings[setting] = $("#settings-"+setting).is(':checked');
-    $.post('https://cw-racingapp/UiUpdateSettings', JSON.stringify({setting: setting, value: newValue }), function(success){
-    })
+    $.post('https://cw-racingapp/UiUpdateSettings', JSON.stringify({setting: setting, value: newValue }), function(success){})
 }
 
 function handleCheckedCheckBoxes() {
     for (const key in settings) {
-        console.log('Setting ', key, 'to', settings[key])
         $("#settings-"+key).attr('checked', settings[key]);
     }
 }
 
+function HandleUpdateRacer() {
+    let selectedRacer = $("#racer-name-select option:selected").val();
+    $.post('https://cw-racingapp/UiChangeRacerName', JSON.stringify(selectedRacer), function(success){})
+    CloseConfirmation()
+    CloseRacingApp()
+    document.getElementById("defaultOpenPage").click();
+}
+
 function openSettings() {
+    let racingNameOptions = ''
+    if (RacingAppData.racerNames) {
+        $.each(RacingAppData.racerNames, function(i, val) {
+            if (val.revoked === 0) {
+                
+                let element = `
+                <option 
+                    id="racer-name-selection-${val.racername}"
+                    value="${val.racername}">
+                        ${val.racername} (${val.auth})
+                    </option>
+                `;
+                racingNameOptions = racingNameOptions + element
+            }
+        })
+    }
 
     let header = `<span class="bold first">Settings</span>`
     let body = `
@@ -252,10 +275,18 @@ function openSettings() {
                 <div class="inline spaced">Show Gps Route:<label class="checkbox-container"> <input type="checkbox" onclick="changeSettings('ShowGpsRoute')" id="settings-ShowGpsRoute" > <span class="checkmark"></span> </label></div>
                 <div class="inline spaced">Ignore Roads: <label class="checkbox-container"> <input type="checkbox" onclick="changeSettings('IgnoreRoadsForGps')" id="settings-IgnoreRoadsForGps" > <span class="checkmark"></span> </label></div>
             </div>
+            <span class="bold underlined">User:</span>
+            <div class="settings-items">
+                <div class="option">
+                    <span class="option-title">Select Racer Name (Current: ${RacingAppData.currentRacerName})</span>
+                    <select class="custom-select full-width center-text" onchange="HandleUpdateRacer()" name="racer-name-select" id="racer-name-select">${racingNameOptions}</select>
+                </div>
+            </div>
         `
     let footer = ``
     OpenConfirmation(header, body, footer)
     handleCheckedCheckBoxes()
+    if (RacingAppData.currentRacerName) $("#racer-name-select").val(RacingAppData.currentRacerName)
 }
 
 function createCard(id, header, body, footer) {
@@ -576,7 +607,7 @@ function CloseRacingApp() {
     $('.ui-container').animate({
         height: '-=10px',
     });;
-    $('.ui-container').fadeOut(500);
+    $('.ui-container').fadeOut(200);
     $.post('https://cw-racingapp/UiCloseUi');
 }
 
@@ -741,6 +772,79 @@ function GetMyTracks() {
     })
 }
 
+function ToggleRevokeRacer(racerName, status) {
+    $.post('https://cw-racingapp/UiRevokeRacer', JSON.stringify({racername: racerName, status: status}), function(success){
+    })
+    CloseConfirmation()
+}
+
+function PromptToggleRevokeRacer(racerName, status) {
+    let header = `Revoke user '${racerName}'?`
+    if (status === 1) header = `Activate user '${racerName}'?`
+
+    let body = "This can be reversed later. The user will be notified."
+    let footer = `<button class="action-button small" onclick="ToggleRevokeRacer('${racerName}', ${status})"><span id="create-tab">Confirm</span></button>`
+    OpenConfirmation(header, body, footer)
+}
+
+function RemoveRacer(racerName) {
+    $.post('https://cw-racingapp/UiRemoveRacer', JSON.stringify({racername: racerName, status: status}), function(success){
+            CloseConfirmation()
+    })
+}
+
+function PromtDeleteRacer(racerName) {
+    let header = `Remove user '${racerName}'?`
+    let body = "This CAN NOT be undone. The user will lose all saved stats and access to their tracks."
+    let footer = `<button class="action-button small" onclick="RemoveRacer('${racerName}')"><span id="create-tab">Confirm</span></button>`
+    OpenConfirmation(header, body, footer)
+}
+
+function filterMyRacers() {
+    return myRacers.filter(element => element.racername.includes($('#myRacers-racer-input').val()));
+}
+
+function HandleUpdateMyRacers() {
+    $('.myRacers-items-container').show()
+    $('.myRacers-items-container').html('')
+    let amountResults = 0
+    $.each(filterMyRacers(), function(i, racer) {
+        amountResults = amountResults+1
+        let revokeButton = `<button class="action-button secondary-button small" onclick="PromptToggleRevokeRacer('${racer.racername}', ${racer.revoked})" id="myRacers-revoke-button"><span id="create-tab">${racer.revoked ? 'activate' : 'revoke'}</span></button>`
+        let removeButton = `<button class="action-button secondary-button small" onclick="PromtDeleteRacer('${racer.racername}')" id="myRacers-delete-button"><span id="create-tab">Delete (Permanent)</span></button>`
+        let element = `
+            <div id="${racer.id}-${i}" class="big-card">
+                <div class="card-content">
+                    <div class="card-header track-header">${racer.racername} | ${racer.citizenid}</div>
+                    <div class="card-body">Auth level: ${racer.auth} | Created by: ${racer.createdby? racer.createdby : 'Unknown'}</div>
+                    <div class="card-footer standardGap inline">${revokeButton}${RacingAppData.auth.controlAll ? removeButton: ''}</div>
+                </div>
+            </div>
+        `;
+        $('.myRacers-items-container').append(element)
+    })
+    if(amountResults == 0) {
+        ToggleEmptyOn('myRacers-items-container')
+    } else {
+        ToggleEmptyOff('myRacers-items-container')
+    }
+
+    ToggleLoaderOff('myRacers-items-container')
+    HandleUpdateRecords()
+}
+
+function GetMyRacers() {
+    ToggleLoaderOn('racersManagement-items')
+    $.post('https://cw-racingapp/UiGetRacersCreatedByUser', function(result){
+        if (result) {
+            myRacers = result
+            HandleUpdateMyRacers()
+        } else {
+            ToggleEmptyOn('myRacers-items')
+        }
+    })
+}
+
 function OpenRacingApp() {
     GetAvailableTracks();
     GetSettings();
@@ -759,18 +863,49 @@ $(document).on('keydown', function(event) {
     }
 });
 
-// // for debug. 
-// $(document).on('keydown', function(event) {
-//     switch(event.keyCode) {
-//         case 20:
-//             $('.slider').toggleClass('close-confirmation');
-//             break;
-//     }
-// });
+function isRevoked() {
+    if (RacingAppData.currentRacerName && RacingAppData.racerNames) {
+        for (i = 0; i < RacingAppData.racerNames.length; i++) {
+            const racer = RacingAppData.racerNames[i]
+            if (racer.racername === RacingAppData.currentRacerName) {
+                return !!racer.revoked
+            }
+        }
+        return false
+    } else {
+        return false
+    }
+}
 
 function DoSetup() {
     // SETUP
+    
+    //access
+    const revoked = isRevoked()
+    if (RacingAppData.currentRacerName === undefined || revoked) {
+        $('.tabs-container').hide()
+        $('#revoked-message-container').show()
+        if (RacingAppData.currentRacerName === undefined) {
+            $('#revoked-access').hide()
+            $('#not-logged-in').show()
+        } else {
+            $('#revoked-access').show()
+            $('#not-logged-in').hide()
+        }
+        return
+    } else {
+        $('#revoked-message-container').hide()     
+        $('.tabs-container').show()
+    }
 
+    $('#racer-name').html(RacingAppData.currentRacerName)
+
+    // auth
+    if(RacingAppData.auth) {
+        $('#racer-auth').html(RacingAppData.currentRacerAuth)
+        RacingAppData.auth.create ? $('#tracks-page-link').show() : $('#tracks-page-link').hide()
+        RacingAppData.auth.control ? $('#racers-page-link').show() : $('#racers-page-link').hide()
+    }
     //laps
     $('#setup-race-laps').html()
     $.each(RacingAppData.laps, function(i, val) {
@@ -850,8 +985,13 @@ $(document).ready(function(){
             return
         }
         if (data.open == true) {
-            if (Debug) console.log(JSON.stringify(RacingAppData))    
-            OpenRacingApp()
+            $.post('https://cw-racingapp/GetBaseData', function(setup){
+                if (Debug) console.log(JSON.stringify(setup))
+                RacingAppData = setup
+                DoSetup()
+                if (Debug) console.log(JSON.stringify(RacingAppData))    
+                OpenRacingApp()
+            })
         }
     });
 });

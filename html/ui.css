@@ -38,6 +38,12 @@ h2 {
     margin-bottom: 0px;
 }
 
+#racer-name, #racer-auth {
+    user-select: none; /* Standard syntax */
+    font-size: 14px;
+    color: var(--text-color-disabled)
+}
+
 .ui-container {
     z-index: 2000;
     width: 100%;
@@ -46,6 +52,21 @@ h2 {
     display: flex;
     justify-content: center;
     z-index: 2000;
+}
+
+#revoked-message-container {
+    display: none;
+    width: 100%;
+}
+
+.revoked-message-holder {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin: 2em 2em 2em 2em;
+    color: white
 }
 
 .screen-frame {
@@ -118,6 +139,7 @@ h2 {
 }
 
 .topbar {
+    user-select: none; /* Standard syntax */
     display: flex;
     justify-content: space-between;
     padding-top: 5px;
@@ -167,6 +189,12 @@ h2 {
     gap: 6px;
 }
 
+.myRacers-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .icon-topbar {
     margin-right: 5px;
 }
@@ -185,14 +213,6 @@ h2 {
 }
 .tracks-container {
     color: var(--text-color);
-}
-
-.page-container {
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    overflow: auto;
-    max-height: 465px;
 }
 
 .create-track-container {
@@ -241,6 +261,14 @@ h2 {
     font-weight: bold;
 }
 
+#racers-page-link {
+    display: none;
+}
+
+#tracks-page-link {
+    display: none;
+}
+
 .tracks-items {
     height: 313px;
     overflow: auto;
@@ -254,7 +282,6 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    overflow: auto;
     height: 345px;
 }
 
@@ -344,11 +371,17 @@ h2 {
 
 /* Style the tab content (and add height:100% for full page content) */
 .tabcontent {
-    margin-left: 10px;
-    margin-right: 10px;
     color: var(--text-color);
     display: none;
-    height: 100%;
+    width: 100%;
+    overflow: auto;
+    max-height: 465px;
+}
+
+.page-container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
 }
 
 .subheader {
@@ -389,7 +422,6 @@ h2 {
 
 .big-card {
     color: var(--text-color);
-    height: 100px;
     padding: 15px;
     border-radius: var(--border-radius);
     border: var(--border);

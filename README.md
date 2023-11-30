@@ -87,6 +87,33 @@ The script offers automated races. You can set these up in the config (`Config.A
 
 The Automation will, at random, try to grab one of the tracks from the `Config.AutomatedRaces` table at the interval of what you set in `Config.AutomatedOptions.timeBetweenRaces`, by default this is 20 minutes. The races start after 5 minutes of popping up.
 
+### User Management
+The script offers user management now. We've moved away from the basic/master fob and instead users are saved in the database.
+To swap your user, open the racingapp and press the cog-icon to open the settings.
+To create users you can either buy a user account from a trader/laptop (if this is enabled in the config) or have someone create one for you.
+
+The tiers are racer < creator < master < god and are defined as follows:
+```lua
+    racer = { 
+        join = true, -- join races
+        records = true, -- see records
+        setup = true, -- setup races
+        create = false, -- create races
+        control = false, -- control users
+        controlAll = false, -- control all users
+    }
+    ...
+```
+
+*join* means you can join races\
+*records* means you can access records\
+*setup* means you can set up races\
+*create* means you can create tracks\
+*control* means you can manage users you create\
+*controllAll* allows you to control all users, and also permanently delete users
+
+Basically, any racer name/user created by another player will be tied to them. So if person X buys an account from player Y, player Y can also revoke player Xs account via the in game menus, as long as player Y has a user with the *control* authorization.
+
 # Preview 📽
 ### Note: Before new UI was added
 
@@ -100,6 +127,10 @@ Update to track editor:
 ### UI Update:
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/j0KKvy-2VWc/0.jpg)](https://youtu.be/j0KKvy-2VWc)
+
+### User Management Update:
+
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/YzJjRs2rv2s/0.jpg)](https://youtu.be/YzJjRs2rv2s)
 # Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
@@ -107,14 +138,25 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 2. Adjust values in the `config.lua` file to your liking
 3. Add the items to your `qb-core/shared/items.lua`
 ```lua
-['fob_racing_basic'] = {['name'] = 'fob_racing_basic', ['label'] = 'Basic Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'fob_racing_basic.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'This basic GPS allows someone to join custom races.'},
-['fob_racing_master'] = {['name'] = 'fob_racing_master', ['label'] = 'Master Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'fob_racing_master.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'This master GPS allows someone to create custom races.'},
+['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
 ```
 4. Add the item images to your inventory image folder
 
-> NOTE: You **CAN NOT** spawn the racing fobs with `/giveitem`. Spawn them with the built in command `/createracingfob` or get one at the trader or laptop
+# Updating?
+If you're updating from a previous version these might be for you
 
-## Dependencies
+### New User Management - 30th November 2023
+You need to update one of your database tables. Run this:
+```sql
+ALTER TABLE racer_names
+ADD COLUMN auth TEXT DEFAULT 'racer',
+ADD COLUMN createdby TEXT,
+ADD COLUMN revoked TINYINT DEFAULT 0;
+```
+You also need to change out the old GPS/fob items to the new one, see setup section. 
+You might also want to read up on the new system, see Racing App section.
+
+# Dependencies
 * [qb-menu](https://github.com/qbcore-framework/qb-menu)
 * [qb-input](https://github.com/qbcore-framework/qb-input)
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
