@@ -144,8 +144,8 @@ You only need either this resource and [cw-performance](https://github.com/Coffe
 Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. 
 
 Use the command `createracinguser` to do this. For example:
-`/createracinguser 1 god IReadTheReadme`
-This will create a racer account for the user with serverID 1 (probably you if you're on your dev server). 
+`/createracinguser god 1 IReadTheReadme`
+This will create a god account for the user with serverID 1 (probably you if you're on your dev server) called IReadTheReadme. 
 Spawn the item `racing_gps` normally and use it. 
 
 # Updating?
