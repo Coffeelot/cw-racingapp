@@ -2818,7 +2818,7 @@ local function setup()
         MyRacerNames = playerNames
         if useDebug then print('player names', json.encode(playerNames)) end
         local PlayerData = QBCore.Functions.GetPlayerData()
-        if PlayerData.metadata.selecterdRacerName then
+        if PlayerData.metadata.selectedRacerName then
             currentAuth = PlayerData.metadata.selectedRacerAuth
             currentName = PlayerData.metadata.selecterdRacerName
         else
