@@ -110,8 +110,8 @@ Config.Blips = {
 
 
 Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Config.Trader/Config.Laptop"
-    ['tuner'] = { basic = 2, master = 4},
-    ['spongebob'] = { basic = 1 },
+    ['tuner'] = { racer = 1, creator = 4, master = 5, god = 5},
+    ['spongebob'] = { racer = 1 },
 }
 
 Config.Options = {
