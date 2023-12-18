@@ -1,0 +1,72 @@
+<template>
+  <div class="countdown-container">
+    <div class="countdown-holder">
+      <transition name="scale" mode="out-in">
+        <div :key="countdownNumber" class="number-holder">
+          <span id="countdown-text" v-if="countdownNumber === 0">GO!</span>
+          <span id="countdown-number" v-else>{{ countdownNumber }}</span>
+        </div>
+      </transition>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+defineProps<{
+  countdownNumber?: number;
+}>();
+
+</script>
+
+<style scoped lang="scss">
+.countdown-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-holder {
+  text-align: center;
+}
+
+.number-holder {
+  background: $background-color;
+  border: 4px solid white;
+  width: 15vh;
+  height: 15vh;
+  border-radius: 10vh;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#countdown-number {
+  font-size: 10vh;
+  font-family: var(--countdown-font);
+  color: var(--font-color);
+  /* font-weight:900; */
+  /* -webkit-text-stroke: 1px #000000; */
+  text-transform: uppercase;
+}
+
+#countdown-text {
+  font-size: 7vh;
+  font-family: var(--text-font);
+  color: var(--font-color);
+  text-transform: uppercase;
+}
+
+.scale-enter-active,
+.scale-leave-active {
+  transition: all 0.1s ease;
+}
+
+.scale-enter-from,
+.scale-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+</style>

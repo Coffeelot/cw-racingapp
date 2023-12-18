@@ -442,7 +442,7 @@ function CreatorUI()
         while true do
             if RaceData.InCreator then
                 SendNUIMessage({
-                    action = "Update",
+                    action = "update",
                     type = "creator",
                     data = CreatorData,
                     racedata = RaceData,
@@ -451,7 +451,7 @@ function CreatorUI()
                 })
             else
                 SendNUIMessage({
-                    action = "Update",
+                    action = "update",
                     type = "creator",
                     data = CreatorData,
                     racedata = RaceData,
@@ -738,7 +738,8 @@ local lapStartTime = 0
 
 local function updateCountdown(value)
     SendNUIMessage({
-        action = "Countdown",
+        type = 'race',
+        action = "countdown",
         data = {
             value = value
         },
@@ -755,22 +756,22 @@ function RaceUI()
                     CurrentRaceData.TotalTime = GetTimeDifference(GetGameTimer(), startTime)
                 end
                 SendNUIMessage({
-                    action = "Update",
+                    action = "update",
                     type = "race",
                     data = {
-                        CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint,
-                        TotalCheckpoints = #CurrentRaceData.Checkpoints,
-                        TotalLaps = CurrentRaceData.TotalLaps,
-                        CurrentLap = CurrentRaceData.Lap,
-                        RaceStarted = CurrentRaceData.Started,
-                        RaceName = CurrentRaceData.RaceName,
-                        Time = CurrentRaceData.RaceTime,
-                        TotalTime = CurrentRaceData.TotalTime,
-                        BestLap = CurrentRaceData.BestLap,
-                        Position = CurrentRaceData.Position,
-                        Positions = CurrentRaceData.Positions,
-                        TotalRacers = CurrentRaceData.TotalRacers,
-                        Ghosted = CurrentRaceData.Ghosted,
+                        currentCheckpoint = CurrentRaceData.CurrentCheckpoint,
+                        totalCheckpoints = #CurrentRaceData.Checkpoints,
+                        totalLaps = CurrentRaceData.TotalLaps,
+                        currentLap = CurrentRaceData.Lap,
+                        raceStarted = CurrentRaceData.Started,
+                        raceName = CurrentRaceData.RaceName,
+                        time = CurrentRaceData.RaceTime,
+                        totalTime = CurrentRaceData.TotalTime,
+                        bestLap = CurrentRaceData.BestLap,
+                        position = CurrentRaceData.Position,
+                        positions = CurrentRaceData.Positions,
+                        totalRacers = CurrentRaceData.TotalRacers,
+                        ghosted = CurrentRaceData.Ghosted,
                     },
                     racedata = RaceData,
                     active = true
@@ -781,7 +782,7 @@ function RaceUI()
                     SetTimeout(10000, function()
                         FinishedUITimeout = false
                         SendNUIMessage({
-                            action = "Update",
+                            action = "update",
                             type = "race",
                             data = {},
                             racedata = RaceData,
@@ -1708,8 +1709,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Posi
                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             end
             markWithUglyWaypoint()
-            --QBCore.Functions.Notify(Lang:t("success.race_go"), 'success', 1000)
-            updateCountdown(Lang:t("success.race_go"))
+            updateCountdown(0)
             SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, Config.Blips.Generic.Size)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             DoPilePfx()
@@ -2292,8 +2292,9 @@ RegisterNetEvent("cw-racingapp:client:openUi", function(data)
         currentAuth = data.type
         QBCore.Functions.Notify("Press ESC to close")
         SetNuiFocus(true,true)
-        SendNUIMessage({nui = 'cwracingapp', open = true})
+        SendNUIMessage({ type = 'toggleApp', open = true})
         uiIsOpen = true
+        StartScreenEffect('MenuMGIn', 1, true)
     end
 end)
 
@@ -2320,6 +2321,7 @@ RegisterNUICallback('UiCloseUi', function(_, cb)
     uiIsOpen = false
     SetNuiFocus(false,false)
     cb(true)
+    StopScreenEffect('MenuMGIn')
 end)
 
 RegisterNUICallback('UiFetchRaceResults', function(_, cb)
@@ -2379,8 +2381,8 @@ RegisterNUICallback('UiRevokeRacer', function(data, cb)
 end)
 
 RegisterNUICallback('UiRemoveRacer', function(data, cb)
-    if useDebug then print('permanently removing racename', data.racername, data.status) end
-    TriggerServerEvent("cw-racingapp:server:SetRevokedRacenameStatus", data.racername, data.status)
+    if useDebug then print('permanently removing racename', data.racername) end
+    TriggerServerEvent("cw-racingapp:server:RemoveRacerName", data.racername)
 end)
 
 RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
@@ -2427,13 +2429,15 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
                 currentRace.RacerName = currentName
                 currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
                 TriggerServerEvent('cw-racingapp:server:JoinRace', currentRace)
+                cb(true)
+                return
             else 
                 QBCore.Functions.Notify('Your car is not the correct class', 'error')
-                return
             end
         end
+        cb(false)
     end)
-    cb(true)
+    
 end)
 
 RegisterNUICallback('UiClearLeaderboard', function(track, cb)
@@ -2494,6 +2498,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
     local racers = 0
     local maxClass = 'open'
     if CurrentRaceData.RaceId then
+        print('canstart', (not (CurrentRaceData.OrganizerCID == QBCore.Functions.GetPlayerData().citizenid) or
+        CurrentRaceData.Started))
         for _ in pairs(CurrentRaceData.Racers) do
             racers = racers + 1
         end
@@ -2505,9 +2511,10 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             racers = racers,
             laps = CurrentRaceData.TotalLaps,
             class =  tostring(maxClass),
-            canStart = (not (CurrentRaceData.OrganizerCID == QBCore.Functions.GetPlayerData().citizenid) or
+            cantStart = (not (CurrentRaceData.OrganizerCID == QBCore.Functions.GetPlayerData().citizenid) or
             CurrentRaceData.Started),
             raceId = CurrentRaceData.RaceId,
+            ghosting = CurrentRaceData.Ghosting
         }
         cb(data)
     else
@@ -2531,7 +2538,7 @@ RegisterNUICallback('UiGetAvailableTracks', function(data, cb)
     end)
 end)
 
-RegisterNUICallback('UiGetListedRaces', function(data, cb)
+RegisterNUICallback('UiGetListedRaces', function(_, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRaces', function(Races)
         local availableRaces = {}
         if #Races > 0 then
@@ -2841,5 +2848,6 @@ end)
 
 AddEventHandler('onResourceStart', function (resource)
     if resource ~= GetCurrentResourceName() then return end
+    StopScreenEffect('MenuMGIn')
     setup()
  end)

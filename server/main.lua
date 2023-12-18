@@ -9,139 +9,142 @@ local NotFinished = {}
 local racersSortedByPosition = {}
 local useDebug = Config.Debug
 local RaceResults = {}
--- local RaceResults = {
---     ["LR-7666"]= {
---         ["Data"]= {
---             ["Ghosting"] = false,
---             ["SetupRacerName"] = "PAODPOAS2",
---             ["BuyIn"] = 0,
---             ["Laps"] = 3,
---             ["MaxClass"] = "",
---             ["GhostingTime"] = 0,
---             ["RaceId"] = "LR-7666",
---             ["RaceData"] = {
---                 ["Ghosting"]= false,
---                 ["Started"]= false,
---                 ["Waiting"]= false,
---                 ["Records"]= {
---                     {
---                         ["Holder"]= "mamamamamam",
---                         ["Time"]= 24262,
---                         ["Class"]= "X",
---                         ["Vehicle"]= "Osiris FR",
---                         ["RaceType"]= "Circuit",
---                     },
---                     {
---                         ["Holder"]= "mamamamamam",
---                         ["Time"]= 26305,
---                         ["Class"]= "S",
---                         ["Vehicle"]= "model not found",
---                         ["RaceType"]= "Sprint",
---                     },
---                 },
---                 ["Distance"]= 1045,
---                 ["Creator"]= "SYY99260",
---                 ["BuyIn"]= 0,
---                 ["Racers"]= {},
---                 ["GhostingTime"] = 0,
---                 ["OrganizerCID"] = "SYY99260",
---                 ["CreatorName"] = "xXxCoolChadxXx69",
---                 ["RaceId"] = "LR-7666",
---                 ["Access"] = {},
---                 ["RaceName"] = "Elysian",
---                 ["LastLeaderboard"] = {
---                     {
---                         ["TotalTime"] = 34128,
---                         ["BestLap"] = 34128,
---                         ["Holder"] = "PAODPOAS2"
---                     }
---                 }
---             },
---             ["SetupCitizenId"] = "SYY99260"
---         },
---         ["Result"] = {
---             {
---                 ["VehicleModel"] = "Euros ZR300",
---                 ["RacerName"] = "PAODPOAS2",
---                 ["TotalTime"] = 74128,
---                 ["CarClass"] = "S",
---                 ["BestLap"] = 30404
---             }
---         }
---     },
---     ["LR-1123"]= {
---         ["Data"]= {
---             ["Ghosting"] = false,
---             ["SetupRacerName"] = "PAODPOAS2",
---             ["BuyIn"] = 0,
---             ["Laps"] = 0,
---             ["MaxClass"] = "",
---             ["GhostingTime"] = 0,
---             ["RaceId"] = "LR-1123",
---             ["RaceData"] = {
---                 ["Ghosting"]= false,
---                 ["Started"]= false,
---                 ["Waiting"]= false,
---                 ["Records"]= {
---                     {
---                         ["Holder"]= "mamamamamam",
---                         ["Time"]= 24262,
---                         ["Class"]= "X",
---                         ["Vehicle"]= "Osiris FR",
---                         ["RaceType"]= "Circuit",
-                    
---                     },
---                     {
---                         ["Holder"]= "mamamamamam",
---                         ["Time"]= 26305,
---                         ["Class"]= "S",
---                         ["Vehicle"]= "model not found",
---                         ["RaceType"]= "Sprint",
---                     },
---                 },
---                 ["Distance"]= 1045,
---                 ["Creator"]= "SYY99260",
---                 ["BuyIn"]= 0,
---                 ["Racers"]= {},
---                 ["GhostingTime"] = 0,
---                 ["OrganizerCID"] = "SYY99260",
---                 ["CreatorName"] = "xXxCoolChadxXx69",
---                 ["RaceId"] = "LR-7666",
---                 ["Access"] = {},
---                 ["RaceName"] = "Elysian",
---                 ["LastLeaderboard"] = {
---                     {
---                         ["TotalTime"] = 34128,
---                         ["BestLap"] = 34128,
---                         ["Holder"] = "PAODPOAS2"
---                     },
---                     {
---                         ["TotalTime"] = 34128,
---                         ["BestLap"] = 34128,
---                         ["Holder"] = "PAODPOAS2"
---                     }
---                 }
---             },
---             ["SetupCitizenId"] = "SYY99260"
---         },
---         ["Result"] = {
---             {
---                 ["VehicleModel"] = "Euros ZR300",
---                 ["RacerName"] = "PAODPOAS2",
---                 ["TotalTime"] = 34128,
---                 ["CarClass"] = "S",
---                 ["BestLap"] = 0
---             },
---             {
---                 ["VehicleModel"] = "A cool car",
---                 ["RacerName"] = "YOMOM",
---                 ["TotalTime"] = 134128,
---                 ["CarClass"] = "A",
---                 ["BestLap"] = 0
---             },
---         }
---     }
--- }
+if Config.Debug then
+    RaceResults = {
+        ["LR-7666"]= {
+            ["Data"]= {
+                ["Ghosting"] = false,
+                ["SetupRacerName"] = "PAODPOAS2",
+                ["BuyIn"] = 0,
+                ["Laps"] = 3,
+                ["MaxClass"] = "",
+                ["GhostingTime"] = 0,
+                ["RaceId"] = "LR-7666",
+                ["RaceData"] = {
+                    ["Ghosting"]= false,
+                    ["Started"]= false,
+                    ["Waiting"]= false,
+                    ["Records"]= {
+                        {
+                            ["Holder"]= "mamamamamam",
+                            ["Time"]= 24262,
+                            ["Class"]= "X",
+                            ["Vehicle"]= "Osiris FR",
+                            ["RaceType"]= "Circuit",
+                        },
+                        {
+                            ["Holder"]= "mamamamamam",
+                            ["Time"]= 26305,
+                            ["Class"]= "S",
+                            ["Vehicle"]= "model not found",
+                            ["RaceType"]= "Sprint",
+                        },
+                    },
+                    ["Distance"]= 1045,
+                    ["Creator"]= "SYY99260",
+                    ["BuyIn"]= 0,
+                    ["Racers"]= {},
+                    ["GhostingTime"] = 0,
+                    ["OrganizerCID"] = "SYY99260",
+                    ["CreatorName"] = "xXxCoolChadxXx69",
+                    ["RaceId"] = "LR-7666",
+                    ["Access"] = {},
+                    ["RaceName"] = "Elysian But fake",
+                    ["LastLeaderboard"] = {
+                        {
+                            ["TotalTime"] = 34128,
+                            ["BestLap"] = 34128,
+                            ["Holder"] = "PAODPOAS2"
+                        }
+                    }
+                },
+                ["SetupCitizenId"] = "SYY99260"
+            },
+            ["Result"] = {
+                {
+                    ["VehicleModel"] = "Euros ZR300",
+                    ["RacerName"] = "PAODPOAS2",
+                    ["TotalTime"] = 74128,
+                    ["CarClass"] = "S",
+                    ["BestLap"] = 30404
+                }
+            }
+        },
+        ["LR-1123"]= {
+            ["Data"]= {
+                ["Ghosting"] = false,
+                ["SetupRacerName"] = "PAODPOAS2",
+                ["BuyIn"] = 0,
+                ["Laps"] = 0,
+                ["MaxClass"] = "",
+                ["GhostingTime"] = 0,
+                ["RaceId"] = "LR-1123",
+                ["RaceData"] = {
+                    ["Ghosting"]= false,
+                    ["Started"]= false,
+                    ["Waiting"]= false,
+                    ["Records"]= {
+                        {
+                            ["Holder"]= "mamamamamam",
+                            ["Time"]= 24262,
+                            ["Class"]= "X",
+                            ["Vehicle"]= "Osiris FR",
+                            ["RaceType"]= "Circuit",
+                     
+                        },
+                        {
+                            ["Holder"]= "mamamamamam",
+                            ["Time"]= 26305,
+                            ["Class"]= "S",
+                            ["Vehicle"]= "model not found",
+                            ["RaceType"]= "Sprint",
+                        },
+                    },
+                    ["Distance"]= 1045,
+                    ["Creator"]= "SYY99260",
+                    ["BuyIn"]= 0,
+                    ["Racers"]= {},
+                    ["GhostingTime"] = 0,
+                    ["OrganizerCID"] = "SYY99260",
+                    ["CreatorName"] = "xXxCoolChadxXx69",
+                    ["RaceId"] = "LR-7666",
+                    ["Access"] = {},
+                    ["RaceName"] = "Not Elysian",
+                    ["LastLeaderboard"] = {
+                        {
+                            ["TotalTime"] = 34128,
+                            ["BestLap"] = 34128,
+                            ["Holder"] = "PAODPOAS2"
+                        },
+                        {
+                            ["TotalTime"] = 34128,
+                            ["BestLap"] = 34128,
+                            ["Holder"] = "PAODPOAS2"
+                        }
+                    }
+                },
+                ["SetupCitizenId"] = "SYY99260"
+            },
+            ["Result"] = {
+                {
+                    ["VehicleModel"] = "Euros ZR300",
+                    ["RacerName"] = "PAODPOAS2",
+                    ["TotalTime"] = 34128,
+                    ["CarClass"] = "S",
+                    ["BestLap"] = 12353
+                },
+                {
+                    ["VehicleModel"] = "A cool car",
+                    ["RacerName"] = "YOMOM",
+                    ["TotalTime"] = 134128,
+                    ["CarClass"] = "A",
+                    ["BestLap"] = 1231
+                },
+            }
+        }
+    }
+end
+
 
 -- for debug
 local function dump(o)

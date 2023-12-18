@@ -1,7 +1,7 @@
 # CW rework of [QB-Racing](https://github.com/ItsANoBrainer/qb-racing)
+### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
 
-This is a rework of the superb free resource [QB-Racing](https://github.com/ItsANoBrainer/qb-racing) by ItsANoBrainer.
-
+[Images here](#Images)
 
 **Some of the added features:**
 - Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
@@ -28,7 +28,7 @@ This is a rework of the superb free resource [QB-Racing](https://github.com/ItsA
 - Items to immerse your racing scene with Racer Names
 - Config options to adjust item permissions to your liking
 - Config options to adjust different options
-- Locale Support
+- (Limited) Locale Support
 - Create Custom Races Tracks
 
 > As of update posted on 1st July -23, racer names are unique. The max limit is by default 3 but can be set individually. If you want to remove names from DB without openign it up, an admin can use `/remracename <racerName>`
@@ -130,6 +130,10 @@ Update to track editor:
 ### User Management Update:
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/YzJjRs2rv2s/0.jpg)](https://youtu.be/YzJjRs2rv2s)
+
+### UI update 2:
+
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/ZAUrmS63ZaM/0.jpg)](https://youtu.be/ZAUrmS63ZaM)
 # Setup
 You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
@@ -148,6 +152,9 @@ Use the command `createracinguser` to do this. For example:
 This will create a god account for the user with serverID 1 (probably you if you're on your dev server) called IReadTheReadme. 
 Spawn the item `racing_gps` normally and use it. 
 
+# Want to change the look?
+RacingApp is built in VUE, this means you can't just edit the files directly. This requires some more know-how than just developing with basic html/js. You can find out more information in this [Boilerplate Repo](https://github.com/alenvalek/fivem-vuejs-boilerplate).
+
 # Updating?
 If you're updating from a previous version these might be for you
 
@@ -163,29 +170,40 @@ You also need to change out the old GPS/fob items to the new one, see setup sect
 You might also want to read up on the new system, see User Management section.
 
 # Dependencies
-* [qb-menu](https://github.com/qbcore-framework/qb-menu)
-* [qb-input](https://github.com/qbcore-framework/qb-input)
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
 
-
-
-## Example Usage
+## Images
 ### Interface Images *(Using our custom skin on QB-Menu and QB-Input)*
 
-**Main Menu**
+**Track Setup**
 
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989065402405005/image.png?width=781&height=522)
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989080665473084/image.png?width=781&height=506)
+![Track Selection](https://media.discordapp.net/attachments/1003220513038016573/1186384407444062300/image.png?ex=65930d94&is=65809894&hm=75a438cff341e99f77671992f2ef1e0ea075bb0218b0b1763e49b2b087abb213&=&format=webp&quality=lossless&width=776&height=557)
+![Track Setup](https://media.discordapp.net/attachments/1003220513038016573/1186386707025756200/image.png?ex=65930fb8&is=65809ab8&hm=360e2e75712070284a98ec8184fdcf23affd1fed75d07c854951efeee1d9bbc5&=&format=webp&quality=lossless&width=776&height=533)
 
 **Leaderboards**
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989096062754876/image.png?width=781&height=510)
 
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989109425811517/image.png?width=781&height=525)
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1186387463569166357/image.png?ex=6593106d&is=65809b6d&hm=4176fce822f2e10fca301d178bb3f3f3beac4792ca6408459fddcf889cbec82a&=&format=webp&quality=lossless&width=776&height=501)
 
-**Setting up a Race**
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1144989123430584411/image.png?width=781&height=521)
+**Track Creation**
+
+You can create tracks from both using an in-game editor or copy/paste a set of checkpoints.
+
+**Manage Tracks**
+
+![Tracks menu](https://media.discordapp.net/attachments/977876510620909579/1186385557010522262/image.png?ex=65930ea6&is=658099a6&hm=d17a6366a3e098c77611c5dbb1cbe299d96f1d95857df1f63096f57b2f0f1d52&=&format=webp&quality=lossless&width=776&height=573)
+
+![Interface](https://media.discordapp.net/attachments/977876510620909579/1186385557425770496/image.png?ex=65930ea6&is=658099a6&hm=def700ad47d0630293152776f900dca61b5cd9518983b6fb5864d2150f4690bd&=&format=webp&quality=lossless&width=776&height=548)
+
+**Handle your race users**
+
+![Users](https://media.discordapp.net/attachments/977876510620909579/1186385556582707340/image.png?ex=65930ea6&is=658099a6&hm=bc26cad6cde32efcd9bfc5b2ab5e1878c33a4d85002069d81a4795df9bc5680e&=&format=webp&quality=lossless&width=776&height=546)
+
+**Settings**
+
+![Settings](https://media.discordapp.net/attachments/977876510620909579/1186385556129730560/image.png?ex=65930ea6&is=658099a6&hm=4ac2020189634e3cc7c37379ca28647a7a5e596ce6cf9f9dff9c34500147355f&=&format=webp&quality=lossless&width=776&height=553)
 
 # Uninstalling or full reset
 ## /removeracetracks
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
 ## Developed by Coffeelot#1586, Wuggie#1683
+Once upon a time this was a fork of [QB-Racing](https://github.com/ItsANoBrainer/qb-racing), credits to ItsANoBrainer.

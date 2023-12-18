@@ -1,7 +1,6 @@
 Config = Config or {}
 Config.Debug = false
 
-Config.UseCustomUi = true 
 Config.UseResetTimer = true 
 Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
