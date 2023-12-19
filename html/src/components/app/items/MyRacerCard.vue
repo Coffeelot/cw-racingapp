@@ -16,7 +16,7 @@
   </v-card>
   <v-dialog contained v-model="revokeDialog" width="auto">
     <v-card>
-      {{ revokedBool }}
+      Setting to {{  revokedBool ? 0 : 1 }}
       <v-card-title>{{ revokedBool ? 'Activate':'Revoke' }} access for {{ racer.racername }}?</v-card-title>
       <v-card-text> This can be reverted. </v-card-text>
       <v-card-actions>
@@ -65,14 +65,14 @@ const emits = defineEmits(['triggerReload'])
 const revokedBool = computed(() => props.racer.revoked == 1 ? true : false)
 
 const revokeUser = () => {
-    api.post('UiRevokeRacer', JSON.stringify({racername: props.racer.racername, status: revokedBool ? 0 : 1 }))
+    api.post('UiRevokeRacer', JSON.stringify({racername: props.racer.racername, status: props.racer.revoked }))
     revokeDialog.value = false;
     setTimeout(() => {
       emits('triggerReload')
     }, 1000);
 };
 const deleteUser = async () => {
-    api.post('UiRemoveRacer',  JSON.stringify({racername: props.racer.racername, status: !props.racer.revoked}))
+    api.post('UiRemoveRacer',  JSON.stringify({racername: props.racer.racername}))
     deleteDialog.value = false;
     setTimeout(() => {
       emits('triggerReload')

@@ -22,18 +22,6 @@
         </div>
       </v-window-item>
     </v-window>
-    <div id="RacersTab" class="tabcontent">
-      <div class="myRacers-container page-container">
-        <div class="loading-container" id="myRacers-items-container-loader">
-          <span class="loader"></span>
-        </div>
-        <div id="myRacers-items-container-none">
-          <h3 class="inline centered">
-            Seems like you haven't created any racers
-          </h3>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 

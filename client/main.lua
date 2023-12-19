@@ -2825,6 +2825,10 @@ local function setup()
         MyRacerNames = playerNames
         if useDebug then print('player names', json.encode(playerNames)) end
         local PlayerData = QBCore.Functions.GetPlayerData()
+        if getSizeOfTable(MyRacerNames) == 0 then
+            if useDebug then print('user has been removed') end
+            return
+        end
         if PlayerData.metadata.selectedRacerName then
             currentAuth = PlayerData.metadata.selectedRacerAuth
             currentName = PlayerData.metadata.selecterdRacerName
@@ -2848,6 +2852,5 @@ end)
 
 AddEventHandler('onResourceStart', function (resource)
     if resource ~= GetCurrentResourceName() then return end
-    StopScreenEffect('MenuMGIn')
     setup()
  end)

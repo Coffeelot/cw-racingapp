@@ -1506,15 +1506,33 @@ end)
 RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
     if useDebug then print('removing racer with name', racername) end
     if useDebug then print('removed by source', source, QBCore.Functions.GetPlayer(source).PlayerData.citizenid) end
+    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racername})[1]
     MySQL.query('DELETE FROM racer_names WHERE racername = ?', {racername} )
+    Wait(1000)
+    local Player = QBCore.Functions.GetPlayerByCitizenId(res.citizenid)
+    if Player ~= nil then
+        if useDebug then
+            print('pinging player', Player.PlayerData.source)
+        end
+        TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(Player.PlayerData.source))
+    end
 end)
 
 local function setRevokedRacerName(src, racerName, revoked)
-    if MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1] then
+    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1]
+    if res then
         MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), racerName})
         local readableRevoked = 'revoked'
         if revoked == 0 then readableRevoked = 'active' end
         TriggerClientEvent('QBCore:Notify', src, 'User is now set to '..readableRevoked, 'success')
+        if useDebug then print('Revoking for citizenid', res.citizenid) end
+        local Player = QBCore.Functions.GetPlayerByCitizenId(res.citizenid)
+        if Player ~= nil then
+            if useDebug then
+                print('pinging player', Player.PlayerData.source)
+            end
+            TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(Player.PlayerData.source))
+        end
     else
         TriggerClientEvent('QBCore:Notify', src, 'Race Name Not Found', 'error')
     end

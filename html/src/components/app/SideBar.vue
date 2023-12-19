@@ -7,8 +7,8 @@
         <v-list density="compact" nav>
             <v-list-item prepend-icon="mdi-racing-helmet" title="Racing" value="racing" @click="openPage('racing')"></v-list-item>
             <v-list-item prepend-icon="mdi-trophy" title="Results" value="results" @click="openPage('results')"></v-list-item>
-            <v-list-item v-if="globalStore.baseData.data.auth.create" prepend-icon="mdi-go-kart-track" title="My Tracks" value="mytracks" @click="openPage('mytracks')"></v-list-item>
-            <v-list-item v-if="globalStore.baseData.data.auth.control" prepend-icon="mdi-account-multiple" title="Handle Racers" value="racers" @click="openPage('racers')"></v-list-item>
+            <v-list-item v-if="globalStore.baseData.data?.auth.create" prepend-icon="mdi-go-kart-track" title="My Tracks" value="mytracks" @click="openPage('mytracks')"></v-list-item>
+            <v-list-item v-if="globalStore.baseData.data?.auth.control" prepend-icon="mdi-account-multiple" title="Handle Racers" value="racers" @click="openPage('racers')"></v-list-item>
         </v-list>
         <template v-slot:append>
           <v-list-item prepend-icon="mdi-cog" title="Settings" value="settings" @click="openPage('settings')"></v-list-item>

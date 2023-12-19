@@ -16,6 +16,7 @@ export const useGlobalStore = defineStore('global', {
     buttons: {} as Buttons,
     creatorData: {} as CreatorData,
     baseData: {} as BaseData,
+    isLoadingBaseData: true,
     settings: {},
     tracks: {} as Record<string, any>,
     results: {} as Record<string, any>

@@ -1,27 +1,47 @@
 <template>
   <div class="ui-container">
-    <img class="screen-frame" src="./../assets/screen-frame.png" alt="screen-frame" />
-    <div class="screen-container">
+    <img
+      class="screen-frame"
+      src="./../assets/screen-frame.png"
+      alt="screen-frame"
+    />
+    <div class="screen-container" v-if="globalStore.baseData.data">
       <TopBar></TopBar>
       <div class="app-container">
         <v-layout>
-        <SideBar></SideBar>
-        <div class="tabs-container" v-if="!isRevoked()">
-          <RacingPage v-if="globalStore.currentPage === 'racing'"></RacingPage>
-          <ResultsPage v-if="globalStore.currentPage === 'results'"></ResultsPage>
-          <MyTracksPage v-if="globalStore.currentPage === 'mytracks'"></MyTracksPage>
-          <RacersPage v-if="globalStore.currentPage === 'racers'"></RacersPage>
-          <SettingsPage v-if="globalStore.currentPage === 'settings'"></SettingsPage>
-        </div>
-        <div v-else id="revoked-message-container">
-          <div class="revoked-message-holder">
-            <h3 id="revoked-access">
-              Your current user has had it's access revoked
-            </h3>
-            <h3 id="not-logged-in">You need a user account to access this</h3>
+          <SideBar></SideBar>
+          <div
+            class="tabs-container"
+            v-if="globalStore.currentPage === 'settings' || !hasProblem"
+          >
+            <RacingPage
+              v-if="globalStore.currentPage === 'racing'"
+            ></RacingPage>
+            <ResultsPage
+              v-if="globalStore.currentPage === 'results'"
+            ></ResultsPage>
+            <MyTracksPage
+              v-if="globalStore.currentPage === 'mytracks'"
+            ></MyTracksPage>
+            <RacersPage
+              v-if="globalStore.currentPage === 'racers'"
+            ></RacersPage>
+            <SettingsPage
+              v-if="globalStore.currentPage === 'settings'"
+            ></SettingsPage>
           </div>
-        </div>
-      </v-layout>
+          <div id="revoked-message-container" v-else>
+            <div class="revoked-message-holder">
+              <v-alert
+                :title="hasProblem.title"
+                :text="hasProblem.text"
+                :color="hasProblem.color ? hasProblem.color : 'error'"
+                :icon="hasProblem.icon ? hasProblem.icon : '$error'"
+              >
+              </v-alert>
+            </div>
+          </div>
+        </v-layout>
       </div>
     </div>
   </div>
@@ -40,30 +60,54 @@ import SettingsPage from "../components/app/pages/SettingsPage.vue";
 import { closeApp } from "@/helpers/closeApp";
 import api from "@/api/axios";
 import { getBaseData } from "@/helpers/getBaseData";
+import { computed } from "vue";
 
 const globalStore = useGlobalStore();
 
-const isRevoked = () => {
-    if (globalStore.baseData.data.currentRacerName && globalStore.baseData.data.racerNames) {
-      const currentRacer = globalStore.baseData.data.racerNames.find(racer => globalStore.baseData.data.currentRacerName === racer.racername)
-      if (currentRacer) {
-        return currentRacer.revoked
+const hasProblem = computed(() => {
+  if (
+    !globalStore.baseData.data.currentRacerName &&
+    globalStore.baseData.data.racerNames &&
+    globalStore.baseData.data.racerNames.length === 0
+  ) {
+    return {
+      title: "You are lacking a racing app user",
+      text: "You need to have at least one user account to access this",
+    };
+  } else if (globalStore.baseData.data.currentRacerName) {
+    const currentRacer = globalStore.baseData.data.racerNames?.find(
+      (racer) => globalStore.baseData.data.currentRacerName === racer.racername
+    );
+    if (currentRacer) {
+      if (currentRacer.revoked) {
+        return {
+          title: "Your current user has had it's access revoked",
+          text: "It has not been removed, yet",
+        };
       }
-      return false
     } else {
-        return false
+      return {
+        title: "Your current user has been permanently removed",
+        text: "Sucks to suck I guess",
+      };
     }
-}
-
-document.onkeydown = function(evt) {
-  if (evt?.key === 'Escape') closeApp() 
+  } else {
+    return {
+      title: "No user selected",
+      text: "Select a user in the settings page",
+      color: "info",
+      icon: "$info",
+    };
+  }
+  return false;
+});
+document.onkeydown = function (evt) {
+  if (evt?.key === "Escape") closeApp();
 };
 
-
 onMounted(() => {
-  getBaseData()
+  getBaseData();
 });
-
 </script>
 
 <style scoped lang="scss">
@@ -74,7 +118,6 @@ body {
 h2 {
   margin-bottom: 0px;
 }
-
 
 .ui-container {
   z-index: 2000;
@@ -88,12 +131,12 @@ h2 {
 
 #revoked-message-container {
   width: 100%;
+  margin-left: 56px;
 }
 
 .revoked-message-holder {
   display: flex;
   flex-direction: column;
-  width: 100%;
   justify-content: center;
   align-items: center;
   margin: 2em 2em 2em 2em;
@@ -120,12 +163,12 @@ h2 {
   overflow-x: hidden;
   position: relative;
   display: flex;
-  height: 460px; 
+  height: 460px;
 }
 
 .tabs-container {
   width: 100%;
-  margin-left: 55px;
+  margin-left: 56px;
 }
 
 /* SCROLLBAR */

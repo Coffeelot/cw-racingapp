@@ -74,7 +74,6 @@ const handleMessageListener = (event: MessageEvent) => {
 
 const getBaseData = async () => {
   const res = await api.post("GetBaseData");
-  console.log('asda', JSON.stringify(res))
   globalStore.$state.baseData = res
 }
 
