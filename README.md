@@ -173,7 +173,6 @@ You might also want to read up on the new system, see User Management section.
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
 
 ## Images
-### Interface Images *(Using our custom skin on QB-Menu and QB-Input)*
 
 **Track Setup**
 
