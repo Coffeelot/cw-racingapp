@@ -1,6 +1,6 @@
 {
-  "name": "vue-template",
-  "version": "2.0.1",
+  "name": "RacingApp",
+  "version": "2.0.2",
   "private": true,
   "scripts": {
     "dev": "vite",

@@ -58,7 +58,7 @@ const ghostingText = () => {
 
 const expirationTimeString = () => {
     const time = new Date(props.race.ExpirationTime)
-    return time.getHours() + ':' + (parseInt(time.getMinutes()) > 10 ? time.getMinutes() : '0'+ time.getMinutes())
+    return time.getHours() + ':' + (time.getMinutes() > 10 ? time.getMinutes() : '0'+ time.getMinutes())
 }
 
 </script>

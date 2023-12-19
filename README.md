@@ -136,8 +136,10 @@ Update to track editor:
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/ZAUrmS63ZaM/0.jpg)](https://youtu.be/ZAUrmS63ZaM)
 # Setup
 
+### Installation
 1. Download ZIP
-2. Go to "*html*" folder and open a command window (right-click > open in terminal) then type  `npm i` and then `npm run build`. You should now see a folder called "*dist*"
+2. Go to "*html*" folder and open a command window (right-click > open in terminal) then type  `npm i` and then `npm run build`. (Seeing a virus popup? [Don't worry](https://forum.cfx.re/t/malware-detection-in-server-build-6500/5117877)) 
+You should now see a folder called "*dist*"
 3. Update or insert the database tables. These are found in the `racing.sql` file
 4. Adjust values in the `config.lua` file to your liking
 5. Add the items to your `qb-core/shared/items.lua`
@@ -146,13 +148,13 @@ Update to track editor:
 ```
 4. Add the item images to your inventory image folder
 
-Setup Notes
+### Setup Notes
 > Step 2 needs to be repeated when you update
 
 > You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
 > Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. 
-
+### Use in game
 Use the command `createracinguser` to do this. For example:
 `/createracinguser god 1 IReadTheReadme`
 This will create a god account for the user with serverID 1 (probably you if you're on your dev server) called IReadTheReadme. 
