@@ -141,6 +141,7 @@ export type BaseData = {
         currentRacerName: string,
         currentRacerAuth: string,
         auth: Auth
+        hudSettings: { location: string, maxPositions: number }
     }
 }
 

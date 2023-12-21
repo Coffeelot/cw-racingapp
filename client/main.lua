@@ -1226,7 +1226,7 @@ CreateThread(function()
                 end
             else
                 local data = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
-                DrawMarker(4, data.coords.x, data.coords.y, data.coords.z + 1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
+                DrawMarker(4, data.coords.x, data.coords.y, data.coords.z+1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
                     1.5, 255, 255, 255, 255, 0, 1, 0, 0, 0, 0, 0)
                     nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1].blip)
             end
@@ -1397,6 +1397,7 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     else
         ClearGpsMultiRoute()
     end
+    updateCountdown(-1)
     UnGhostPlayer()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
@@ -1676,6 +1677,20 @@ local function filterTracksByRacer(Tracks)
     return filteredTracks
 end
 
+local function isPositionCheating()
+    local ped = PlayerPedId()
+    local pos = GetEntityCoords(ped)
+    local current = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
+    local next = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1]
+    
+    local distanceToStart = #(pos - vector3(current.coords.x, current.coords.y, current.coords.z))
+    local distanceToNext = #(pos - vector3(next.coords.x, next.coords.y, next.coords.z))
+
+    local distanceBetween = #(vector3(next.coords.x, next.coords.y, next.coords.z) - vector3(current.coords.x, current.coords.y, current.coords.z))
+    
+    return distanceBetween > distanceToNext
+end
+
 RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Positions)
     doGPSForRace(true)
     Players = {}
@@ -1687,11 +1702,9 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Posi
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then
                 if Countdown == 10 then
-                    --QBCore.Functions.Notify(Lang:t("primary.race_will_start"), 'primary', 2500)
-                    updateCountdown(Lang:t("primary.race_will_start"))
+                    updateCountdown(10)
                     PlaySoundFrontend(-1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS")
                 elseif Countdown <= 5 then
-                    --QBCore.Functions.Notify(Countdown, 'primary', 500)
                     updateCountdown(Countdown)
                     PlaySoundFrontend(-1, "Oneshot_Final", "MP_MISSION_COUNTDOWN_SOUNDSET")
                 end
@@ -1703,13 +1716,19 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Posi
             Wait(1000)
         end
         if CurrentRaceData.RaceName ~= nil then
+            updateCountdown(0)
+            if isPositionCheating() then 
+                TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData)
+                QBCore.Functions.Notify('You got disqualified for trying to start pass the line', 'error')
+                FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
+                return 
+            end
             if IgnoreRoadsForGps then
                 AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             else
                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             end
             markWithUglyWaypoint()
-            updateCountdown(0)
             SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, Config.Blips.Generic.Size)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             DoPilePfx()
@@ -2266,7 +2285,8 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         racerNames = MyRacerNames,
         currentRacerName = currentName,
         currentRacerAuth = currentAuth,
-        auth = Config.Permissions[currentAuth]
+        auth = Config.Permissions[currentAuth],
+        hudSettings = Config.HUDSettings
     }
     cb(setup)
 end)
@@ -2498,8 +2518,6 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
     local racers = 0
     local maxClass = 'open'
     if CurrentRaceData.RaceId then
-        print('canstart', (not (CurrentRaceData.OrganizerCID == QBCore.Functions.GetPlayerData().citizenid) or
-        CurrentRaceData.Started))
         for _ in pairs(CurrentRaceData.Racers) do
             racers = racers + 1
         end

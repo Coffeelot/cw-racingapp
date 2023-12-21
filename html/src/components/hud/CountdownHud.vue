@@ -2,9 +2,10 @@
   <div class="countdown-container">
     <div class="countdown-holder">
       <transition name="scale" mode="out-in">
-        <div :key="countdownNumber" class="number-holder">
-          <span id="countdown-text" v-if="countdownNumber === 0">GO!</span>
-          <span id="countdown-number" v-else>{{ countdownNumber }}</span>
+        <span id="countdown-text" v-if="countdownNumber === 0">GO!</span>
+        <span id="countdown-text" v-else-if="countdownNumber === 10">Get Ready!</span>
+        <div v-else :key="countdownNumber" class="number-holder">
+          <span id="countdown-number">{{ countdownNumber }}</span>
         </div>
       </transition>
     </div>
@@ -57,6 +58,7 @@ defineProps<{
   font-family: var(--text-font);
   color: var(--font-color);
   text-transform: uppercase;
+  font-weight: bold;
 }
 
 .scale-enter-active,

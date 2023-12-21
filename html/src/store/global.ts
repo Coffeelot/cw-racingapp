@@ -10,8 +10,7 @@ export const useGlobalStore = defineStore('global', {
     currentTab: 'current',
     showOnlyCurated: true,
     activeRace: {} as ActiveRace,
-    activeHudData: {
-    } as ActiveHudData,
+    activeHudData: {} as ActiveHudData,
     countdown: -1,
     buttons: {} as Buttons,
     creatorData: {} as CreatorData,

@@ -22,6 +22,7 @@
 - Post race leaderboard
 - Custom UI
 - Track curation
+- Ability to select Racing HUD position *(see HUDSettings in Config file)*
 
 **Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize

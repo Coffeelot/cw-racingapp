@@ -32,6 +32,11 @@ Config.CustomAmountsOfTracks = { -- custom max amout of tracks per citizenid
     ['SYY99260'] = 100,
 }
 
+Config.HUDSettings = { 
+    location = 'split', -- Position of the Racing Hud. Values that work: 'split', 'right' or 'left'.
+    maxPositions = 5, -- this will be the max amount of racers shown in the positions list. So if set to 5, the top 5 will be shown
+}
+
 Config.ItemName = {
     gps = 'racing_gps'
 }

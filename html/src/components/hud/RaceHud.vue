@@ -2,11 +2,6 @@
   <div class="race">
     <div class="boxes">
       <div class="positions-container">
-        <div id="race-ghosted-span">
-          <span id="race-ghosted-value">{{
-            globalStore.activeRace.ghosted ? "👻" : ""
-          }}</span>
-        </div>
         <RacerList :racers="globalStore.activeRace.positions" />
       </div>
       <div class="blocks-container">
@@ -61,6 +56,11 @@
             <span id="race-racename">{{ globalStore.activeRace.raceName }}</span></span
           >
         </div>
+        <div id="race-ghosted-span">
+          <span id="race-ghosted-value">{{
+            globalStore.activeRace.ghosted ? "👻" : ""
+          }}</span>
+        </div>
         </div>
       </div>
     </div>
@@ -68,23 +68,38 @@
 </template>
 
 <script setup lang="ts">
-import { Racer } from "../../store/types";
 import RacerList from "./RacerList.vue";
-import { ref } from "vue";
 import { useGlobalStore } from "@/store/global";
 import { secondsToHMS } from "@/helpers/secondsToHMS";
+import { computed } from "vue";
 const globalStore = useGlobalStore();
+
+const hudpositionToCss: Record<string, string> = {
+  'split': 'space-between',
+  'left': 'start',
+  'right': 'end',
+}
+
+const placement = computed(() => globalStore.baseData?.data?.hudSettings?.location ? hudpositionToCss[globalStore.baseData?.data?.hudSettings?.location]: 'space-between')
+const direction = computed(() => globalStore.baseData?.data?.hudSettings?.location === 'left' ? 'row-reverse': 'row')
 </script>
 
 <style scoped lang="scss">
+#race-ghosted-span {
+  display: flex;
+  justify-content: end;
+}
 .race {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 5vh;
+    left: 0;
+    z-index: 100;
 }
 .boxes {
   display: flex;
-  justify-content: end;
+  justify-content: v-bind(placement);
+  flex-direction: v-bind(direction);
+  width: 100vw;
 }
 .blocks-container {
   display: flex;
@@ -96,8 +111,7 @@ const globalStore = useGlobalStore();
 
 .positions-container {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 20px;
   margin: 10px;
 }
@@ -113,7 +127,6 @@ const globalStore = useGlobalStore();
 .box {
   background: $hud-background;
   width: 100%;
-  font-size: 1.5em;
   display: flex;
   gap: 1em;
   align-items: center;
