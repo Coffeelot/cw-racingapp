@@ -41,8 +41,7 @@
       </v-window-item>
       <v-window-item value="setup" class="tabcontent">
         <div class="subheader">
-          <h3>Pick A Track</h3>
-          <span>
+          <h3 class="header-text">Pick A Track</h3>
             <v-switch
               v-model="globalStore.showOnlyCurated"
               hide-details
@@ -56,7 +55,13 @@
                 }}
               </template>
             </v-switch>
-          </span>
+          <v-text-field
+            class="text-field"
+            hideDetails
+            placeholder="Search..."
+            density="compact"
+            v-model="search"
+          ></v-text-field>
         </div>
         <div
           v-if="isLoading"
@@ -67,7 +72,7 @@
         </div>
         <div v-else class="available-races">
           <AvailableTracksCard
-            v-for="track in filteredTracks()"
+            v-for="track in filteredTracks"
             :track="track"
             @select="(track) => selectTrack(track)"
           ></AvailableTracksCard>
@@ -94,23 +99,27 @@ import SetupRaceDialog from "../components/SetupRaceDialog.vue";
 import { onMounted } from "vue";
 import { CurrentRace, Track } from "@/store/types";
 import { closeApp } from "@/helpers/closeApp";
+import { computed } from "vue";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);
 const isLoading = ref(false);
 const races = ref([]);
 const dialog = ref(false);
+const search = ref('');
 const selectedTrack: Ref<Track | undefined> = ref(undefined);
 const currentRace: Ref<CurrentRace | undefined> = ref(undefined);
 
-const filteredTracks = () => {
+const filteredTracks = computed(() => {
   let tracks = globalStore.tracks;
   if (globalStore.showOnlyCurated)
     tracks = tracks.filter((track: Track) => !!track.Curated);
+  if (tracks && search.value !== '') tracks = tracks.filter((track) => track.RaceName.toLowerCase().includes(search.value.toLowerCase()) || track.RaceId.toLowerCase().includes(search.value.toLowerCase()) )
+
   return tracks.sort((a: Track, b: Track) =>
     a.RaceName.toLowerCase() > b.RaceName.toLowerCase() ? 1 : -1
   );
-};
+});
 
 const resetTrackSetup = () => {
   tab.value = "setup";
@@ -173,5 +182,6 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 1em;
+  margin-top: 1em;
 }
 </style>

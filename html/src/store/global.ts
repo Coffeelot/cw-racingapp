@@ -1,6 +1,6 @@
 // Utilities
 import { defineStore } from 'pinia'
-import { ActiveHudData, ActiveRace, Auth, BaseData, Buttons, CreatorData, CurrentRace, Race, RacerName } from './types'
+import { ActiveHudData, ActiveRace, Auth, BaseData, Buttons, CreatorData, CurrentRace, Race, RacerName, Track } from './types'
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
@@ -17,7 +17,7 @@ export const useGlobalStore = defineStore('global', {
     baseData: {} as BaseData,
     isLoadingBaseData: true,
     settings: {},
-    tracks: {} as Record<string, any>,
+    tracks: {} as Track[],
     results: {} as Record<string, any>
   })
 })

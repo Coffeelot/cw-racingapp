@@ -39,10 +39,10 @@
         </thead>
         <tbody>
           <tr
-            v-for="item in selectedRace.Records"
+            v-for="(item, index) in selectedRace.Records"
             :key="`${item.Holder}-${item.Class}`"
           >
-            <td>{{ item.Holder }}</td>
+            <td>{{ index +1 }}. {{ item.Holder }}</td>
             <td>{{ secondsToHMS(item.Time) }}</td>
             <td>{{ item.Vehicle }}</td>
             <td>{{ item.Class }}</td>
