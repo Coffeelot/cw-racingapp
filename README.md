@@ -218,3 +218,7 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
 ## Developed by Coffeelot#1586, Wuggie#1683
 Once upon a time this was a fork of [QB-Racing](https://github.com/ItsANoBrainer/qb-racing), credits to ItsANoBrainer.
+
+# Sponsored Features
+## Real Time Racing Positions
+@JELLYHITAM | [Quantum Roleplay Indonesia](https://discord.gg/XyP9tPDHX4)

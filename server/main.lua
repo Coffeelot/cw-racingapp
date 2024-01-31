@@ -6,7 +6,6 @@ local Tracks = {}
 local AvailableRaces = {}
 local LastRaces = {}
 local NotFinished = {}
-local racersSortedByPosition = {}
 local useDebug = Config.Debug
 local RaceResults = {}
 if Config.Debug then
@@ -667,7 +666,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             Tracks[RaceId].BuyIn = RaceData.BuyIn
             Tracks[RaceId].GhostingTime = RaceData.GhostingTime
             Tracks[RaceId].Racers[Player.PlayerData.citizenid] = {
-                Checkpoint = 0,
+                Checkpoint = 1,
                 Lap = 1,
                 Finished = false,
                 RacerName = RacerName,
@@ -675,7 +674,6 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                 PlayerVehicleEntity = PlayerVehicleEntity,
                 RacerSource = src
             }
-            table.insert(racersSortedByPosition, Tracks[RaceId].Racers[Player.PlayerData.citizenid] )
             AvailableRaces[AvailableKey].RaceData = Tracks[RaceId]
             TriggerClientEvent('cw-racingapp:client:JoinRace', src, Tracks[RaceId], RaceData.Laps, RacerName)
             for cid, racer in pairs(Tracks[RaceId].Racers) do
@@ -944,46 +942,6 @@ RegisterNetEvent('cw-racingapp:server:UpdateRaceState', function(RaceId, Started
     Tracks[RaceId].Started = Started
 end)
 
-local function copyWihoutId(original)
-	local copy = {}
-	for key, value in pairs(original) do
-		copy[#copy+1] = value
-	end
-	return copy
-end
-
-local function placements(RaceId)
-    local tempPositions = copyWihoutId(Tracks[RaceId].Racers)
-    if #tempPositions > 1 then
-        if useDebug then print('More than one racer') end
-        table.sort(tempPositions, function(a,b)
-            if a.Lap > b.Lap then return true
-            elseif a.Lap < b.Lap then return false
-            elseif a.Lap == b.Lap then
-                if a.Checkpoint > b.Checkpoint then return true
-                elseif a.Checkpoint < b.Checkpoint then return false
-                elseif a.Checkpoint == b.Checkpoint then
-                    if a.RaceTime ~= nil and b.RaceTime ~= nil and a.RaceTime < b.RaceTime then
-                        if useDebug then
-                           print(a.RacerName, a.RaceTime, ' < ',b.RacerName, b.RaceTime)
-                        end
-                        return true
-                    else
-                        return false
-                    end
-                end
-            end
-        end)
-        if useDebug then
-            print('placement function temp pos:', QBCore.Debug(tempPositions))
-        end
-    else
-        if useDebug then print('Only one racer') end
-    end
-    racersSortedByPosition = tempPositions
-    return tempPositions
-end
-
 local Timers = {}
 
 local function timer(raceId)
@@ -1060,15 +1018,8 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Tracks[RaceId].Racers[CitizenId].Lap = Lap
         Tracks[RaceId].Racers[CitizenId].Finished = Finished
         Tracks[RaceId].Racers[CitizenId].RaceTime = RaceTime
-        if useDebug and racersSortedByPosition[2] then
-           print('before', racersSortedByPosition[1].RacerName, racersSortedByPosition[2].RacerName)
-        end
-        local newPositions = placements(RaceId)
-        if useDebug and racersSortedByPosition[2] then
-           print('after', newPositions[1].RacerName, newPositions[2].RacerName)
-        end
         for cid, racer in pairs(Tracks[RaceId].Racers) do
-            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId], newPositions)
+            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
         end
     else
         -- Attemt to make sure script dont break if something goes wrong
@@ -1095,14 +1046,13 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     AvailableRaces[AvailableKey].RaceData.Started = true
     AvailableRaces[AvailableKey].RaceData.Waiting = false
     local TotalRacers = 0
-    local newPositions = placements(RaceId)
     for Index, Value in pairs(Tracks[RaceId].Racers) do
         TotalRacers = TotalRacers + 1
     end
     for CitizenId, _ in pairs(Tracks[RaceId].Racers) do
         local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
         if Player ~= nil then
-            TriggerClientEvent('cw-racingapp:client:RaceCountdown', Player.PlayerData.source,TotalRacers, newPositions)
+            TriggerClientEvent('cw-racingapp:client:RaceCountdown', Player.PlayerData.source,TotalRacers)
         end
     end
     if Config.UseResetTimer then startTimer(RaceId) end

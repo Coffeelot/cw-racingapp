@@ -194,6 +194,12 @@ local function clearBlips()
     end
 end
 
+local function getIndex (Positions)
+    for k,v in pairs(Positions) do
+        if v.RacerName == CurrentRaceData.RacerName then return k end
+    end
+end
+
 local function doGPSForRace(started)
     DeleteAllCheckpoints()
     if IgnoreRoadsForGps then
@@ -747,7 +753,7 @@ local function updateCountdown(value)
     })
 end
 
-function RaceUI()
+local function RaceUI()
     CreateThread(function()
         while true do
             if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
@@ -792,7 +798,100 @@ function RaceUI()
                 end
                 break
             end
-            Wait(12)
+            Wait(100)
+        end
+    end)
+end
+
+local function copyWihoutId(original)
+	local copy = {}
+	for key, value in pairs(original) do
+		copy[#copy+1] = value
+	end
+	return copy
+end
+
+local function bothOpponentsHaveDefinedPositions(aSrc, bSrc)
+
+    local currentPlayer = GetPlayerPed(-1)
+    local currentPlayerCoords = GetEntityCoords(currentPlayer, 0)    
+
+    local aPly = GetPlayerFromServerId(aSrc)
+    local aTarget = GetPlayerPed(aPly)
+    local aCoords = GetEntityCoords(aTarget, 0)    
+
+    local bPly = GetPlayerFromServerId(bSrc)
+    local bTarget = GetPlayerPed(bPly)
+    local bCoords = GetEntityCoords(bTarget, 0)
+
+    if currentPlayer == aTarget then
+        return #(currentPlayerCoords - bCoords) > 0 -- not defined if 0
+    elseif currentPlayer == bTarget then
+        return #(currentPlayerCoords - aCoords) > 0 -- not defined if 0
+    else
+        if #(currentPlayerCoords - aCoords) == 0 then
+            return false
+        elseif #(currentPlayerCoords - bCoords) == 0 then
+            return false
+        else
+            return #(bCoords - aCoords) > 0
+        end
+    end
+end
+
+local function distanceToCheckpoint(src, checkpoint)
+    local ped = GetPlayerFromServerId(src)
+    local target = GetPlayerPed(ped)
+    local pos = GetEntityCoords(target, 0)
+    local next
+    if checkpoint + 1 > #CurrentRaceData.Checkpoints then
+        next = CurrentRaceData.Checkpoints[1]
+    else
+        next = CurrentRaceData.Checkpoints[checkpoint+1]
+    end
+    
+    local distanceToNext = #(pos - vector3(next.coords.x, next.coords.y, next.coords.z))
+    return distanceToNext
+end
+
+local function placements(CurrentRaceData)
+    local tempPositions = copyWihoutId(CurrentRaceData.Racers)
+    if #tempPositions > 1 then
+        table.sort(tempPositions, function(a,b)
+            if a.Lap > b.Lap then return true
+            elseif a.Lap < b.Lap then return false
+            elseif a.Lap == b.Lap then
+                if a.Checkpoint > b.Checkpoint then return true
+                elseif a.Checkpoint < b.Checkpoint then return false
+                elseif a.Checkpoint == b.Checkpoint then
+                    if Config.CheckDistance and bothOpponentsHaveDefinedPositions(a.RacerSource, b.RacerSource) then
+                        return distanceToCheckpoint(a.RacerSource, a.Checkpoint) < distanceToCheckpoint(b.RacerSource, b.Checkpoint)
+                    else
+                        if a.RaceTime ~= nil and b.RaceTime ~= nil and a.RaceTime < b.RaceTime then
+                            return true
+                        else
+                            return false
+                        end
+                    end
+                end
+            end
+        end)
+    end
+    return tempPositions
+end
+
+local function positionThread()
+    CreateThread(function()
+        while true do
+            if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
+                local positions = placements(CurrentRaceData)
+                local MyPosition = getIndex(positions)
+                CurrentRaceData.Position = MyPosition
+                CurrentRaceData.Positions = positions
+            else
+                break
+            end
+            Wait(1000)
         end
     end)
 end
@@ -1350,18 +1449,9 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
     end
 end)
 
-local function getIndex (Positions)
-    for k,v in pairs(Positions) do
-        if v.RacerName == CurrentRaceData.RacerName then return k end
-    end
-end
-
-RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(RaceId, RaceData, Positions)
+RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(RaceId, RaceData)
     if (CurrentRaceData.RaceId ~= nil) and CurrentRaceData.RaceId == RaceId then
-        local MyPosition = getIndex(Positions)
         CurrentRaceData.Racers = RaceData.Racers
-        CurrentRaceData.Position = MyPosition
-        CurrentRaceData.Positions = Positions
     end
 end)
 
@@ -1691,13 +1781,13 @@ local function isPositionCheating()
     return distanceBetween > distanceToNext
 end
 
-RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers, Positions)
+RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     doGPSForRace(true)
     Players = {}
     Kicked = false
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
-    CurrentRaceData.Positions = Positions
+    positionThread()
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then
@@ -2306,6 +2396,52 @@ RegisterNetEvent("cw-racingapp:client:notifyRacers", function(text)
     end
 end)
 
+local attachedProp = nil
+
+local function clearProp()
+    if useDebug then
+       print('REMOVING PROP', attachedProp)
+    end
+    if DoesEntityExist(attachedProp) then
+        DeleteEntity(attachedProp)
+        attachedProp = 0
+    end
+end
+
+local function attachProp()
+    clearProp()
+    local model = 'prop_cs_tablet'
+    local boneNumber = 28422
+    SetCurrentPedWeapon(GetPlayerPed(-1), 0xA2719263)
+    local bone = GetPedBoneIndex(GetPlayerPed(-1), boneNumber)
+
+    RequestModel(model)
+    while not HasModelLoaded(model) do
+        Citizen.Wait(100)
+    end
+    attachedProp = CreateObject(model, 1.0, 1.0, 1.0, 1, 1, 0)
+    local x, y,z = 0.0, -0.03, 0.0
+    local xR, yR, zR = 20.0, -90.0, 0.0
+    AttachEntityToEntity(attachedProp, GetPlayerPed(-1), bone, x, y, z, xR, yR, zR, 0, true, false, true, 2, true)
+end
+
+local function stopAnimation()
+    ClearPedTasks(PlayerPedId())
+    clearProp()
+end
+
+local function handleAnimation()
+    local animDict = 'amb@code_human_in_bus_passenger_idles@female@tablet@idle_a'
+    if not DoesAnimDictExist(animDict) then
+        print('animation dict does not exist')
+        return false
+    end
+    RequestAnimDict(animDict)
+    while (not HasAnimDictLoaded(animDict)) do Wait(10) end
+    TaskPlayAnim(PlayerPedId(), animDict, "idle_a", 5.0, 5.0, -1, 51, 0, false, false, false)
+    attachProp()
+end
+
 RegisterNetEvent("cw-racingapp:client:openUi", function(data)
     if not uiIsOpen then
         currentName = data.name
@@ -2315,6 +2451,7 @@ RegisterNetEvent("cw-racingapp:client:openUi", function(data)
         SendNUIMessage({ type = 'toggleApp', open = true})
         uiIsOpen = true
         StartScreenEffect('MenuMGIn', 1, true)
+        handleAnimation()
     end
 end)
 
@@ -2342,6 +2479,7 @@ RegisterNUICallback('UiCloseUi', function(_, cb)
     SetNuiFocus(false,false)
     cb(true)
     StopScreenEffect('MenuMGIn')
+    stopAnimation()
 end)
 
 RegisterNUICallback('UiFetchRaceResults', function(_, cb)
