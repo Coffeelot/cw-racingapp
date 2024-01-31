@@ -44,6 +44,19 @@
                     cols="12"
                     sm="6"
                   >
+                        <v-switch
+                          label="Distance check"
+                          v-model="settings.CheckDistance"
+                          @change="updateSetting('CheckDistance')"
+                        >
+                      </v-switch>
+                      <v-tooltip location="top" activator="parent" text="Having this on might have an impact on your performance if there are many racers in a race">
+                      </v-tooltip>
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
                     <v-select
                      :items="globalStore.baseData.data.racerNames"
                       item-value="racername"
@@ -79,6 +92,7 @@ const settings: Ref<Settings> = ref({
     ShowGpsRoute: false,
     IgnoreRoadsForGps: false,
     UseUglyWaypoint: false,
+    CheckDistance: false,
 })
 const racerName = ref(globalStore.baseData.data.currentRacerName)
 const loading = ref(false)

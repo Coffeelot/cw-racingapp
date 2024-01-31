@@ -61,6 +61,7 @@ local traderPed
 local ShowGpsRoute = Config.ShowGpsRoute or false
 local IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
 local UseUglyWaypoint = Config.UseUglyWaypoint or false
+local CheckDistance = Config.CheckDistance or false
 
 -- for debug
 local function dump(o)
@@ -864,7 +865,7 @@ local function placements(CurrentRaceData)
                 if a.Checkpoint > b.Checkpoint then return true
                 elseif a.Checkpoint < b.Checkpoint then return false
                 elseif a.Checkpoint == b.Checkpoint then
-                    if Config.CheckDistance and bothOpponentsHaveDefinedPositions(a.RacerSource, b.RacerSource) then
+                    if CheckDistance and bothOpponentsHaveDefinedPositions(a.RacerSource, b.RacerSource) then
                         return distanceToCheckpoint(a.RacerSource, a.Checkpoint) < distanceToCheckpoint(b.RacerSource, b.Checkpoint)
                     else
                         if a.RaceTime ~= nil and b.RaceTime ~= nil and a.RaceTime < b.RaceTime then
@@ -889,6 +890,7 @@ local function positionThread()
                 CurrentRaceData.Position = MyPosition
                 CurrentRaceData.Positions = positions
             else
+
                 break
             end
             Wait(1000)
@@ -2679,7 +2681,7 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
 end)
 
 RegisterNUICallback('UiGetSettings', function(_, cb)
-    cb({IgnoreRoadsForGps = IgnoreRoadsForGps, ShowGpsRoute = ShowGpsRoute, UseUglyWaypoint = UseUglyWaypoint})
+    cb({IgnoreRoadsForGps = IgnoreRoadsForGps, ShowGpsRoute = ShowGpsRoute, UseUglyWaypoint = UseUglyWaypoint, CheckDistance = CheckDistance})
 end)
 
 RegisterNUICallback('UiGetAvailableTracks', function(data, cb)
@@ -2973,6 +2975,13 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
         toggleShowRoute(data.value)
     elseif data.setting =='UseUglyWaypoint' then
         toggleUglyWaypoint(data.value)
+    elseif data.setting =='CheckDistance' then
+        CheckDistance = data.value
+        if CheckDistance then
+            QBCore.Functions.Notify("Position checks will use distance", 'success')
+        else
+            QBCore.Functions.Notify("Position checks won't use distance", 'error')
+        end
     end
 end)
 

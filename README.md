@@ -12,6 +12,7 @@
 - Not as harsh checkpoint-pass detection compared to qb-racing
 - Remove race tracks you have created
 - See your position in the race
+- Real time positioning (can be toggled off if performance issue)
 - Updated HUD
 - Accurate time (old one would vary depending on computer performance) **NOW IN MS!**
 - Ability to reset/run the SQL scripts from in game

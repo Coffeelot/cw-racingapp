@@ -15,6 +15,7 @@ export type Settings = {
     IgnoreRoadsForGps: boolean,
     ShowGpsRoute: boolean,
     UseUglyWaypoint: boolean,
+    CheckDistance: boolean
 }
 
 export type CreatorData = {
