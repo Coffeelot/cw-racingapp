@@ -664,6 +664,7 @@ local function playerIswithinDistance()
         local target = GetPlayerPed(playerIdx)
         local targetCoords = GetEntityCoords(target, 0)
         local distance = #(targetCoords.xy-plyCoords.xy)
+        local isInSameCar = GetVehiclePedIsIn(ply, false) == GetVehiclePedIsIn(target, false)
         
         if useDebug then
            print('playeridx', playerIdx)
@@ -672,9 +673,10 @@ local function playerIswithinDistance()
            print(ply,target, 'is same:', ply == target)
            print('Target locations', targetCoords.x..','..targetCoords.y)
            print('distance', distance)
+           print('In same car:', isInSameCar)
         end
 
-        if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
+        if not isInSameCar and distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
             return true
         end
     end  
