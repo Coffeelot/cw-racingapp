@@ -1791,6 +1791,10 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     Kicked = false
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
+    if CurrentRaceData.Ghosting and CurrentRaceData.TotalRacers == 1 then
+        CurrentRaceData.Ghosting = false
+        QBCore.Functions.Notify('Ghosting is turned off due to only one racer')
+    end
     positionThread()
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
