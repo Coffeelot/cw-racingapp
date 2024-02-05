@@ -215,7 +215,7 @@ Config.ParticpationTrophies = {
     minumumRaceLength = 3000
 }
 
-Config.UseOxLibForKeybind = true -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
+Config.UseOxLibForKeybind = false -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!! Use oxlib for keybinds instead of natives.
 Config.Buttons = {
     AddCheckpoint = 'INSERT',
     DeleteCheckpoint = 'DELETE',

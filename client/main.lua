@@ -2187,7 +2187,7 @@ end
 AddEventHandler('onResourceStop', function (resource)
    if resource ~= GetCurrentResourceName() then return end
    for i, entity in pairs(Entities) do
-       print('deleting', entity)
+       if useDebug then print('Racing app cleanup: ^2', entity) end
        if DoesEntityExist(entity) then
           DeleteEntity(entity)
        end
@@ -2196,7 +2196,7 @@ end)
 --- CREATOR BUTTONS
 if Config.UseOxLibForKeybind then
     if not lib then
-        print('UseOxLibForKeybind is enabled but no lib was found. Might be missing from fxmanifest')
+        print('^1UseOxLibForKeybind is enabled but no lib was found. Might be missing from fxmanifest')
     else
         local keyb= lib.addKeybind({
             name = 'clickAddCheckpoint',
@@ -2805,6 +2805,7 @@ local function verifyCheckpoints(checkpoints)
 end
 
 RegisterNUICallback('UiCreateTrack', function(createData, cb)
+    if not createData.name then return end
     if useDebug then print('create data', json.encode(createData)) end
     if not createData or createData.name == "" then
         print('No data')
@@ -3023,5 +3024,6 @@ end)
 
 AddEventHandler('onResourceStart', function (resource)
     if resource ~= GetCurrentResourceName() then return end
+    if useDebug then print('^3--- Debug is on for Racingapp --- ') end
     setup()
  end)
