@@ -3003,7 +3003,7 @@ local function setup()
         end
         if PlayerData.metadata.selectedRacerName then
             currentAuth = PlayerData.metadata.selectedRacerAuth
-            currentName = PlayerData.metadata.selecterdRacerName
+            currentName = PlayerData.metadata.selectedRacerName
         else
             if getSizeOfTable(MyRacerNames) == 1 then 
                 QBCore.Functions.TriggerCallback('cw-racingapp:server:ChangeRacerName', function(result)
