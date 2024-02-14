@@ -5,6 +5,8 @@
 
 **Some of the added features:**
 - Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
+- ELO system for ranking racers
+- Crew system
 - Advanced leaderboard for each track and class showing everyones best times
 - By-class leaderboard
 - Replacement of tire-piles lamps
@@ -180,7 +182,7 @@ You might also want to read up on the new system, see User Management section.
 ### VUE update 18th December 2023
 See [setup](#setup) section for instructions on how to build a dist
 
-### Racing Crews and Racing Rank update February 2024
+### Racing Crews and Racing Rank update 14th February 2024
 1) Make sure to run the sql in `cw-racingcrews.sql`
 2) Run this in your Database to update your `racer_names`: 
 ```sql
