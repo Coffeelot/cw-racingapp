@@ -1,6 +1,6 @@
 <template>
   <v-card class="big-card">
-    <v-card-title class="title">{{ member.racername }} {{ memberIsFounder && '⭐' }}</v-card-title>
+    <v-card-title class="title">{{ member.racername }} {{ memberIsFounder ? '⭐' :'' }}</v-card-title>
     <v-card-text class="text">
       <v-chip>CitizenID: {{ member.citizenID }} </v-chip>
     </v-card-text>
