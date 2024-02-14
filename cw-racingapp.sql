@@ -29,12 +29,13 @@ CREATE TABLE `racer_names` (
 	`races` INT(11) NOT NULL DEFAULT '0',
 	`wins` INT(11) NOT NULL DEFAULT '0',
 	`tracks` INT(11) NOT NULL DEFAULT '0',
-	`auth` TEXT DEFAULT 'racer',
-	`createdby` TEXT,
-	`revoked` TINYINT DEFAULT 0,
+	`auth` TEXT NULL DEFAULT 'racer' COLLATE 'utf8mb4_general_ci',
+	`createdby` TEXT NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+	`revoked` TINYINT(4) NULL DEFAULT '0',
+	`ranking` INT(11) NULL DEFAULT '0',
 	INDEX `id` (`id`) USING BTREE
 )
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=0
+AUTO_INCREMENT=44
 ;

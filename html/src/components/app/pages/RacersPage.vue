@@ -2,7 +2,7 @@
   <div id="RacersPage" class="pagecontent">
     <v-tabs v-model="tab">
       <v-tab value="myRacers">My Racers</v-tab>
-      <!-- <v-tab value="create">Create Racer</v-tab> -->
+      <v-tab value="create" v-if="globalStore.baseData?.data?.auth?.create">Create Racer</v-tab>
     </v-tabs>
 
     <v-window v-model="tab">
@@ -21,6 +21,72 @@
           <MyRacerCard @triggerReload="getMyRacers()" v-for="racer in filteredRacers" :racer="racer"></MyRacerCard>
         </div>
       </v-window-item>
+      <v-window-item value="create" class="tabcontent">
+        <div class="subheader inline">
+          <h3 class="header-text">Create User</h3>
+        </div>
+        <div  v-if="globalStore.baseData?.data?.auth?.create" class="create-options">
+          <v-card class="card">
+            <v-card-title>Create</v-card-title>
+            <v-card-text>
+              <v-text-field
+                density="compact"
+                placeholder="Racer Name"
+                v-model="create.racerName"
+              />
+              <v-text-field
+                density="compact"
+                placeholder="Paypal/TempId (leave empty for self)"
+                v-model="create.racerId"
+              />
+              <v-select
+                  v-if="creationTypes"
+                  density="compact"
+                  hide-details
+                  :items="Object.values(creationTypes)"
+                  return-object
+                  item-title="label"
+                  v-model="selectedAuth"
+              ></v-select>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn
+                block
+                color="success"
+                variant="elevated"
+                type="submit"
+                @click="createUser()"
+                :loading="loading"
+              >
+                Create User
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+          <!-- <v-card class="card">
+            <v-card-title>Create for closest person</v-card-title>
+            <v-card-text>
+              <v-text-field
+                density="compact"
+                placeholder="Racer Name"
+                v-model="create.racerName"
+              />
+            </v-card-text>
+            <v-card-actions>
+              <v-btn
+                block
+                color="success"
+                variant="elevated"
+                type="submit"
+                @click="createUserClosest()"
+                :loading="loading"
+              >
+                Send Invite
+              </v-btn>
+            </v-card-actions>
+          </v-card> -->
+        </div>
+        <InfoText v-else title="Not authorized to create"></InfoText>
+      </v-window-item>
     </v-window>
   </div>
 </template>
@@ -33,21 +99,51 @@ import { Ref } from "vue";
 import { computed, onMounted } from "vue";
 import { ref } from "vue";
 import MyRacerCard from "../items/MyRacerCard.vue";
+import InfoText from "../components/InfoText.vue";
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);
 const myRacers: Ref<MyRacer[] | undefined> = ref(undefined);
+const creationTypes: Ref<any | undefined> = ref(undefined);
 const search = ref('');
+const selectedAuth = ref(undefined);
 const filteredRacers = computed(() => {
   if (myRacers.value && search.value !== '') return myRacers.value.filter((racer) => racer.racername.toLowerCase().includes(search.value.toLowerCase()) || racer.citizenid.toLowerCase().includes(search.value.toLowerCase()) )
   return myRacers.value
 })
+
+const create = ref({
+  racerName: '',
+  racerId: ''
+})
+const loading = ref(false)
 
 const getMyRacers = async () => {
   const response = await api.post('UiGetRacersCreatedByUser')
   if (response.data) {
     myRacers.value = response.data
   }
+  const typeResults = await api.post('UiGetPermissionedUserTypes')
+  if (typeResults.data) {
+    creationTypes.value = typeResults.data
+  }
 }
+
+const createUser = async () => {
+  loading.value = true
+  const response = await api.post("UiCreateUser", JSON.stringify({ racerName: create.value.racerName, racerId: create.value.racerId, selectedAuth: selectedAuth.value }));
+  setTimeout(() => {
+    loading.value = false
+    if (response.data) create.value.racerName = '';  create.value.racerId = '' 
+  }, 1000);
+};
+const createUserClosest = async () => {
+  loading.value = true
+  const response = await api.post("UiCreateUserClosest", JSON.stringify({ racerName: create.value.racerName, selectedAuth: selectedAuth.value}));
+  setTimeout(() => {
+    if (response.data) create.value.racerName = '';  create.value.racerId = '' 
+    loading.value = false
+  }, 1000);
+};
 
 onMounted(() => {
   getMyRacers();
@@ -67,4 +163,16 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5em
-}</style>
+}
+
+.create-options {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1em
+}
+.card {
+  flex-grow: 1;
+  height: fit-content;
+}
+</style>

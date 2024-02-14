@@ -1,13 +1,14 @@
 <template>
     <v-card class="small-card">
-        <v-card-title>{{ props.race.RaceData.RaceName + '| Hosted by ' + props.race.SetupRacerName }}</v-card-title>
+        <v-card-title>{{ props.race.RaceData.RaceName + ' | Hosted by ' + props.race.SetupRacerName }}</v-card-title>
         <v-card-text class="inline standardGap">
-            <v-chip>{{ `${lapsText} ${props.race.RaceData.Distance} m`}}</v-chip>
+            <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">Ranked</v-chip>
+            <v-chip prepend-icon="mdi-go-kart-track">{{ `${lapsText} ${props.race.RaceData.Distance} m`}}</v-chip>
             <v-chip v-if="buyInText">{{ buyInText }}</v-chip>
-            <v-chip>{{ `${props.race.racers} racer(s)` }}</v-chip>
-            <v-chip>{{ `Class: ${props.race.MaxClass}` }}</v-chip>
-            <v-chip v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
-            <v-chip>{{ `${props.race.RaceData.Automated ? 'Starts: ': `Expires:`} ${expirationTimeString}` }}</v-chip>
+            <v-chip prepend-icon="mdi-account-group">{{ `${props.race.racers} racer(s)` }}</v-chip>
+            <v-chip  prepend-icon="mdi-car-info">{{ `Class: ${props.race.MaxClass}` }}</v-chip>
+            <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
+            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? 'Starts: ': `Expires:`} ${expirationTimeString}` }}</v-chip>
         </v-card-text>
         <v-card-actions>
             <v-btn variant="tonal" v-if="!props.race.disabled" @click='joinRace()'>Join Race</v-btn>

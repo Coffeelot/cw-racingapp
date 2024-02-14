@@ -39,6 +39,23 @@ export type Buttons = {
     AddCheckpoint: string,
 }
 
+export type CrewMember = {
+    citizenID: string,
+    racername: string,
+    rank: number
+}
+
+export type Crew = {
+    id: number,
+    crewName: string,
+    founderName: string,
+    founderCitizenid: string,
+    members: CrewMember[],
+    wins: number,
+    races: number,
+    rank: number
+}
+
 export type MyRacer = {
     auth: string,
     citizenid: string,
@@ -46,6 +63,7 @@ export type MyRacer = {
     lasttouched: number,
     racername: string,
     races: number,
+    ranking: number,
     revoked: number,
     tracks: number,
     wins: number,
@@ -66,7 +84,8 @@ export type CurrentRace = {
     cantStart: boolean,
     ghosted: boolean,
     raceId: string,
-    ghosting: boolean
+    ghosting: boolean,
+    ranked: boolean,
 }
 
 export type ActiveRacer = {
@@ -141,6 +160,8 @@ export type BaseData = {
         racerNames: RacerName[],
         currentRacerName: string,
         currentRacerAuth: string,
+        currentCrewName: string,
+        currentRanking: number,
         auth: Auth
         hudSettings: { location: string, maxPositions: number }
     }
@@ -162,6 +183,9 @@ export type Result = {
     RacerName: string,
     TotalTime: number,
     BestLap: number,
+    Ranking: number,
+    RacingCrew?: string,
+    TotalChange: number,
     VehicleModel: string
     CarClass: string
 }
@@ -195,6 +219,7 @@ export type ResultData = {
       RaceData: {
         Access: Access,
         Automated: boolean,
+        Ranked: boolean,
         Checkpoints: [],
         Creator: string,
         CreatorName: string,

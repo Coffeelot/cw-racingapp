@@ -21,6 +21,9 @@
             <th class="text-left">
             </th>
             <th class="text-left">
+              Rank
+            </th>
+            <th class="text-left">
               Time
             </th>
             <th class="text-left">
@@ -32,6 +35,9 @@
             <th class="text-left">
               Class
             </th>
+            <th class="text-left" v-if="selectedRace.Data.RaceData.Ranked">
+              Rank Change
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -39,11 +45,13 @@
             v-for="(item, index) in selectedRace.Result"
             :key="item.RacerName"
           >
-            <td> {{ index +1 }}. {{ item.RacerName }}</td>
+            <td> {{ index +1 }}. {{ item.RacerName }} {{ item.RacingCrew ? '[' + item.RacingCrew + ']' : '' }}</td>
+            <td>{{ item.Ranking }}</td>
             <td>{{ secondsToHMS(item.TotalTime) }}</td>
             <td>{{ secondsToHMS(item.BestLap) }}</td>
             <td>{{ item.VehicleModel }}</td>
             <td>{{ item.CarClass }}</td>
+            <td  v-if="selectedRace.Data.RaceData.Ranked">{{ item.TotalChange}}</td>
           </tr>
         </tbody>
       </v-table>

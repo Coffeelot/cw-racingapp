@@ -26,6 +26,9 @@
             <RacersPage
               v-if="globalStore.currentPage === 'racers'"
             ></RacersPage>
+            <CrewPage
+              v-if="globalStore.currentPage === 'crew'"
+            ></CrewPage>
             <SettingsPage
               v-if="globalStore.currentPage === 'settings'"
             ></SettingsPage>
@@ -57,8 +60,8 @@ import ResultsPage from "../components/app/pages/ResultsPage.vue";
 import MyTracksPage from "../components/app/pages/MyTracksPage.vue";
 import RacersPage from "../components/app/pages/RacersPage.vue";
 import SettingsPage from "../components/app/pages/SettingsPage.vue";
+import CrewPage from "@/components/app/pages/CrewPage.vue";
 import { closeApp } from "@/helpers/closeApp";
-import api from "@/api/axios";
 import { getBaseData } from "@/helpers/getBaseData";
 import { computed } from "vue";
 

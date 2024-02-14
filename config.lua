@@ -17,6 +17,9 @@ Config.UseOxLibForKeybind = false -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO U
 Config.TimeOutTimerInMinutes = 5 -- Default = 5 minutes
 Config.NotifyRacers = true -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
+Config.LimitTopListTo = 10 -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
+Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
+
 -- GPS stuff
 Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
 Config.ShowGpsRoute = true -- Default for showing GPS route

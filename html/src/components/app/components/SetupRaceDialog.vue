@@ -18,6 +18,8 @@
                     sm="6"
                   >
                     <v-select
+                    density="compact"
+
                       :items="globalStore.baseData.data.laps"
                       item-value="value"
                       item-title="text"
@@ -30,6 +32,8 @@
                     sm="6"
                   >
                     <v-select
+                    density="compact"
+
                       :items="globalStore.baseData.data.buyIns"
                       item-value="value"
                       item-title="text"
@@ -42,6 +46,8 @@
                     sm="6"
                   >
                     <v-select
+                    density="compact"
+
                       v-if="globalStore.baseData.data.ghostingEnabled"
                       :items="globalStore.baseData.data.ghostingTimes"
                       item-value="value"
@@ -55,12 +61,25 @@
                     sm="6"
                   >
                     <v-select
+                    density="compact"
+
                      :items="globalStore.baseData.data.classes"
                       item-value="value"
                       item-title="text"
                       label="Max Class"
                       v-model="setupData.maxClass"
                     ></v-select>
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                  <v-switch
+                    label="Ranked"
+                    v-model="setupData.ranked"
+                    density="compact"
+                  >
+                  </v-switch>
                   </v-col>
                 </v-row>
               </v-container>
@@ -105,7 +124,8 @@ const setupData = ref({
   laps: globalStore.baseData.data.laps[0].value,
   buyIn: globalStore.baseData.data.buyIns[0].value,
   ghosting: globalStore.baseData.data.ghostingTimes[0].value,
-  maxClass: globalStore.baseData.data.classes[0].value
+  maxClass: globalStore.baseData.data.classes[0].value,
+  ranked: false
 })
 
 const handleClose = () => {
@@ -121,7 +141,8 @@ const handleConfirm = async () => {
         buyIn: setupData.value.buyIn,
         maxClass: setupData.value.maxClass,
         ghostingOn: setupData.value.ghosting !== -1,
-        ghostingTime: setupData.value.ghosting
+        ghostingTime: setupData.value.ghosting,
+        ranked: setupData.value.ranked,
     }
 
   const res = await api.post("UiSetupRace", JSON.stringify(data));

@@ -3,6 +3,12 @@
     <div>
       User: <span id="racer-name"> {{ globalStore.baseData?.data?.currentRacerName ? globalStore.baseData.data.currentRacerName: 'no user' }}</span> | Auth:
       <span id="racer-auth"> {{ globalStore.baseData?.data?.currentRacerAuth ? globalStore.baseData.data.currentRacerAuth: 'no auth' }}</span>
+      <span v-if="globalStore.baseData?.data?.currentCrewName"> | Crew:
+        <span id="racer-crew"> {{ globalStore.baseData.data.currentCrewName }}</span>
+      </span>
+      <span v-if="!!globalStore.baseData?.data?.currentRanking"> | Ranking:
+        <span id="racer-crew"> {{ globalStore.baseData.data.currentRanking }}</span>
+      </span>
     </div>
     <div class="inline">
       <v-icon icon="mdi-signal"></v-icon>
@@ -34,7 +40,8 @@ const globalStore = useGlobalStore();
 }
 
 #racer-name,
-#racer-auth {
+#racer-auth,
+#racer-crew {
   user-select: none; /* Standard syntax */
   font-size: 14px;
   color: $text-color-disabled;

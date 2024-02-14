@@ -12,8 +12,10 @@ local creatorObjectLeft, creatorObjectRight
 local creatorCheckpointObject
 local start
 
-local currentName = 'IdiotSandwich'
-local currentAuth = 'NONE'
+local currentName = nil
+local currentAuth = nil
+local currentCrew = nil
+local currentRanking = nil
 
 local RaceData = {
     InCreator = false,
@@ -90,11 +92,13 @@ end
 ----   Functions   ----
 -----------------------
 local function myCarClassIsAllowed(maxClass, myClass)
+    print('Max class', maxClass)
     if maxClass == nil or maxClass == '' then
         return true
     end
     local myClassIndex = Classes[myClass]
     local maxClassIndex = Classes[maxClass]
+    if useDebug then print('My class index', myClassIndex, 'maxClassIndex', maxClassIndex) end
     if myClassIndex > maxClassIndex then
         return false
     end
@@ -901,6 +905,7 @@ local function positionThread()
 end
 
 local function SetupRace(RaceData, Laps)
+    print('yp', json.encode(RaceData))
     CurrentRaceData = {
         RaceId = RaceData.RaceId,
         Creator = RaceData.Creator,
@@ -910,6 +915,7 @@ local function SetupRace(RaceData, Laps)
         Checkpoints = RaceData.Checkpoints,
         Ghosting = RaceData.Ghosting,
         GhostingTime = RaceData.GhostingTime,
+        Ranked = RaceData.Ranked,
         Started = false,
         CurrentCheckpoint = 1,
         TotalLaps = Laps,
@@ -1072,7 +1078,7 @@ local function FinishRace()
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     if useDebug then print('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime) end
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
-        CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel)
+        CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, currentRanking, currentCrew)
     QBCore.Functions.Notify(Lang:t("success.race_finished") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
     if CurrentRaceData.BestLap ~= 0 then
         QBCore.Functions.Notify(Lang:t("success.race_best_lap") .. MilliToTime(CurrentRaceData.BestLap), 'success')
@@ -1401,7 +1407,8 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     end
     
     if myCarClassIsAllowed(RaceData.MaxClass, class) then
-        RaceData.RacerName = RaceData.SetupRacerName
+        RaceData.RacerName = currentName
+        RaceData.RaceCrew = currentCrew
         RaceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
         TriggerServerEvent('cw-racingapp:server:JoinRace', RaceData)
     else 
@@ -1525,10 +1532,10 @@ RegisterNetEvent("cw-racingapp:Client:EditTrack", function(data)
     TriggerEvent("cw-racingapp:client:StartRaceEditor", data.RaceName, data.name, data.RaceId)
 end)
 
-local function findRacerName(name)
+local function findRacerByName(name)
     if MyRacerNames then
         for i, user in pairs(MyRacerNames) do
-            if currentName == user.racername then return true end
+            if currentName == user.racername then return user end
         end
     end
     return false
@@ -1537,7 +1544,7 @@ end
 RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
         MyRacerNames = playerNames
-        local currentRacer = findRacerName(currentName, MyRacerNames)
+        local currentRacer = findRacerByName(currentName, MyRacerNames)
         QBCore.Functions.Notify('Racing user list updated')
         if currentRacer and currentRacer.revoked == 1 then 
             QBCore.Functions.Notify('Your current racing user has had it\'s access revoked', 'error')
@@ -1563,203 +1570,6 @@ function split(source)
     end
     return result
 end
-
-RegisterNetEvent("cw-racingapp:Client:EditAccess", function(data)
-    QBCore.Functions.TriggerCallback('cw-racingapp:server:GetAccess', function(accessTable)
-        if accessTable == 'NOTHING' then
-            if useDebug then
-               print('Access table was empty')
-            end
-            accessTable = { race = ''}
-        else            
-            local raceText = ''
-            if accessTable.race then
-                for i, v in pairs(accessTable.race) do
-                    if i == 1 then raceText = v else
-                        raceText = raceText..', '..v
-                    end
-                end
-                accessTable = { race = raceText}
-            else
-            accessTable.race = ''
-            end
-        end
-
-        local dialog = exports['qb-input']:ShowInput({
-            header = Lang:t("menu.access_list"),
-            submitText = "Submit Access",
-            inputs = {
-                {
-                    text = Lang:t('menu.access_race'), -- text you want to be displayed as a place holder
-                    name = "accessRace", -- name of the input should be unique otherwise it might override
-                    type = "text", -- type of the input
-                    default = accessTable.race, -- Default text option, this is optional
-                }
-            },
-        })
-        if dialog ~= nil then
-            if dialog.accessRace then
-                local newAccess = {
-                    race = split(dialog.accessRace)
-                }
-                TriggerServerEvent("cw-racingapp:server:SetAccess", data.RaceId, newAccess)
-            end
-        end
-    end, data.RaceId)
-
-end)
-
-RegisterNetEvent("cw-racingapp:Client:DeleteTrack", function(data)
-    local menu = {{
-        header = Lang:t("menu.are_you_sure_you_want_to_delete_track")..' ('..data.RaceName..')' ,
-        isMenuHeader = true
-    }}
-    menu[#menu + 1] = {
-        header = Lang:t("menu.yes"),
-        icon = "fas fa-check",
-        params = {
-            event = "cw-racingapp:Client:DeleteTrackConfirmed",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-    menu[#menu + 1] = {
-        header = Lang:t("menu.no"),
-        icon = "fas fa-xmark",
-        params = {
-            event = "cw-racingapp:Client:TrackInfo",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-    exports['qb-menu']:openMenu(menu)
-end)
-
-RegisterNetEvent("cw-racingapp:Client:ClearLeaderboard", function(data)
-    local menu = {{
-        header = Lang:t("menu.are_you_sure_you_want_to_clear")..' ('..data.RaceName..')' ,
-        isMenuHeader = true
-    }}
-    menu[#menu + 1] = {
-        header = Lang:t("menu.yes"),
-        icon = "fas fa-check",
-        params = {
-            event = "cw-racingapp:Client:ClearLeaderboardConfirmed",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-    menu[#menu + 1] = {
-        header = Lang:t("menu.no"),
-        icon = "fas fa-xmark",
-        params = {
-            event = "cw-racingapp:Client:TrackInfo",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-    exports['qb-menu']:openMenu(menu)
-end)
-
-RegisterNetEvent("cw-racingapp:Client:TrackInfo", function(data)
-    local menu = {{
-        header = data.RaceName,
-        icon = "fas fa-flag-checkered",
-        isMenuHeader = true
-    }}
-
-    menu[#menu + 1] = {
-        header = Lang:t("menu.clear_leaderboard"),
-        icon = "fas fa-eraser",
-        params = {
-            event = "cw-racingapp:Client:ClearLeaderboard",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-    menu[#menu + 1] = {
-        header = Lang:t("menu.edit_track"),
-        icon = "fas fa-wrench",
-        params = {
-            event = "cw-racingapp:Client:EditTrack",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-    menu[#menu + 1] = {
-            header = Lang:t("menu.edit_access"),
-            icon = "fas fa-user-lock",
-            params = {
-                event = "cw-racingapp:Client:EditAccess",
-                args = {
-                    type = data.type,
-                    name = data.name,
-                    RaceId = data.RaceId,
-                    RaceName = data.RaceName
-                }
-            }
-    }        
-    menu[#menu + 1] = {
-        header = Lang:t("menu.delete_track"),
-        icon = "fas fa-trash-can",
-        params = {
-            event = "cw-racingapp:Client:DeleteTrack",
-            args = {
-                type = data.type,
-                name = data.name,
-                RaceId = data.RaceId,
-                RaceName = data.RaceName
-            }
-        }
-    }
-
-    menu[#menu + 1] = {
-        header = Lang:t("menu.go_back"),
-        icon = "fas fa-arrow-left",
-        params = {
-            event = "cw-racingapp:Client:ListMyTracks",
-            args = {
-                type = data.type,
-                name = data.name
-            }
-        }
-    }
-
-    if #menu == 1 then
-        QBCore.Functions.Notify(Lang:t("primary.no_races_exist"))
-        TriggerEvent('cw-racingapp:Client:ListMyTracks', {
-            type = data.type,
-            name = data.name
-        })
-        return
-    end
-
-    exports['qb-menu']:openMenu(menu)
-end)
 
 local function filterTracksByRacer(Tracks)
     local filteredTracks = {}
@@ -2003,12 +1813,21 @@ local function racerNameExists(listOfNames, racerName)
     return false
 end
 
-RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
-    local purchaseType = data.purchaseType
-    local fobType = data.fobType
+local function createOxInput(fobType, purchaseType)
+    if not lib then
+        print('^1OxInput is enabled but no lib was found. Might be missing from fxmanifest or the dev is not able to read the config')
+    else
+        local options = {{type = 'input', label = 'Racer Name', required = true, min = 1, max = 100}}
 
-    QBCore.Functions.Notify("Max "..Config.MaxRacerNames.. " unique names per person.")
+        if not purchaseType.useSlimmed then
+            options[#options+1] =  {type = 'number', label = 'Paypal/temp id (leave empty if for you)', min = 1, max = 20}
+        end
+        local FobInput = lib.inputDialog('Creating a ['..fobType..'] type user', options)
+        return FobInput
+    end
+end
 
+local function createQbInput(fobType, purchaseType)
     local inputs = {
         {
             text = 'Racer Name', -- text you want to be displayed as a place holder
@@ -2024,58 +1843,85 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
             type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
         }
     end
-
     local dialog = exports['qb-input']:ShowInput({
         header = 'Creating a ['..fobType..'] type user',
         submitText = 'Submit',
         inputs = inputs
     })
+    return dialog
+end
+
+local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
+    if useDebug then 
+        print('Racername', racerName)
+        print('RacerId', racerId)
+    end
+    if racerId == nil or racerId == '' then
+        racerId = GetPlayerServerId(PlayerId())
+    end
+    if racerNameIsValid(racerName) then
+        QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
+            if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
+            local maxRacerNames = Config.MaxRacerNames
+            if Config.UseNameValidation and #playerNames > 1 and playerNames[1].citizenid and Config.CustomAmounts[playerNames[1].citizenid] then
+                maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
+            end
+
+            if useDebug then print('Racer names allowed for', racerId, maxRacerNames) end
+            if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
+                QBCore.Functions.TriggerCallback('cw-racingapp:server:NameIsAvailable', function(nameIsNotTaken)
+                    if nameIsNotTaken then
+                        TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
+                        QBCore.Functions.Progressbar("item_check", 'Creating Racing User Account', 2000, false, true, {
+                            disableMovement = true,
+                            disableCarMovement = true,
+                            disableMouse = false,
+                            disableCombat = true,
+                            }, {
+                            }, {}, {}, function() -- Done
+                                TriggerServerEvent('cw-racingapp:server:CreateRacerName', racerId, racerName, fobType, purchaseType)
+                                TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
+                            end, function()
+                                TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
+                            end)
+                    else
+                        QBCore.Functions.Notify( Lang:t("error.name_is_used")..racerName, 'error')
+                        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+                    end
+                end, racerName, racerId)
+            else
+                QBCore.Functions.Notify( Lang:t("error.to_many_names"), 'error')
+                TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+            end
+        end, racerId)
+
+    else
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+    end
+end
+
+RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
+    local purchaseType = data.purchaseType
+    local fobType = data.fobType
+
+    QBCore.Functions.Notify("Max "..Config.MaxRacerNames.. " unique names per person.")
+
+    local dialog = nil
+    local racerName = nil
+    local racerId = nil
+    if Config.OxInput then
+        dialog = createOxInput(fobType, purchaseType)
+        racerName = dialog[1]
+        racerId = dialog[2]
+    else
+        dialog = createQbInput(fobType, purchaseType)
+        racerName = dialog['racerName']
+        racerId = dialog['racerId']
+    end
 
     if dialog ~= nil then
-        local racerName = dialog["racerName"]
-        local racerId = dialog["racerId"]
-        if racerId == nil or racerId == '' then
-            racerId = GetPlayerServerId(PlayerId())
-        end
-        if racerNameIsValid(racerName) then
-            QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
-                if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
-                local maxRacerNames = Config.MaxRacerNames
-                if Config.UseNameValidation and #playerNames > 1 and playerNames[1].citizenid and Config.CustomAmounts[playerNames[1].citizenid] then
-                    maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
-                end
+        attemptCreateUser(racerName, racerId, fobType, purchaseType)
 
-                if useDebug then print('Racer names allowed for', racerId, maxRacerNames) end
-                if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
-                    QBCore.Functions.TriggerCallback('cw-racingapp:server:NameIsAvailable', function(nameIsNotTaken)
-                        if nameIsNotTaken then
-                            TriggerEvent('animations:client:EmoteCommandStart', {"idle7"})
-                            QBCore.Functions.Progressbar("item_check", 'Creating Racing User Account', 2000, false, true, {
-                                disableMovement = true,
-                                disableCarMovement = true,
-                                disableMouse = false,
-                                disableCombat = true,
-                                }, {
-                                }, {}, {}, function() -- Done
-                                    TriggerServerEvent('cw-racingapp:server:CreateRacerName', racerId, racerName, fobType, purchaseType)
-                                    TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
-                                end, function()
-                                    TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
-                                end)
-                        else
-                            QBCore.Functions.Notify( Lang:t("error.name_is_used")..racerName, 'error')
-                            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-                        end
-                    end, racerName, racerId)
-                else
-                    QBCore.Functions.Notify( Lang:t("error.to_many_names"), 'error')
-                    TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-                end
-            end, racerId)
-
-        else
-            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        end
     else
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
     end
@@ -2157,7 +2003,7 @@ if Config.Laptop.active then
             currency = Config.Options.cryptoType
         end
 
-        local options = {}
+            local options = {}
         for authName, authData in pairs(Config.Permissions) do
             local option = {
                 type = "client",
@@ -2361,7 +2207,7 @@ local uiIsOpen = false
 
 RegisterNUICallback('GetBaseData', function(_, cb)
     local classes = { {value = '', text = Lang:t('menu.no_class_limit'), number = 9000} }
-    for i, class in pairs(Config.Classes) do
+    for i, class in pairs(Classes) do
         if useDebug then
             print(i, Classes[i])
         end
@@ -2383,6 +2229,8 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         racerNames = MyRacerNames,
         currentRacerName = currentName,
         currentRacerAuth = currentAuth,
+        currentCrewName = currentCrew,
+        currentRanking = currentRanking,
         auth = Config.Permissions[currentAuth],
         hudSettings = Config.HUDSettings
     }
@@ -2454,6 +2302,7 @@ RegisterNetEvent("cw-racingapp:client:openUi", function(data)
     if not uiIsOpen then
         currentName = data.name
         currentAuth = data.type
+        currentCrew = data.crew
         QBCore.Functions.Notify("Press ESC to close")
         SetNuiFocus(true,true)
         SendNUIMessage({ type = 'toggleApp', open = true})
@@ -2461,6 +2310,11 @@ RegisterNetEvent("cw-racingapp:client:openUi", function(data)
         StartScreenEffect('MenuMGIn', 1, true)
         handleAnimation()
     end
+end)
+
+RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)
+    currentRanking = newRank
+    QBCore.Functions.Notify('You\'r ranking has been updated with '..change..'. New rank: '..newRank, 'sucess')
 end)
 
 -- UI CALLBACKS
@@ -2520,6 +2374,16 @@ RegisterNUICallback('UiChangeRacerName', function(racername, cb)
             if useDebug then print('New name and type', result.name, result.type) end
             currentName = result.name
             currentAuth = result.type
+            QBCore.Functions.TriggerCallback('cw-racingcrews:server:getMyCrew', function(result)
+                if result then
+                    if useDebug then print('Is in a crew', result) end
+                    currentCrew = result
+                    TriggerServerEvent('cw-racingcrews:server:changeCrew', currentCrew)
+                else
+                    currentCrew = nil
+                end
+            end, currentName)
+            currentRanking = result.ranking
             cb(true)
         else
             cb(false)
@@ -2531,9 +2395,13 @@ RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
         MyRacerNames = playerNames
         if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
-        local currentRacer = findRacerName(currentName)
+        local currentRacer = findRacerByName(currentName)
         if currentRacer and currentRacer.revoked == 1 then 
             QBCore.Functions.Notify('Your current racing user has had it\'s access revoked', 'error')
+        end
+        if currentRacer and currentRacer.ranking then
+            currentRanking = currentRacer.ranking
+            if useDebug then print('Ranking is', currentRanking) end
         end
         cb(playerNames)
     end, GetPlayerServerId(PlayerId()))
@@ -2557,6 +2425,29 @@ RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
         if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
         cb(playerNames)
     end, racerId, currentAuth)
+end)
+
+RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
+    local options = {}
+    
+    local currency = ''
+    if Config.Laptop.moneyType == 'cash' or Config.Laptop.moneyType == 'bank' then
+        currency = '$'
+    else
+        currency = Config.Options.cryptoType
+    end
+
+    for authName, authData in pairs(Config.Permissions) do
+        if hasAuth(Config.Laptop, authName) then
+            local option = {
+                label = authName..' user ('..currency..Config.Laptop.racingUserCosts[authName]..')',
+                purchaseType = Config.Laptop,
+                fobType = authName,
+            }
+            options[#options+1] = option
+        end
+    end
+    cb(options)
 end)
 
 local function getRaceByRaceId(Races, raceId)
@@ -2670,6 +2561,7 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
         if (CurrentRaceData.MaxClass ~= nil and CurrentRaceData.MaxClass ~= "") then
             maxClass = CurrentRaceData.MaxClass
         end
+        print('Ranked?', CurrentRaceData.Ranked)
         local data = {
             trackName = CurrentRaceData.RaceName,
             racers = racers,
@@ -2678,7 +2570,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             cantStart = (not (CurrentRaceData.OrganizerCID == QBCore.Functions.GetPlayerData().citizenid) or
             CurrentRaceData.Started),
             raceId = CurrentRaceData.RaceId,
-            ghosting = CurrentRaceData.Ghosting
+            ghosting = CurrentRaceData.Ghosting,
+            ranked = CurrentRaceData.Ranked
         }
         cb(data)
     else
@@ -2781,7 +2674,8 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
                 setupData.maxClass,
                 setupData.ghostingOn,
                 tonumber(setupData.ghostingTime),
-                tonumber(setupData.buyIn)
+                tonumber(setupData.buyIn),
+                setupData.ranked
             )
         else
             cb(false)
@@ -2872,6 +2766,129 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
                 end, createData.name)
             end
     end, citizenId)
+end)
+
+-- Crew stuff
+RegisterNUICallback('UiJoinCrew', function(data, cb)
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:joinCrew', function(result)
+        if useDebug then print('Success: ', result) end
+        if result then
+            currentCrew = result
+            TriggerServerEvent('cw-racingcrews:server:changeCrew', currentCrew)
+        end
+        cb(result)
+    end, currentName, citizenId, data.crewName)
+end)
+
+RegisterNUICallback('UiLeaveCrew', function(data, cb)
+    if useDebug then print('Leaving', data.crewName) end
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:leaveCrew', function(result)
+        if useDebug then print('Success: ', result) end
+        if result then
+            currentCrew = nil
+            TriggerServerEvent('cw-racingcrews:server:changeCrew', nil)
+        end
+        cb(result)
+    end, currentName, citizenId, data.crewName)
+end)
+
+RegisterNUICallback('UiDisbandCrew', function(data, cb)
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:disbandCrew', function(result)
+        if useDebug then print('Success: ', result) end
+        if result then
+            currentCrew = nil
+            TriggerServerEvent('cw-racingcrews:server:changeCrew', nil)
+        end
+        cb(result)
+    end, citizenId, data.crewName)
+end)
+
+RegisterNUICallback('UiCreateCrew', function(data, cb)
+    if #data.crewName == 0 then QBCore.Functions.Notify('Name can not be empty', 'error')  cb(false) return end
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:createCrew', function(result)
+        if useDebug then print('Success: ', result) end
+        if result then
+            currentCrew = data.crewName
+            TriggerServerEvent('cw-racingcrews:server:changeCrew', data.crewName)
+        end
+        cb(result)
+    end, currentName, citizenId, data.crewName)
+end)
+
+RegisterNUICallback('UiCreateUser', function(data, cb)
+    if data.racerName and data.selectedAuth then
+        attemptCreateUser(data.racerName, data.racerId, data.selectedAuth.fobType, data.selectedAuth.purchaseType)
+    else
+        QBCore.Functions.Notify('Input is invalid', 'error')
+    end
+    cb(true)
+end)
+
+RegisterNUICallback('UiSendInvite', function(data, cb)
+    if data.citizenId.length == 0 then QBCore.Functions.Notify('Citizen Id can not be empty', 'error')  cb(false) return end
+
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:sendInvite', function(result)
+        if useDebug then print('Success: ', result) end
+        cb(result)
+    end, PlayerId(), data.citizenId, currentCrew )
+end)
+RegisterNUICallback('UiSendInviteClosest', function(data, cb)
+    local closestP, distance = QBCore.Functions.GetClosestPlayer()
+    if closestP == nil or distance > 5 then QBCore.Functions.Notify('No one close enough', 'error') cb(false) return end
+
+    local closestServerID = GetPlayerServerId(closestP)
+    local myServerID = GetPlayerServerId( PlayerId())
+
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:sendInviteClosest', function(result)
+        if useDebug then print('Success: ', result) end
+        cb(result)
+    end, myServerID, closestServerID, currentCrew )
+end)
+
+RegisterNUICallback('UiAcceptInvite', function(data, cb)
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:acceptInvite', function(result)
+        if useDebug then print('Success: ', result) end
+        if result then
+            currentCrew = data.crewName
+            TriggerServerEvent('cw-racingcrews:server:changeCrew', data.crewName)
+        end
+        cb(result)
+    end, currentName, citizenId )
+end)
+
+RegisterNUICallback('UiDenyInvite', function(data, cb)
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:denyInvite', function(result)
+        if useDebug then print('Success: ', result) end
+        cb(result)
+    end, citizenId )
+end)
+
+RegisterNUICallback('UiGetAllCrews', function(data, cb)
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:getAllCrews', function(result)
+        if useDebug then print('All crews: ', json.encode(result)) end
+        cb(result)
+    end)
+end)
+
+RegisterNUICallback('UiGetAllRacers', function(data, cb)
+    QBCore.Functions.TriggerCallback('cw-racingapp:server:getAllRacers', function(result)
+        if useDebug then print('All racers: ', json.encode(result)) end
+        cb(result)
+    end)
+end)
+
+RegisterNUICallback('UiGetCrewData', function(data, cb)
+    local citizenId = QBCore.Functions.GetPlayerData().citizenid
+    QBCore.Functions.TriggerCallback('cw-racingcrews:server:getCrewData', function(result)
+        if useDebug then print('crew data: ', json.encode(result)) end
+        cb(result)
+    end, citizenId, currentName)
 end)
 
 local trackIsBeingDisplayed = false
@@ -2992,6 +3009,14 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
     end
 end)
 
+local function getCurrentRankingFromRacer(racerNames)
+    for i, racer in pairs(racerNames) do
+        if racer.racername == currentName then
+            return racer.ranking
+        end
+    end
+end
+
 local function setup()
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
         MyRacerNames = playerNames
@@ -3004,6 +3029,12 @@ local function setup()
         if PlayerData.metadata.selectedRacerName then
             currentAuth = PlayerData.metadata.selectedRacerAuth
             currentName = PlayerData.metadata.selectedRacerName
+            currentRanking = getCurrentRankingFromRacer(playerNames)
+            if useDebug then 
+                print('^3Racer name in metadata: ', PlayerData.metadata.selectedRacerName) 
+                print('^3Racer auth in metadata: ', PlayerData.metadata.selectedRacerAuth) 
+                print('^3Ranking', currentRanking)
+            end
         else
             if getSizeOfTable(MyRacerNames) == 1 then 
                 QBCore.Functions.TriggerCallback('cw-racingapp:server:ChangeRacerName', function(result)
@@ -3011,9 +3042,20 @@ local function setup()
                         if useDebug then print('Only one racername available. Setting to ', result.name, result.type) end
                         currentName = result.name
                         currentAuth = result.type
+                        currentRanking = getCurrentRankingFromRacer(playerNames)
                     end
                 end, MyRacerNames[1].racername)
             end
+        end
+        if PlayerData.metadata.selectedCrew then
+            currentCrew = PlayerData.metadata.selectedCrew
+            QBCore.Functions.TriggerCallback('cw-racingcrews:server:getMyCrew', function(result)
+                if result then
+                    if useDebug then print('Is in a crew', result) end
+
+                    currentCrew = result
+                end
+            end, currentName)
         end
     end, GetPlayerServerId(PlayerId()))
 end
@@ -3024,6 +3066,15 @@ end)
 
 AddEventHandler('onResourceStart', function (resource)
     if resource ~= GetCurrentResourceName() then return end
-    if useDebug then print('^3--- Debug is on for Racingapp --- ') end
+    if useDebug then 
+        print('^3--- Debug is on for Racingapp --- ')
+        print('^2Inventory is set to ', Config.Inventory)
+        print('^2Using Oxlib for keybinds ', Config.UseOxLibForKeybind)
+        print('^2Using Renewed Crypto ', Config.UseRenewedCrypto)
+        print('^2Using Renewed Banking ', Config.UseRenewedBanking)
+
+        print('^2Permissions:', json.encode(Config.Permissions))
+        print('^2Classes: ', json.encode(Classes))
+    end
     setup()
  end)

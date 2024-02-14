@@ -38,6 +38,7 @@
             :race="race"
           ></AvailableRacesCard>
         </div>
+        <InfoText v-if="races.length===0" title="No races available"></InfoText>
       </v-window-item>
       <v-window-item value="setup" class="tabcontent">
         <div class="subheader">
@@ -100,6 +101,7 @@ import { onMounted } from "vue";
 import { CurrentRace, Track } from "@/store/types";
 import { closeApp } from "@/helpers/closeApp";
 import { computed } from "vue";
+import InfoText from "../components/InfoText.vue";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);

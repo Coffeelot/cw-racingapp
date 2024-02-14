@@ -2,10 +2,11 @@
     <v-card class="big-card">
         <v-card-title>{{ props.race.trackName}}</v-card-title>
         <v-card-text class="inline standardGap">
-            <v-chip>Max Class: {{ props.race.class }} </v-chip>
-            <v-chip>{{ props.race.laps === 0 ? 'Sprint' : 'Laps: ' + props.race.laps }}</v-chip>
-            <v-chip>Current Racers: {{ props.race.racers }}</v-chip>
-            <v-chip>Ghosting: {{ props.race.ghosting ? 'On': 'Off' }}</v-chip>
+            <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race.ranked" text="Ranked"></v-chip>
+            <v-chip prepend-icon="mdi-go-kart-track">{{ props.race.laps === 0 ? 'Sprint' : 'Laps: ' + props.race.laps }}</v-chip>
+            <v-chip prepend-icon="mdi-account-group">Current Racers: {{ props.race.racers }}</v-chip>
+            <v-chip prepend-icon="mdi-ghost">Ghosting: {{ props.race.ghosting ? 'On': 'Off' }}</v-chip>
+            <v-chip prepend-icon="mdi-car-info">Max Class: {{ props.race.class }} </v-chip>
         </v-card-text>
         <v-card-actions>
             <v-btn variant="tonal" @click='leaveRace()'>Leave Race</v-btn>
@@ -16,8 +17,6 @@
 </template>
 
 <script setup lang="ts">
-import api from "@/api/axios";
-import { closeApp } from "@/helpers/closeApp";
 import { useGlobalStore } from "@/store/global";
 import { CurrentRace } from "@/store/types";
 

@@ -1,11 +1,19 @@
 <template>
   <div id="ResultsPage" class="pagecontent">
     <v-tabs v-model="tab">
+      <v-tab value="crewRank">Crews Rankings</v-tab>
+      <v-tab value="racerRank">Racers Rankings</v-tab>
       <v-tab value="results">Race Results</v-tab>
       <v-tab value="records">Race Records</v-tab>
     </v-tabs>
 
     <v-window v-model="tab">
+      <v-window-item value="crewRank" class="tabcontent">
+        <CrewTable ></CrewTable>
+      </v-window-item>
+      <v-window-item value="racerRank" class="tabcontent">
+        <RacersTable ></RacersTable>
+      </v-window-item>
       <v-window-item value="results" class="tabcontent">
         <RaceResults v-if="allResults" :allResults="allResults"></RaceResults>
         <InfoText v-else title="No data" />
@@ -26,11 +34,13 @@ import RaceResults from "../components/RaceResults.vue";
 import { Track, ResultData } from "@/store/types";
 import RaceRecords from "../components/RaceRecords.vue";
 import InfoText from "../components/InfoText.vue";
+import CrewTable from "../components/CrewTable.vue";
+import RacersTable from "../components/RacersTable.vue";
 
 const allResults: Ref<ResultData[] | undefined> = ref(undefined);
 const allRecords: Ref<Track[] | undefined> = ref(undefined);
 const globalStore = useGlobalStore();
-const tab = ref(globalStore.currentPage);
+const tab = ref(globalStore.currentTab);
 
 const getResults = async () => {
   const response = await api.post("UiGetRacingResults");

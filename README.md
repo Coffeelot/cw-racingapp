@@ -140,15 +140,13 @@ Update to track editor:
 
 ### Installation
 1. Download ZIP
-2. Go to "*html*" folder and open a command window (right-click > open in terminal) then type  `npm i` and then `npm run build`. (Seeing a virus popup? [Don't worry](https://forum.cfx.re/t/malware-detection-in-server-build-6500/5117877)) 
-You should now see a folder called "*dist*"
-3. Update or insert the database tables. These are found in the `racing.sql` file
-4. Adjust values in the `config.lua` file to your liking
-5. Add the items to your `qb-core/shared/items.lua`
+2. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
+3. Adjust values in the `config.lua` file to your liking (Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)
+4. Add the item to your `qb-core/shared/items.lua`
 ```lua
 ['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
 ```
-4. Add the item images to your inventory image folder
+4. Add the item image to your inventory image folder
 
 ### Setup Notes
 > Step 2 needs to be repeated when you update
@@ -181,6 +179,14 @@ You might also want to read up on the new system, see User Management section.
 
 ### VUE update 18th December 2023
 See [setup](#setup) section for instructions on how to build a dist
+
+### Racing Crews and Racing Rank update February 2024
+1) Make sure to run the sql in `cw-racingcrews.sql`
+2) Run this in your Database to update your `racer_names`: 
+```sql
+ALTER TABLE racer_names 
+ADD COLUMN ranking INT(11) NULL DEFAULT '0';
+```
 
 # Dependencies
 * [cw-performance](https://github.com/Coffeelot/cw-performance)

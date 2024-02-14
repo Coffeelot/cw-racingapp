@@ -2,9 +2,9 @@
 fx_version 'cerulean'
 games { 'gta5' }
 
-author 'Coffeelot, Wuggie'
-description 'Racing App for QB'
-version '1.0.0'
+author 'Coffeelot & Wuggie'
+description 'Racing for QB'
+version '2.0.0'
 
 ui_page {
     "html/dist/index.html"
@@ -21,7 +21,9 @@ client_script 'client/main.lua'
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
-    'server/main.lua'
+    'server/main.lua',
+    'server/crews.lua',
+    'server/elo.lua'
 }
 
 files {
