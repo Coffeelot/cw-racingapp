@@ -17,6 +17,7 @@ Config.UseOxLibForKeybind = false -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO U
 Config.TimeOutTimerInMinutes = 5 -- Default = 5 minutes
 Config.NotifyRacers = true -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
+Config.OxInput = true -- If you want Oxlib input menus Same as above with fxmanifest ^ 
 Config.LimitTopListTo = 10 -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 
