@@ -21,7 +21,7 @@
         </div>
         <div
           class="myRacers-items-container"
-          v-if="myCrew && myCrew.members.length > 0"
+          v-if="myCrew && myCrew?.members?.length > 0"
         >
           <MyCrewMemberCard
             :isFounder="isFounder"
