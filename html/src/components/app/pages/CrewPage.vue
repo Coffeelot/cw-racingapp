@@ -36,10 +36,11 @@
       </v-window-item>
       <v-window-item value="create" class="tabcontent">
         <div class="subheader inline">
-          <h3 class="header-text">Create a new Crew</h3>
+          <h3 class="header-text">Crew Management</h3>
         </div>
         <div class="myRacers-items-container">
-          <v-card>
+          
+          <v-card v-if="globalStore?.baseData?.data?.auth?.createCrew">
             <v-card-title>Create a new crew</v-card-title>
             <v-card-text>
               <v-text-field

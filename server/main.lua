@@ -402,13 +402,13 @@ end
 
 local function handOutParticipationTrophy(src, position)
     local Player = QBCore.Functions.GetPlayer(src)
-    if Config.ParticpationTrophies.amount[position] then
-        if Config.ParticpationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.ParticpationTrophies.cryptoType, Config.ParticpationTrophies.amount[position])
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..Config.ParticpationTrophies.amount[position].. ' '.. Config.ParticpationTrophies.cryptoType, 'success')
+    if Config.ParticipationTrophies.amount[position] then
+        if Config.ParticipationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
+            exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType, Config.ParticipationTrophies.amount[position])
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..Config.ParticipationTrophies.amount[position].. ' '.. Config.ParticipationTrophies.cryptoType, 'success')
         else
-            Player.Functions.AddMoney(Config.ParticpationTrophies.type, Config.ParticpationTrophies.amount[position])
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..Config.ParticpationTrophies.amount[position], 'success')
+            Player.Functions.AddMoney(Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..Config.ParticipationTrophies.amount[position], 'success')
         end
     end
 end
@@ -500,19 +500,36 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         giveSplit(src, AmountOfRacers, PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
     end
 
-    if Config.ParticpationTrophies.enabled and Config.ParticpationTrophies.minimumOfRacers <= AmountOfRacers then
+    if Config.ParticipationTrophies.enabled and Config.ParticipationTrophies.minimumOfRacers <= AmountOfRacers then
         if useDebug then print('Participation Trophies are enabled') end
         local distance = Tracks[RaceData.RaceId].Distance
         if TotalLaps > 1 then
             distance = distance*TotalLaps
         end
-        if distance > Config.ParticpationTrophies.minumumRaceLength then
-            if not Config.ParticpationTrophies.requireBuyins or (Config.ParticpationTrophies.requireBuyins and Config.ParticpationTrophies.buyInMinimum >= Tracks[RaceData.RaceId].BuyIn) then 
-                if useDebug then print('Participation Trophies buy in check passed, handing out to', src) end
-                handOutParticipationTrophy(src, PlayersFinished)
+        if distance > Config.ParticipationTrophies.minumumRaceLength then
+            if not Config.ParticipationTrophies.requireBuyins or (Config.ParticipationTrophies.requireBuyins and Config.ParticipationTrophies.buyInMinimum >= Tracks[RaceData.RaceId].BuyIn) then
+                if useDebug then print('Participation Trophies buy in check passed', src) end
+                if not Config.ParticipationTrophies.requireRanked or (Config.ParticipationTrophies.requireRanked and AvailableRaces[AvailableKey].Ranked) then
+                    if useDebug then print('Participation Trophies Rank check passed, handing out to', src) end
+                    handOutParticipationTrophy(src, PlayersFinished)
+                end 
             end
         else
-            if useDebug then print('Race length was to short: ', distance,' Minumum required:', Config.ParticpationTrophies.minumumRaceLength) end
+            if useDebug then print('Race length was to short: ', distance,' Minumum required:', Config.ParticipationTrophies.minumumRaceLength) end
+        end
+    end
+    if useDebug then print('Race has participation price', Tracks[RaceData.RaceId].ParticipationAmount, Tracks[RaceData.RaceId].ParticipationCurrency ) end
+
+    if Tracks[RaceData.RaceId].ParticipationAmount and Tracks[RaceData.RaceId].ParticipationAmount > 0 then
+        local amountToGive = math.floor(Tracks[RaceData.RaceId].ParticipationAmount/AmountOfRacers)
+        if useDebug then print('Race has participation price set', Tracks[RaceData.RaceId].ParticipationAmount, amountToGive, Tracks[RaceData.RaceId].ParticipationCurrency ) end
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Tracks[RaceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
+            exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..amountToGive.. ' '.. Tracks[RaceData.RaceId].ParticipationCurrency, 'success')
+        else
+            Player.Functions.AddMoney(Tracks[RaceData.RaceId].ParticipationCurrency, amountToGive)
+            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..amountToGive, 'success')
         end
     end
 
@@ -741,6 +758,8 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             Tracks[RaceId].Ghosting = RaceData.Ghosting
             Tracks[RaceId].BuyIn = RaceData.BuyIn
             Tracks[RaceId].Ranked = RaceData.Ranked
+            Tracks[RaceId].ParticipationAmount = tonumber(RaceData.ParticipationAmount)
+            Tracks[RaceId].ParticipationCurrency = RaceData.ParticipationCurrency
             Tracks[RaceId].GhostingTime = RaceData.GhostingTime
             Tracks[RaceId].Racers[Player.PlayerData.citizenid] = {
                 Checkpoint = 1,
@@ -869,10 +888,12 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
     end
 end)
 
-local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Automated, src)
+local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, ParticipationAmount, ParticipationCurrency, Automated, src)
     if useDebug then 
-        print('Setting up race', json.encode({RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated, Ranked=Ranked}))
-    end
+        print('Setting up race', json.encode({
+            RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated, Ranked=Ranked, ParticipationAmount=ParticipationAmount, ParticipationCurrency=ParticipationCurrency
+        }))
+    end 
     if Tracks[RaceId] ~= nil then
         if not Tracks[RaceId].Waiting then            
             if not Tracks[RaceId].Started then
@@ -895,7 +916,9 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                     GhostingTime = GhostingTime,
                     BuyIn = BuyIn,
                     Ranked = Ranked,
-                    ExpirationTime = os.date("%c", os.time()+60*Config.TimeOutTimerInMinutes)
+                    ParticipationAmount = ParticipationAmount,
+                    ParticipationCurrency = ParticipationCurrency,
+                    ExpirationTime = os.date("%c", os.time()+60*Config.TimeOutTimerInMinutes),
                 }
                 AvailableRaces[#AvailableRaces+1] = allRaceData
                 if not Automated then
@@ -973,7 +996,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
 
 end
 
-RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked)
+RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, ParticipationAmount, ParticipationCurrency)
     local src = source
     if not Automated and isToFarAway(src, RaceId) then
         TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
@@ -982,7 +1005,7 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
     if not Automated and (BuyIn > 0 and not hasEnoughMoney(src, BuyIn)) then
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
     else
-        setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, false, src)
+        setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, ParticipationAmount, ParticipationCurrency, false, src)
     end
 end)
 
@@ -1008,7 +1031,7 @@ local function GenerateAutomatedRace()
         if useDebug then print('Automation: rank was not set. defaulting to ranked = true') end
         ranked = true
     end
-    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, true, nil)
+    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, race.participationMoney, race.ParticipationCurrency, true, nil)
 end
 
 if Config.AutomatedOptions and Config.AutomatedRaces then 
@@ -1606,7 +1629,11 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
     end
 end)
 
-QBCore.Commands.Add('createracinguser',"Create a racing user", { {name='type', help='racer/creator/master/god'}, {name='identifier', help='Server ID'}, {name='Racer Name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
+QBCore.Commands.Add('createracinguser',"Create a racing user", { 
+    {name='type', help='racer/creator/master/god'},
+    {name='identifier', help='Server ID'},
+    {name='Racer Name', help='Racer name. Put in quotations if multiple words'}
+}, true, function(source, args)
     local type = args[1]
     local id = args[2]
     if useDebug then print(
@@ -1679,22 +1706,6 @@ end)
 local function dropRacetrackTable()
     MySQL.query('DROP TABLE IF EXISTS race_tracks')
 end
-
-local function addAccessCol()
-    MySQL.query("ALTER TABLE race_tracks ADD access TEXT DEFAULT '{}'")
-end
-
-local function addCuratedCol()
-    MySQL.query("ALTER TABLE race_tracks ADD curated TEXT DEFAULT '{}'")
-end
-
-QBCore.Commands.Add('addAccessCol', 'Add Access column', {}, true, function(source, args)
-    addAccessCol()
-end, 'admin')
-
-QBCore.Commands.Add('addCuratedCol', 'Add Curated column', {}, true, function(source, args)
-    addCuratedCol()
-end, 'admin')
 
 QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
     dropRacetrackTable()

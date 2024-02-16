@@ -2675,7 +2675,9 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
                 setupData.ghostingOn,
                 tonumber(setupData.ghostingTime),
                 tonumber(setupData.buyIn),
-                setupData.ranked
+                setupData.ranked,
+                setupData.participationMoney,
+                setupData.participationCurrency
             )
         else
             cb(false)

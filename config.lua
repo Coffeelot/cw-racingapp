@@ -60,6 +60,9 @@ Config.Permissions = {
         create = false, -- create races
         control = false, -- control users
         controlAll = false, -- control all users
+        createCrew = true, -- create crews
+        startRanked = false, -- can start ranked races
+        setupParticipation = false -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
     },
     creator = {
         join = true,
@@ -68,6 +71,9 @@ Config.Permissions = {
         create = true,
         control = false,
         controlAll = false,
+        createCrew = true,
+        startRanked = false, 
+        setupParticipation = false 
     },
     master = {
         join = true,
@@ -76,6 +82,9 @@ Config.Permissions = {
         create = true,
         control = true,
         controlAll = false,
+        createCrew = true,
+        startRanked = true, 
+        setupParticipation = false 
     },
     god = {
         join = true,
@@ -84,6 +93,9 @@ Config.Permissions = {
         create = true,
         control = true,
         controlAll = true,
+        createCrew = true,
+        startRanked = true, 
+        setupParticipation = true 
     }
 }
 
@@ -210,14 +222,15 @@ Config.Splits = {
     more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 } -- If more than 3
 }
 
-Config.ParticpationTrophies = {
-    requireCurated = false, -- Only give out particpation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
-    requireBuyIns = false, -- If this is true, participation money will only be handed out if the race had a buyin
-    buyInMinimum = 50, -- If the above is true, this will be the minimum limit of when participation money is handed out
-    enabled = true, -- false if you dont want players getting particpation trophies
-    minimumOfRacers = 6, -- minimum of racers to hand out particpation trophies
+Config.ParticipationTrophies = {
+    requireCurated = true, -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
+    requireRanked = true, -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
+    requireBuyIns = true, -- If this is true, participation money will only be handed out if the race had a buyin
+    buyInMinimum = 200, -- If the above is true, this will be the minimum limit of when participation money is handed out
+    enabled = true, -- false if you dont want players getting Participation trophies
+    minimumOfRacers = 6, -- minimum of racers to hand out Participation trophies
     type = 'crypto', -- cash, bank or crypto
-    amount = { [1] = 60, [2] = 40, [3] = 20, [4] = 10,  [5] = 5 }, -- [<position>] = <amount>
+    amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10,  [5] = 10, [6] = 10, [7] = 10,[8] = 10,[9] = 10,[10] = 10 }, -- [<position>] = <amount>
     cryptoType = 'cdc', -- name of your crypto
     minumumRaceLength = 3000
 }

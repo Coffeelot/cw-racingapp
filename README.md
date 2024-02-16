@@ -61,6 +61,7 @@ Options:
  - Modify old tracks
  - List your own tracks
  - Manage racer users (for master and god rank users)
+ - Create and manage crews
 
 ### GPS settings
 At the bottom left corner there's a cog wheel. Clicking this brings up the options menu (more stuff to come). But here you can toggle using the GPS route and the style of it.
@@ -231,3 +232,5 @@ Once upon a time this was a fork of [QB-Racing](https://github.com/ItsANoBrainer
 # Sponsored Features
 ## Real Time Racing Positions
 @JELLYHITAM | [Quantum Roleplay Indonesia](https://discord.gg/XyP9tPDHX4)
+## Ability to create participation rewards from UI
+@Rithvikk05 | [HTRP](discord.gg/htrp)

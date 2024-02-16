@@ -9,6 +9,9 @@ export type Auth = {
     create: boolean,
     control: boolean,
     controlAll: boolean,
+    createCrew: boolean,
+    startRanked: boolean,
+    setupParticipation: boolean
 }
 
 export type Settings = {

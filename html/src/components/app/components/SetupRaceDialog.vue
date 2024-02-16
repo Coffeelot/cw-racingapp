@@ -71,15 +71,42 @@
                     ></v-select>
                   </v-col>
                   <v-col
+                    v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
                     cols="12"
                     sm="6"
                   >
-                  <v-switch
-                    label="Ranked"
-                    v-model="setupData.ranked"
-                    density="compact"
+                    <v-text-field
+                      class="text-field"
+                      hideDetails
+                      label="Participation Amount"
+                      density="compact"
+                      type="number"
+                      v-model="setupData.participationMoney"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col
+                    v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
+                    cols="12"
+                    sm="6"
                   >
-                  </v-switch>
+                    <v-select
+                      label="Participation currency"
+                      density="compact"
+                      :items="['cash', 'debit', 'crypto']"
+                      v-model="setupData.participationCurrency"
+                    ></v-select>
+                  </v-col>
+                  <v-col
+                    v-if="globalStore?.baseData?.data?.auth?.startRanked"
+                    cols="12"
+                    sm="6"
+                  >
+                    <v-switch
+                      label="Ranked"
+                      v-model="setupData.ranked"
+                      density="compact"
+                    >
+                    </v-switch>
                   </v-col>
                 </v-row>
               </v-container>
@@ -125,7 +152,9 @@ const setupData = ref({
   buyIn: globalStore.baseData.data.buyIns[0].value,
   ghosting: globalStore.baseData.data.ghostingTimes[0].value,
   maxClass: globalStore.baseData.data.classes[0].value,
-  ranked: false
+  ranked: false,
+  participationMoney: 0,
+  participationCurrency: 'cash'
 })
 
 const handleClose = () => {
@@ -143,6 +172,8 @@ const handleConfirm = async () => {
         ghostingOn: setupData.value.ghosting !== -1,
         ghostingTime: setupData.value.ghosting,
         ranked: setupData.value.ranked,
+        participationMoney: setupData.value.participationMoney,
+        participationCurrency: setupData.value.participationCurrency
     }
 
   const res = await api.post("UiSetupRace", JSON.stringify(data));
