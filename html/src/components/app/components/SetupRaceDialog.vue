@@ -92,7 +92,7 @@
                     <v-select
                       label="Participation currency"
                       density="compact"
-                      :items="['cash', 'debit', 'crypto']"
+                      :items="['cash', 'bank', 'crypto']"
                       v-model="setupData.participationCurrency"
                     ></v-select>
                   </v-col>
