@@ -1636,10 +1636,11 @@ QBCore.Commands.Add('createracinguser',"Create a racing user", {
 }, true, function(source, args)
     local type = args[1]
     local id = args[2]
-    if useDebug then print(
+    print(
         'Creating a user',
-        json.encode({ playerId = args[2], racerName = args[3], type = args[1]})
-    ) end
+            json.encode({ playerId = args[2], racerName = args[3], type = args[1]})
+        ) 
+    print('^3 If this looks like the wrong variables, your Core might be doing funky things. Just try to match the spots accordingly')    
     if args[4] then
         print('^1Too many args!')
         TriggerClientEvent('QBCore:Notify', source, "Too many arguments. You probably did not read the command input suggestions.", "error")
