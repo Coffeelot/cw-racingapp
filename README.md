@@ -232,5 +232,5 @@ Once upon a time this was a fork of [QB-Racing](https://github.com/ItsANoBrainer
 # Sponsored Features
 ## Real Time Racing Positions
 @JELLYHITAM | [Quantum Roleplay Indonesia](https://discord.gg/XyP9tPDHX4)
-## Ability to create participation rewards from UI
+## Ability to create participation rewards from UI and extended auth types
 @Rithvikk05 | [HTRP](discord.gg/htrp)
