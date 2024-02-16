@@ -139,10 +139,11 @@ Update to track editor:
 ### UI update 2:
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/ZAUrmS63ZaM/0.jpg)](https://youtu.be/ZAUrmS63ZaM)
-# Setup
 
 ### Ranked, ELO and Crew systems
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/gyt_EqFqfds/0.jpg)](https://youtu.be/gyt_EqFqfds)
+
+# Setup
 
 ### Installation
 1. Download ZIP
