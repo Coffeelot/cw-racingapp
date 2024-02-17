@@ -148,12 +148,13 @@ Update to track editor:
 ### Installation
 1. Download ZIP
 2. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
-3. Adjust values in the `config.lua` file to your liking (Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)
+3. Adjust values in the `config.lua` file to your liking **(Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)**
 4. Add the item to your `qb-core/shared/items.lua`
 ```lua
 ['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
 ```
 4. Add the item image to your inventory image folder
+5. Create a god user with the command (see below)
 
 ### Setup Notes
 > You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
