@@ -40,7 +40,7 @@
                 v-model="create.racerId"
               />
               <v-select
-                  v-if="creationTypes"
+                  v-if="creationTypes.length>0"
                   density="compact"
                   hide-details
                   :items="Object.values(creationTypes)"
@@ -48,6 +48,7 @@
                   item-title="label"
                   v-model="selectedAuth"
               ></v-select>
+              <InfoText v-else title="You are not authorized to create any user types. This might be job/rank related."></InfoText>
             </v-card-text>
             <v-card-actions>
               <v-btn
@@ -57,6 +58,7 @@
                 type="submit"
                 @click="createUser()"
                 :loading="loading"
+                :disabled="shouldDisableButton"
               >
                 Create User
               </v-btn>
@@ -106,16 +108,26 @@ const myRacers: Ref<MyRacer[] | undefined> = ref(undefined);
 const creationTypes: Ref<any | undefined> = ref(undefined);
 const search = ref('');
 const selectedAuth = ref(undefined);
+
 const filteredRacers = computed(() => {
   if (myRacers.value && search.value !== '') return myRacers.value.filter((racer) => racer.racername.toLowerCase().includes(search.value.toLowerCase()) || racer.citizenid.toLowerCase().includes(search.value.toLowerCase()) )
   return myRacers.value
 })
+
 
 const create = ref({
   racerName: '',
   racerId: ''
 })
 const loading = ref(false)
+
+const shouldDisableButton = computed(() => {
+  if (loading.value ) return true
+  if (create.value.racerName === '') return true
+  if (!selectedAuth.value) return true
+
+  return false
+})
 
 const getMyRacers = async () => {
   const response = await api.post('UiGetRacersCreatedByUser')
