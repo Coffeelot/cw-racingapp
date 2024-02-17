@@ -168,7 +168,7 @@ Config.Options = {
 
 Config.Trader = {
     active = true,
-    jobRequirement = { racer = false },
+    jobRequirement = { racer = false }, -- tied to Config.AllowedJobs
     requireToken = false,
     model = 'csb_paige',
     animation = 'WORLD_HUMAN_SEAT_WALL_TABLET',
@@ -186,14 +186,14 @@ Config.Trader = {
 }
 
 Config.Laptop = {
-    active = true,
-    jobRequirement = { racer = true, creator = true, master = true, god = true },
-    requireToken = false,
-    model = 'xm_prop_x17_laptop_mrsr',
-    location = vector4(938.56, -1549.8, 34.37, 163.59),
+    active = true, -- If the laptop spawns
+    jobRequirement = { racer = true, creator = true, master = true, god = true }, -- Tied to Config.AllowedJobs
+    requireToken = false, -- using cw tokens?
+    model = 'xm_prop_x17_laptop_mrsr', -- entity model
+    location = vector4(938.56, -1549.8, 34.37, 163.59), -- world location
     moneyType = 'crypto', -- cash/bank/crypto
     cryptoType = 'cdc', -- name of your crypto
-    racingUserCosts = {
+    racingUserCosts = { -- cost of creating an account
         racer = 1000,
         creator = 5000,
         master = 10000,

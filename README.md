@@ -156,16 +156,16 @@ Update to track editor:
 4. Add the item image to your inventory image folder
 
 ### Setup Notes
-> Step 2 needs to be repeated when you update
+> You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
-> You only need either this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
+> Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. This can be done in 4 ways: Via the trader or laptop (See respetive config option for more info), the racingapp ui (requires an already existing account - BY DEFAULT THIS ALSO REQUIRES A JOB. SEE LAPTOP CONFIG SETTINGS) or the command.
 
-> Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. 
 ### Use in game
 Use the command `createracinguser` to do this. For example:
 `/createracinguser god 1 IReadTheReadme`
 This will create a god account for the user with serverID 1 (probably you if you're on your dev server) called IReadTheReadme. 
 Spawn the item `racing_gps` normally and use it. 
+> Some users have reported this not working and throwing an error. It seems this is related to Core issues. The order of the input might differ for some cores for some reason. The server side printout should help you determine the order. Just type it in according to that instead.
 
 # Want to change the look?
 RacingApp is built in VUE, this means you can't just edit the files directly. This requires some more know-how than just developing with basic html/js. You can find out more information in this [Boilerplate Repo](https://github.com/alenvalek/fivem-vuejs-boilerplate).
