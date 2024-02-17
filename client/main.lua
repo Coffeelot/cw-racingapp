@@ -1774,6 +1774,7 @@ local function hasPermission(userType)
 end
 
 local function hasAuth(tradeType, userType)
+    if currentAuth and  Config.Permissions[currentAuth] and  Config.Permissions[currentAuth].controlAll then return true end
     if tradeType.jobRequirement[userType] then
         local Player = QBCore.Functions.GetPlayerData()
         local playerHasJob = Config.AllowedJobs[Player.job.name]
