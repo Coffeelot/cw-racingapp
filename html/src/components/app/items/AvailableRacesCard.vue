@@ -4,7 +4,7 @@
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">Ranked</v-chip>
             <v-chip prepend-icon="mdi-hand-coin" color="green" v-if="participationText"> {{ participationText }} 
-                <v-tooltip location="top" activator="parent" text="This amount is divided equally across all racers on finish">
+                <v-tooltip location="top" activator="parent" text="This amount is given to each participant">
                 </v-tooltip>
             </v-chip>
             <v-chip prepend-icon="mdi-go-kart-track">{{ `${lapsText} ${props.race.RaceData.Distance} m`}}</v-chip>

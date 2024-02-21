@@ -82,7 +82,16 @@
                       density="compact"
                       type="number"
                       v-model="setupData.participationMoney"
-                    ></v-text-field>
+                    >
+                    <template v-slot:prepend>
+                      <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                          <v-icon v-bind="props" icon="mdi-help-circle-outline"></v-icon>
+                        </template>
+                        This amount will be handed out to all racers who participate
+                      </v-tooltip>
+                    </template>
+                   </v-text-field>
                   </v-col>
                   <v-col
                     v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
@@ -164,6 +173,8 @@ const handleClose = () => {
 
 
 const handleConfirm = async () => {
+  if (setupData.value.participationMoney < 0) setupData.value.participationMoney = 0
+  
   let data = {
         track: props.track.RaceId,
         laps: setupData.value.laps,

@@ -521,7 +521,10 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     if useDebug then print('Race has participation price', Tracks[RaceData.RaceId].ParticipationAmount, Tracks[RaceData.RaceId].ParticipationCurrency ) end
 
     if Tracks[RaceData.RaceId].ParticipationAmount and Tracks[RaceData.RaceId].ParticipationAmount > 0 then
-        local amountToGive = math.floor(Tracks[RaceData.RaceId].ParticipationAmount/AmountOfRacers)
+        local amountToGive = math.floor(Tracks[RaceData.RaceId].ParticipationAmount)
+        if Config.ParticipationAmounts.positionBonuses[PlayersFinished] then
+            amountToGive = math.floor(amountToGive+ amountToGive*Config.ParticipationAmounts.positionBonuses[PlayersFinished])
+        end
         if useDebug then print('Race has participation price set', Tracks[RaceData.RaceId].ParticipationAmount, amountToGive, Tracks[RaceData.RaceId].ParticipationCurrency ) end
         local Player = QBCore.Functions.GetPlayer(src)
         if Tracks[RaceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
@@ -1636,11 +1639,11 @@ QBCore.Commands.Add('createracinguser',"Create a racing user", {
 }, true, function(source, args)
     local type = args[1]
     local id = args[2]
+    print('^3If The following print looks like the wrong variables, your Core might be doing funky things. Just try to match your input accordingly')    
     print(
         'Creating a user',
             json.encode({ playerId = args[2], racerName = args[3], type = args[1]})
         ) 
-    print('^3 If this looks like the wrong variables, your Core might be doing funky things. Just try to match the spots accordingly')    
     if args[4] then
         print('^1Too many args!')
         TriggerClientEvent('QBCore:Notify', source, "Too many arguments. You probably did not read the command input suggestions.", "error")

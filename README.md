@@ -35,6 +35,8 @@
 - (Limited) Locale Support
 - Create Custom Races Tracks
 
+> Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
+
 > As of update posted on 1st July -23, racer names are unique. The max limit is by default 3 but can be set individually. If you want to remove names from DB without openign it up, an admin can use `/remracename <racerName>`
 
 > As of update posted on 26th August -23 we will no longer support qb-menu usage. 

@@ -222,7 +222,7 @@ Config.Splits = {
     more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 } -- If more than 3
 }
 
-Config.ParticipationTrophies = {
+Config.ParticipationTrophies = { -- Different from ParticipationAmounts. These are automated
     requireCurated = true, -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
     requireRanked = true, -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
     requireBuyIns = true, -- If this is true, participation money will only be handed out if the race had a buyin
@@ -233,6 +233,10 @@ Config.ParticipationTrophies = {
     amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10,  [5] = 10, [6] = 10, [7] = 10,[8] = 10,[9] = 10,[10] = 10 }, -- [<position>] = <amount>
     cryptoType = 'cdc', -- name of your crypto
     minumumRaceLength = 3000
+}
+
+Config.ParticipationAmounts = { -- Different from ParticipationTrophies. These are manual
+    positionBonuses = { [1] = 0.3, [2] = 0.2, [3] = 0.1} -- in percentages. example: 0.3 = 30% extra ontop. Set this to empty "{}" if you dont want these 
 }
 
 Config.Buttons = {
