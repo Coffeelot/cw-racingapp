@@ -1774,8 +1774,13 @@ local function hasPermission(userType)
 end
 
 local function hasAuth(tradeType, userType)
-    if currentAuth and  Config.Permissions[currentAuth] and  Config.Permissions[currentAuth].controlAll then return true end
-    if tradeType.jobRequirement[userType] then
+    if currentAuth and Config.Permissions[currentAuth] and Config.Permissions[currentAuth].controlAll then 
+        if useDebug then print('User has controlall auth') end
+        return true 
+    end
+
+    if tradeType.jobRequirement[userType] == true then
+        if useDebug then print('job requirement exists for', userType) end
         local Player = QBCore.Functions.GetPlayerData()
         local playerHasJob = Config.AllowedJobs[Player.job.name]
         local jobGradeReq = nil
@@ -1800,7 +1805,11 @@ local function hasAuth(tradeType, userType)
             end
         end
         return false
+    elseif tradeType.jobRequirement[userType] == nil then
+        if useDebug then print('Requiement is nil for', userType) end
+        return false
     else
+        if useDebug then print('Requiement is false for', userType) end
         return true
     end
 end
