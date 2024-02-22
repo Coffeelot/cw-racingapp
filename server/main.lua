@@ -1225,28 +1225,6 @@ RegisterNetEvent('cw-racingapp:server:ClearLeaderboard', function(RaceId)
     {RaceId})
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:getplayers', function(_, cb)
-    local players = QBCore.Functions.GetPlayers()
-    if useDebug then
-        print(json.encode(players))
-    end
-    local playerIds = {}
-    for index, player in pairs(players) do
-        if useDebug then
-            local name = GetPlayerName(player)
-            print('adding', name, ' to list')
-        end
-        local playerData = QBCore.Functions.GetPlayer(tonumber(player)).PlayerData
-        playerIds[#playerIds+1] = {
-            citizenid = playerData.citizenid,
-            name = playerData.name,
-            sourceplayer = player,
-            id = player
-        }
-    end
-    cb(playerIds)
-end)
-
 QBCore.Functions.CreateCallback('cw-racingapp:server:getRaceResults', function(_, cb)
     cb(RaceResults)
 end)
@@ -1373,10 +1351,6 @@ end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetRaces', function(source, cb)
     cb(AvailableRaces)
-end)
-
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacers', function(source, cb, RaceId)
-    cb(Tracks[RaceId].Racers)
 end)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetListedRaces', function(source, cb)

@@ -656,34 +656,48 @@ function CreatorLoop()
     end)
 end
 
+local function GetPlayers()
+    local players = {}
+
+    for i = 0, 255 do
+        if NetworkIsPlayerActive(i) then
+            table.insert(players, i)
+        end
+    end
+    return players
+end
+
+
 local function playerIswithinDistance()
     local ply = GetPlayerPed(-1)
-    local plyCoords = GetEntityCoords(ply, 0)    
-    local playerSource = GetPlayerServerId(GetPlayerIndex())
-    if useDebug then
-        print('You', ply, plyCoords.x..','..plyCoords.y)
-    end
-    for index,player in ipairs(Players) do
-        local playerIdx = GetPlayerFromServerId(tonumber(player.id))
+    local plyCoords = GetEntityCoords(ply, 0)
+    for index,value in ipairs(Players) do
+        local playerIdx = GetPlayerFromServerId(tonumber(index))
         local target = GetPlayerPed(playerIdx)
-        local targetCoords = GetEntityCoords(target, 0)
-        local distance = #(targetCoords.xy-plyCoords.xy)
-        local isInSameCar = GetVehiclePedIsIn(ply, false) == GetVehiclePedIsIn(target, false)
-        
-        if useDebug then
-           print('playeridx', playerIdx)
-           print('target', target)
-           print('comparing to player', ply, target)
-           print(ply,target, 'is same:', ply == target)
-           print('Target locations', targetCoords.x..','..targetCoords.y)
-           print('distance', distance)
-           print('In same car:', isInSameCar)
+        if target ~= ply then
+            local isInSameCar = GetVehiclePedIsIn(ply, false) == GetVehiclePedIsIn(target, false)
+            local inRace = Player(index).state.inRace
+            
+            if useDebug then
+                print('^3playeridx', index, playerIdx)
+                print('target', target)
+                print('comparing to player', ply, target)
+                print(ply,target, 'is same:', ply == target)
+                print('In same car:', isInSameCar)
+                if inRace then print('^2In race') else print('^1Not in race') end
+            end
+            if not inRace and not isInSameCar then
+                local targetCoords = GetEntityCoords(target, 0)
+                local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
+    
+                if useDebug then print('distance', distance) end
+    
+                if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
+                    return true
+                end
+            end
         end
-
-        if not isInSameCar and distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
-            return true
-        end
-    end  
+    end
     return false
 end
 
@@ -720,7 +734,7 @@ end
 function CreateGhostLoop()
     ghostLoopStart = GetGameTimer()
     if useDebug then
-       print('non racers', dump(Players))
+       print('^3 Starting ghost loop. All player:', dump(Players))
     end
     CreateThread(function()
         while true do
@@ -1502,6 +1516,7 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     UnGhostPlayer()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
+    LocalPlayer.state:set('inRace', false, true)
 end)
 
 local function getKeysSortedByValue(tbl, sortFunction)
@@ -1641,39 +1656,15 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             DoPilePfx()
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
-                QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacers', function(Racers)
-                    QBCore.Functions.TriggerCallback('cw-racingapp:server:getplayers', function(players)
-                        if useDebug then
-                            print('Doing ghosting stuff')
-                            print('PLAYERS', dump(players))
-                            print('Racers', dump(Racers))
-                        end
-                        for index,player in ipairs(players) do
-                            if useDebug then
-                                print('checking if exists in racers:', player.citizenid)
-                                print(Racers[player.citizenid] ~= nil)
-                            end
-                            if Racers[player.citizenid] then
-                                if useDebug then
-                                    print('not adding ', player.name)
-                                end
-                            else
-                                Players[#Players+1] = player
-                            end
-                        end
-                        if useDebug then
-                            print('PLAYERS AFTER', dump(Players))
-                            print('====================')
-                        end
-                        GhostPlayers()
-                    end)
-                end, CurrentRaceData.RaceId)
+                Players = GetPlayers()
+                GhostPlayers()
             end
             lapStartTime = GetGameTimer()
             startTime = GetGameTimer()
             CurrentRaceData.Started = true
             timeWhenLastCheckpointWasPassed = GetGameTimer()
             Countdown = 10
+            LocalPlayer.state:set('inRace', true, true)
         else
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             Countdown = 10
@@ -1684,6 +1675,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
 end)
 
 RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, RacerName)
+    LocalPlayer.state:set('inRace', false, true)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
             QBCore.Functions.Notify(RacerName .. Lang:t("primary.racer_finished_place") .. Place, 'primary', 3500)
