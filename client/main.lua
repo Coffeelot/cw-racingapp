@@ -686,7 +686,14 @@ local function playerIswithinDistance()
                 print('In same car:', isInSameCar)
                 if inRace then print('^2In race') else print('^1Not in race') end
             end
-            if not inRace and not isInSameCar then
+
+            local inSameRace = false
+            if inRace then
+                inSameRace = Player(index).state.raceId == CurrentRaceData.RaceId
+                if useDebug then print('In same race:', inSameRace) end
+            end
+
+            if not inSameRace or (not inRace and not isInSameCar) then
                 local targetCoords = GetEntityCoords(target, 0)
                 local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
     
@@ -1517,6 +1524,7 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
     LocalPlayer.state:set('inRace', false, true)
+    LocalPlayer.state:set('raceId', nil, true)
 end)
 
 local function getKeysSortedByValue(tbl, sortFunction)
@@ -1616,10 +1624,10 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     Kicked = false
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
-    if CurrentRaceData.Ghosting and CurrentRaceData.TotalRacers == 1 then
-        CurrentRaceData.Ghosting = false
-        QBCore.Functions.Notify('Ghosting is turned off due to only one racer')
-    end
+    -- if CurrentRaceData.Ghosting and CurrentRaceData.TotalRacers == 1 then
+    --     CurrentRaceData.Ghosting = false
+    --     QBCore.Functions.Notify('Ghosting is turned off due to only one racer')
+    -- end
     positionThread()
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
@@ -1665,6 +1673,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             timeWhenLastCheckpointWasPassed = GetGameTimer()
             Countdown = 10
             LocalPlayer.state:set('inRace', true, true)
+            LocalPlayer.state:set('raceId', CurrentRaceData.RaceId, true)
         else
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             Countdown = 10
@@ -1676,6 +1685,7 @@ end)
 
 RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, RacerName)
     LocalPlayer.state:set('inRace', false, true)
+    LocalPlayer.state:set('raceId', nil, true)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
             QBCore.Functions.Notify(RacerName .. Lang:t("primary.racer_finished_place") .. Place, 'primary', 3500)
