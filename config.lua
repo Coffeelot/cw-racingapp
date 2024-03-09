@@ -21,6 +21,12 @@ Config.OxInput = false -- If you want Oxlib input menus Same as above with fxman
 Config.LimitTopListTo = 10 -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 
+Config.EloPunishments = { -- these determine how much is removed when player leaves a ranked and started race
+    leaving = -1, -- if players leaves an ongoing race
+    idling = -2, -- if player idles and gets kicked
+    positionCheat = -1 -- if player tries to start across the starting line
+}
+
 -- GPS stuff
 Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
 Config.ShowGpsRoute = true -- Default for showing GPS route

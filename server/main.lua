@@ -426,12 +426,42 @@ local function handOutAutomationPayout(src, amount)
     end
 end
 
+local function changeRacerName(src, racerName)
+    local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1].auth
+    local Player = QBCore.Functions.GetPlayer(src)
+    if auth then
+        Player.Functions.SetMetaData("selectedRacerAuth", auth)
+    else
+        Player.Functions.SetMetaData("selectedRacerAuth", 'racer')
+    end
+    Player.Functions.SetMetaData("selectedRacerName", racerName)
+    Player.Functions.SetMetaData("selectedCrew", nil)
+end
+
+local function getRankingForRacer(src, racername)
+    if useDebug then print('Fetching ranking for racer', racername) end
+    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', {racername})
+    if res and res[1] then
+        return res[1].ranking
+    end
+    return 0
+end
+
 local function updateRacerNameLastRaced(racerName, Position)
     local query = 'UPDATE racer_names SET races = races + 1 WHERE racername = "'..racerName..'"'
     if Position == 1 then
         query = 'UPDATE racer_names SET races = races + 1, wins = wins + 1 WHERE racername = "'..racerName..'"'
     end
     MySQL.Async.execute(query)
+end
+
+local function updateRacerElo(source, racerName, eloChange)
+    local sql = "UPDATE racer_names SET ranking = ranking + "..eloChange.. " WHERE racername = '"..racerName.."'"
+
+    local currentRank = getRankingForRacer(source, racerName)
+    MySQL.Async.execute(sql)
+    TriggerClientEvent('cw-racingapp:client:updateRanking', source, eloChange, currentRank+eloChange)
+
 end
 
 local function handleEloUpdates(results)
@@ -804,8 +834,12 @@ local function assignNewOrganizer(RaceId, src)
     end
 end
 
-RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
-    if useDebug then print('Player left race', source) end
+RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
+    if useDebug then 
+        print('Player left race', source) 
+        print('Reason:', reason) 
+        print(json.encode(RaceData, {indent=true}))
+    end
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local RacerName = RaceData.RacerName
@@ -888,6 +922,11 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData)
     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[RaceId])
     for cid, racer in pairs(Tracks[RaceId].Racers) do
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Tracks[RaceId].Racers)
+    end
+    if RaceData.Ranked and RaceData.Started and RaceData.TotalRacers > 1 and reason then
+        if Config.EloPunishments[reason] then
+            updateRacerElo(src, RacerName,  Config.EloPunishments[reason] )
+        end
     end
 end)
 
@@ -1518,27 +1557,6 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacersCreatedByUser', fu
     if useDebug then print('result from fetching racers created by user', citizenid, json.encode(result)) end
     cb(result)
 end)
-
-local function changeRacerName(src, racerName)
-    local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1].auth
-    local Player = QBCore.Functions.GetPlayer(src)
-    if auth then
-        Player.Functions.SetMetaData("selectedRacerAuth", auth)
-    else
-        Player.Functions.SetMetaData("selectedRacerAuth", 'racer')
-    end
-    Player.Functions.SetMetaData("selectedRacerName", racerName)
-    Player.Functions.SetMetaData("selectedCrew", nil)
-end
-
-local function getRankingForRacer(src, racername)
-    if useDebug then print('Fetching ranking for racer', racername) end
-    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', {racername})
-    if res and res[1] then
-        return res[1].ranking
-    end
-    return 0
-end
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:ChangeRacerName', function(source, cb, racerNameInUse)
     if useDebug then print('Changing Racer Name for (1) src to (2) name', source, racerNameInUse) end

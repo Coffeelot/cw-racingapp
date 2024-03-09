@@ -734,7 +734,8 @@ local function validateTime()
     if CurrentRaceData.Ghosting and CurrentRaceData.GhostingTime then
         return actuallyValidateTime(CurrentRaceData.GhostingTime)
     else
-        return actuallyValidateTime(Config.Ghosting.Timer)
+        if useDebug then print('Ghosting | Defaulting time validation. Ghosting:', CurrentRaceData.Ghosting, 'Ghosting Time:', CurrentRaceData.GhostingTime ) end
+        return actuallyValidateTime(0)
     end
 end
 
@@ -756,9 +757,7 @@ function CreateGhostLoop()
                     break
                 end
             else
-                if useDebug then
-                   print('Breaking due to time')
-                end
+                if useDebug then print('Breaking due to time') end
                 UnGhostPlayer()
                 break
             end
@@ -1233,7 +1232,7 @@ local function checkCheckPointTime()
         if not Kicked then
             Kicked = true
             QBCore.Functions.Notify(Lang:t('error.kicked'), 'error')
-            TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData)
+            TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'idling')
         end
     end
 end
@@ -1649,7 +1648,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
         if CurrentRaceData.RaceName ~= nil then
             updateCountdown(0)
             if isPositionCheating() then 
-                TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData)
+                TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'positionCheat')
                 QBCore.Functions.Notify('You got disqualified for trying to start pass the line', 'error')
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
                 return 
@@ -2326,7 +2325,9 @@ end)
 
 RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)
     currentRanking = newRank
-    QBCore.Functions.Notify('You\'r ranking has been updated with '..change..'. New rank: '..newRank, 'sucess')
+    local type = 'success'
+    if change < 0 then type = 'error' end
+    QBCore.Functions.Notify('Your ranking has been updated with '..change..'. New rank: '..newRank, type)
 end)
 
 -- UI CALLBACKS
@@ -2370,7 +2371,7 @@ end)
 
 RegisterNUICallback('UiLeaveCurrentRace', function(raceid, cb)
     if useDebug then print('Leaving race with race id', raceid) end
-    TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData)
+    TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData, 'leaving')
     cb(true)
 end)
 
@@ -3089,6 +3090,8 @@ AddEventHandler('onResourceStart', function (resource)
 
         print('^2Permissions:', json.encode(Config.Permissions))
         print('^2Classes: ', json.encode(Classes))
+        LocalPlayer.state:set('inRace', false, true)
+        LocalPlayer.state:set('raceId', nil, true)
     end
     setup()
  end)
