@@ -7,8 +7,16 @@
         >
         <v-form>
           <v-card>
-            <v-card-title>
+            <v-card-title class="title-holder">
               Track selected: {{ track.RaceName }}
+              <v-switch
+                  class="reverse-switch"
+                  label="Reversed"
+                  v-model="setupData.reversed"
+                  density="compact"
+                  hide-details
+                >
+              </v-switch>
             </v-card-title>
             <v-card-text>
               <v-container>
@@ -114,6 +122,7 @@
                       label="Ranked"
                       v-model="setupData.ranked"
                       density="compact"
+                      hide-details
                     >
                     </v-switch>
                   </v-col>
@@ -162,6 +171,7 @@ const setupData = ref({
   ghosting: globalStore.baseData.data.ghostingTimes[0].value,
   maxClass: globalStore.baseData.data.classes[0].value,
   ranked: false,
+  reversed: false,
   participationMoney: 0,
   participationCurrency: 'cash'
 })
@@ -174,7 +184,7 @@ const handleClose = () => {
 
 const handleConfirm = async () => {
   if (setupData.value.participationMoney < 0) setupData.value.participationMoney = 0
-  
+
   let data = {
         track: props.track.RaceId,
         laps: setupData.value.laps,
@@ -184,7 +194,8 @@ const handleConfirm = async () => {
         ghostingTime: setupData.value.ghosting,
         ranked: setupData.value.ranked,
         participationMoney: setupData.value.participationMoney,
-        participationCurrency: setupData.value.participationCurrency
+        participationCurrency: setupData.value.participationCurrency,
+        reversed: setupData.value.reversed
     }
 
   const res = await api.post("UiSetupRace", JSON.stringify(data));
@@ -197,4 +208,14 @@ const handleConfirm = async () => {
 
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.title-holder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.reverse-switch {
+  display: flex;
+  justify-content: flex-end;
+}
+</style>

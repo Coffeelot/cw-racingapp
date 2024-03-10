@@ -7,6 +7,7 @@
             <v-chip prepend-icon="mdi-account-group">Current Racers: {{ props.race.racers }}</v-chip>
             <v-chip prepend-icon="mdi-ghost">Ghosting: {{ props.race.ghosting ? 'On': 'Off' }}</v-chip>
             <v-chip prepend-icon="mdi-car-info">Max Class: {{ props.race.class }} </v-chip>
+            <v-chip v-if="props.race.reversed" prepend-icon="mdi-backup-restore" >Reversed</v-chip>
         </v-card-text>
         <v-card-actions>
             <v-btn variant="tonal" @click='leaveRace()'>Leave Race</v-btn>

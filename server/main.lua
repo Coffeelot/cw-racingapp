@@ -253,17 +253,16 @@ local function getAmountOfRacers(RaceId)
     return AmountOfRacers, PlayersFinished
 end
 
-local function racerHasPreviousRecordInClass(Records, RacerName, CarClass)
+local function racerHasPreviousRecordInClassAndDirection(Records, RacerName, CarClass, Reversed)
     if Records then
-        if useDebug then
-           print(RacerName, CarClass)
-        end
         for i, Record in pairs(Records) do
             if useDebug then
                print('Checking previous records:', Record.Holder, Record.Class)
                print('check', Record.Holder == RacerName, Record.Class == CarClass)
             end
-            if Record.Holder == RacerName and Record.Class == CarClass then
+            local isReversed = Record.Reversed
+            if isReversed == nil then isReversed = false end
+            if Record.Holder == RacerName and Record.Class == CarClass and (isReversed == Reversed) then
                 return Record, i
             end
         end
@@ -304,26 +303,26 @@ local function getLatestRecordsByName(RaceName)
     end
 end
 
-local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType)
+local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType, Reversed)
     local records = getLatestRecordsById(RaceData.RaceId)
-    local FilteredLeaderboard = {}
     local PersonalBest, index = nil, nil
+
     if #records == 0 then
         if useDebug then
-           print('no records have been set yet')
+            print('no records have been set yet')
         end
     else
-        FilteredLeaderboard = filterLeaderboardsByClass(records, CarClass)
-        PersonalBest, index = racerHasPreviousRecordInClass(records, RacerName, CarClass)
-    end
-    if useDebug then
-       print('Time for player', PlayerTime, RacerName, CarClass, VehicleModel)
-       print('All times for this class', dump(FilteredLeaderboard))
+        PersonalBest, index = racerHasPreviousRecordInClassAndDirection(records, RacerName, CarClass)
     end
 
     if useDebug then
+        local FilteredLeaderboard = {}
+        FilteredLeaderboard = filterLeaderboardsByClass(records, CarClass)
+       print('Time for player', PlayerTime, RacerName, CarClass, VehicleModel)
+       print('All times for this class', dump(FilteredLeaderboard))
        print('racer has previous record: ', dump(PersonalBest), index)
     end
+
     if PersonalBest and PersonalBest.Time > PlayerTime then
         if useDebug then
            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
@@ -334,7 +333,8 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Holder = RacerName,
             Class = CarClass,
             Vehicle = VehicleModel,
-            RaceType = RaceType
+            RaceType = RaceType,
+            Reversed = Reversed
         }
         records[index] = playerPlacement
         records = sortRecordsByTime(records)
@@ -357,7 +357,8 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Holder = RacerName,
             Class = CarClass,
             Vehicle = VehicleModel,
-            RaceType = RaceType
+            RaceType = RaceType,
+            Reversed = Reversed
         }
         if useDebug then
            print('records', dump(records))
@@ -501,6 +502,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     local RacerName = RaceData.RacerName
     local PlayersFinished = 0
     local AmountOfRacers = 0
+    local Reversed = Tracks[RaceData.RaceId].Reversed
 
     RaceResults[RaceData.RaceId].Result[#RaceResults[RaceData.RaceId].Result+1] = { 
         TotalTime = TotalTime, 
@@ -600,21 +602,23 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId]+1] =  {
             TotalTime = TotalTime,
             BestLap = BLap,
-            Holder = RacerName
+            Holder = RacerName,
+            Reversed = Reversed
         }
     else
         LastRaces[RaceData.RaceId] = {}
         LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId]+1] =  {
             TotalTime = TotalTime,
             BestLap = BLap,
-            Holder = RacerName
+            Holder = RacerName,
+            Reversed = Reversed
         }
     end
 
     if Tracks[RaceData.RaceId].Records ~= nil and next(Tracks[RaceData.RaceId].Records) ~= nil then
         local RaceType = 'Sprint'
         if TotalLaps > 0 then RaceType = 'Circuit' end
-        local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel, RaceType)
+        local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel, RaceType, Reversed)
         if newRecord then
             if useDebug then
                print('Player got a record', BLap)
@@ -693,8 +697,12 @@ RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerNa
     end
 end)
 
-local function isToFarAway(src, RaceId)
-    return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y))
+local function isToFarAway(src, RaceId, Reversed)
+    if Reversed then
+        return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y))
+    else
+        return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y))
+    end
 end
 
 local function hasEnoughMoney(source, cost)
@@ -737,8 +745,12 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
         print('Racer Crew:', RacerCrew)
     end
 
-    if isToFarAway(src, RaceId) then
-        TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+    if isToFarAway(src, RaceId, RaceData.Reversed) then
+        if Reversed then
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y)
+        else
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+        end
         return
     end
     if not Tracks[RaceId].Started then
@@ -791,6 +803,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             Tracks[RaceId].Ghosting = RaceData.Ghosting
             Tracks[RaceId].BuyIn = RaceData.BuyIn
             Tracks[RaceId].Ranked = RaceData.Ranked
+            Tracks[RaceId].Reversed = RaceData.Reversed
             Tracks[RaceId].ParticipationAmount = tonumber(RaceData.ParticipationAmount)
             Tracks[RaceId].ParticipationCurrency = RaceData.ParticipationCurrency
             Tracks[RaceId].GhostingTime = RaceData.GhostingTime
@@ -930,7 +943,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     end
 end)
 
-local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, ParticipationAmount, ParticipationCurrency, Automated, src)
+local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, Automated, src)
     if useDebug then 
         print('Setting up race', json.encode({
             RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated, Ranked=Ranked, ParticipationAmount=ParticipationAmount, ParticipationCurrency=ParticipationCurrency
@@ -958,6 +971,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                     GhostingTime = GhostingTime,
                     BuyIn = BuyIn,
                     Ranked = Ranked,
+                    Reversed = Reversed,
                     ParticipationAmount = ParticipationAmount,
                     ParticipationCurrency = ParticipationCurrency,
                     ExpirationTime = os.date("%c", os.time()+60*Config.TimeOutTimerInMinutes),
@@ -1038,16 +1052,20 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
 
 end
 
-RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, ParticipationAmount, ParticipationCurrency)
+RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency)
     local src = source
-    if not Automated and isToFarAway(src, RaceId) then
-        TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+    if isToFarAway(src, RaceId, Reversed) then
+        if Reversed then
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y)
+        else
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+        end
         return
     end
-    if not Automated and (BuyIn > 0 and not hasEnoughMoney(src, BuyIn)) then
+    if (BuyIn > 0 and not hasEnoughMoney(src, BuyIn)) then
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
     else
-        setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, ParticipationAmount, ParticipationCurrency, false, src)
+        setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, false, src)
     end
 end)
 
@@ -1070,10 +1088,15 @@ local function GenerateAutomatedRace()
     if useDebug then print('Creating new Automated Race from', race.trackId) end
     local ranked = race.ranked
     if ranked == nil then
-        if useDebug then print('Automation: rank was not set. defaulting to ranked = true') end
+        if useDebug then print('Automation: ranked was not set. defaulting to ranked = true') end
         ranked = true
     end
-    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, race.participationMoney, race.ParticipationCurrency, true, nil)
+    local reversed = race.reversed
+    if reversed == nil then
+        if useDebug then print('Automation: rank was not set. defaulting to reversed = false') end
+        reversed = false
+    end
+    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, reversed, race.participationMoney, race.ParticipationCurrency, true, nil)
 end
 
 if Config.AutomatedOptions and Config.AutomatedRaces then 

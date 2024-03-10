@@ -91,6 +91,17 @@ end
 -----------------------
 ----   Functions   ----
 -----------------------
+local function reverseTable(tbl)
+    local len = #tbl
+    local mid = math.floor(len / 2)
+    for i = 1, mid do
+        local temp = tbl[i]
+        tbl[i] = tbl[len - i + 1]
+        tbl[len - i + 1] = temp
+    end
+    return tbl
+end
+
 local function myCarClassIsAllowed(maxClass, myClass)
     print('Max class', maxClass)
     if maxClass == nil or maxClass == '' then
@@ -925,17 +936,19 @@ local function positionThread()
 end
 
 local function SetupRace(RaceData, Laps)
-    print('yp', json.encode(RaceData))
+    local checkpoints = RaceData.Checkpoints
+    if RaceData.Reversed then checkpoints = reverseTable(checkpoints) end
     CurrentRaceData = {
         RaceId = RaceData.RaceId,
         Creator = RaceData.Creator,
         OrganizerCID = RaceData.OrganizerCID,
         RacerName = RaceData.RacerName,
         RaceName = RaceData.RaceName,
-        Checkpoints = RaceData.Checkpoints,
+        Checkpoints = checkpoints,
         Ghosting = RaceData.Ghosting,
         GhostingTime = RaceData.GhostingTime,
         Ranked = RaceData.Ranked,
+        Reversed = RaceData.Reversed,
         Started = false,
         CurrentCheckpoint = 1,
         TotalLaps = Laps,
@@ -2575,6 +2588,7 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             maxClass = CurrentRaceData.MaxClass
         end
         print('Ranked?', CurrentRaceData.Ranked)
+        print('Reversed?', CurrentRaceData.Reversed)
         local data = {
             trackName = CurrentRaceData.RaceName,
             racers = racers,
@@ -2584,7 +2598,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             CurrentRaceData.Started),
             raceId = CurrentRaceData.RaceId,
             ghosting = CurrentRaceData.Ghosting,
-            ranked = CurrentRaceData.Ranked
+            ranked = CurrentRaceData.Ranked,
+            reversed = CurrentRaceData.Reversed
         }
         cb(data)
     else
@@ -2679,7 +2694,6 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
     if PlayerIsInVehicle then
         local info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
         if myCarClassIsAllowed(setupData.maxClass, class) then
-            local maxClass = setupData.maxClass
             TriggerServerEvent('cw-racingapp:server:SetupRace',
                 setupData.track,
                 tonumber(setupData.laps),
@@ -2689,6 +2703,7 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
                 tonumber(setupData.ghostingTime),
                 tonumber(setupData.buyIn),
                 setupData.ranked,
+                setupData.reversed,
                 setupData.participationMoney,
                 setupData.participationCurrency
             )

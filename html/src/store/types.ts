@@ -89,6 +89,7 @@ export type CurrentRace = {
     raceId: string,
     ghosting: boolean,
     ranked: boolean,
+    reversed: boolean,
 }
 
 export type ActiveRacer = {
@@ -179,7 +180,8 @@ export type Record = {
     Holder: string,
     Time: number,
     Vehicle: string,
-    RaceType: string
+    RaceType: string,
+    Reversed: boolean
 }
 
 export type Result = {

@@ -14,6 +14,7 @@
             <v-chip prepend-icon="mdi-car-info">{{ `Class: ${props.race.MaxClass}` }}</v-chip>
             <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
             <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? 'Starts: ': `Expires:`} ${expirationTimeString}` }}</v-chip>
+            <v-chip v-if="props.race.Reversed" prepend-icon="mdi-backup-restore" >Reversed</v-chip>
             <v-chip prepend-icon="mdi-account-star">Hosted by{{ props.race.SetupRacerName }}</v-chip>
         </v-card-text>
         <v-card-actions v-if="!props.race.disabled">

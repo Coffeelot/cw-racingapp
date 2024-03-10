@@ -11,6 +11,13 @@
         v-model="selectedRace"
       ></v-select>
     </div>
+    <v-switch
+      density="compact"
+      label="Reversed"
+      v-model="reversed"
+      hide-details
+      >
+    </v-switch>
     <div class="loading-container" id="results-items-loader">
       <span class="loader"></span>
     </div>
@@ -18,7 +25,7 @@
       <InfoText title="Select a track to view results"></InfoText>
     </div>
     <div v-else >
-      <v-table v-if="selectedRace.Records.length>0">
+      <v-table v-if="filteredRecords && filteredRecords.length>0">
         <thead>
           <tr>
             <th class="text-left">
@@ -39,7 +46,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="(item, index) in selectedRace.Records"
+            v-for="(item, index) in filteredRecords"
             :key="`${item.Holder}-${item.Class}`"
           >
             <td>{{ index +1 }}. {{ item.Holder }}</td>
@@ -58,20 +65,28 @@
 </template>
 
 <script setup lang="ts">
-import { useGlobalStore } from "@/store/global";
 import { Ref, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import { Track } from "@/store/types";
 import { secondsToHMS } from "@/helpers/secondsToHMS";
+import { computed } from "vue";
 
 const props = defineProps<{
   allRecords: Track[];
 }>();
-const globalStore = useGlobalStore();
 const selectedRace: Ref<Track | undefined> = ref(undefined)
+const reversed: Ref<boolean> = ref(false)
+const filteredRecords = computed(() => selectedRace.value?.Records.filter((record) => {
+  console.log(record.Reversed)
+  if (record.Reversed === undefined) return !reversed.value
+
+  return record.Reversed === reversed.value
+}))
+
 </script>
 
 <style scoped lang="scss">
 .header {
+  align-items: center;
   margin-bottom: 1em;
 }</style>
