@@ -7,6 +7,7 @@
 - Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
 - ELO system for ranking racers
 - Crew system
+- Elimination races (last to cross finish line on lap gets eliminated)
 - Advanced leaderboard for each track and class showing everyones best times
 - By-class leaderboard
 - Replacement of tire-piles lamps
@@ -239,5 +240,5 @@ Once upon a time this was a fork of [QB-Racing](https://github.com/ItsANoBrainer
 # Sponsored Features
 ## Real Time Racing Positions
 @JELLYHITAM | [Quantum Roleplay Indonesia](https://discord.gg/XyP9tPDHX4)
-## Ability to create participation rewards from UI and extended auth types
+## Participation Rewards in UI | Extended auth types | Reverse Tracks | Elimination Races
 @Rithvikk05 | [HTRP](discord.gg/htrp)
