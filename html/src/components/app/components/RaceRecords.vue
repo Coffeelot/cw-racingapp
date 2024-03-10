@@ -1,5 +1,5 @@
 <template>
-  <div class="results-container page-container">
+  <div class="results-container">
     <div class="inline standardGap header">
       <h3 style="width: 160px">Select Race</h3>
       <v-select
@@ -24,8 +24,8 @@
     <div v-if="!selectedRace">
       <InfoText title="Select a track to view results"></InfoText>
     </div>
-    <div v-else >
-      <v-table v-if="filteredRecords && filteredRecords.length>0">
+    <div v-else class="scrollable">
+      <v-table v-if="filteredRecords && filteredRecords.length>0" >
         <thead>
           <tr>
             <th class="text-left">
@@ -77,7 +77,6 @@ const props = defineProps<{
 const selectedRace: Ref<Track | undefined> = ref(undefined)
 const reversed: Ref<boolean> = ref(false)
 const filteredRecords = computed(() => selectedRace.value?.Records.filter((record) => {
-  console.log(record.Reversed)
   if (record.Reversed === undefined) return !reversed.value
 
   return record.Reversed === reversed.value

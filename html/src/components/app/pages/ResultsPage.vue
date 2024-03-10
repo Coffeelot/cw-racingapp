@@ -7,7 +7,7 @@
       <v-tab value="records">Race Records</v-tab>
     </v-tabs>
 
-    <v-window v-model="tab">
+    <v-window v-model="tab" class="page-container">
       <v-window-item value="crewRank" class="tabcontent">
         <CrewTable ></CrewTable>
       </v-window-item>

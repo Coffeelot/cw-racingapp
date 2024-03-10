@@ -1,10 +1,5 @@
 <template>
   <div class="ui-container">
-    <img
-      class="screen-frame"
-      src="./../assets/screen-frame.png"
-      alt="screen-frame"
-    />
     <div class="screen-container" v-if="globalStore.baseData.data">
       <TopBar></TopBar>
       <div class="app-container">
@@ -153,11 +148,13 @@ h2 {
 }
 
 .screen-container {
-  width: 848px;
-  height: 700px;
+  width: 70vw;
+  height: 40vw;
   margin-left: -1px;
   margin-top: 72px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  border: 1.2em solid #131316;
+  border-radius: 1em;
 }
 
 .app-container {
@@ -166,7 +163,7 @@ h2 {
   overflow-x: hidden;
   position: relative;
   display: flex;
-  height: 460px;
+  height: calc(100% - 2em)
 }
 
 .tabs-container {

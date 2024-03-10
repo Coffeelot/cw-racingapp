@@ -5,7 +5,7 @@
       <v-tab value="create">Create Track</v-tab>
     </v-tabs>
 
-    <v-window v-model="tab">
+    <v-window v-model="tab" class="page-container">
       <v-window-item value="myTracks" class="tabcontent mt">
         <div class="subheader inline">
           <h3 class="header-text">My Tracks</h3>
@@ -17,7 +17,7 @@
             v-model="search"
           ></v-text-field>
         </div>
-        <div class="mytracks-items" v-if="filtereredTracks">
+        <div class="mytracks-items scrollable" v-if="filtereredTracks">
           <MyTrackCard
             v-for="track in filtereredTracks"
             :track="track"

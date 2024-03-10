@@ -38,5 +38,6 @@ const startRace = async () => {
 <style scoped lang="scss">
 .available-card {
     flex-grow: 1;
+    height: fit-content;
 }
 </style>

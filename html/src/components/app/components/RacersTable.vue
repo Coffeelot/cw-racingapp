@@ -3,7 +3,7 @@
     <div class="inline standardGap header">
       <h3>Crew rankings</h3>
     </div>
-    <v-table v-if="racers && racers.length>0">
+    <v-table v-if="racers && racers.length>0" class="scrollable">
       <thead>
         <tr>
           <th class="text-left">

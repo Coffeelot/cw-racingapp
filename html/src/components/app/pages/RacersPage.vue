@@ -5,7 +5,7 @@
       <v-tab value="create" v-if="globalStore.baseData?.data?.auth?.create">Create Racer</v-tab>
     </v-tabs>
 
-    <v-window v-model="tab">
+    <v-window v-model="tab" class="page-container">
       <v-window-item value="myRacers" class="tabcontent">
         <div class="subheader inline">
           <h3 class="header-text">My Racers</h3>
@@ -17,7 +17,7 @@
             v-model="search"
           ></v-text-field>
         </div>
-        <div class="myRacers-items-container" v-if="myRacers && myRacers.length>0">
+        <div class="myRacers-items-container scrollable" v-if="myRacers && myRacers.length>0">
           <MyRacerCard @triggerReload="getMyRacers()" v-for="racer in filteredRacers" :racer="racer"></MyRacerCard>
         </div>
       </v-window-item>

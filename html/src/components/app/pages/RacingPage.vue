@@ -5,7 +5,7 @@
       <v-tab value="available">Available</v-tab>
       <v-tab value="setup">Setup</v-tab>
     </v-tabs>
-    <v-window v-model="tab">
+    <v-window v-model="tab" class="page-container">
       <v-window-item value="current" class="tabcontent">
         <div class="current-race-container page-container">
           <div id="current-race-selection" v-if="currentRace">
@@ -71,7 +71,7 @@
         >
           <span class="loader"></span>
         </div>
-        <div v-else class="available-races">
+        <div v-else class="page-container available-races">
           <AvailableTracksCard
             v-for="track in filteredTracks"
             :track="track"
@@ -182,7 +182,9 @@ onMounted(() => {
 <style scoped lang="scss">
 .available-races {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
+  overflow-y: auto;
   gap: 1em;
   margin-top: 1em;
 }
