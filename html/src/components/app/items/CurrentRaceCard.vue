@@ -3,7 +3,7 @@
         <v-card-title>{{ props.race.trackName}}</v-card-title>
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race.ranked" text="Ranked"></v-chip>
-            <v-chip prepend-icon="mdi-go-kart-track">{{ props.race.laps === 0 ? 'Sprint' : 'Laps: ' + props.race.laps }}</v-chip>
+            <v-chip prepend-icon="mdi-go-kart-track">{{ lapsText }}</v-chip>
             <v-chip prepend-icon="mdi-account-group">Current Racers: {{ props.race.racers }}</v-chip>
             <v-chip prepend-icon="mdi-ghost">Ghosting: {{ props.race.ghosting ? 'On': 'Off' }}</v-chip>
             <v-chip prepend-icon="mdi-car-info">Max Class: {{ props.race.class }} </v-chip>
@@ -20,6 +20,7 @@
 <script setup lang="ts">
 import { useGlobalStore } from "@/store/global";
 import { CurrentRace } from "@/store/types";
+import { computed } from "vue";
 
 
 const props = defineProps<{
@@ -27,6 +28,17 @@ const props = defineProps<{
 }>()
 const globalStore = useGlobalStore();
 const emits = defineEmits(['start', 'leave'])
+
+const lapsText = computed(() => {
+    let lapsText = 'Sprint'
+    if (props.race.laps == -1) {
+        lapsText = 'Elimination '
+    }
+    else if (props.race.laps > 0) {
+        lapsText = props.race.laps + ' lap(s) '
+    }
+    return lapsText
+})
 
 const startRace = async () => {
     emits('start', props.race)

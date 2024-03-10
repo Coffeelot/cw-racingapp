@@ -1493,9 +1493,38 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
     end
 end)
 
+
+-- Exampl
+local function checkElimination()
+    local currentPlayerIsLast = true
+    local lastCompletedLap = 0
+    -- Find the last completed lap and racer
+    for citizenId, data in pairs(CurrentRaceData.Racers) do
+        if QBCore.Functions.GetPlayerData().citizenid ~= citizenId then
+            if not data.Finished and data.Lap <= CurrentRaceData.Lap then
+                currentPlayerIsLast = false -- someone was worse
+            end
+            if lastCompletedLap < data.Lap then
+                lastCompletedLap = data.Lap
+            end
+        end
+    end
+    if useDebug then print('Is Last racer', currentPlayerIsLast, 'lap:', lastCompletedLap) end
+    -- Check if the current racer is the last one who completed the lap
+    if currentPlayerIsLast and lastCompletedLap >= CurrentRaceData.Lap then
+        if useDebug then print("Eliminating racer: " .. QBCore.Functions.GetPlayerData().citizenid) end
+        TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'elimination')
+        QBCore.Functions.Notify('You were eliminated', 'error')
+    end
+end
+
 RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(RaceId, RaceData)
     if (CurrentRaceData.RaceId ~= nil) and CurrentRaceData.RaceId == RaceId then
+        if useDebug then print('Race is Elimination:', CurrentRaceData.IsElimination) end
         CurrentRaceData.Racers = RaceData.Racers
+        if CurrentRaceData.IsElimination then
+            checkElimination()
+        end
     end
 end)
 
@@ -1641,6 +1670,11 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     --     QBCore.Functions.Notify('Ghosting is turned off due to only one racer')
     -- end
     positionThread()
+    if CurrentRaceData.TotalLaps == -1 then 
+        if useDebug then print('^3Race is Elimination! setting laps to:', CurrentRaceData.TotalRacers-1) end
+        CurrentRaceData.TotalLaps = CurrentRaceData.TotalRacers-1
+        CurrentRaceData.IsElimination = true
+    end
     if CurrentRaceData.RaceId ~= nil then
         while Countdown ~= 0 do
             if CurrentRaceData.RaceName ~= nil then

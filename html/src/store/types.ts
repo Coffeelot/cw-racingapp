@@ -11,6 +11,7 @@ export type Auth = {
     controlAll: boolean,
     createCrew: boolean,
     startRanked: boolean,
+    startElimination: boolean,
     setupParticipation: boolean
 }
 

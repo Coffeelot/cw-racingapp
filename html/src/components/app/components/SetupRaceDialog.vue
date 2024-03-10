@@ -26,9 +26,8 @@
                     sm="6"
                   >
                     <v-select
-                    density="compact"
-
-                      :items="globalStore.baseData.data.laps"
+                      density="compact"
+                      :items="lapsFiltered"
                       item-value="value"
                       item-title="text"
                       label="Laps"
@@ -123,6 +122,7 @@
                       v-model="setupData.ranked"
                       density="compact"
                       hide-details
+                      :disabled="setupData.laps === -1"
                     >
                     </v-switch>
                   </v-col>
@@ -155,6 +155,7 @@ import api from "@/api/axios";
 import { closeApp } from "@/helpers/closeApp";
 import { useGlobalStore } from "@/store/global";
 import { Track } from "@/store/types";
+import { computed } from "vue";
 import { ref } from "vue";
 
 const props = defineProps<{
@@ -162,11 +163,19 @@ const props = defineProps<{
   open: boolean;
 }>();
 
-const emits = defineEmits(["goBack"]);
-const globalStore = useGlobalStore();
+const emits = defineEmits(["goBack"])
+const globalStore = useGlobalStore()
 const open = ref(props.open)
+
+const lapsFiltered = computed(()=>globalStore.baseData.data.laps.filter((lapType) => {
+  if (lapType.value === -1) {// For elimination
+    return globalStore.baseData.data.auth.startElimination
+  } 
+  return true
+} ))
+
 const setupData = ref({
-  laps: globalStore.baseData.data.laps[0].value,
+  laps: globalStore.baseData.data.laps[1].value,
   buyIn: globalStore.baseData.data.buyIns[0].value,
   ghosting: globalStore.baseData.data.ghostingTimes[0].value,
   maxClass: globalStore.baseData.data.classes[0].value,
@@ -184,6 +193,7 @@ const handleClose = () => {
 
 const handleConfirm = async () => {
   if (setupData.value.participationMoney < 0) setupData.value.participationMoney = 0
+  if (setupData.value.laps === -1) setupData.value.ranked = false
 
   let data = {
         track: props.track.RaceId,

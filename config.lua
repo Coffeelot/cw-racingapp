@@ -66,8 +66,9 @@ Config.Permissions = {
         create = false, -- create races
         control = false, -- control users
         controlAll = false, -- control all users
-        createCrew = true, -- create crews
+        createCrew = false, -- create crews
         startRanked = false, -- can start ranked races
+        startElimination = false, -- can start elimination races
         setupParticipation = false -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
     },
     creator = {
@@ -77,8 +78,9 @@ Config.Permissions = {
         create = true,
         control = false,
         controlAll = false,
-        createCrew = true,
+        createCrew = false,
         startRanked = false, 
+        startElimination = false,
         setupParticipation = false 
     },
     master = {
@@ -89,7 +91,8 @@ Config.Permissions = {
         control = true,
         controlAll = false,
         createCrew = true,
-        startRanked = true, 
+        startRanked = true,
+        startElimination = true,
         setupParticipation = false 
     },
     god = {
@@ -100,7 +103,8 @@ Config.Permissions = {
         control = true,
         controlAll = true,
         createCrew = true,
-        startRanked = true, 
+        startRanked = true,
+        startElimination = true,
         setupParticipation = true 
     }
 }
@@ -146,6 +150,7 @@ Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Co
 
 Config.Options = {
     Laps = {
+        { value = -1, text = 'Elimination' },
         { value = 0, text = 'Sprint' },
         { value = 1, text = 1 },
         { value = 2, text = 2 },

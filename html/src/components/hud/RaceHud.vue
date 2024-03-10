@@ -28,7 +28,7 @@
             <span class="hud-text split"
               ><span class="leftAligned">LAP:</span
               ><span id="race-lap">
-                {{ globalStore.activeRace.totalLaps === 0 ? 'Sprint' : `${globalStore.activeRace.currentLap}/${globalStore.activeRace.totalLaps}` }}</span
+                {{lapText }}</span
               ></span
             >
           </div>
@@ -82,6 +82,11 @@ const hudpositionToCss: Record<string, string> = {
 
 const placement = computed(() => globalStore.baseData?.data?.hudSettings?.location ? hudpositionToCss[globalStore.baseData?.data?.hudSettings?.location]: 'space-between')
 const direction = computed(() => globalStore.baseData?.data?.hudSettings?.location === 'left' ? 'row-reverse': 'row')
+const lapText = computed(() => {
+  if (globalStore.activeRace.totalLaps === 0) return 'Sprint'
+  else if (globalStore.activeRace.totalLaps === -1) return  `${globalStore.activeRace.currentLap}/-`
+  return `${globalStore.activeRace.currentLap}/${globalStore.activeRace.totalLaps}`
+})
 </script>
 
 <style scoped lang="scss">

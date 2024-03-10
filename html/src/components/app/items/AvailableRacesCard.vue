@@ -52,7 +52,10 @@ const participationText = computed(() => {
 
 const lapsText = computed(() => {
     let lapsText = 'Sprint | '
-    if (props.race.laps > 0) {
+    if (props.race.laps == -1) {
+        lapsText = 'Elimination | '
+    }
+    else if (props.race.laps > 0) {
         lapsText = props.race.Laps + ' lap(s) | '
     }
     return lapsText
