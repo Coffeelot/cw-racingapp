@@ -12,6 +12,7 @@ export type Auth = {
     createCrew: boolean,
     startRanked: boolean,
     startElimination: boolean,
+    startReversed: boolean,
     setupParticipation: boolean
 }
 

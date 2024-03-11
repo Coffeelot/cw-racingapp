@@ -10,6 +10,7 @@
             <v-card-title class="title-holder">
               Track selected: {{ track.RaceName }}
               <v-switch
+                  v-if="globalStore.baseData.data.auth.startReversed"
                   class="reverse-switch"
                   label="Reversed"
                   v-model="setupData.reversed"

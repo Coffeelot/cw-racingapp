@@ -69,6 +69,7 @@ Config.Permissions = {
         createCrew = false, -- create crews
         startRanked = false, -- can start ranked races
         startElimination = false, -- can start elimination races
+        startReversed = true, -- can start races with reversed track (It makes NO sense that this is even needed as an auth, but it was paid for so here it is. Leave it as true)
         setupParticipation = false -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
     },
     creator = {
@@ -81,6 +82,7 @@ Config.Permissions = {
         createCrew = false,
         startRanked = false, 
         startElimination = false,
+        startReversed = true,
         setupParticipation = false 
     },
     master = {
@@ -93,6 +95,7 @@ Config.Permissions = {
         createCrew = true,
         startRanked = true,
         startElimination = true,
+        startReversed = true,
         setupParticipation = false 
     },
     god = {
@@ -105,6 +108,7 @@ Config.Permissions = {
         createCrew = true,
         startRanked = true,
         startElimination = true,
+        startReversed = true,
         setupParticipation = true 
     }
 }
