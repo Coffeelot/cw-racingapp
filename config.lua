@@ -24,7 +24,8 @@ Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list wi
 Config.EloPunishments = { -- these determine how much is removed when player leaves a ranked and started race
     leaving = -1, -- if players leaves an ongoing race
     idling = -2, -- if player idles and gets kicked
-    positionCheat = -1 -- if player tries to start across the starting line
+    positionCheat = -1, -- if player tries to start across the starting line
+    cheeseing = -6 -- if player tries to cheese
 }
 
 -- GPS stuff

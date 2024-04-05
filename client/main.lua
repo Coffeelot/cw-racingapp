@@ -103,7 +103,6 @@ local function reverseTable(tbl)
 end
 
 local function myCarClassIsAllowed(maxClass, myClass)
-    print('Max class', maxClass)
     if maxClass == nil or maxClass == '' then
         return true
     end
@@ -1102,12 +1101,23 @@ end
 --     end
 -- end)
 
+local function isDriver(vehicle) 
+    return GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()
+end
+
 local function FinishRace()
     if CurrentRaceData.RaceId == nil then
         return
     end
     local PlayerPed = PlayerPedId()
-    local info, class, perfRating, vehicleModel = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
+    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
+    if not isDriver(vehicle) then
+        QBCore.Functions.Notify(Lang:t('error.kicked_cheese'), 'error')
+        TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'cheeseing')
+        return
+    end
+
+    local info, class, perfRating, vehicleModel = exports['cw-performance']:getVehicleInfo(vehicle)
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     if useDebug then print('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime) end
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
@@ -1127,13 +1137,7 @@ local function FinishRace()
     CurrentRaceData.RaceId = nil
 end
 
-function Info()
-    local PlayerPed = PlayerPedId()
-    local plyVeh = GetVehiclePedIsIn(PlayerPed, false)
-    local IsDriver = GetPedInVehicleSeat(plyVeh, -1) == PlayerPed
-    local returnValue = plyVeh ~= 0 and plyVeh ~= nil and IsDriver
-    return returnValue, plyVeh
-end
+
 
 exports('IsInRace', IsInRace)
 function IsInRace()
@@ -1184,23 +1188,6 @@ CreateThread(function()
     end
 end)
 
-CreateThread(function()
-    while true do
-        local Driver, plyVeh = Info()
-        if Driver then
-            if GetVehicleCurrentGear(plyVeh) < 3 and GetVehicleCurrentRpm(plyVeh) == 1.0 and
-                math.ceil(GetEntitySpeed(plyVeh) * 2.236936) > 50 then
-                while GetVehicleCurrentRpm(plyVeh) > 0.6 do
-                    SetVehicleCurrentRpm(plyVeh, 0.3)
-                    Wait(0)
-                end
-                Wait(800)
-            end
-        end
-        Wait(500)
-    end
-end)
-
 local function genericBlip(Blip)
     SetBlipScale(Blip, Config.Blips.Generic.Size)
     SetBlipColour(Blip, Config.Blips.Generic.Color)
@@ -1244,7 +1231,7 @@ local function checkCheckPointTime()
         end
         if not Kicked then
             Kicked = true
-            QBCore.Functions.Notify(Lang:t('error.kicked'), 'error')
+            QBCore.Functions.Notify(Lang:t('error.kicked_idling'), 'error')
             TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'idling')
         end
     end
@@ -1435,7 +1422,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     if PlayerIsInVehicle then
         info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
     else
-        QBCore.Functions.Notify('You are not in a vehicle', 'error')
+        QBCore.Functions.Notify(Lang:t('error.not_in_a_vehicle'), 'error')
         return
     end
     
@@ -1445,7 +1432,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
         RaceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
         TriggerServerEvent('cw-racingapp:server:JoinRace', RaceData)
     else 
-        QBCore.Functions.Notify('Your car is not the correct class', 'error')
+        QBCore.Functions.Notify(Lang:t('error.incorrect_class'), 'error')
     end
 end)
 
@@ -2529,10 +2516,12 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
 
     local info, class, perfRating = '', '', ''
-    if PlayerIsInVehicle then
-        info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
+    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
+    if PlayerIsInVehicle and isDriver(vehicle) then
+        info, class, perfRating = exports['cw-performance']:getVehicleInfo(vehicle)
     else
-        QBCore.Functions.Notify('You are not in a vehicle', 'error')
+        QBCore.Functions.Notify(Lang:t('error.not_in_a_vehicle'), 'error')
+        return
     end
 
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRaces', function(Races)
@@ -2549,7 +2538,7 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
                 cb(true)
                 return
             else 
-                QBCore.Functions.Notify('Your car is not the correct class', 'error')
+                QBCore.Functions.Notify(Lang:t('error.incorrect_class'), 'error')
             end
         end
         cb(false)
@@ -2724,8 +2713,9 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
     if useDebug then print('setup data', json.encode(setupData)) end
     local PlayerPed = PlayerPedId()
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
+    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
 
-    if PlayerIsInVehicle then
+    if PlayerIsInVehicle and isDriver(vehicle) then
         local info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
         if myCarClassIsAllowed(setupData.maxClass, class) then
             TriggerServerEvent('cw-racingapp:server:SetupRace',
@@ -2743,13 +2733,13 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
             )
         else
             cb(false)
-            QBCore.Functions.Notify('Your car is not the correct class', 'error')
+            QBCore.Functions.Notify(Lang:t('error.incorrect_class'), 'error')
             return
         end
         cb(true)
     else
         cb(false)
-        QBCore.Functions.Notify('You are not in a vehicle', 'error')
+        QBCore.Functions.Notify(Lang:t('error.not_in_a_vehicle'), 'error')
     end
 end)
 
