@@ -780,6 +780,7 @@ local startTime = 0
 local lapStartTime = 0
 
 local function updateCountdown(value)
+    AnimpostfxPlay('CrossLineOut', 0, false)
     SendNUIMessage({
         type = 'race',
         action = "countdown",
@@ -1264,16 +1265,16 @@ CreateThread(function()
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                             DoPilePfx()
-                            PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
+                            PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                             passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                             nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                             markWithUglyWaypoint()
                         else
                             DoPilePfx()
-                            PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
+                            PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
                             FinishRace()
                         end
                         timeWhenLastCheckpointWasPassed = GetGameTimer()
@@ -1281,7 +1282,7 @@ CreateThread(function()
                         if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then -- If new lap
                             if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then -- if finish
                                 DoPilePfx()
-                                PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
+                                PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                     if useDebug then print('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap) end
@@ -1293,10 +1294,11 @@ CreateThread(function()
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                                 FinishRace()
+                                PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
                             else -- if next lap
                                 DoPilePfx()
                                 resetBlips()
-                                PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
+                                PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
                                     if useDebug then print('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap) end
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
@@ -1347,7 +1349,7 @@ CreateThread(function()
                             end
                             timeWhenLastCheckpointWasPassed = GetGameTimer()
                             DoPilePfx()
-                            PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
+                            PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                         end
                     end
                 else
@@ -1667,10 +1669,10 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             if CurrentRaceData.RaceName ~= nil then
                 if Countdown == 10 then
                     updateCountdown(10)
-                    PlaySoundFrontend(-1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS")
+                    PlaySoundFrontend(-1, Config.Sounds.Countdown.start.lib, Config.Sounds.Countdown.start.sound)
                 elseif Countdown <= 5 then
                     updateCountdown(Countdown)
-                    PlaySoundFrontend(-1, "Oneshot_Final", "MP_MISSION_COUNTDOWN_SOUNDSET")
+                    PlaySoundFrontend(-1, Config.Sounds.Countdown.number.lib, Config.Sounds.Countdown.number.sound)
                 end
                 Countdown = Countdown - 1
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), true)
@@ -1681,6 +1683,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
         end
         if CurrentRaceData.RaceName ~= nil then
             updateCountdown(0)
+            PlaySoundFrontend(-1, Config.Sounds.Countdown.go.lib, Config.Sounds.Countdown.go.sound)
             if isPositionCheating() then 
                 TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'positionCheat')
                 QBCore.Functions.Notify('You got disqualified for trying to start pass the line', 'error')

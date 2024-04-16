@@ -43,14 +43,17 @@
 > As of update posted on 26th August -23 we will no longer support qb-menu usage. 
 
 
-# Developed by Coffeelot and Wuggie
-[More scripts by us](https://github.com/stars/Coffeelot/lists/cw-scripts)  👈
+# Links
+### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
 
-**Support, updates and script previews**:
+
+### [More free scripts](https://github.com/stars/Coffeelot/lists/cw-scripts)  👈
+
+### Support, updates and script previews:
 
 [![Join The discord!](https://cdn.discordapp.com/attachments/977876510620909579/1013102122985857064/discordJoin.png)](https://discord.gg/FJY4mtjaKr )
 
-**All our scripts are and will remain free**. If you want to support what we do, you can buy us a coffee here:
+### If you want to support what we do, you can buy us a coffee here:
 
 [![Buy Us a Coffee](https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-2.svg)](https://www.buymeacoffee.com/cwscriptbois )
 

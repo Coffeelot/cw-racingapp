@@ -33,11 +33,8 @@ defineProps<{
 }
 
 .number-holder {
-  background: $background-color;
-  border: 4px solid white;
   width: 15vh;
   height: 15vh;
-  border-radius: 10vh;
   text-align: center;
   display: flex;
   align-items: center;
@@ -45,7 +42,7 @@ defineProps<{
 }
 
 #countdown-number {
-  font-size: 10vh;
+  font-size: 20em;
   font-family: var(--countdown-font);
   color: var(--font-color);
   /* font-weight:900; */

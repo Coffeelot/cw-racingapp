@@ -76,7 +76,7 @@ const props = defineProps<{
 }>();
 const selectedRace: Ref<Track | undefined> = ref(undefined)
 const reversed: Ref<boolean> = ref(false)
-const filteredRecords = computed(() => selectedRace.value?.Records.filter((record) => {
+const filteredRecords = computed(() => selectedRace.value?.Records?.filter((record) => {
   if (record.Reversed === undefined) return !reversed.value
 
   return record.Reversed === reversed.value

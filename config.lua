@@ -21,6 +21,16 @@ Config.OxInput = false -- If you want Oxlib input menus Same as above with fxman
 Config.LimitTopListTo = 10 -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 
+Config.Sounds = {
+    Countdown = {
+        start = { lib = "10_SEC_WARNING", sound = "HUD_MINI_GAME_SOUNDSET" }, -- sound that plays when race is readied
+        number = { lib = "Beat_Pulse_Default", sound = "GTAO_Dancing_Sounds" }, -- sound that plays when numbers show
+        go = { lib = "Checkpoint_Finish", sound = "DLC_Stunt_Race_Frontend_Sounds" }, -- sound that plays when race starts
+    },
+    Checkpoint = { lib = "Beat_Pulse_Default", sound = "GTAO_Dancing_Sounds" }, -- sound that plays when hitting a checkpoint
+    Finish = { lib = "FIRST_PLACE", sound = "HUD_MINI_GAME_SOUNDSET" } -- sound that plays when you finish race
+} -- sounds: https://gist.github.com/Sainan/021bd2f48f1c68d3eb002caab635b5a4
+
 Config.EloPunishments = { -- these determine how much is removed when player leaves a ranked and started race
     leaving = -1, -- if players leaves an ongoing race
     idling = -2, -- if player idles and gets kicked
