@@ -2346,7 +2346,7 @@ local function handleAnimation()
     attachProp()
 end
 
-RegisterNetEvent("cw-racingapp:client:openUi", function(data)
+local function openUi(data)
     if not uiIsOpen then
         currentName = data.name
         currentAuth = data.type
@@ -2358,6 +2358,19 @@ RegisterNetEvent("cw-racingapp:client:openUi", function(data)
         StartScreenEffect('MenuMGIn', 1, true)
         handleAnimation()
     end
+end
+
+local function openRacingApp()
+    local data = {
+        name = currentName,
+        type = currentAuth,
+        crew = currentCrew
+    }
+    openUi(data)
+end exports('openRacingApp', openRacingApp)
+
+RegisterNetEvent("cw-racingapp:client:openUi", function(data)
+    openUi(data)
 end)
 
 RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)

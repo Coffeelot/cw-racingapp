@@ -124,6 +124,22 @@ The tiers are racer < creator < master < god and are defined as follows:
 
 Basically, any racer name/user created by another player will be tied to them. So if person X buys an account from player Y, player Y can also revoke player Xs account via the in game menus, as long as player Y has a user with the *control* authorization.
 
+## Opening the racing app
+### Using the Racing GPS
+The easiest way. Just use the Racing GPS that's included in the script.
+### Exports 
+If you want to open racingapp from another script you can use the exports
+
+Client side:
+```lua
+    exports['cw-racingapp']:openRacingApp()
+```
+Server side:
+```lua
+    exports['cw-racingapp']:openRacingApp(source)
+```
+
+
 # Preview 📽
 ### Note: Before new UI was added
 

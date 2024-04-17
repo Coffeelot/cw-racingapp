@@ -1391,10 +1391,14 @@ function GenerateRaceId()
     return RaceId
 end
 
-local function UseRacingGps(source, item)
+local function openRacingApp(source)
     local Player = QBCore.Functions.GetPlayer(source)
-    TriggerClientEvent('cw-racingapp:client:openUi', source, {name = Player.PlayerData.metadata.selectedRacerName, type = Player.PlayerData.metadata.selectedRacerAuth, crew = Player.PlayerData.metadata.selectedCrew })
-end
+    TriggerClientEvent('cw-racingapp:client:openUi', source, {
+        name = Player.PlayerData.metadata.selectedRacerName,
+        type = Player.PlayerData.metadata.selectedRacerAuth,
+        crew = Player.PlayerData.metadata.selectedCrew 
+    })
+end exports('openRacingApp', openRacingApp)
 
 QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingLeaderboards', function(source, cb, class, trackName)
     local Leaderboard = {}
@@ -1719,7 +1723,7 @@ QBCore.Commands.Add('remracename', 'Remove Racing Name From Database', { {name='
 end, 'dev')
 
 QBCore.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
-    UseRacingGps(source, item)
+    openRacingApp(source)
 end)
 
 local function dropRacetrackTable()
