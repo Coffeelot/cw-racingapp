@@ -65,6 +65,16 @@ local IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
 local UseUglyWaypoint = Config.UseUglyWaypoint or false
 local CheckDistance = Config.CheckDistance or false
 
+local function getVehicleFromVehList(hash)
+    for _, v in pairs(QBCore.Shared.Vehicles) do
+		if hash == joaat(v.hash) then
+			return v.name, v.brand
+		end
+	end
+    print('^1It seems like you have not added your vehicle ('..GetDisplayNameFromVehicleModel(hash)..') to the vehicles.lua')
+    return 'model not found', 'brand not found'
+end
+
 -- for debug
 local function dump(o)
     if type(o) == 'table' then
@@ -1088,20 +1098,6 @@ function DeleteCurrentRaceCheckpoints()
     RaceData.InRace = false
 end
 
--- local currentTotalTime = 0
-
--- CreateThread(function()
---     while true do
---         if CurrentRaceData.RaceName ~= nil then
---             if CurrentRaceData.Started then
---                 currentTotalTime = currentTotalTime+10;
---             end
---             Wait(10)
---         end
---         Wait(1000)
---     end
--- end)
-
 local function isDriver(vehicle) 
     return GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()
 end
@@ -1118,7 +1114,8 @@ local function FinishRace()
         return
     end
 
-    local info, class, perfRating, vehicleModel = exports['cw-performance']:getVehicleInfo(vehicle)
+    local info, class, perfRating = exports['cw-performance']:getVehicleInfo(vehicle)
+    local vehicleModel, vehicleMaker = getVehicleFromVehList(GetEntityModel(vehicle))
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     if useDebug then print('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime) end
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
@@ -1140,23 +1137,23 @@ end
 
 
 
-exports('IsInRace', IsInRace)
 function IsInRace()
     local retval = false
     if RaceData.InRace then
         retval = true
     end
     return retval
-end
+end exports('IsInRace', IsInRace)
 
-exports('IsInEditor', IsInEditor)
+
 function IsInEditor()
     local retval = false
     if RaceData.InCreator then
         retval = true
     end
     return retval
-end
+end exports('IsInEditor', IsInEditor)
+
 
 function DrawText3Ds(x, y, z, text)
     SetTextScale(0.35, 0.35)
