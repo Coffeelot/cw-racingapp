@@ -695,34 +695,52 @@ local function playerIswithinDistance()
         local playerIdx = GetPlayerFromServerId(tonumber(index))
         local target = GetPlayerPed(playerIdx)
         if target ~= ply then
-            local isInSameCar = GetVehiclePedIsIn(ply, false) == GetVehiclePedIsIn(target, false)
-            local inRace = Player(index).state.inRace
-            
-            if useDebug then
-                print('^3playeridx', index, playerIdx)
-                print('target', target)
-                print('comparing to player', ply, target)
-                print(ply,target, 'is same:', ply == target)
-                print('In same car:', isInSameCar)
-                if inRace then print('^2In race') else print('^1Not in race') end
-            end
 
             local inSameRace = false
-            if inRace then
-                inSameRace = Player(index).state.raceId == CurrentRaceData.RaceId
-                if useDebug then print('In same race:', inSameRace) end
-            end
+            local inRace = Player(index).state.inRace
+            local inAVehicle = IsPedInAnyVehicle(target, false)
 
-            if not inSameRace or (not inRace and not isInSameCar) then
-                local targetCoords = GetEntityCoords(target, 0)
-                local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
+            if not (Config.Ghosting.SkipPedestrians and not inAVehicle) then
+                if inRace then
+                    inSameRace = Player(index).state.raceId == CurrentRaceData.RaceId
+                end
+                local targetIsPassenger = false
+                if inAVehicle then
+                    local vehicle = GetVehiclePedIsIn(target, false)
+                    local driver = GetPedInVehicleSeat(vehicle, -1)
+                
+                    if driver ~= target then
+                        if useDebug then print('Is a passenger:', driver ~= target) end
+                        targetIsPassenger = true
+                    end
+                end
     
-                if useDebug then print('distance', distance) end
+                if useDebug then
+                    print('^3playeridx', index, playerIdx)
+                    print('target', target)
+                    print('comparing to player', ply, target)
+                    print('is passenger', targetIsPassenger)
+                    print('In same race:', inSameRace)
+                    print(ply,target, 'is same:', ply == target)
+                    if inRace then print('^2In race') else print('^1Not in race') end
+                end
     
-                if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
-                    return true
+                if not inSameRace and not targetIsPassenger then
+                    local targetCoords = GetEntityCoords(target, 0)
+                    local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
+        
+                    if useDebug then print('distance', distance) end
+        
+                    if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
+                        return true
+                    end
+                end
+            else
+                if useDebug then
+                    print('target', target, 'was not in a vehicle and you have set pedestrians to be ignored')
                 end
             end
+
         end
     end
     return false
@@ -1730,29 +1748,6 @@ RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x,y)
     QBCore.Functions.Notify(Lang:t('error.not_close_enough_to_join'), 'error')
     SetNewWaypoint(x, y)
 end)
-
-local function getKeysSortedByValue(tbl, sortFunction)
-    local keys = {}
-    for key in pairs(tbl) do
-      table.insert(keys, key)
-    end
-  
-    table.sort(keys, function(a, b)
-      return sortFunction(tbl[a], tbl[b])
-    end)
-    if useDebug then
-       print('KEYS',dump(keys))
-    end
-    return keys
-  end
-
-local function toboolean(str)
-    local bool = false
-    if str == "true" or str == true then
-        bool = true
-    end
-    return bool
-end
 
 local function verifyTrackAccess(track, type)
     if track.Access[type] ~= nil then
