@@ -42,6 +42,8 @@
 
 > As of update posted on 26th August -23 we will no longer support qb-menu usage. 
 
+> As of update posted on 7th August -24 phasing/ghosting no longer has a transperancy, this might make it look different from videos you've seen
+
 
 # Links
 ### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
