@@ -165,6 +165,18 @@ local function dump(o)
     end
 end
 
+local function leftRace(src)
+    local player = Player(src)
+    player.state.inRace = false
+    player.state.raceId = nil
+end
+
+local function setInRace(src, raceId)
+    local player = Player(src)
+    player.state.inRace = true
+    player.state.raceId = raceId
+end
+
 local function updateRaces()
     local races = MySQL.Sync.fetchAll('SELECT * FROM race_tracks', {})
     if races[1] ~= nil then
@@ -642,6 +654,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
     AvailableRaces[AvailableKey].RaceData = Tracks[RaceData.RaceId]
     for cid, racer in pairs(Tracks[RaceData.RaceId].Racers) do
         TriggerClientEvent('cw-racingapp:client:PlayerFinish', racer.RacerSource, RaceData.RaceId, PlayersFinished, RacerName)
+        leftRace(racer.RacerSource)
     end
     if PlayersFinished == AmountOfRacers then
         if AmountOfRacers == 1 then
@@ -775,9 +788,11 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                     table.remove(AvailableRaces, PreviousRaceKey)
                     TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
                     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[CurrentRace])
+                    leftRace(src)
                 else
                     AvailableRaces[PreviousRaceKey].RaceData = Tracks[CurrentRace]
                     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[CurrentRace])
+                    leftRace(src)
                 end
             end
 
@@ -933,6 +948,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
         AvailableRaces[AvailableKey].RaceData = Tracks[RaceId]
     end
     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[RaceId])
+    leftRace(src)
     for cid, racer in pairs(Tracks[RaceId].Racers) do
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Tracks[RaceId].Racers)
     end
@@ -1005,6 +1021,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                                             if RacerData ~= nil then
                                                 TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang:t("error.race_timed_out"), 'error')
                                                 TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
+                                                leftRace(src)
                                             end
                                         end
                                     end
@@ -1025,6 +1042,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                                     if RacerData ~= nil then
                                         TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang:t("error.race_timed_out"), 'error')
                                         TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
+                                        leftRace(src)
                                     end
                                 end
                                 table.remove(AvailableRaces, AvailableKey)
@@ -1155,6 +1173,7 @@ local function timer(raceId)
             end
             for i,racer in pairs(Tracks[raceId].Racers) do
                 TriggerClientEvent('cw-racingapp:client:LeaveRace', racer.RacerSource, Tracks[raceId] )
+                leftRace(racer.RacerSource)
             end
             Tracks[raceId].LastLeaderboard = LastRaces[raceId]
             Tracks[raceId].Racers = {}
@@ -1198,6 +1217,7 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         -- Attemt to make sure script dont break if something goes wrong
         TriggerClientEvent('QBCore:Notify', src, Lang:t("error.youre_not_in_the_race"), 'error')
         TriggerClientEvent('cw-racingapp:client:LeaveRace', -1, nil)
+        leftRace(src)
     end
     if Config.UseResetTimer then updateTimer(RaceId) end
 end)
@@ -1226,6 +1246,7 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
         local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
         if Player ~= nil then
             TriggerClientEvent('cw-racingapp:client:RaceCountdown', Player.PlayerData.source,TotalRacers)
+            setInRace(src, RaceId)
         end
     end
     if Config.UseResetTimer then startTimer(RaceId) end
@@ -1651,6 +1672,10 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
     end
 end)
 
+local function dropRacetrackTable()
+    MySQL.query('DROP TABLE IF EXISTS race_tracks')
+end
+
 QBCore.Commands.Add('createracinguser',"Create a racing user", { 
     {name='type', help='racer/creator/master/god'},
     {name='identifier', help='Server ID'},
@@ -1725,10 +1750,6 @@ end, 'dev')
 QBCore.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
     openRacingApp(source)
 end)
-
-local function dropRacetrackTable()
-    MySQL.query('DROP TABLE IF EXISTS race_tracks')
-end
 
 QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
     dropRacetrackTable()

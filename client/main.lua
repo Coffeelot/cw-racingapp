@@ -65,6 +65,15 @@ local IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
 local UseUglyWaypoint = Config.UseUglyWaypoint or false
 local CheckDistance = Config.CheckDistance or false
 
+local function debugLog(message, message2)
+    if useDebug then
+        print('^2CW-RACINGAPP DEBUG:^0', message)
+        if message2 then
+            print(message2)
+        end
+    end
+end
+
 local function getVehicleFromVehList(hash)
     for _, v in pairs(QBCore.Shared.Vehicles) do
 		if hash == joaat(v.hash) then
@@ -118,7 +127,7 @@ local function myCarClassIsAllowed(maxClass, myClass)
     end
     local myClassIndex = Classes[myClass]
     local maxClassIndex = Classes[maxClass]
-    if useDebug then print('My class index', myClassIndex, 'maxClassIndex', maxClassIndex) end
+    debugLog('My class index', myClassIndex, 'maxClassIndex', maxClassIndex)
     if myClassIndex > maxClassIndex then
         return false
     end
@@ -165,21 +174,8 @@ local function GhostPlayers()
 end
 
 local function UnGhostPlayer()
-    if useDebug then
-        print('DE GHOSTED')
-     end
+    debugLog('DE GHOSTED')
     CurrentRaceData.Ghosted = false
-    SetGhostedEntityAlpha(254)
-    SetLocalPlayerAsGhost(false)
-end
-
-local function GhostPlayer()
-    if useDebug then
-        print('GHOSTED')
-     end
-    CurrentRaceData.Ghosted = true
-    SetGhostedEntityAlpha(254)
-    SetLocalPlayerAsGhost(true)
 end
 
 local function isFinishOrStart(CurrentRaceData, checkpoint)
@@ -337,9 +333,7 @@ local function DeleteCheckpoint()
     local NewCheckpoints = {}
     if RaceData.ClosestCheckpoint ~= 0 then
         local ClosestCheckpoint = CreatorData.Checkpoints[RaceData.ClosestCheckpoint]
-        if useDebug then
-           print('deleting checkpoint', dump(ClosestCheckpoint))
-        end
+        debugLog('deleting checkpoint', dump(ClosestCheckpoint))
 
         if ClosestCheckpoint then
             local Blip = ClosestCheckpoint.blip
@@ -687,72 +681,11 @@ local function GetPlayers()
     return players
 end
 
-
-local function playerIswithinDistance()
-    local ply = GetPlayerPed(-1)
-    local plyCoords = GetEntityCoords(ply, 0)
-    for index,value in ipairs(Players) do
-        local playerIdx = GetPlayerFromServerId(tonumber(index))
-        local target = GetPlayerPed(playerIdx)
-        if target ~= ply then
-
-            local inSameRace = false
-            local inRace = Player(index).state.inRace
-            local inAVehicle = IsPedInAnyVehicle(target, false)
-
-            if not (Config.Ghosting.SkipPedestrians and not inAVehicle) then
-                if inRace then
-                    inSameRace = Player(index).state.raceId == CurrentRaceData.RaceId
-                end
-                local targetIsPassenger = false
-                if inAVehicle then
-                    local vehicle = GetVehiclePedIsIn(target, false)
-                    local driver = GetPedInVehicleSeat(vehicle, -1)
-                
-                    if driver ~= target then
-                        if useDebug then print('Is a passenger:', driver ~= target) end
-                        targetIsPassenger = true
-                    end
-                end
-    
-                if useDebug then
-                    print('^3playeridx', index, playerIdx)
-                    print('target', target)
-                    print('comparing to player', ply, target)
-                    print('is passenger', targetIsPassenger)
-                    print('In same race:', inSameRace)
-                    print(ply,target, 'is same:', ply == target)
-                    if inRace then print('^2In race') else print('^1Not in race') end
-                end
-    
-                if not inSameRace and not targetIsPassenger then
-                    local targetCoords = GetEntityCoords(target, 0)
-                    local distance = GetDistanceBetweenCoords(targetCoords['x'], targetCoords['y'], targetCoords['z'], plyCoords['x'], plyCoords['y'], plyCoords['z'], true)
-        
-                    if useDebug then print('distance', distance) end
-        
-                    if distance > 0 and distance < Config.Ghosting.NearestDistanceLimit then
-                        return true
-                    end
-                end
-            else
-                if useDebug then
-                    print('target', target, 'was not in a vehicle and you have set pedestrians to be ignored')
-                end
-            end
-
-        end
-    end
-    return false
-end
-
 local ghostLoopStart = 0
 
 local function actuallyValidateTime(Timer)
     if Timer == 0 then
-        if useDebug then
-           print('Timer is off')
-        end
+        debugLog('Timer is off')
         return true
     else
         if GetTimeDifference(GetGameTimer(), ghostLoopStart) < Timer then
@@ -761,9 +694,7 @@ local function actuallyValidateTime(Timer)
             end
             return true
         end
-        if useDebug then
-           print('Timer has been reached')
-        end
+        debugLog('Timer has been reached')
         return false
     end
 end
@@ -772,30 +703,56 @@ local function validateTime()
     if CurrentRaceData.Ghosting and CurrentRaceData.GhostingTime then
         return actuallyValidateTime(CurrentRaceData.GhostingTime)
     else
-        if useDebug then print('Ghosting | Defaulting time validation. Ghosting:', CurrentRaceData.Ghosting, 'Ghosting Time:', CurrentRaceData.GhostingTime ) end
+        debugLog('Ghosting | Defaulting time validation. Ghosting:', CurrentRaceData.Ghosting, 'Ghosting Time:', CurrentRaceData.GhostingTime )
         return actuallyValidateTime(0)
     end
+end
+
+local function ghostThread()
+    Citizen.CreateThread(function()
+        while CurrentRaceData.Ghosted do
+            Citizen.Wait(0)
+            if CurrentRaceData.Started then
+                local playerPed = PlayerPedId()
+                local playerVehicle = GetVehiclePedIsIn(playerPed, false)
+                local playerId = PlayerId()
+                local playerServerId = GetPlayerServerId(playerId)
+
+                for otherPlayercitizenID, otherPlayer in pairs(CurrentRaceData.Racers) do
+                    if playerServerId ~= otherPlayer.RacerSource then
+                        local otherPed = GetPlayerPed(GetPlayerFromServerId(otherPlayer.RacerSource))
+                        local otherVehicle = GetVehiclePedIsIn(otherPed, false)
+                        
+                        if DoesEntityExist(otherVehicle) then
+                            if playerVehicle and otherVehicle then
+                                SetEntityNoCollisionEntity(playerVehicle, otherVehicle, true)
+                                SetEntityNoCollisionEntity(otherVehicle, playerVehicle, true)
+                                DisableCamCollisionForObject(otherVehicle)
+                                DisableCamCollisionForEntity(otherVehicle)
+                            end
+                        else
+                        end
+                    end
+                end
+            else
+                debugLog('Race wasnt started, skipping ghosting')
+            end
+        end
+        debugLog('Player is not ghosted anymore')
+    end)
 end
 
 function CreateGhostLoop()
     ghostLoopStart = GetGameTimer()
     if useDebug then
-       print('^3 Starting ghost loop. All player:', dump(Players))
+       print('^3 Starting ghost loop. All player:', json.encode(CurrentRaceData.Racers, {indent=true}))
     end
-    CreateThread(function()
-        while true do
-            if validateTime() then
-                if CurrentRaceData.Checkpoints ~= nil and next(CurrentRaceData.Checkpoints) ~= nil then
-                    if playerIswithinDistance() then
-                        UnGhostPlayer()
-                    else
-                        GhostPlayer()
-                    end
-                else
-                    break
-                end
-            else
-                if useDebug then print('Breaking due to time') end
+    CurrentRaceData.Ghosted = true
+    ghostThread()
+    Citizen.CreateThread(function()
+        while CurrentRaceData.Started do
+            if not validateTime() then
+                debugLog('Breaking due to time')
                 UnGhostPlayer()
                 break
             end
@@ -989,7 +946,7 @@ local function SetupRace(RaceData, Laps)
         Position = 0
     }
     doGPSForRace()
-    if useDebug then print('Race Was setup:', json.encode(CurrentRaceData)) end
+    debugLog('Race Was setup:', json.encode(CurrentRaceData))
     RaceUI()
 end
 
@@ -1028,23 +985,17 @@ local function DoPilePfx()
         handleFlare(CurrentRaceData.CurrentCheckpoint + 1)
     end
     if CurrentRaceData.CurrentCheckpoint == 1 then -- start
-        if useDebug then
-           print('start')
-        end
+        debugLog('start')
         -- QBCore.Functions.Notify('Lighting start '..CurrentRaceData.CurrentCheckpoint, 'success')
         handleFlare(CurrentRaceData.CurrentCheckpoint)
 
     end
     if CurrentRaceData.TotalLaps > 0 and CurrentRaceData.CurrentCheckpoint == #CurrentRaceData.Checkpoints then -- finish
-        if useDebug then
-           print('finish')
-        end
+        debugLog('finish')
         --QBCore.Functions.Notify('Lighting finish/startline '..CurrentRaceData.CurrentCheckpoint + 1, 'success')
         handleFlare(1)
         if CurrentRaceData.Lap ~= CurrentRaceData.TotalLaps then
-            if useDebug then
-               print('not last lap')
-            end
+            debugLog('not last lap')
             handleFlare(2)
         end
     end
@@ -1135,7 +1086,7 @@ local function FinishRace()
     local info, class, perfRating = exports['cw-performance']:getVehicleInfo(vehicle)
     local vehicleModel, vehicleMaker = getVehicleFromVehList(GetEntityModel(vehicle))
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
-    if useDebug then print('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime) end
+    debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, currentRanking, currentCrew)
     QBCore.Functions.Notify(Lang:t("success.race_finished") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
@@ -1242,9 +1193,7 @@ local timeWhenLastCheckpointWasPassed = 0
 
 local function checkCheckPointTime()
     if GetTimeDifference(GetGameTimer(), timeWhenLastCheckpointWasPassed) > Config.KickTime then
-        if useDebug then
-           print('Getting kicked for idling')
-        end
+        debugLog('Getting kicked for idling')
         if not Kicked then
             Kicked = true
             QBCore.Functions.Notify(Lang:t('error.kicked_idling'), 'error')
@@ -1300,9 +1249,9 @@ CreateThread(function()
                                 PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
-                                    if useDebug then print('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap) end
+                                    debugLog('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap)
                                 elseif CurrentRaceData.BestLap == 0 then
-                                    if useDebug then print('bestlap == 0', CurrentRaceData.BestLap) end
+                                    debugLog('bestlap == 0', CurrentRaceData.BestLap)
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
                                 CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
@@ -1315,10 +1264,10 @@ CreateThread(function()
                                 resetBlips()
                                 PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
-                                    if useDebug then print('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap) end
+                                    debugLog('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap)
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 elseif CurrentRaceData.BestLap == 0 then
-                                    if useDebug then print('bestlap == 0', CurrentRaceData.BestLap) end
+                                    debugLog('bestlap == 0', CurrentRaceData.BestLap)
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
                                 lapStartTime = GetGameTimer()
@@ -1464,7 +1413,7 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
         CreatorData.RacerName = RacerName
         RaceData.InCreator = true
         if type(Checkpoints) == 'table' then
-            if useDebug then print('Using shared, checkpoint existed') end
+            debugLog('Using shared, checkpoint existed')
             CreatorData.Checkpoints = Checkpoints
             clickSaveRace()
             return
@@ -1513,10 +1462,10 @@ local function checkElimination()
             end
         end
     end
-    if useDebug then print('Is Last racer', currentPlayerIsLast, 'lap:', lastCompletedLap) end
+    debugLog('Is Last racer', currentPlayerIsLast, 'lap:', lastCompletedLap)
     -- Check if the current racer is the last one who completed the lap
     if currentPlayerIsLast and lastCompletedLap >= CurrentRaceData.Lap then
-        if useDebug then print("Eliminating racer: " .. QBCore.Functions.GetPlayerData().citizenid) end
+        debugLog("Eliminating racer: " .. QBCore.Functions.GetPlayerData().citizenid)
         TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'elimination')
         QBCore.Functions.Notify('You were eliminated', 'error')
     end
@@ -1524,7 +1473,7 @@ end
 
 RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(RaceId, RaceData)
     if (CurrentRaceData.RaceId ~= nil) and CurrentRaceData.RaceId == RaceId then
-        if useDebug then print('Race is Elimination:', CurrentRaceData.IsElimination) end
+        debugLog('Race is Elimination:', CurrentRaceData.IsElimination)
         CurrentRaceData.Racers = RaceData.Racers
         if CurrentRaceData.IsElimination then
             checkElimination()
@@ -1553,7 +1502,7 @@ end)
 
 RegisterNetEvent('cw-racingapp:client:UpdateOrganizer', function(RaceId, organizer)
     if CurrentRaceData.RaceId == RaceId then
-        if useDebug then print('updating organizer') end
+        debugLog('updating organizer')
         CurrentRaceData.OrganizerCID = organizer
     end
 end)
@@ -1564,27 +1513,12 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     else
         ClearGpsMultiRoute()
     end
+    Countdown = 10
     updateCountdown(-1)
     UnGhostPlayer()
     DeleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
-    LocalPlayer.state:set('inRace', false, true)
-    LocalPlayer.state:set('raceId', nil, true)
 end)
-
-local function getKeysSortedByValue(tbl, sortFunction)
-    local keys = {}
-    for key in pairs(tbl) do
-      table.insert(keys, key)
-    end
-    table.sort(keys, function(a, b)
-      return sortFunction(tbl[a], tbl[b])
-    end)
-    if useDebug then
-       print('KEYS',dump(keys))
-    end
-    return keys
-end
 
 RegisterNetEvent("cw-racingapp:Client:DeleteTrackConfirmed", function(data)
     QBCore.Functions.Notify(data.RaceName..Lang:t("primary.has_been_removed"))
@@ -1675,7 +1609,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     -- end
     positionThread()
     if CurrentRaceData.TotalLaps == -1 then 
-        if useDebug then print('^3Race is Elimination! setting laps to:', CurrentRaceData.TotalRacers-1) end
+        debugLog('^3Race is Elimination! setting laps to:', CurrentRaceData.TotalRacers-1)
         CurrentRaceData.TotalLaps = CurrentRaceData.TotalRacers-1
         CurrentRaceData.IsElimination = true
     end
@@ -1723,8 +1657,6 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             CurrentRaceData.Started = true
             timeWhenLastCheckpointWasPassed = GetGameTimer()
             Countdown = 10
-            LocalPlayer.state:set('inRace', true, true)
-            LocalPlayer.state:set('raceId', CurrentRaceData.RaceId, true)
         else
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             Countdown = 10
@@ -1735,8 +1667,6 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
 end)
 
 RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, RacerName)
-    LocalPlayer.state:set('inRace', false, true)
-    LocalPlayer.state:set('raceId', nil, true)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
             QBCore.Functions.Notify(RacerName .. Lang:t("primary.racer_finished_place") .. Place, 'primary', 3500)
@@ -1759,9 +1689,7 @@ local function verifyTrackAccess(track, type)
             print('player cid', playerCid)
         end
         for i, citizenId in pairs(track.Access[type]) do
-            if useDebug then
-               print(i, citizenId)
-            end
+            debugLog(i, citizenId)
             if citizenId == playerCid then return true end -- if one of the players in the list
         end
         return false
@@ -1805,12 +1733,12 @@ end
 
 local function hasAuth(tradeType, userType)
     if currentAuth and Config.Permissions[currentAuth] and Config.Permissions[currentAuth].controlAll then 
-        if useDebug then print('User has controlall auth') end
+        debugLog('User has controlall auth')
         return true 
     end
 
     if tradeType.jobRequirement[userType] == true then
-        if useDebug then print('job requirement exists for', userType) end
+        debugLog('job requirement exists for', userType)
         local Player = QBCore.Functions.GetPlayerData()
         local playerHasJob = Config.AllowedJobs[Player.job.name]
         local jobGradeReq = nil
@@ -1819,9 +1747,7 @@ local function hasAuth(tradeType, userType)
            print('Allowed jobs: ', dump(Config.AllowedJobs))
         end
         if playerHasJob then
-            if useDebug then
-               print('Player job level: ', Player.job.grade.level)
-            end
+            debugLog('Player job level: ', Player.job.grade.level)
             if Config.AllowedJobs[Player.job.name] ~= nil then
                 jobGradeReq = Config.AllowedJobs[Player.job.name][userType]
                 if useDebug then
@@ -1836,10 +1762,10 @@ local function hasAuth(tradeType, userType)
         end
         return false
     elseif tradeType.jobRequirement[userType] == nil then
-        if useDebug then print('Requiement is nil for', userType) end
+        debugLog('Requiement is nil for', userType)
         return false
     else
-        if useDebug then print('Requiement is false for', userType) end
+        debugLog('Requiement is false for', userType)
         return true
     end
 end
@@ -1901,13 +1827,13 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
     end
     if racerNameIsValid(racerName) then
         QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
-            if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
+            debugLog('player names', #playerNames, json.encode(playerNames))
             local maxRacerNames = Config.MaxRacerNames
             if Config.UseNameValidation and #playerNames > 1 and playerNames[1].citizenid and Config.CustomAmounts[playerNames[1].citizenid] then
                 maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
             end
 
-            if useDebug then print('Racer names allowed for', racerId, maxRacerNames) end
+            debugLog('Racer names allowed for', racerId, maxRacerNames)
             if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
                 QBCore.Functions.TriggerCallback('cw-racingapp:server:NameIsAvailable', function(nameIsNotTaken)
                     if nameIsNotTaken then
@@ -2073,7 +1999,7 @@ end
 AddEventHandler('onResourceStop', function (resource)
    if resource ~= GetCurrentResourceName() then return end
    for i, entity in pairs(Entities) do
-       if useDebug then print('Racing app cleanup: ^2', entity) end
+       debugLog('Racing app cleanup: ^2', entity)
        if DoesEntityExist(entity) then
           DeleteEntity(entity)
        end
@@ -2401,24 +2327,24 @@ end)
 
 RegisterNUICallback('UiFetchRaceResults', function(_, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:getRaceResults', function(RaceResults)
-        if useDebug then print('Results: ', json.encode(RaceResults)) end
+        debugLog('Results: ', json.encode(RaceResults))
         if RaceResults then
             cb(RaceResults)
         else
-            if useDebug then print('No Results to show') end
+            debugLog('No Results to show')
             cb({})
         end
     end)
 end)
 
 RegisterNUICallback('UiLeaveCurrentRace', function(raceid, cb)
-    if useDebug then print('Leaving race with race id', raceid) end
+    debugLog('Leaving race with race id', raceid)
     TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData, 'leaving')
     cb(true)
 end)
 
 RegisterNUICallback('UiStartCurrentRace', function(raceid, cb)
-    if useDebug then print('starting race with race id', raceid) end
+    debugLog('starting race with race id', raceid)
     TriggerServerEvent('cw-racingapp:server:StartRace', raceid)
     cb(true)
 end)
@@ -2426,12 +2352,12 @@ end)
 RegisterNUICallback('UiChangeRacerName', function(racername, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:ChangeRacerName', function(result)
         if result and result.name then
-            if useDebug then print('New name and type', result.name, result.type) end
+            debugLog('New name and type', result.name, result.type)
             currentName = result.name
             currentAuth = result.type
             QBCore.Functions.TriggerCallback('cw-racingcrews:server:getMyCrew', function(result)
                 if result then
-                    if useDebug then print('Is in a crew', result) end
+                    debugLog('Is in a crew', result)
                     currentCrew = result
                     TriggerServerEvent('cw-racingcrews:server:changeCrew', currentCrew)
                 else
@@ -2449,35 +2375,35 @@ end)
 RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
         MyRacerNames = playerNames
-        if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
+        debugLog('player names', #playerNames, json.encode(playerNames))
         local currentRacer = findRacerByName(currentName)
         if currentRacer and currentRacer.revoked == 1 then 
             QBCore.Functions.Notify('Your current racing user has had it\'s access revoked', 'error')
         end
         if currentRacer and currentRacer.ranking then
             currentRanking = currentRacer.ranking
-            if useDebug then print('Ranking is', currentRanking) end
+            debugLog('Ranking is', currentRanking)
         end
         cb(playerNames)
     end, GetPlayerServerId(PlayerId()))
 end)
 
 RegisterNUICallback('UiRevokeRacer', function(data, cb)
-    if useDebug then print('revoking racename', data.racername, data.status) end
+    debugLog('revoking racename', data.racername, data.status)
     local newStatus = 0
     if data.status == 0 then newStatus = 1 end
     TriggerServerEvent("cw-racingapp:server:SetRevokedRacenameStatus", data.racername, newStatus)
 end)
 
 RegisterNUICallback('UiRemoveRacer', function(data, cb)
-    if useDebug then print('permanently removing racename', data.racername) end
+    debugLog('permanently removing racename', data.racername)
     TriggerServerEvent("cw-racingapp:server:RemoveRacerName", data.racername)
 end)
 
 RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
     local racerId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacersCreatedByUser', function(playerNames)
-        if useDebug then print('player names', #playerNames, json.encode(playerNames)) end
+        debugLog('player names', #playerNames, json.encode(playerNames))
         cb(playerNames)
     end, racerId, currentAuth)
 end)
@@ -2514,7 +2440,7 @@ local function getRaceByRaceId(Races, raceId)
 end
 
 RegisterNUICallback('UiJoinRace', function(RaceId, cb)
-    if useDebug then print('joining race with race id', RaceId) end
+    debugLog('joining race with race id', RaceId)
     if CurrentRaceData.RaceId ~= nil then
         QBCore.Functions.Notify('Already in a race', 'error')
         cb(false)
@@ -2555,27 +2481,27 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
 end)
 
 RegisterNUICallback('UiClearLeaderboard', function(track, cb)
-    if useDebug then print('clearing leaderboard for ', track.RaceName) end
+    debugLog('clearing leaderboard for ', track.RaceName)
     QBCore.Functions.Notify(track.RaceName..Lang:t("primary.leaderboard_has_been_cleared"))
     TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiDeleteTrack', function(track, cb)
-    if useDebug then print('deleting track', track.RaceName) end
+    debugLog('deleting track', track.RaceName)
     QBCore.Functions.Notify(track.RaceName..Lang:t("primary.has_been_removed"))
     TriggerServerEvent("cw-racingapp:server:DeleteTrack", track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiEditTrack', function(track, cb)
-    if useDebug then print('opening track editor for', track.RaceName) end
+    debugLog('opening track editor for', track.RaceName)
     TriggerEvent("cw-racingapp:client:StartRaceEditor", track.RaceName, currentName, track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiGetAccess', function(track, cb)
-    if useDebug then print('gettingAccessFor', track.RaceName) end
+    debugLog('gettingAccessFor', track.RaceName)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetAccess', function(accessTable)
         if accessTable == 'NOTHING' then
             if useDebug then
@@ -2600,7 +2526,7 @@ RegisterNUICallback('UiGetAccess', function(track, cb)
 end)
 
 RegisterNUICallback('UiEditAccess', function(track, cb)
-    if useDebug then print('editing access for', track.RaceName) end
+    debugLog('editing access for', track.RaceName)
     local newAccess = {
         race = split(track.NewAccess.race)
     }
@@ -2658,7 +2584,7 @@ RegisterNUICallback('UiGetListedRaces', function(_, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRaces', function(Races)
         local availableRaces = {}
         if #Races > 0 then
-            if useDebug then print('Fetching available races:', json.encode(Races)) end
+            debugLog('Fetching available races:', json.encode(Races))
             for _, race in pairs(Races) do
                 local RaceData = race.RaceData
                 local racers = 0
@@ -2708,7 +2634,7 @@ end)
 
 RegisterNUICallback('UiGetRacingResults', function(_, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:getRaceResults', function(RaceResults)
-            if useDebug then print('Results: ', json.encode(RaceResults)) end
+            debugLog('Results: ', json.encode(RaceResults))
             cb(RaceResults)
     end)
 end)
@@ -2718,7 +2644,7 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
         print('No data')
         return
     end
-    if useDebug then print('setup data', json.encode(setupData)) end
+    debugLog('setup data', json.encode(setupData))
     local PlayerPed = PlayerPedId()
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
     local vehicle = GetVehiclePedIsIn(PlayerPed, false)
@@ -2762,7 +2688,7 @@ end
 
 RegisterNUICallback('UiCreateTrack', function(createData, cb)
     if not createData.name then return end
-    if useDebug then print('create data', json.encode(createData)) end
+    debugLog('create data', json.encode(createData))
     if not createData or createData.name == "" then
         print('No data')
         return
@@ -2788,7 +2714,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
         if Config.CustomAmountsOfTracks[citizenId] then
             maxCharacterTracks = Config.CustomAmountsOfTracks[citizenId]
         end
-        if useDebug then print('Max allowed for you:', maxCharacterTracks, "You have this many tracks:", tracks) end
+        debugLog('Max allowed for you:', maxCharacterTracks, "You have this many tracks:", tracks)
         if Config.LimitTracks and tracks >= maxCharacterTracks then
             QBCore.Functions.Notify("You already have ".. maxCharacterTracks.." tracks")
             return
@@ -2834,7 +2760,7 @@ end)
 RegisterNUICallback('UiJoinCrew', function(data, cb)
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:joinCrew', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         if result then
             currentCrew = result
             TriggerServerEvent('cw-racingcrews:server:changeCrew', currentCrew)
@@ -2844,10 +2770,10 @@ RegisterNUICallback('UiJoinCrew', function(data, cb)
 end)
 
 RegisterNUICallback('UiLeaveCrew', function(data, cb)
-    if useDebug then print('Leaving', data.crewName) end
+    debugLog('Leaving', data.crewName)
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:leaveCrew', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         if result then
             currentCrew = nil
             TriggerServerEvent('cw-racingcrews:server:changeCrew', nil)
@@ -2859,7 +2785,7 @@ end)
 RegisterNUICallback('UiDisbandCrew', function(data, cb)
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:disbandCrew', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         if result then
             currentCrew = nil
             TriggerServerEvent('cw-racingcrews:server:changeCrew', nil)
@@ -2872,7 +2798,7 @@ RegisterNUICallback('UiCreateCrew', function(data, cb)
     if #data.crewName == 0 then QBCore.Functions.Notify('Name can not be empty', 'error')  cb(false) return end
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:createCrew', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         if result then
             currentCrew = data.crewName
             TriggerServerEvent('cw-racingcrews:server:changeCrew', data.crewName)
@@ -2894,7 +2820,7 @@ RegisterNUICallback('UiSendInvite', function(data, cb)
     if data.citizenId.length == 0 then QBCore.Functions.Notify('Citizen Id can not be empty', 'error')  cb(false) return end
 
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:sendInvite', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         cb(result)
     end, PlayerId(), data.citizenId, currentCrew )
 end)
@@ -2906,7 +2832,7 @@ RegisterNUICallback('UiSendInviteClosest', function(data, cb)
     local myServerID = GetPlayerServerId( PlayerId())
 
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:sendInviteClosest', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         cb(result)
     end, myServerID, closestServerID, currentCrew )
 end)
@@ -2914,7 +2840,7 @@ end)
 RegisterNUICallback('UiAcceptInvite', function(data, cb)
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:acceptInvite', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         if result then
             currentCrew = data.crewName
             TriggerServerEvent('cw-racingcrews:server:changeCrew', data.crewName)
@@ -2926,21 +2852,21 @@ end)
 RegisterNUICallback('UiDenyInvite', function(data, cb)
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:denyInvite', function(result)
-        if useDebug then print('Success: ', result) end
+        debugLog('Success: ', result)
         cb(result)
     end, citizenId )
 end)
 
 RegisterNUICallback('UiGetAllCrews', function(data, cb)
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:getAllCrews', function(result)
-        if useDebug then print('All crews: ', json.encode(result)) end
+        debugLog('All crews: ', json.encode(result))
         cb(result)
     end)
 end)
 
 RegisterNUICallback('UiGetAllRacers', function(data, cb)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:getAllRacers', function(result)
-        if useDebug then print('All racers: ', json.encode(result)) end
+        debugLog('All racers: ', json.encode(result))
         cb(result)
     end)
 end)
@@ -2948,7 +2874,7 @@ end)
 RegisterNUICallback('UiGetCrewData', function(data, cb)
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:getCrewData', function(result)
-        if useDebug then print('crew data: ', json.encode(result)) end
+        debugLog('crew data: ', json.encode(result))
         cb(result)
     end, citizenId, currentName)
 end)
@@ -2992,7 +2918,7 @@ local function DisplayTrack(track)
 end
 
 RegisterNUICallback('UiShowTrack', function(RaceId, cb)
-    if useDebug then print('displaying track', RaceId) end
+    debugLog('displaying track', RaceId)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetTracks', function(tracks)
         DisplayTrack(tracks[RaceId])
         SetTimeout(20*1000, function()
@@ -3082,10 +3008,10 @@ end
 local function setup()
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
         MyRacerNames = playerNames
-        if useDebug then print('player names', json.encode(playerNames)) end
+        debugLog('player names', json.encode(playerNames))
         local PlayerData = QBCore.Functions.GetPlayerData()
         if getSizeOfTable(MyRacerNames) == 0 then
-            if useDebug then print('user has been removed') end
+            debugLog('user has been removed')
             return
         end
         if PlayerData.metadata.selectedRacerName then
@@ -3101,7 +3027,7 @@ local function setup()
             if getSizeOfTable(MyRacerNames) == 1 then 
                 QBCore.Functions.TriggerCallback('cw-racingapp:server:ChangeRacerName', function(result)
                     if result and result.name then
-                        if useDebug then print('Only one racername available. Setting to ', result.name, result.type) end
+                        debugLog('Only one racername available. Setting to ', result.name, result.type)
                         currentName = result.name
                         currentAuth = result.type
                         currentRanking = getCurrentRankingFromRacer(playerNames)
@@ -3113,7 +3039,7 @@ local function setup()
             currentCrew = PlayerData.metadata.selectedCrew
             QBCore.Functions.TriggerCallback('cw-racingcrews:server:getMyCrew', function(result)
                 if result then
-                    if useDebug then print('Is in a crew', result) end
+                    debugLog('Is in a crew', result)
 
                     currentCrew = result
                 end
