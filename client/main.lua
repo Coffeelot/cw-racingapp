@@ -423,7 +423,7 @@ function SaveRace()
     end
 
     CreatorData.RaceDistance = RaceDistance
-    TriggerServerEvent('cw-racingapp:server:SaveRace', CreatorData)
+    TriggerServerEvent('cw-racingapp:server:SaveTrack', CreatorData)
     Lang:t("error.slow_down")
     QBCore.Functions.Notify(Lang:t("success.race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
 
@@ -2503,7 +2503,7 @@ end)
 RegisterNUICallback('UiGetAccess', function(track, cb)
     debugLog('gettingAccessFor', track.RaceName)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetAccess', function(accessTable)
-        if accessTable == 'NOTHING' then
+        if not accessTable then
             if useDebug then
                print('Access table was empty')
             end

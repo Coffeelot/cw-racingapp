@@ -9,14 +9,14 @@ CREATE TABLE `race_tracks` (
 	`creatorname` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`distance` INT(11) NULL DEFAULT NULL,
 	`raceid` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
-	`access` TEXT NULL DEFAULT '{}' COLLATE 'utf8_general_ci',
+	`access` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`curated` TINYINT(4) NULL DEFAULT '0',
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `raceid` (`raceid`) USING BTREE
 )
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=0
+AUTO_INCREMENT=41
 ;
 
 

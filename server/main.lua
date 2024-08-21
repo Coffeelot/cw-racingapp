@@ -1252,7 +1252,7 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     if Config.UseResetTimer then startTimer(RaceId) end
 end)
 
-RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
+RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local RaceId = ''
@@ -1289,8 +1289,8 @@ RegisterNetEvent('cw-racingapp:server:SaveRace', function(RaceData)
             LastLeaderboard = {},
             NumStarted = 0,
         }
-        MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0})
+        MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0, json.encode(RaceData.Access)})
     end
 end)
 
@@ -1672,10 +1672,6 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
     end
 end)
 
-local function dropRacetrackTable()
-    MySQL.query('DROP TABLE IF EXISTS race_tracks')
-end
-
 QBCore.Commands.Add('createracinguser',"Create a racing user", { 
     {name='type', help='racer/creator/master/god'},
     {name='identifier', help='Server ID'},
@@ -1750,6 +1746,10 @@ end, 'dev')
 QBCore.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
     openRacingApp(source)
 end)
+
+local function dropRacetrackTable()
+    MySQL.query('DROP TABLE IF EXISTS race_tracks')
+end
 
 QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
     dropRacetrackTable()
