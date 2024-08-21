@@ -22,7 +22,7 @@
       <v-btn variant="tonal" @click="deleteDialog = true">Delete Track</v-btn>
     </v-card-actions>
   </v-card>
-  <v-dialog contained v-model="lbDialog" width="auto">
+  <v-dialog attach=".app-container" contained v-model="lbDialog" width="auto">
     <v-card>
       <v-card-title>Clear Leaderboard for {{ track.RaceName }}?</v-card-title>
       <v-card-text> This can not be reverted. </v-card-text>
@@ -36,7 +36,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog contained v-model="editDialog" width="auto">
+  <v-dialog attach=".app-container" contained v-model="editDialog" width="auto">
     <v-card>
       <v-card-title>Open track editor for {{ track.RaceName }}?</v-card-title>
       <v-card-actions>
@@ -49,7 +49,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog contained v-model="accessDialog" width="auto">
+  <v-dialog attach=".app-container" contained v-model="accessDialog" width="auto">
     <v-card>
         <v-card-title>Access for {{ track.RaceName }}?</v-card-title>
         <v-card-text> 
@@ -66,7 +66,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog contained v-model="deleteDialog" width="auto">
+  <v-dialog attach=".app-container" contained v-model="deleteDialog" width="auto">
     <v-card>
       <v-card-title>Delete track {{ track.RaceName }}?</v-card-title>
       <v-card-text> THIS IS PERMANTENT!!! </v-card-text>
@@ -119,7 +119,6 @@ const editTrack = () => {
 };
 const openEditAccess = async () => {
     const response = await api.post('UiGetAccess',  JSON.stringify({ RaceName: props.track.RaceName, RaceId: props.track.RaceId }))
-    console.log('yo', JSON.stringify(response.data))
     access.value = response.data
     accessDialog.value = true;
 };
