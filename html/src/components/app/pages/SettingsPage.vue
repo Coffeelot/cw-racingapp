@@ -101,7 +101,6 @@ const updateSetting = async (setting: string) => {
 };
 
 const updateRacerName = async () => {
-  console.log('changing to', racerName.value)
   loading.value = true
   await api.post("UiChangeRacerName", JSON.stringify(racerName.value));
   setTimeout(() => {

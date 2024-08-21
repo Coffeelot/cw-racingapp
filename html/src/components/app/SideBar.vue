@@ -26,9 +26,6 @@ const currentPage = ref(globalStore.currentPage)
 const openPage = (page: string) => {
   globalStore.$state.currentPage = page
 }
-const openSettings = () => {
-  console.log('settings')
-}
 </script>
 
 <style scoped lang="scss">
