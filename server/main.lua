@@ -218,7 +218,6 @@ end
 ----   Threads     ----
 -----------------------
 MySQL.ready(function ()
-    MySQL.query("ALTER TABLE race_tracks ADD COLUMN IF NOT EXISTS access TEXT DEFAULT '{}'")
     updateRaces()
 end)
 
