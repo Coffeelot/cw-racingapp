@@ -55,6 +55,21 @@ local CurrentRaceData = {
     Ghosted = false,
 }
 
+local function notify(text, type)
+    if Config.OxLibNotify then
+        lib.notify({
+            title = text,
+            type = type,
+        })
+    else 
+        QBCore.Functions.Notify(text, type)
+    end
+end
+
+RegisterNetEvent('cw-racingapp:client:notify', function(message,type)
+    notify(message,type)
+end)
+
 local Classes = exports['cw-performance']:getPerformanceClasses()
 local Entities = {}
 local Kicked = false
@@ -363,10 +378,10 @@ local function DeleteCheckpoint()
             end
             CreatorData.Checkpoints = NewCheckpoints
         else
-            QBCore.Functions.Notify(Lang("slow_down"), 'error')
+            notify(Lang("slow_down"), 'error')
         end
     else
-        QBCore.Functions.Notify(Lang("slow_down"), 'error')
+        notify(Lang("slow_down"), 'error')
     end
 end
 
@@ -425,7 +440,7 @@ function SaveRace()
     CreatorData.RaceDistance = RaceDistance
     TriggerServerEvent('cw-racingapp:server:SaveTrack', CreatorData)
     Lang("slow_down")
-    QBCore.Functions.Notify(Lang("race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
+    notify(Lang("race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
 
     DeleteCreatorCheckpoints()
     cleanupObjects()
@@ -566,7 +581,7 @@ local function AddCheckpoint(checkpointId)
         }
     end
     if #CreatorData.Checkpoints > Config.MaxCheckpoints then
-        QBCore.Functions.Notify(Lang("max_checkpoints")..Config.MaxCheckpoints , 'error')
+        notify(Lang("max_checkpoints")..Config.MaxCheckpoints , 'error')
     end
     redrawBlips()
 end
@@ -601,7 +616,7 @@ local function clickDeleteCheckpoint()
     if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
         DeleteCheckpoint()
     else
-        QBCore.Functions.Notify(Lang("no_checkpoints_to_delete"), 'error')
+        notify(Lang("no_checkpoints_to_delete"), 'error')
     end
 end
 
@@ -609,7 +624,7 @@ local function clickMoveCheckpoint()
     if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
         MoveCheckpoint()
     else
-        QBCore.Functions.Notify(Lang("no_checkpoints_to_edit"), 'error')
+        notify(Lang("no_checkpoints_to_edit"), 'error')
     end
 end
 
@@ -617,7 +632,7 @@ local function clickSaveRace()
     if CreatorData.Checkpoints and #CreatorData.Checkpoints >= Config.MinimumCheckpoints then
         SaveRace()
     else
-        QBCore.Functions.Notify(Lang("not_enough_checkpoints") .. '(' ..Config.MinimumCheckpoints .. ')', 'error')
+        notify(Lang("not_enough_checkpoints") .. '(' ..Config.MinimumCheckpoints .. ')', 'error')
     end
 end
 
@@ -625,7 +640,7 @@ local function clickIncreaseDistance()
     if CreatorData.TireDistance < Config.MaxTireDistance then
         CreatorData.TireDistance = CreatorData.TireDistance + 1.0
     else
-        QBCore.Functions.Notify(Lang("max_tire_distance") .. Config.MaxTireDistance)
+        notify(Lang("max_tire_distance") .. Config.MaxTireDistance)
     end
 end
 
@@ -633,14 +648,14 @@ local function clickDecreaseDistance()
     if CreatorData.TireDistance > Config.MinTireDistance then
         CreatorData.TireDistance = CreatorData.TireDistance - 1.0
     else
-        QBCore.Functions.Notify(Lang("min_tire_distance") .. Config.MinTireDistance)
+        notify(Lang("min_tire_distance") .. Config.MinTireDistance)
     end
 end
 
 local function clickExit()
     if not CreatorData.ConfirmDelete then
         CreatorData.ConfirmDelete = true
-        QBCore.Functions.Notify(Lang("editor_confirm"), 'error')
+        notify(Lang("editor_confirm"), 'error')
     else
         DeleteCreatorCheckpoints()
 
@@ -648,7 +663,7 @@ local function clickExit()
         RaceData.InCreator = false
         CreatorData.RaceName = nil
         CreatorData.Checkpoints = {}
-        QBCore.Functions.Notify(Lang("editor_canceled"), 'error')
+        notify(Lang("editor_canceled"), 'error')
         CreatorData.ConfirmDelete = false
     end
 end
@@ -1075,7 +1090,7 @@ local function FinishRace()
     local PlayerPed = PlayerPedId()
     local vehicle = GetVehiclePedIsIn(PlayerPed, false)
     if not isDriver(vehicle) then
-        QBCore.Functions.Notify(Lang('kicked_cheese'), 'error')
+        notify(Lang('kicked_cheese'), 'error')
         TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'cheeseing')
         return
     end
@@ -1086,9 +1101,9 @@ local function FinishRace()
     debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
     TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, currentRanking, currentCrew)
-    QBCore.Functions.Notify(Lang("race_finished") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
+    notify(Lang("race_finished") .. MilliToTime(CurrentRaceData.TotalTime), 'success')
     if CurrentRaceData.BestLap ~= 0 then
-        QBCore.Functions.Notify(Lang("race_best_lap") .. MilliToTime(CurrentRaceData.BestLap), 'success')
+        notify(Lang("race_best_lap") .. MilliToTime(CurrentRaceData.BestLap), 'success')
     end
     UnGhostPlayer()
     Players = {}
@@ -1193,7 +1208,7 @@ local function checkCheckPointTime()
         debugLog('Getting kicked for idling')
         if not Kicked then
             Kicked = true
-            QBCore.Functions.Notify(Lang('kicked_idling'), 'error')
+            notify(Lang('kicked_idling'), 'error')
             TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'idling')
         end
     end
@@ -1385,7 +1400,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
     if PlayerIsInVehicle then
         info, class, perfRating = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
     else
-        QBCore.Functions.Notify(Lang('not_in_a_vehicle'), 'error')
+        notify(Lang('not_in_a_vehicle'), 'error')
         return
     end
     
@@ -1395,7 +1410,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
         RaceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
         TriggerServerEvent('cw-racingapp:server:JoinRace', RaceData)
     else 
-        QBCore.Functions.Notify(Lang('incorrect_class'), 'error')
+        notify(Lang('incorrect_class'), 'error')
     end
 end)
 
@@ -1439,7 +1454,7 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
             openCreatorUi()
         end
     else
-        QBCore.Functions.Notify(Lang("already_making_race"), 'error')
+        notify(Lang("already_making_race"), 'error')
     end
 end)
 
@@ -1464,7 +1479,7 @@ local function checkElimination()
     if currentPlayerIsLast and lastCompletedLap >= CurrentRaceData.Lap then
         debugLog("Eliminating racer: " .. QBCore.Functions.GetPlayerData().citizenid)
         TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'elimination')
-        QBCore.Functions.Notify(Lang("eliminated"), 'error')
+        notify(Lang("eliminated"), 'error')
     end
 end
 
@@ -1483,10 +1498,10 @@ RegisterNetEvent('cw-racingapp:client:JoinRace', function(Data, Laps, RacerName)
         Data.RacerName = RacerName
         RaceData.InRace = true
         SetupRace(Data, Laps)
-        QBCore.Functions.Notify(Lang("race_joined"))
+        notify(Lang("race_joined"))
         TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, false, true)
     else
-        QBCore.Functions.Notify(Lang("already_in_race"), 'error')
+        notify(Lang("already_in_race"), 'error')
     end
 end)
 
@@ -1518,12 +1533,12 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
 end)
 
 RegisterNetEvent("cw-racingapp:Client:DeleteTrackConfirmed", function(data)
-    QBCore.Functions.Notify(data.RaceName.." "..Lang("has_been_removed"))
+    notify(data.RaceName.." "..Lang("has_been_removed"))
     TriggerServerEvent("cw-racingapp:server:DeleteTrack", data.RaceId)
 end)
 
 RegisterNetEvent("cw-racingapp:Client:ClearLeaderboardConfirmed", function(data)
-    QBCore.Functions.Notify(data.RaceName.." "..Lang("leaderboard_has_been_cleared"))
+    notify(data.RaceName.." "..Lang("leaderboard_has_been_cleared"))
     TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", data.RaceId)
 end)
 
@@ -1544,9 +1559,9 @@ RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
     QBCore.Functions.TriggerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(playerNames)
         MyRacerNames = playerNames
         local currentRacer = findRacerByName(currentName, MyRacerNames)
-        QBCore.Functions.Notify(Lang("user_list_updated"))
+        notify(Lang("user_list_updated"))
         if currentRacer and currentRacer.revoked == 1 then 
-            QBCore.Functions.Notify(Lang("revoked_access"), 'error')
+            notify(Lang("revoked_access"), 'error')
         end
     end, GetPlayerServerId(PlayerId()))
 end)
@@ -1628,7 +1643,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             PlaySoundFrontend(-1, Config.Sounds.Countdown.go.lib, Config.Sounds.Countdown.go.sound)
             if isPositionCheating() then 
                 TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'positionCheat')
-                QBCore.Functions.Notify(Lang("kicked_line"), 'error')
+                notify(Lang("kicked_line"), 'error')
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
                 return 
             end
@@ -1655,20 +1670,20 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             Countdown = 10
         end
     else
-        QBCore.Functions.Notify(Lang("already_in_race"), 'error')
+        notify(Lang("already_in_race"), 'error')
     end
 end)
 
 RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, RacerName)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
-            QBCore.Functions.Notify(RacerName .. " ".. Lang("racer_finished_place") .. Place, 'primary', 3500)
+            notify(RacerName .. " ".. Lang("racer_finished_place") .. Place, 'primary', 3500)
         end
     end
 end)
 
 RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x,y)
-    QBCore.Functions.Notify(Lang('not_close_enough_to_join'), 'error')
+    notify(Lang('not_close_enough_to_join'), 'error')
     SetNewWaypoint(x, y)
 end)
 
@@ -1705,10 +1720,10 @@ local function racerNameIsValid(name)
         if #name < Config.MaxRacerNameLength then
             return true
         else
-            QBCore.Functions.Notify(Lang('name_too_long'), 'error')
+            notify(Lang('name_too_long'), 'error')
         end
     else
-        QBCore.Functions.Notify(Lang('name_too_short'), 'error')
+        notify(Lang('name_too_short'), 'error')
     end
     return false
 end
@@ -1844,12 +1859,12 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
                                 TriggerEvent('animations:client:EmoteCommandStart', {"damn"})
                             end)
                     else
-                        QBCore.Functions.Notify( Lang("name_is_used")..racerName, 'error')
+                        notify( Lang("name_is_used")..racerName, 'error')
                         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
                     end
                 end, racerName, racerId)
             else
-                QBCore.Functions.Notify( Lang("to_many_names"), 'error')
+                notify( Lang("to_many_names"), 'error')
                 TriggerEvent('animations:client:EmoteCommandStart', {"c"})
             end
         end, racerId)
@@ -1863,19 +1878,23 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
 
-    QBCore.Functions.Notify(Lang("max_uniques").. " " ..Config.MaxRacerNames)
+    notify(Lang("max_uniques").. " " ..Config.MaxRacerNames)
 
     local dialog = nil
     local racerName = nil
     local racerId = nil
     if Config.OxInput then
         dialog = createOxInput(fobType, purchaseType)
-        racerName = dialog[1]
-        racerId = dialog[2]
+        if dialog then
+            racerName = dialog[1]
+            racerId = dialog[2]
+        end
     else
         dialog = createQbInput(fobType, purchaseType)
-        racerName = dialog['racerName']
-        racerId = dialog['racerId']
+        if dialog then
+            racerName = dialog['racerName']
+            racerId = dialog['racerId']
+        end
     end
 
     if dialog ~= nil then
@@ -2219,7 +2238,7 @@ end
 
 RegisterNetEvent("cw-racingapp:client:notifyRacers", function(text)
     if hasGps() then
-        QBCore.Functions.Notify(text)
+        notify(text)
     end
 end)
 
@@ -2274,7 +2293,7 @@ local function openUi(data)
         currentName = data.name
         currentAuth = data.type
         currentCrew = data.crew
-        QBCore.Functions.Notify(Lang("esc"))
+        notify(Lang("esc"))
         SetNuiFocus(true,true)
         SendNUIMessage({ type = 'toggleApp', open = true})
         uiIsOpen = true
@@ -2300,7 +2319,7 @@ RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)
     currentRanking = newRank
     local type = 'success'
     if change < 0 then type = 'error' end
-    QBCore.Functions.Notify(Lang("rank_update") .. " "..change..". "..Lang("new_rank")..newRank, type)
+    notify(Lang("rank_update") .. " "..change..". "..Lang("new_rank")..newRank, type)
 end)
 
 -- UI CALLBACKS
@@ -2383,7 +2402,7 @@ RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
         debugLog('player names', #playerNames, json.encode(playerNames))
         local currentRacer = findRacerByName(currentName)
         if currentRacer and currentRacer.revoked == 1 then 
-            QBCore.Functions.Notify(Lang("revoked_access"), 'error')
+            notify(Lang("revoked_access"), 'error')
         end
         if currentRacer and currentRacer.ranking then
             currentRanking = currentRacer.ranking
@@ -2447,7 +2466,7 @@ end
 RegisterNUICallback('UiJoinRace', function(RaceId, cb)
     debugLog('joining race with race id', RaceId)
     if CurrentRaceData.RaceId ~= nil then
-        QBCore.Functions.Notify(Lang("already_in_race"), 'error')
+        notify(Lang("already_in_race"), 'error')
         cb(false)
         return
     end
@@ -2459,7 +2478,7 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
     if PlayerIsInVehicle and isDriver(vehicle) then
         info, class, perfRating = exports['cw-performance']:getVehicleInfo(vehicle)
     else
-        QBCore.Functions.Notify(Lang('not_in_a_vehicle'), 'error')
+        notify(Lang('not_in_a_vehicle'), 'error')
         return
     end
 
@@ -2468,7 +2487,7 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
         local currentRace = getRaceByRaceId(Races, RaceId)
 
         if currentRace == nil then
-            QBCore.Functions.Notify(Lang("race_no_exist"), 'error')
+            notify(Lang("race_no_exist"), 'error')
         else
             if myCarClassIsAllowed(currentRace.MaxClass, class) then
                 currentRace.RacerName = currentName
@@ -2477,7 +2496,7 @@ RegisterNUICallback('UiJoinRace', function(RaceId, cb)
                 cb(true)
                 return
             else 
-                QBCore.Functions.Notify(Lang('incorrect_class'), 'error')
+                notify(Lang('incorrect_class'), 'error')
             end
         end
         cb(false)
@@ -2487,14 +2506,14 @@ end)
 
 RegisterNUICallback('UiClearLeaderboard', function(track, cb)
     debugLog('clearing leaderboard for ', track.RaceName)
-    QBCore.Functions.Notify(track.RaceName..Lang("leaderboard_has_been_cleared"))
+    notify(track.RaceName..Lang("leaderboard_has_been_cleared"))
     TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiDeleteTrack', function(track, cb)
     debugLog('deleting track', track.RaceName)
-    QBCore.Functions.Notify(track.RaceName..Lang("has_been_removed"))
+    notify(track.RaceName..Lang("has_been_removed"))
     TriggerServerEvent("cw-racingapp:server:DeleteTrack", track.RaceId)
     cb(true)
 end)
@@ -2672,13 +2691,13 @@ RegisterNUICallback('UiSetupRace', function(setupData, cb)
             )
         else
             cb(false)
-            QBCore.Functions.Notify(Lang('incorrect_class'), 'error')
+            notify(Lang('incorrect_class'), 'error')
             return
         end
         cb(true)
     else
         cb(false)
-        QBCore.Functions.Notify(Lang('not_in_a_vehicle'), 'error')
+        notify(Lang('not_in_a_vehicle'), 'error')
     end
 end)
 
@@ -2704,11 +2723,11 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
     if checkpoints ~= nil then
         if type(decodedCheckpoints) == 'table' then
             if not verifyCheckpoints(decodedCheckpoints) then
-                QBCore.Functions.Notify(Lang("corrupt_data"))
+                notify(Lang("corrupt_data"))
                 return
             end
         else
-            QBCore.Functions.Notify(Lang("cant_decode"))
+            notify(Lang("cant_decode"))
             return
         end
     end
@@ -2721,24 +2740,24 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
         end
         debugLog('Max allowed for you:', maxCharacterTracks, "You have this many tracks:", tracks)
         if Config.LimitTracks and tracks >= maxCharacterTracks then
-            QBCore.Functions.Notify(Lang("max_tracks").. maxCharacterTracks)
+            notify(Lang("max_tracks").. maxCharacterTracks)
             return
         else
 
             if not #createData.name then
-                QBCore.Functions.Notify(Lang("no_name_track"), 'error')
+                notify(Lang("no_name_track"), 'error')
                 cb(false)
                 return
             end
         
             if #createData.name < Config.MinTrackNameLength then
-                QBCore.Functions.Notify(Lang("name_too_short"), 'error')
+                notify(Lang("name_too_short"), 'error')
                 cb(false)
                 return
             end
         
             if #createData.name > Config.MaxTrackNameLength then
-                QBCore.Functions.Notify(Lang("name_too_long"), 'error')
+                notify(Lang("name_too_long"), 'error')
                 cb(false)
                 return
             end
@@ -2746,11 +2765,11 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             QBCore.Functions.TriggerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces',
                 function(IsAuthorized, NameAvailable)
                     if not IsAuthorized then
-                        QBCore.Functions.Notify(Lang("not_auth"), 'error')
+                        notify(Lang("not_auth"), 'error')
                         return
                     end
                     if not NameAvailable then
-                        QBCore.Functions.Notify(Lang("race_name_exists"), 'error')
+                        notify(Lang("race_name_exists"), 'error')
                         cb(false)
                         return
                     end
@@ -2800,7 +2819,7 @@ RegisterNUICallback('UiDisbandCrew', function(data, cb)
 end)
 
 RegisterNUICallback('UiCreateCrew', function(data, cb)
-    if #data.crewName == 0 then QBCore.Functions.Notify(Lang("name_too_short"), 'error')  cb(false) return end
+    if #data.crewName == 0 then notify(Lang("name_too_short"), 'error')  cb(false) return end
     local citizenId = QBCore.Functions.GetPlayerData().citizenid
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:createCrew', function(result)
         debugLog('Success: ', result)
@@ -2816,13 +2835,13 @@ RegisterNUICallback('UiCreateUser', function(data, cb)
     if data.racerName and data.selectedAuth then
         attemptCreateUser(data.racerName, data.racerId, data.selectedAuth.fobType, data.selectedAuth.purchaseType)
     else
-        QBCore.Functions.Notify(Lang("bad_input"), 'error')
+        notify(Lang("bad_input"), 'error')
     end
     cb(true)
 end)
 
 RegisterNUICallback('UiSendInvite', function(data, cb)
-    if data.citizenId.length == 0 then QBCore.Functions.Notify(Lang("bad_input"), 'error')  cb(false) return end
+    if data.citizenId.length == 0 then notify(Lang("bad_input"), 'error')  cb(false) return end
 
     QBCore.Functions.TriggerCallback('cw-racingcrews:server:sendInvite', function(result)
         debugLog('Success: ', result)
@@ -2831,7 +2850,7 @@ RegisterNUICallback('UiSendInvite', function(data, cb)
 end)
 RegisterNUICallback('UiSendInviteClosest', function(data, cb)
     local closestP, distance = QBCore.Functions.GetClosestPlayer()
-    if closestP == nil or distance > 5 then QBCore.Functions.Notify(Lang("prox_error"), 'error') cb(false) return end
+    if closestP == nil or distance > 5 then notify(Lang("prox_error"), 'error') cb(false) return end
 
     local closestServerID = GetPlayerServerId(closestP)
     local myServerID = GetPlayerServerId( PlayerId())
@@ -2903,7 +2922,7 @@ local function DisplayTrack(track)
     if #checkpointsPreview > 0 then
         HideTrack()
     end
-    QBCore.Functions.Notify(Lang("display_tracks"))
+    notify(Lang("display_tracks"))
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
     else
@@ -2941,9 +2960,9 @@ local function toggleShowRoute(boolean)
         ShowGpsRoute = boolean
     end
     if ShowGpsRoute then
-        QBCore.Functions.Notify(Lang("toggled_gps_route_on"), 'success')
+        notify(Lang("toggled_gps_route_on"), 'success')
     else
-        QBCore.Functions.Notify(Lang("toggled_gps_route_off"), 'error')
+        notify(Lang("toggled_gps_route_off"), 'error')
     end
 end
 
@@ -2958,9 +2977,9 @@ local function toggleIgnoreRoadsForGps(boolean)
         IgnoreRoadsForGps = boolean
     end
     if IgnoreRoadsForGps then
-        QBCore.Functions.Notify(Lang("gps_straight_on"), 'error')
+        notify(Lang("gps_straight_on"), 'error')
     else
-        QBCore.Functions.Notify(Lang("gps_straight_off"), 'success')
+        notify(Lang("gps_straight_off"), 'success')
     end
 end
 
@@ -2975,9 +2994,9 @@ local function toggleUglyWaypoint(boolean)
         UseUglyWaypoint = boolean
     end
     if UseUglyWaypoint then
-        QBCore.Functions.Notify(Lang("basic_wps_on"), 'success')
+        notify(Lang("basic_wps_on"), 'success')
     else
-        QBCore.Functions.Notify(Lang("basic_wps_off"), 'error')
+        notify(Lang("basic_wps_off"), 'error')
     end
 end
 
@@ -2995,9 +3014,9 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
     elseif data.setting =='CheckDistance' then
         CheckDistance = data.value
         if CheckDistance then
-            QBCore.Functions.Notify(Lang("distance_on"), 'success')
+            notify(Lang("distance_on"), 'success')
         else
-            QBCore.Functions.Notify(Lang("distance_off"), 'error')
+            notify(Lang("distance_off"), 'error')
         end
     end
 end)

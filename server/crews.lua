@@ -184,7 +184,7 @@ local function disbandRacingCrew(crewName)
                 for _, member in pairs(crew.members) do
                     local player = QBCore.Functions.GetPlayerByCitizenId(member.citizenID)
                     if player ~= nil then
-                        TriggerClientEvent('QBCore:Notify', player.PlayerData.source, Lang("disbanded_crew") , 'error')
+                        TriggerClientEvent('cw-racingapp:client:notify', player.PlayerData.source, Lang("disbanded_crew") , 'error')
                     end
                 end
                 table.remove(racingCrews, i)
@@ -200,10 +200,10 @@ end
 local function inviteToCrew(invitedBySource, invitedCitizenId, crewName)
     local player = QBCore.Functions.GetPlayerByCitizenId(invitedCitizenId)
     if player ~= nil then
-        if getRacingCrewThatCitizenIDIsIn(invitedCitizenId) then TriggerClientEvent('QBCore:Notify', invitedBySource, Lang("racer_already_in_crew") , 'error') return false end
+        if getRacingCrewThatCitizenIDIsIn(invitedCitizenId) then TriggerClientEvent('cw-racingapp:client:notify', invitedBySource, Lang("racer_already_in_crew") , 'error') return false end
         if useDebug then print(invitedBySource, 'is inviting player to crew', player.PlayerData.source) end
         activeInvites[invitedCitizenId] = { crewName = crewName, invitedBySource = invitedBySource }
-        TriggerClientEvent('QBCore:Notify', player.PlayerData.source, Lang("pending_crew_invite")..' '..crewName)
+        TriggerClientEvent('cw-racingapp:client:notify', player.PlayerData.source, Lang("pending_crew_invite")..' '..crewName)
         return true
     else
         return false
@@ -216,7 +216,7 @@ local function acceptInvite(racerName, invitedCitizenId)
         joinRacingCrew(racerName, invitedCitizenId, crewName)
         if activeInvites[invitedCitizenId].invitedBySource then
             if useDebug then print('notifying inviter ', activeInvites[invitedCitizenId].invitedBySource) end            
-            TriggerClientEvent('QBCore:Notify', activeInvites[invitedCitizenId].invitedBySource, Lang("crew_invite_accepted"), 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', activeInvites[invitedCitizenId].invitedBySource, Lang("crew_invite_accepted"), 'success')
         end
         activeInvites[invitedCitizenId] = nil  -- Remove the invite after accepting
         return true
@@ -228,7 +228,7 @@ end
 local function denyInvite(invitedCitizenId)
     if activeInvites[invitedCitizenId].invitedBySource then
         if useDebug then print('notifying inviter ', activeInvites[invitedCitizenId].invitedBySource) end            
-        TriggerClientEvent('QBCore:Notify', activeInvites[invitedCitizenId].invitedBySource, Lang("crew_invite_rejected"), 'error')
+        TriggerClientEvent('cw-racingapp:client:notify', activeInvites[invitedCitizenId].invitedBySource, Lang("crew_invite_rejected"), 'error')
     end
     activeInvites[invitedCitizenId] = nil  -- Remove the invite
     return true
@@ -325,7 +325,7 @@ end)
 
 QBCore.Functions.CreateCallback('cw-racingcrews:server:sendInviteClosest', function(source, cb, invitedBySource, invitedSource, crewName)
     local player = QBCore.Functions.GetPlayer(invitedSource)
-    if not player then return TriggerClientEvent('QBCore:Notify', source, Lang("person_no_exist"), 'error') end
+    if not player then return TriggerClientEvent('cw-racingapp:client:notify', source, Lang("person_no_exist"), 'error') end
 
     local citizenid = player.PlayerData.citizenid
     if useDebug then print(invitedBySource, ' is Inviting ',citizenid, ' to', crewName ) end
@@ -345,7 +345,7 @@ QBCore.Functions.CreateCallback('cw-racingcrews:server:createCrew', function(sou
     local canCreateCrew = canFounderCreateCrew(founderCitizenId)
     local trimmedCrewName = string.gsub(crewName, '^%s*(.-)%s*$', '%1')
     if getRacingCrewByName(trimmedCrewName) then 
-        TriggerClientEvent('QBCore:Notify', source, Lang("name_taken"), 'error')
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_taken"), 'error')
         cb(false)
         return
     end
@@ -354,7 +354,7 @@ QBCore.Functions.CreateCallback('cw-racingcrews:server:createCrew', function(sou
         cb(createRacingCrew(founderName, founderCitizenId, trimmedCrewName))
         return
     else
-        TriggerClientEvent('QBCore:Notify', source, Lang("disband_crew_first"), 'error')
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("disband_crew_first"), 'error')
     end
     cb(false)
 end)
@@ -380,7 +380,7 @@ QBCore.Functions.CreateCallback('cw-racingcrews:server:leaveCrew', function(sour
     local isFounder = canFounderDisbandCrew(citizenId, crewName)
 
     if isFounder then
-        TriggerClientEvent('QBCore:Notify', source, Lang("founder_can_not_leave"), 'error')
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
     end
     if canLeaveCrew then
         cb(leaveRacingCrew(memberName, citizenId, crewName))

@@ -25,6 +25,7 @@ Config.NotifyRacers = true -- set to true and anyone holding a racing gps will g
 Config.UseOxLibForKeybind = false -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
 Config.UseOxTarget = false -- Require ox target. Obviously
 Config.OxInput = false -- If you want Oxlib input menus Same as above with fxmanifest ^ 
+Config.OxLibNotify = false -- If you want Oxlib notify Same as above with fxmanifest ^ 
 
 Config.LimitTopListTo = 10 -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
