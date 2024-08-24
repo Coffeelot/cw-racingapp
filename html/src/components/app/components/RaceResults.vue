@@ -1,8 +1,9 @@
 <template>
   <div class="results-container page-container">
     <div class="inline standardGap header">
-      <h3 style="width: 160px">Select Race</h3>
+      <h3 style="width: 160px">{{ translate('select_race') }}</h3>
       <v-select
+        color="primary"
         density="compact"
         hide-details
         :items="Object.values(props.allResults)"
@@ -12,7 +13,7 @@
       ></v-select>
     </div>
     <div v-if="!selectedRace">
-      <InfoText title="Select a track to view results"></InfoText>
+      <InfoText :title="translate('select_track_to_view')"></InfoText>
     </div>
     <div v-else >
       <v-table v-if="selectedRace.Result.length>0">
@@ -21,22 +22,22 @@
             <th class="text-left">
             </th>
             <th class="text-left">
-              Rank
+              {{translate('rank')}}
             </th>
             <th class="text-left">
-              Time
+              {{ translate('time') }}
             </th>
             <th class="text-left">
-              Best Lap
+              {{  translate('best_lap') }}
             </th>
             <th class="text-left">
-              Vehicle
+              {{ translate('vehicle') }}
             </th>
             <th class="text-left">
-              Class
+              {{  translate('class') }}
             </th>
             <th class="text-left" v-if="selectedRace.Data.RaceData.Ranked">
-              Rank Change
+              {{ translate('rank_change') }}
             </th>
           </tr>
         </thead>
@@ -56,7 +57,7 @@
         </tbody>
       </v-table>
       <div v-else>
-        <InfoText title="No Data Yet"></InfoText>
+        <InfoText :title="translate('no_data')"></InfoText>
       </div>
     </div>
   </div>
@@ -68,6 +69,7 @@ import { ResultData } from "@/store/types";
 import { Ref, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import { secondsToHMS } from "@/helpers/secondsToHMS";
+import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
   allResults: ResultData[];

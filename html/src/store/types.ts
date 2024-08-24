@@ -169,7 +169,8 @@ export type BaseData = {
         currentCrewName: string,
         currentRanking: number,
         auth: Auth
-        hudSettings: { location: string, maxPositions: number }
+        hudSettings: { location: string, maxPositions: number },
+        translations: Record<string,string>
     }
 }
 
@@ -177,7 +178,7 @@ export type Access = {
     race: string
 }
 
-export type Record = {
+export type TrackRecord = {
     Class: string,
     Holder: string,
     Time: number,
@@ -209,7 +210,7 @@ export type Track = {
     RaceId: string,
     RaceName: string,
     Racers: [],
-    Records: Record[],
+    Records: TrackRecord[],
     Started: boolean,
     Waiting: boolean,
 }
@@ -237,7 +238,7 @@ export type ResultData = {
         RaceId: string,
         RaceName: string,
         Racers: [],
-        Records: Record[],
+        Records: TrackRecord[],
         Started: boolean,
         Waiting: boolean
       },

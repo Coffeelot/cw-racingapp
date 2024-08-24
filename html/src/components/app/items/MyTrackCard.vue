@@ -1,81 +1,85 @@
 <template>
-  <v-card class="big-card">
+  <v-card class="big-card" rounded="lg">
     <v-card-title class="title">
       <span>{{ track.RaceName }} {{ track.Curated ? " | " + "⭐" : "" }}</span>
-      <v-btn small variant="text" @click="copyToClipboard()"
-        >Copy Checkpoints</v-btn
+      <v-btn rounded="lg" small variant="text" @click="copyToClipboard()"
+        >{{ translate('copy_checkpoints') }} </v-btn
       >
     </v-card-title>
     <v-card-text class="text">
-      <v-chip>Track ID: {{ track.RaceId }} </v-chip>
-      <v-chip>Lenght: {{ track.Distance }}m </v-chip>
-      <v-chip>Checkpoints: {{ track.Checkpoints.length }}</v-chip>
-      <v-chip>Made By: {{ track.CreatorName }}</v-chip>
-      <v-chip v-if="track.Access?.race && track.Access.race.length > 0">Shared with: {{ track.Access.race.length }} racers</v-chip>
+      <v-chip>{{ translate('track_id') }}: {{ track.RaceId }} </v-chip>
+      <v-chip>{{ translate('length') }}: {{ track.Distance }}m </v-chip>
+      <v-chip>{{ translate('checkpoints') }}: {{ track.Checkpoints.length }}</v-chip>
+      <v-chip>{{ translate('created_by') }}: {{ track.CreatorName }}</v-chip>
+      <v-chip v-if="track.Access?.race && track.Access.race.length > 0">{{ translate('shared_with') }}: {{ track.Access.race.length }} {{ translate('racers') }} </v-chip>
     </v-card-text>
     <v-card-actions>
-      <v-btn variant="tonal" @click="lbDialog = true">Clear Leaderboard</v-btn>
-      <v-btn variant="tonal" v-if="!track.Curated" @click="editDialog = true"
-        >Edit Track</v-btn
+      <v-spacer></v-spacer>
+      <v-btn rounded="lg" @click="lbDialog = true">{{ translate('clear_lead') }} </v-btn>
+      <v-btn rounded="lg" v-if="!track.Curated" @click="editDialog = true"
+        >{{ translate('edit_track') }} </v-btn
       >
-      <v-btn variant="tonal" @click="openEditAccess()">Edit Access</v-btn>
-      <v-btn variant="tonal" @click="deleteDialog = true">Delete Track</v-btn>
+      <v-btn rounded="lg" @click="openEditAccess()">{{ translate('edit_access') }} </v-btn>
+      <v-btn rounded="lg" @click="deleteDialog = true">{{ translate('delete_track') }} </v-btn>
     </v-card-actions>
   </v-card>
   <v-dialog attach=".app-container" contained v-model="lbDialog" width="auto">
-    <v-card>
-      <v-card-title>Clear Leaderboard for {{ track.RaceName }}?</v-card-title>
-      <v-card-text> This can not be reverted. </v-card-text>
+    <v-card  rounded="lg">
+      <v-card-title>{{ translate('clear_lead_for') }}  {{ track.RaceName }}?</v-card-title>
+      <v-card-text> {{ translate('cant_be_reverted') }}  </v-card-text>
       <v-card-actions>
-        <v-btn @click="lbDialog = false">
-            Close Dialog
+        <v-spacer></v-spacer>
+        <v-btn rounded="lg" @click="lbDialog = false">
+            {{ translate('close') }} 
         </v-btn>
-        <v-btn color="red" @click="clearLB()">
-            Confirm
+        <v-btn rounded="lg" variant="flat" color="red" @click="clearLB()">
+            {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <v-dialog attach=".app-container" contained v-model="editDialog" width="auto">
-    <v-card>
-      <v-card-title>Open track editor for {{ track.RaceName }}?</v-card-title>
+    <v-card rounded="lg">
+      <v-card-title>{{ translate('open_track_editor_for') }}  {{ track.RaceName }}?</v-card-title>
       <v-card-actions>
-        <v-btn @click="editDialog = false">
-            Close Dialog
+        <v-spacer></v-spacer>
+        <v-btn rounded="lg" @click="editDialog = false">
+            {{ translate('close') }} 
         </v-btn>
-        <v-btn @click="editTrack()">
-            Confirm
+        <v-btn rounded="lg" variant="flat" color="success"  @click="editTrack()">
+            {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <v-dialog attach=".app-container" contained v-model="accessDialog" width="auto">
-    <v-card>
-        <v-card-title>Access for {{ track.RaceName }}?</v-card-title>
+    <v-card rounded="lg">
+        <v-card-title>{{ translate('editing_access_for') }} {{ track.RaceName }}</v-card-title>
         <v-card-text> 
-            <v-text-field label="Access" v-model="access.race"></v-text-field>
-            <small> *Racer Names, separated by commas</small>
+            <v-text-field label="Access" v-model="access.race" :hint="translate('editing_access_info')"></v-text-field>
         </v-card-text>
         <v-card-actions>
-        <v-btn @click="accessDialog = false">
-            Close Dialog
+          <v-spacer></v-spacer>
+        <v-btn rounded="lg" @click="accessDialog = false">
+            {{ translate('close') }} 
         </v-btn>
-        <v-btn @click="editAccess()">
-            Save
+        <v-btn rounded="lg" variant="flat" color="success" @click="editAccess()">
+          {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <v-dialog attach=".app-container" contained v-model="deleteDialog" width="auto">
-    <v-card>
-      <v-card-title>Delete track {{ track.RaceName }}?</v-card-title>
-      <v-card-text> THIS IS PERMANTENT!!! </v-card-text>
+    <v-card  rounded="lg">
+      <v-card-title>{{ translate('delete_track') }} {{ track.RaceName }}?</v-card-title>
+      <v-card-text> {{ translate('cant_be_reverted') }}  </v-card-text>
       <v-card-actions>
-        <v-btn @click="deleteDialog = false">
-            Close Dialog
+        <v-spacer></v-spacer>
+        <v-btn rounded="lg" @click="deleteDialog = false">
+            {{ translate('close') }} 
         </v-btn>
-        <v-btn color="red" @click="deleteTrack()">
-            Confirm
+        <v-btn rounded="lg" variant="flat" color="red" @click="deleteTrack()">
+            {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -85,10 +89,9 @@
 <script setup lang="ts">
 import api from "@/api/axios";
 import { closeApp } from "@/helpers/closeApp";
-import { useGlobalStore } from "@/store/global";
 import { Track } from "@/store/types";
-import { trace } from "console";
 import { ref } from "vue";
+import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
   track: Track;

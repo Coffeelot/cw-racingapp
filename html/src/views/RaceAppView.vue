@@ -150,7 +150,6 @@ h2 {
 .screen-container {
   width: 70vw;
   height: 40vw;
-  margin-left: -1px;
   margin-top: 72px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   border: 1.2em solid #131316;

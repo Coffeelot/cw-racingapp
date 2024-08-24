@@ -2,8 +2,8 @@
   <div class="countdown-container">
     <div class="countdown-holder">
       <transition name="scale" mode="out-in">
-        <span id="countdown-text" v-if="countdownNumber === 0">GO!</span>
-        <span id="countdown-text" v-else-if="countdownNumber === 10">Get Ready!</span>
+        <span id="countdown-text" v-if="countdownNumber === 0">{{ translate('go') }} </span>
+        <span id="countdown-text" v-else-if="countdownNumber === 10">{{ translate('get_ready') }} </span>
         <div v-else :key="countdownNumber" class="number-holder">
           <span id="countdown-number">{{ countdownNumber }}</span>
         </div>
@@ -13,6 +13,7 @@
 </template>
 
 <script setup lang="ts">
+import { translate } from "@/helpers/translate";
 defineProps<{
   countdownNumber?: number;
 }>();

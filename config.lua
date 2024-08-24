@@ -1,6 +1,12 @@
 Config = Config or {}
 Config.Debug = false
 
+Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
+Lang = function(phrase)
+    if not Config.Locale then print("^1YOU MESSED UP THE TRANSLATION IMPORT")end
+    return Config.Locale[phrase] or phrase
+end
+
 Config.UseResetTimer = true 
 Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool

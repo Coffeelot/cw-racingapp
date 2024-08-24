@@ -1,8 +1,9 @@
 <template>
   <div class="results-container">
     <div class="inline standardGap header">
-      <h3 style="width: 160px">Select Race</h3>
+      <h3 style="width: 160px">{{ translate('select_race') }}</h3>
       <v-select
+        color="primary"
         density="compact"
         hide-details
         :items="Object.values(allRecords)"
@@ -12,8 +13,9 @@
       ></v-select>
     </div>
     <v-switch
+      color="primary"
       density="compact"
-      label="Reversed"
+      :label="translate('reversed')"
       v-model="reversed"
       hide-details
       >
@@ -22,7 +24,7 @@
       <span class="loader"></span>
     </div>
     <div v-if="!selectedRace">
-      <InfoText title="Select a track to view results"></InfoText>
+      <InfoText :title="translate('select_track_to_view')"></InfoText>
     </div>
     <div v-else class="scrollable">
       <v-table v-if="filteredRecords && filteredRecords.length>0" >
@@ -31,16 +33,16 @@
             <th class="text-left">
             </th>
             <th class="text-left">
-              Time
+              {{ translate('time') }}
             </th>
             <th class="text-left">
-              Vehicle
+              {{ translate('vehicle') }}
             </th>
             <th class="text-left">
-              Class
+              {{ translate('class') }}
             </th>
             <th class="text-left">
-              Type
+              {{ translate('type') }}
             </th>
           </tr>
         </thead>
@@ -58,7 +60,7 @@
         </tbody>
       </v-table>
       <div v-else>
-        <InfoText title="No Data Yet"></InfoText>
+        <InfoText :title="translate('no_data')"></InfoText>
       </div>
     </div>
   </div>
@@ -70,13 +72,14 @@ import InfoText from "./InfoText.vue";
 import { Track } from "@/store/types";
 import { secondsToHMS } from "@/helpers/secondsToHMS";
 import { computed } from "vue";
+import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
   allRecords: Track[];
 }>();
 const selectedRace: Ref<Track | undefined> = ref(undefined)
 const reversed: Ref<boolean> = ref(false)
-const filteredRecords = computed(() => selectedRace.value?.Records?.filter((record) => {
+const filteredRecords = computed(() => selectedRace.value?.Records.filter((record) => {
   if (record.Reversed === undefined) return !reversed.value
 
   return record.Reversed === reversed.value

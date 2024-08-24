@@ -1,35 +1,76 @@
 <template>
-      <v-navigation-drawer
-        :v-model="currentPage"
-        expand-on-hover
-        rail
-      >
-        <v-list density="compact" nav>
-            <v-list-item prepend-icon="mdi-racing-helmet" title="Racing" value="racing" @click="openPage('racing')"></v-list-item>
-            <v-list-item prepend-icon="mdi-trophy" title="Results" value="results" @click="openPage('results')"></v-list-item>
-            <v-list-item prepend-icon="mdi-account-group" title="Crew" value="crew" @click="openPage('crew')"></v-list-item>
-            <v-list-item v-if="globalStore.baseData.data?.auth?.create" prepend-icon="mdi-go-kart-track" title="My Tracks" value="mytracks" @click="openPage('mytracks')"></v-list-item>
-            <v-list-item v-if="globalStore.baseData.data?.auth?.control" prepend-icon="mdi-account-multiple" title="Handle Racers" value="racers" @click="openPage('racers')"></v-list-item>
-        </v-list>
-        <template v-slot:append>
-          <v-list-item prepend-icon="mdi-cog" title="Settings" value="settings" @click="openPage('settings')"></v-list-item>
-        </template>
-      </v-navigation-drawer>
+  <v-navigation-drawer expand-on-hover rail>
+    <v-list density="compact" nav>
+      <v-list-item
+        color="primary"
+        :active="globalStore.currentPage === 'racing'"
+        rounded="lg"
+        prepend-icon="mdi-racing-helmet"
+        :title="translate('racing')"
+        value="racing"
+        @click="openPage('racing')"
+      ></v-list-item>
+      <v-list-item
+        color="primary"
+        :active="globalStore.currentPage === 'results'"
+        rounded="lg"
+        prepend-icon="mdi-trophy"
+        :title="translate('results')"
+        value="results"
+        @click="openPage('results')"
+      ></v-list-item>
+      <v-list-item
+        color="primary"
+        :active="globalStore.currentPage === 'crew'"
+        rounded="lg"
+        prepend-icon="mdi-account-group"
+        :title="translate('crew')"
+        value="crew"
+        @click="openPage('crew')"
+      ></v-list-item>
+      <v-list-item
+        color="primary"
+        :active="globalStore.currentPage === 'mytracks'"
+        rounded="lg"
+        v-if="globalStore.baseData.data?.auth?.create"
+        prepend-icon="mdi-go-kart-track"
+        :title="translate('my_tracks')"
+        value="mytracks"
+        @click="openPage('mytracks')"
+      ></v-list-item>
+      <v-list-item
+        color="primary"
+        :active="globalStore.currentPage === 'racers'"
+        rounded="lg"
+        v-if="globalStore.baseData.data?.auth?.control"
+        prepend-icon="mdi-account-multiple"
+        :title="translate('racers')"
+        value="racers"
+        @click="openPage('racers')"
+      ></v-list-item>
+    </v-list>
+    <template v-slot:append>
+      <v-list-item
+        prepend-icon="mdi-cog"
+        :title="translate('settings')"
+        value="settings"
+        @click="openPage('settings')"
+      ></v-list-item>
+    </template>
+  </v-navigation-drawer>
 </template>
 
 <script setup lang="ts">
 import { useGlobalStore } from "@/store/global";
-import { ref } from "vue";
 const globalStore = useGlobalStore();
-const currentPage = ref(globalStore.currentPage)
+import { translate } from "@/helpers/translate";
 
 const openPage = (page: string) => {
-  globalStore.$state.currentPage = page
-}
+  globalStore.$state.currentPage = page;
+};
 </script>
 
 <style scoped lang="scss">
-
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -78,5 +119,4 @@ const openPage = (page: string) => {
 .settings-button:hover {
   color: rgb(199, 199, 199);
 }
-
 </style>

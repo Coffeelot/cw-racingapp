@@ -1,41 +1,40 @@
 <template>
-    <v-card class="big-card">
+    <v-card  rounded="lg" class="big-card">
         <v-card-title>{{ props.race.trackName}}</v-card-title>
         <v-card-text class="inline standardGap">
-            <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race.ranked" text="Ranked"></v-chip>
+            <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race.ranked" :text="translate('ranked')"></v-chip>
             <v-chip prepend-icon="mdi-go-kart-track">{{ lapsText }}</v-chip>
-            <v-chip prepend-icon="mdi-account-group">Current Racers: {{ props.race.racers }}</v-chip>
-            <v-chip prepend-icon="mdi-ghost">Ghosting: {{ props.race.ghosting ? 'On': 'Off' }}</v-chip>
-            <v-chip prepend-icon="mdi-car-info">Max Class: {{ props.race.class }} </v-chip>
-            <v-chip v-if="props.race.reversed" prepend-icon="mdi-backup-restore" >Reversed</v-chip>
+            <v-chip prepend-icon="mdi-account-group">{{ translate('racers') }}  {{ props.race.racers }}</v-chip>
+            <v-chip prepend-icon="mdi-ghost">{{ translate('ghosting') }} : {{ props.race.ghosting ? translate('on'): translate('off') }}</v-chip>
+            <v-chip prepend-icon="mdi-car-info">{{ translate('max_class') }} : {{ props.race.class }} </v-chip>
+            <v-chip v-if="props.race.reversed" prepend-icon="mdi-backup-restore" >{{ translate('reversed') }} </v-chip>
         </v-card-text>
         <v-card-actions>
-            <v-btn variant="tonal" @click='leaveRace()'>Leave Race</v-btn>
-            <v-btn variant="tonal" @click='startRace()' v-if="!props.race.cantStart">Start Race</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn rounded="lg" variant="flat" color="red" @click='leaveRace()'>{{ translate('leave_race') }} </v-btn>
+            <v-btn rounded="lg" variant="flat" color="success" @click='startRace()' v-if="!props.race.cantStart">{{ translate('start_race') }} </v-btn>
         </v-card-actions>
         
     </v-card>
 </template>
 
 <script setup lang="ts">
-import { useGlobalStore } from "@/store/global";
 import { CurrentRace } from "@/store/types";
 import { computed } from "vue";
-
+import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
   race: CurrentRace
 }>()
-const globalStore = useGlobalStore();
 const emits = defineEmits(['start', 'leave'])
 
 const lapsText = computed(() => {
-    let lapsText = 'Sprint'
+    let lapsText = translate('sprint')
     if (props.race.laps == -1) {
-        lapsText = 'Elimination '
+        lapsText = translate('elimination') + ' '
     }
     else if (props.race.laps > 0) {
-        lapsText = props.race.laps + ' lap(s) '
+        lapsText = props.race.laps + ' ' + translate('laps')
     }
     return lapsText
 })

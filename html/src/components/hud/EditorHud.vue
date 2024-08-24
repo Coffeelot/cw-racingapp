@@ -4,10 +4,10 @@
       <div class="blocks">
         <div class="box editor-holder">
           <span class="editor-text" id="editor-racename"
-            >Track Name: {{ globalStore.creatorData.RaceName }}</span
+            >{{ translate('track_name') }} : {{ globalStore.creatorData.RaceName }}</span
           >
           <span class="editor-text" id="editor-checkpoints"
-            >Checkpoints: {{ globalStore.creatorData.Checkpoints? globalStore.creatorData.Checkpoints.length: 0 }}</span
+            >{{ translate('checkpoints') }} : {{ globalStore.creatorData.Checkpoints? globalStore.creatorData.Checkpoints.length: 0 }}</span
           >
         </div>
         <div class="box editor-holder">
@@ -15,16 +15,16 @@
             ><span id="editor-keys-add-button" style="color: rgb(0, 201, 0)">{{
              globalStore.buttons.AddCheckpoint
             }}</span>
-            - Add Checkpoint</span
+            - {{ translate('add_checkpoint') }} </span
           >
           <span class="editor-text" id="editor-keys-delete" v-if="globalStore.activeHudData.ClosestCheckpoint">
-            <span style="color: rgb(255, 43, 43);">{{globalStore.buttons.DeleteCheckpoint }}</span> - Delete Checkpoint {{ globalStore.activeHudData.ClosestCheckpoint }}
+            <span style="color: rgb(255, 43, 43);">{{globalStore.buttons.DeleteCheckpoint }}</span> - {{ translate('delete_checkpoint') }}  {{ globalStore.activeHudData.ClosestCheckpoint }}
           </span>
           <span class="editor-text" id="editor-keys-edit"
             ><span id="editor-keys-edit-button" style="color: rgb(0, 201, 0)">{{
              globalStore.buttons.MoveCheckpoint
             }}</span
-            >- Modify Checkpoint Menu</span
+            >- {{ translate('modify_checkpoint') }} </span
           >
           <span class="editor-text" id="editor-keys-tiredistance">
             <span style="margin-right: 0.5em; color: rgb(255, 43, 43)">{{
@@ -33,7 +33,7 @@
             <span style="color: rgb(0, 201, 0)">
               {{globalStore.buttons.IncreaseDistance }}
             </span>
-            Tire Distance: {{ globalStore.creatorData.TireDistance }}
+            {{ translate('tire_distance') }} : {{ globalStore.creatorData.TireDistance }}
           </span>
           <span class="editor-text" id="editor-keys-cancel"
             ><span
@@ -41,13 +41,13 @@
               style="color: rgb(255, 43, 43)"
               >{{globalStore.buttons.Exit }}</span
             >
-            - Cancel Editor</span
+            - {{ translate('close_editor') }} </span
           >
           <span class="editor-text" id="editor-keys-save"
             ><span id="editor-keys-save-button" style="color: rgb(0, 201, 0)">{{
              globalStore.buttons.SaveRace
             }}</span>
-            - Save Race</span
+            - {{ translate('save_track') }} </span
           >
         </div>
       </div>
@@ -57,6 +57,7 @@
 
 <script setup lang="ts">
 import { useGlobalStore } from "@/store/global";
+import { translate } from "@/helpers/translate";
 
 const globalStore = useGlobalStore();
 </script>

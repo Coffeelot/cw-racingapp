@@ -1,19 +1,19 @@
 <template>
   <div id="RacersPage" class="pagecontent">
-    <v-tabs v-model="tab">
-      <v-tab value="myRacers">My Racers</v-tab>
-      <v-tab value="create" v-if="globalStore.baseData?.data?.auth?.create">Create Racer</v-tab>
+    <v-tabs color="primary" v-model="tab">
+      <v-tab value="myRacers">{{ translate('my_racers') }} </v-tab>
+      <v-tab value="create" v-if="globalStore.baseData?.data?.auth?.create">{{ translate('create_racer') }} </v-tab>
     </v-tabs>
 
     <v-window v-model="tab" class="page-container">
       <v-window-item value="myRacers" class="tabcontent">
         <div class="subheader inline">
-          <h3 class="header-text">My Racers</h3>
           <v-text-field
             class="text-field"
             hideDetails
-            placeholder="Search with racer name or citizenid"
             density="compact"
+            color="primary"
+            :placeholder="translate('search_dot')"
             v-model="search"
           ></v-text-field>
         </div>
@@ -22,25 +22,25 @@
         </div>
       </v-window-item>
       <v-window-item value="create" class="tabcontent">
-        <div class="subheader inline">
-          <h3 class="header-text">Create User</h3>
-        </div>
         <div  v-if="globalStore.baseData?.data?.auth?.create" class="create-options">
           <v-card class="card">
-            <v-card-title>Create</v-card-title>
+            <v-card-title>{{ translate('create_racer') }} </v-card-title>
             <v-card-text>
               <v-text-field
+                color="primary"
                 density="compact"
-                placeholder="Racer Name"
+                :placeholder="translate('racer_name')"
                 v-model="create.racerName"
               />
               <v-text-field
+                color="primary"
                 density="compact"
-                placeholder="Paypal/TempId (leave empty for self)"
+                :placeholder="translate('racer_id')"
                 v-model="create.racerId"
               />
               <v-select
                   v-if="creationTypes.length>0"
+                  color="primary"
                   density="compact"
                   hide-details
                   :items="Object.values(creationTypes)"
@@ -48,46 +48,24 @@
                   item-title="label"
                   v-model="selectedAuth"
               ></v-select>
-              <InfoText v-else title="You are not authorized to create any user types. This might be job/rank related."></InfoText>
+              <InfoText v-else :title="translate('not_auth')"></InfoText>
             </v-card-text>
             <v-card-actions>
               <v-btn
                 block
                 color="success"
-                variant="elevated"
+                variant="flat"
                 type="submit"
                 @click="createUser()"
                 :loading="loading"
                 :disabled="shouldDisableButton"
               >
-                Create User
+                {{ translate('confirm') }} 
               </v-btn>
             </v-card-actions>
           </v-card>
-          <!-- <v-card class="card">
-            <v-card-title>Create for closest person</v-card-title>
-            <v-card-text>
-              <v-text-field
-                density="compact"
-                placeholder="Racer Name"
-                v-model="create.racerName"
-              />
-            </v-card-text>
-            <v-card-actions>
-              <v-btn
-                block
-                color="success"
-                variant="elevated"
-                type="submit"
-                @click="createUserClosest()"
-                :loading="loading"
-              >
-                Send Invite
-              </v-btn>
-            </v-card-actions>
-          </v-card> -->
         </div>
-        <InfoText v-else title="Not authorized to create"></InfoText>
+        <InfoText v-else :title="translate('not_auth')"></InfoText>
       </v-window-item>
     </v-window>
   </div>
@@ -102,6 +80,8 @@ import { computed, onMounted } from "vue";
 import { ref } from "vue";
 import MyRacerCard from "../items/MyRacerCard.vue";
 import InfoText from "../components/InfoText.vue";
+import { translate } from "@/helpers/translate";
+
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);
 const myRacers: Ref<MyRacer[] | undefined> = ref(undefined);

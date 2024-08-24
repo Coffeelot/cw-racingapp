@@ -1,154 +1,142 @@
 <template>
-  <v-dialog
-          v-model="open"
-          persistent
-          width="1024"
-          contained
-        >
-        <v-form>
-          <v-card>
-            <v-card-title class="title-holder">
-              Track selected: {{ track.RaceName }}
-              <v-switch
-                  v-if="globalStore.baseData.data.auth.startReversed"
-                  class="reverse-switch"
-                  label="Reversed"
-                  v-model="setupData.reversed"
+  <v-dialog v-model="open" persistent width="1024" contained>
+    <v-form>
+      <v-card>
+        <v-card-title class="title-holder">
+          {{ translate('selected_track') }} {{ track.RaceName }}
+          <v-switch
+            color="primary"
+            v-if="globalStore.baseData.data.auth.startReversed"
+            class="reverse-switch"
+            :label="translate('reversed')"
+            v-model="setupData.reversed"
+            density="compact"
+            hide-details
+          >
+          </v-switch>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-select
+                  color="primary"
+                  density="compact"
+                  :items="lapsFiltered"
+                  item-value="value"
+                  item-title="text"
+                  :label="translate('laps')"
+                  v-model="setupData.laps"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-select
+                  color="primary"
+                  density="compact"
+                  :items="globalStore.baseData.data.buyIns"
+                  item-value="value"
+                  item-title="text"
+                  :label="translate('buy_in')"
+                  v-model="setupData.buyIn"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-select
+                  color="primary"
+                  density="compact"
+                  v-if="globalStore.baseData.data.ghostingEnabled"
+                  :items="globalStore.baseData.data.ghostingTimes"
+                  item-value="value"
+                  item-title="text"
+                  :label="translate('ghosting')"
+                  v-model="setupData.ghosting"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-select
+                  color="primary"
+                  density="compact"
+                  :items="globalStore.baseData.data.classes"
+                  item-value="value"
+                  item-title="text"
+                  :label="translate('max_class')"
+                  v-model="setupData.maxClass"
+                ></v-select>
+              </v-col>
+              <v-col
+                v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
+                cols="12"
+                sm="6"
+              >
+                <v-text-field
+                  color="primary"
+                  class="text-field"
+                  hideDetails
+                  :label="translate('participation_amount')"
+                  density="compact"
+                  type="number"
+                  v-model="setupData.participationMoney"
+                >
+                  <template v-slot:prepend>
+                    <v-tooltip location="bottom">
+                      <template v-slot:activator="{ props }">
+                        <v-icon
+                          v-bind="props"
+                          icon="mdi-help-circle-outline"
+                        ></v-icon>
+                      </template>
+                      {{ translate('participation_info') }} 
+                    </v-tooltip>
+                  </template>
+                </v-text-field>
+              </v-col>
+              <v-col
+                v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
+                cols="12"
+                sm="6"
+              >
+                <v-select
+                  :label="translate('currency')"
+                  density="compact"
+                  :items="['cash', 'bank', 'crypto']"
+                  v-model="setupData.participationCurrency"
+                ></v-select>
+              </v-col>
+              <v-col
+                v-if="globalStore?.baseData?.data?.auth?.startRanked"
+                cols="12"
+                sm="6"
+              >
+                <v-switch
+                  color="primary"
+                  :label="translate('ranked')"
+                  v-model="setupData.ranked"
                   density="compact"
                   hide-details
+                  :disabled="setupData.laps === -1"
                 >
-              </v-switch>
-            </v-card-title>
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-select
-                      density="compact"
-                      :items="lapsFiltered"
-                      item-value="value"
-                      item-title="text"
-                      label="Laps"
-                      v-model="setupData.laps"
-                    ></v-select>
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-select
-                    density="compact"
-
-                      :items="globalStore.baseData.data.buyIns"
-                      item-value="value"
-                      item-title="text"
-                      label="Buy In"
-                      v-model="setupData.buyIn"
-                    ></v-select>
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-select
-                    density="compact"
-
-                      v-if="globalStore.baseData.data.ghostingEnabled"
-                      :items="globalStore.baseData.data.ghostingTimes"
-                      item-value="value"
-                      item-title="text"
-                      label="Ghosting"
-                      v-model="setupData.ghosting"
-                    ></v-select>
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-select
-                    density="compact"
-
-                     :items="globalStore.baseData.data.classes"
-                      item-value="value"
-                      item-title="text"
-                      label="Max Class"
-                      v-model="setupData.maxClass"
-                    ></v-select>
-                  </v-col>
-                  <v-col
-                    v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-text-field
-                      class="text-field"
-                      hideDetails
-                      label="Participation Amount"
-                      density="compact"
-                      type="number"
-                      v-model="setupData.participationMoney"
-                    >
-                    <template v-slot:prepend>
-                      <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                          <v-icon v-bind="props" icon="mdi-help-circle-outline"></v-icon>
-                        </template>
-                        This amount will be handed out to all racers who participate
-                      </v-tooltip>
-                    </template>
-                   </v-text-field>
-                  </v-col>
-                  <v-col
-                    v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-select
-                      label="Participation currency"
-                      density="compact"
-                      :items="['cash', 'bank', 'crypto']"
-                      v-model="setupData.participationCurrency"
-                    ></v-select>
-                  </v-col>
-                  <v-col
-                    v-if="globalStore?.baseData?.data?.auth?.startRanked"
-                    cols="12"
-                    sm="6"
-                  >
-                    <v-switch
-                      label="Ranked"
-                      v-model="setupData.ranked"
-                      density="compact"
-                      hide-details
-                      :disabled="setupData.laps === -1"
-                    >
-                    </v-switch>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn
-                variant="text"
-                @click="handleClose()"
-              >
-                Close
-              </v-btn>
-              <v-btn
-                variant="tonal"
-                color="primary"
-                @click="handleConfirm()"
-              >
-                Confirm
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-form>
-      </v-dialog>
+                </v-switch>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn rounded="lg" variant="text" @click="handleClose()">
+            {{ translate('close') }} 
+          </v-btn>
+          <v-btn
+            rounded="lg"
+            color="success"
+            variant="flat"
+            @click="handleConfirm()"
+          >
+            {{ translate('confirm') }} 
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -158,22 +146,26 @@ import { useGlobalStore } from "@/store/global";
 import { Track } from "@/store/types";
 import { computed } from "vue";
 import { ref } from "vue";
+import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
   track: Track;
   open: boolean;
 }>();
 
-const emits = defineEmits(["goBack"])
-const globalStore = useGlobalStore()
-const open = ref(props.open)
+const emits = defineEmits(["goBack"]);
+const globalStore = useGlobalStore();
+const open = ref(props.open);
 
-const lapsFiltered = computed(()=>globalStore.baseData.data.laps.filter((lapType) => {
-  if (lapType.value === -1) {// For elimination
-    return globalStore.baseData.data.auth.startElimination
-  } 
-  return true
-} ))
+const lapsFiltered = computed(() =>
+  globalStore.baseData.data.laps.filter((lapType) => {
+    if (lapType.value === -1) {
+      // For elimination
+      return globalStore.baseData.data.auth.startElimination;
+    }
+    return true;
+  })
+);
 
 const setupData = ref({
   laps: globalStore.baseData.data.laps[1].value,
@@ -183,40 +175,39 @@ const setupData = ref({
   ranked: false,
   reversed: false,
   participationMoney: 0,
-  participationCurrency: 'cash'
-})
+  participationCurrency: "cash",
+});
 
 const handleClose = () => {
-  open.value = false
-  emits('goBack')
-}
-
+  open.value = false;
+  emits("goBack");
+};
 
 const handleConfirm = async () => {
-  if (setupData.value.participationMoney < 0) setupData.value.participationMoney = 0
-  if (setupData.value.laps === -1) setupData.value.ranked = false
+  if (setupData.value.participationMoney < 0)
+    setupData.value.participationMoney = 0;
+  if (setupData.value.laps === -1) setupData.value.ranked = false;
 
   let data = {
-        track: props.track.RaceId,
-        laps: setupData.value.laps,
-        buyIn: setupData.value.buyIn,
-        maxClass: setupData.value.maxClass,
-        ghostingOn: setupData.value.ghosting !== -1,
-        ghostingTime: setupData.value.ghosting,
-        ranked: setupData.value.ranked,
-        participationMoney: setupData.value.participationMoney,
-        participationCurrency: setupData.value.participationCurrency,
-        reversed: setupData.value.reversed
-    }
+    track: props.track.RaceId,
+    laps: setupData.value.laps,
+    buyIn: setupData.value.buyIn,
+    maxClass: setupData.value.maxClass,
+    ghostingOn: setupData.value.ghosting !== -1,
+    ghostingTime: setupData.value.ghosting,
+    ranked: setupData.value.ranked,
+    participationMoney: setupData.value.participationMoney,
+    participationCurrency: setupData.value.participationCurrency,
+    reversed: setupData.value.reversed,
+  };
 
   const res = await api.post("UiSetupRace", JSON.stringify(data));
   if (res) {
-    open.value = false
-    closeApp()
-    emits('goBack')
+    open.value = false;
+    closeApp();
+    emits("goBack");
   }
-}
-
+};
 </script>
 
 <style scoped lang="scss">

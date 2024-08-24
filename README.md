@@ -27,6 +27,7 @@
 - Custom UI
 - Track curation
 - Ability to select Racing HUD position *(see HUDSettings in Config file)*
+- Translateable
 
 **Original features by ItsANoBrainer:**
 - Standalone racing script not requiring qb-phone to utilize
@@ -142,7 +143,8 @@ Server side:
 ```
 
 
-# Preview 📽
+# Preview (in order of updates) 📽
+
 ### Note: Before new UI was added
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/APtMydz4gF8/0.jpg)](https://youtu.be/APtMydz4gF8)
@@ -166,6 +168,11 @@ Update to track editor:
 
 ### Ranked, ELO and Crew systems
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/gyt_EqFqfds/0.jpg)](https://youtu.be/gyt_EqFqfds)
+
+### Latest UI rework + translations 
+
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/8Vkj0o8VvCY/0.jpg)](https://youtu.be/8Vkj0o8VvCY)
+
 
 # Setup
 
@@ -227,12 +234,14 @@ ADD COLUMN ranking INT(11) NULL DEFAULT '0';
 
 **Track Setup**
 
-![Track Selection](https://media.discordapp.net/attachments/1003220513038016573/1186384407444062300/image.png?ex=65930d94&is=65809894&hm=75a438cff341e99f77671992f2ef1e0ea075bb0218b0b1763e49b2b087abb213&=&format=webp&quality=lossless&width=776&height=557)
-![Track Setup](https://media.discordapp.net/attachments/1003220513038016573/1186386707025756200/image.png?ex=65930fb8&is=65809ab8&hm=360e2e75712070284a98ec8184fdcf23affd1fed75d07c854951efeee1d9bbc5&=&format=webp&quality=lossless&width=776&height=533)
+![Track Selection](https://media.discordapp.net/attachments/1202695794537537568/1276957396677431416/image.png?ex=66cb6ac0&is=66ca1940&hm=20eef13f8f901c01833ad31d4f605a0a56b3fb4ec3d6f64bdbe0c76b595f7b2c&=&format=webp&quality=lossless&width=782&height=457)
+![Track Setup](https://media.discordapp.net/attachments/1202695794537537568/1276957700118417550/image.png?ex=66cb6b08&is=66ca1988&hm=0eab69671c24ce74ab5c33d6bfc42e2fb5a36ee00c4ccb25079dcd00f914bb4d&=&format=webp&quality=lossless&width=782&height=449)
 
 **Leaderboards**
 
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1186387463569166357/image.png?ex=6593106d&is=65809b6d&hm=4176fce822f2e10fca301d178bb3f3f3beac4792ca6408459fddcf889cbec82a&=&format=webp&quality=lossless&width=776&height=501)
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957700449636453/image.png?ex=66cb6b08&is=66ca1988&hm=85f91895299789c78357dba40acf60bb8d0034c03d16c3188a37c1f9acaafb9f&=&format=webp&quality=lossless&width=782&height=455)
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957700722524223/image.png?ex=66cb6b08&is=66ca1988&hm=7b692b8532a70f503885c4c3c83da96034a6d1d01478b2cdedb4a337348840cd&=&format=webp&quality=lossless&width=782&height=456)
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957700948889631/image.png?ex=66cb6b08&is=66ca1988&hm=13359ad6b4ddc6aa6addb5e0a06652139b12d7e671f919f5700aca4d362edbc3&=&format=webp&quality=lossless&width=782&height=453)
 
 **Track Creation**
 
@@ -240,17 +249,24 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 
 **Manage Tracks**
 
-![Tracks menu](https://media.discordapp.net/attachments/977876510620909579/1186385557010522262/image.png?ex=65930ea6&is=658099a6&hm=d17a6366a3e098c77611c5dbb1cbe299d96f1d95857df1f63096f57b2f0f1d52&=&format=webp&quality=lossless&width=776&height=573)
+![Tracks menu](https://media.discordapp.net/attachments/1202695794537537568/1276957701225844856/image.png?ex=66cb6b08&is=66ca1988&hm=f5f9169f87161c729e7d046bc2e39bde483dba520a83ace50593c4c66471acdb&=&format=webp&quality=lossless&width=782&height=453)
 
-![Interface](https://media.discordapp.net/attachments/977876510620909579/1186385557425770496/image.png?ex=65930ea6&is=658099a6&hm=def700ad47d0630293152776f900dca61b5cd9518983b6fb5864d2150f4690bd&=&format=webp&quality=lossless&width=776&height=548)
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957701468979293/image.png?ex=66cb6b08&is=66ca1988&hm=7fe5372955f21e3e5c072a70fc037ddc86573b36bc63f32ee5b4bb33d1765875&=&format=webp&quality=lossless&width=782&height=460)
+
+**Manage Crew**
+
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957782611857418/image.png?ex=66cb6b1c&is=66ca199c&hm=ab465e525702acf9499a08d23b56b06abc0b40b2e446d14673d521158b055160&=&format=webp&quality=lossless&width=782&height=473)
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957782934945812/image.png?ex=66cb6b1c&is=66ca199c&hm=9399c0825a24f0e0e586738976246199a9c4bc5e66e7555eb6ce5463ca8638b1&=&format=webp&quality=lossless&width=782&height=459)
+![Interface](https://media.discordapp.net/attachments/1202695794537537568/1276957783224483881/image.png?ex=66cb6b1c&is=66ca199c&hm=a8311e0d10bfde2efef9333e5e761050770d20b8eda10360627070d86c2a6a72&=&format=webp&quality=lossless&width=782&height=470)
 
 **Handle your race users**
 
-![Users](https://media.discordapp.net/attachments/977876510620909579/1186385556582707340/image.png?ex=65930ea6&is=658099a6&hm=bc26cad6cde32efcd9bfc5b2ab5e1878c33a4d85002069d81a4795df9bc5680e&=&format=webp&quality=lossless&width=776&height=546)
+![Users](https://media.discordapp.net/attachments/1202695794537537568/1276958004113047573/image.png?ex=66cb6b50&is=66ca19d0&hm=107f3b94d5a0b91741a94186d4744227f34d02884b08f05a44c95fb535ee1595&=&format=webp&quality=lossless&width=782&height=455)
+![Users](https://media.discordapp.net/attachments/1202695794537537568/1276958004436140062/image.png?ex=66cb6b50&is=66ca19d0&hm=b0835004148e4c36b89f4fb563d8a337e91c661d735b6158908c122cdbc19631&=&format=webp&quality=lossless&width=782&height=464)
 
 **Settings**
 
-![Settings](https://media.discordapp.net/attachments/977876510620909579/1186385556129730560/image.png?ex=65930ea6&is=658099a6&hm=4ac2020189634e3cc7c37379ca28647a7a5e596ce6cf9f9dff9c34500147355f&=&format=webp&quality=lossless&width=776&height=553)
+![Settings](https://media.discordapp.net/attachments/1202695794537537568/1276959445729148991/image.png?ex=66cb6ca8&is=66ca1b28&hm=de9240a7be25638c6d302a2a1bddd8d49ebe83590ae0e3b3f6f10dbf563189c3&=&format=webp&quality=lossless&width=782&height=466)
 
 # Uninstalling or full reset
 ## /removeracetracks

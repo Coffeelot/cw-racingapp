@@ -1,26 +1,26 @@
 <template>
   <div id="ResultsPage" class="pagecontent">
-    <v-tabs v-model="tab">
-      <v-tab value="crewRank">Crews Rankings</v-tab>
-      <v-tab value="racerRank">Racers Rankings</v-tab>
-      <v-tab value="results">Race Results</v-tab>
-      <v-tab value="records">Race Records</v-tab>
+    <v-tabs color="primary" v-model="tab">
+      <v-tab value="crewRank">{{ translate('crew_rankings') }} </v-tab>
+      <v-tab value="racerRank">{{ translate('racer_rankings') }} </v-tab>
+      <v-tab value="results">{{ translate('race_results') }} </v-tab>
+      <v-tab value="records">{{ translate('racer_records') }} </v-tab>
     </v-tabs>
 
     <v-window v-model="tab" class="page-container">
       <v-window-item value="crewRank" class="tabcontent">
-        <CrewTable ></CrewTable>
+        <CrewTable></CrewTable>
       </v-window-item>
       <v-window-item value="racerRank" class="tabcontent">
-        <RacersTable ></RacersTable>
+        <RacersTable></RacersTable>
       </v-window-item>
       <v-window-item value="results" class="tabcontent">
         <RaceResults v-if="allResults" :allResults="allResults"></RaceResults>
-        <InfoText v-else title="No data" />
+        <InfoText v-else :title="translate('no_data')" />
       </v-window-item>
       <v-window-item value="records" class="tabcontent">
         <RaceRecords v-if="allRecords" :allRecords="allRecords"></RaceRecords>
-        <InfoText v-else title="No data" />
+        <InfoText v-else :title="translate('no_data')" />
       </v-window-item>
     </v-window>
   </div>
@@ -36,6 +36,7 @@ import RaceRecords from "../components/RaceRecords.vue";
 import InfoText from "../components/InfoText.vue";
 import CrewTable from "../components/CrewTable.vue";
 import RacersTable from "../components/RacersTable.vue";
+import { translate } from "@/helpers/translate";
 
 const allResults: Ref<ResultData[] | undefined> = ref(undefined);
 const allRecords: Ref<Track[] | undefined> = ref(undefined);
@@ -44,18 +45,17 @@ const tab = ref(globalStore.currentTab);
 
 const getResults = async () => {
   const response = await api.post("UiGetRacingResults");
-  if (response.data) allResults.value = response.data
+  if (response.data) allResults.value = response.data;
 };
 const getRecords = async () => {
   const response = await api.post("UiGetTracks");
-  if (response.data) allRecords.value = response.data
+  if (response.data) allRecords.value = response.data;
 };
 
 onMounted(() => {
   getResults();
   getRecords();
 });
-
 </script>
 
 <style scoped lang="scss"></style>

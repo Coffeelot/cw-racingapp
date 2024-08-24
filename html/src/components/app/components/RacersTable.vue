@@ -1,21 +1,18 @@
 <template>
   <div class="results-container page-container">
-    <div class="inline standardGap header">
-      <h3>Crew rankings</h3>
-    </div>
     <v-table v-if="racers && racers.length>0" class="scrollable">
       <thead>
         <tr>
           <th class="text-left">
           </th>
           <th class="text-left">
-            Rank
+            {{translate('rank')}}
           </th>
           <th class="text-left">
-            Wins
+            {{translate('wins')}}
           </th>
           <th class="text-left">
-            Races
+            {{translate('races')}}
           </th>
         </tr>
       </thead>
@@ -32,7 +29,7 @@
       </tbody>
     </v-table>
     <div v-else>
-      <InfoText title="No Data Yet"></InfoText>
+      <InfoText :title="translate('no_data')"></InfoText>
     </div>
   </div>
 </template>
@@ -42,6 +39,7 @@ import { MyRacer } from "@/store/types";
 import { Ref, onMounted, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import api from "@/api/axios";
+import { translate } from "@/helpers/translate";
 
 const racers: Ref<MyRacer[] | undefined> = ref(undefined)
 

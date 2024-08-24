@@ -1,13 +1,14 @@
 <template>
-    <v-card class="available-card">
+    <v-card rounded="lg" class="available-card">
         <v-card-title>{{ props.track.RaceName}} {{ props.track.Curated? '⭐':'' }}</v-card-title>
         <v-card-text class="inline standardGap">
-            <v-chip>Creator: {{ props.track.CreatorName }} </v-chip>
-            <v-chip>Length: {{ props.track.Distance }}</v-chip>
+            <v-chip>{{ translate('creator') }} : {{ props.track.CreatorName }} </v-chip>
+            <v-chip>{{ translate('length') }} : {{ props.track.Distance }}</v-chip>
         </v-card-text>
         <v-card-actions>
-            <v-btn variant="tonal" @click='showRace()'>Show Track</v-btn>
-            <v-btn variant="tonal" @click='startRace()'>Setup Race</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn rounded="lg" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
+            <v-btn rounded="lg" variant="flat" color="primary" @click='startRace()'>{{ translate('setup_race') }} </v-btn>
         </v-card-actions>
         
     </v-card>
@@ -16,13 +17,12 @@
 <script setup lang="ts">
 import api from "@/api/axios";
 import { closeApp } from "@/helpers/closeApp";
-import { useGlobalStore } from "@/store/global";
 import { Track } from "@/store/types";
+import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
   track: Track
 }>()
-const globalStore = useGlobalStore();
 const emits = defineEmits(['select'])
 
 const showRace = async () => {
@@ -37,7 +37,7 @@ const startRace = async () => {
 
 <style scoped lang="scss">
 .available-card {
-    flex-grow: 1;
+    width: 49%;
     height: fit-content;
 }
 </style>

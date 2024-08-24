@@ -1,24 +1,25 @@
 <template>
-    <v-card class="small-card">
+    <v-card rounded="lg" class="small-card">
         <v-card-title>{{ props.race.RaceData.RaceName }}</v-card-title>
         <v-card-text class="inline standardGap">
-            <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">Ranked</v-chip>
+            <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">{{ translate('ranked') }} </v-chip>
             <v-chip prepend-icon="mdi-hand-coin" color="green" v-if="participationText"> {{ participationText }} 
-                <v-tooltip location="top" activator="parent" text="This amount is given to each participant">
+                <v-tooltip location="top" activator="parent" :text="translate('participation_info')">
                 </v-tooltip>
             </v-chip>
             <v-chip prepend-icon="mdi-go-kart-track">{{ `${lapsText} ${props.race.RaceData.Distance} m`}}</v-chip>
             <v-chip prepend-icon="mdi-cash" v-if="buyInText">{{ buyInText }}</v-chip>
             <v-chip prepend-icon="mdi-cash-multiple" v-if="potText && props.race.racers > 1">{{ potText }}</v-chip>
-            <v-chip prepend-icon="mdi-account-group">{{ `${props.race.racers} racer(s)` }}</v-chip>
-            <v-chip prepend-icon="mdi-car-info">{{ `Class: ${props.race.MaxClass}` }}</v-chip>
+            <v-chip prepend-icon="mdi-account-group">{{ `${props.race.racers} ${translate('racers')}` }}</v-chip>
+            <v-chip prepend-icon="mdi-car-info" v-if="props.race.class">{{ `${translate('class')}: ${props.race.class}` }}</v-chip>
             <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
-            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? 'Starts: ': `Expires:`} ${expirationTimeString}` }}</v-chip>
-            <v-chip v-if="props.race.Reversed" prepend-icon="mdi-backup-restore" >Reversed</v-chip>
-            <v-chip prepend-icon="mdi-account-star">Hosted by{{ props.race.SetupRacerName }}</v-chip>
+            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? translate('starts') : `${translate('expires')}:`} ${expirationTimeString}` }}</v-chip>
+            <v-chip v-if="props.race.Reversed" prepend-icon="mdi-backup-restore" >{{ translate('reversed') }} </v-chip>
+            <v-chip prepend-icon="mdi-account-star">{{ translate('hosted_by') }} {{ props.race.SetupRacerName }}</v-chip>
         </v-card-text>
         <v-card-actions v-if="!props.race.disabled">
-            <v-btn variant="tonal" @click='joinRace()'>Join Race</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn rounded="lg" variant="flat" color="success" @click='joinRace()'>{{ translate('join_race') }} </v-btn>
         </v-card-actions>
         
     </v-card>
@@ -28,6 +29,7 @@
 import api from "@/api/axios";
 import { closeApp } from "@/helpers/closeApp";
 import { useGlobalStore } from "@/store/global";
+import { translate } from "@/helpers/translate";
 import { computed } from "vue";
 const props = defineProps<{
   race: any
@@ -56,7 +58,7 @@ const lapsText = computed(() => {
         lapsText = 'Elimination | '
     }
     else if (props.race.laps > 0) {
-        lapsText = props.race.Laps + ' lap(s) | '
+        lapsText = props.race.Laps + " "+  translate('laps') + ' | '
     }
     return lapsText
 })
@@ -64,7 +66,7 @@ const lapsText = computed(() => {
 const buyInText = computed(() => {
     let text = undefined
     if (props.race.BuyIn > 0 ) {
-        text = '$' + props.race.BuyIn + ' Buy In'
+        text = '$' + props.race.BuyIn + " " + translate('buy_in')
     }
     return text
 })
@@ -72,7 +74,7 @@ const buyInText = computed(() => {
 const potText = computed(() => {
     let text = undefined
     if (props.race.BuyIn > 0 ) {
-        text = 'Pot: $' + props.race.racers * props.race.BuyIn
+        text = translate('pot') + ': ' + props.race.racers * props.race.BuyIn
     }
     return text
 })
@@ -80,7 +82,7 @@ const potText = computed(() => {
 const ghostingText = computed(() => {
     let ghostingText = ''
     if (props.race.Ghosting) {
-        ghostingText = 'Active'
+        ghostingText = translate('active')
         if (props.race.GhostingTime) {
             ghostingText = props.race.GhostingTime+'s)'
         }

@@ -1,18 +1,18 @@
 <template>
   <div id="MyTracksPage" class="pagecontent">
-    <v-tabs v-model="tab">
-      <v-tab value="myTracks">My Tracks</v-tab>
-      <v-tab value="create">Create Track</v-tab>
+    <v-tabs color="primary" v-model="tab">
+      <v-tab value="myTracks">{{ translate('my_tracks') }} </v-tab>
+      <v-tab value="create">{{ translate('create_track') }} </v-tab>
     </v-tabs>
 
     <v-window v-model="tab" class="page-container">
       <v-window-item value="myTracks" class="tabcontent mt">
         <div class="subheader inline">
-          <h3 class="header-text">My Tracks</h3>
+          <h3 class="header-text">{{ translate('my_tracks') }} </h3>
           <v-text-field
             class="text-field"
             hideDetails
-            placeholder="Search..."
+            :placeholder="translate('search_dot')"
             density="compact"
             v-model="search"
           ></v-text-field>
@@ -23,15 +23,15 @@
             :track="track"
           ></MyTrackCard>
         </div>
-        <InfoText title="No Tracks" v-else />
+        <InfoText :title="translate('no_data')" v-else />
       </v-window-item>
       <v-window-item value="create" class="tabcontent create mt">
         <v-card class="card">
-          <v-card-title> Create With Race Editor </v-card-title>
+          <v-card-title> {{ translate('create_with_editor') }}  </v-card-title>
           <v-card-text>
             <v-text-field
               density="compact"
-              placeholder="Track Name"
+              :placeholder="translate('track_name')"
               v-model="trackName"
             />
           </v-card-text>
@@ -43,16 +43,16 @@
               type="submit"
               @click="openRaceEditor()"
             >
-              Confirm
+              {{ translate('confirm') }} 
             </v-btn>
           </v-card-actions>
         </v-card>
         <v-card class="card">
-          <v-card-title> Create With track Share </v-card-title>
+          <v-card-title> {{ translate('create_with_share') }}  </v-card-title>
           <v-card-text>
             <v-text-field
               density="compact"
-              placeholder="Track Name"
+              :placeholder="translate('track_name')"
               v-model="trackNameShare"
             />
             <v-text-field
@@ -69,7 +69,7 @@
               type="submit"
               @click="createRaceFromShare()"
             >
-              Confirm
+              {{ translate('confirm') }} 
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -88,6 +88,7 @@ import { Track } from "@/store/types";
 import { computed } from "vue";
 import InfoText from "../components/InfoText.vue";
 import { closeApp } from "@/helpers/closeApp";
+import { translate } from "@/helpers/translate";
 
 const globalStore = useGlobalStore();
 const search = ref("");
@@ -100,7 +101,12 @@ const filtereredTracks = computed(() => {
   let fTracks = tracks?.value?.filter(
     (track) => track.CreatorName === globalStore.baseData.data.currentRacerName
   );
-  if (fTracks && search.value !== '') fTracks = fTracks.filter((track) => track.RaceName.toLowerCase().includes(search.value.toLowerCase()) || track.RaceId.toLowerCase().includes(search.value.toLowerCase()) )
+  if (fTracks && search.value !== "")
+    fTracks = fTracks.filter(
+      (track) =>
+        track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
+        track.RaceId.toLowerCase().includes(search.value.toLowerCase())
+    );
 
   return fTracks;
 });
@@ -150,5 +156,4 @@ onMounted(() => {
   display: flex;
   gap: 1em;
 }
-
 </style>

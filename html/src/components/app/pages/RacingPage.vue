@@ -1,12 +1,17 @@
 <template>
   <div id="RacingPage" class="pagecontent">
-    <v-tabs v-model="tab" v-if="tab !== 'setup2'" v-on:update:model-value="fetchRelevantData()">
-      <v-tab value="current">Current</v-tab>
-      <v-tab value="available">Available</v-tab>
-      <v-tab value="setup">Setup</v-tab>
+    <v-tabs
+      color="primary"
+      v-model="tab"
+      v-if="tab !== 'setup2'"
+      v-on:update:model-value="fetchRelevantData()"
+    >
+      <v-tab value="current">{{ translate('current') }} </v-tab>
+      <v-tab value="available">{{ translate('available') }} </v-tab>
+      <v-tab value="setup">{{ translate('setup') }} </v-tab>
     </v-tabs>
     <v-window v-model="tab" class="page-container">
-      <v-window-item value="current" class="tabcontent">
+      <v-window-item  value="current" class="tabcontent">
         <div class="current-race-container page-container">
           <div id="current-race-selection" v-if="currentRace">
             <CurrentRaceCard
@@ -16,14 +21,14 @@
             ></CurrentRaceCard>
           </div>
           <div id="current-race-none" v-else>
-            <h3 class="inline centered">No race active</h3>
+            <h3 class="inline centered">{{ translate('no_races') }} </h3>
           </div>
         </div>
       </v-window-item>
       <v-window-item value="available" class="tabcontent">
         <div class="subheader">
-          <h3>Available Races</h3>
-          <v-btn variant="text" @click="getListedRaces"> Refresh </v-btn>
+          <h3>{{ translate('available_races') }} </h3>
+          <v-btn variant="text" @click="getListedRaces"> {{ translate('refresh') }}  </v-btn>
         </div>
         <div
           v-if="isLoading"
@@ -38,28 +43,33 @@
             :race="race"
           ></AvailableRacesCard>
         </div>
-        <InfoText v-if="races.length===0" title="No races available"></InfoText>
+        <InfoText
+          v-if="races.length === 0"
+          :title="translate('no_races')"
+        ></InfoText>
       </v-window-item>
       <v-window-item value="setup" class="tabcontent">
         <div class="subheader">
-          <h3 class="header-text">Pick A Track</h3>
-            <v-switch
-              v-model="globalStore.showOnlyCurated"
-              hide-details
-              density="compact"
-            >
-              <template #label>
-                {{
-                  globalStore.showOnlyCurated
-                    ? "Showing curated tracks"
-                    : "Showing all tracks"
-                }}
-              </template>
-            </v-switch>
+          <h3 class="header-text">{{ translate('pick_track') }} </h3>
+          <v-switch
+            color="primary"
+            v-model="globalStore.showOnlyCurated"
+            hide-details
+            density="compact"
+          >
+            <template #label>
+              {{
+                globalStore.showOnlyCurated
+                  ? translate('showing_curated')
+                  : translate('showing_all')
+              }}
+            </template>
+          </v-switch>
           <v-text-field
+            color="primary"
             class="text-field"
             hideDetails
-            placeholder="Search..."
+            :placeholder="translate('search_dot')"
             density="compact"
             v-model="search"
           ></v-text-field>
@@ -102,21 +112,27 @@ import { CurrentRace, Track } from "@/store/types";
 import { closeApp } from "@/helpers/closeApp";
 import { computed } from "vue";
 import InfoText from "../components/InfoText.vue";
+import { translate } from "@/helpers/translate";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);
 const isLoading = ref(false);
 const races = ref([]);
 const dialog = ref(false);
-const search = ref('');
+const search = ref("");
 const selectedTrack: Ref<Track | undefined> = ref(undefined);
 const currentRace: Ref<CurrentRace | undefined> = ref(undefined);
 
 const filteredTracks = computed(() => {
   let tracks = globalStore.tracks;
   if (globalStore.showOnlyCurated)
-    tracks = tracks.filter((track: Track) => !!track.Curated);
-  if (tracks && search.value !== '') tracks = tracks.filter((track) => track.RaceName.toLowerCase().includes(search.value.toLowerCase()) || track.RaceId.toLowerCase().includes(search.value.toLowerCase()) )
+    tracks = tracks?.filter((track: Track) => !!track.Curated);
+  if (tracks && search.value !== "")
+    tracks = tracks.filter(
+      (track) =>
+        track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
+        track.RaceId.toLowerCase().includes(search.value.toLowerCase())
+    );
 
   return tracks.sort((a: Track, b: Track) =>
     a.RaceName.toLowerCase() > b.RaceName.toLowerCase() ? 1 : -1
@@ -141,37 +157,43 @@ const selectTrack = (track: Track) => {
 };
 
 const getTracks = async () => {
-  isLoading.value = true
+  isLoading.value = true;
   const res = await api.post("UiGetAvailableTracks");
   globalStore.$state.tracks = res.data;
-  isLoading.value = false
+  isLoading.value = false;
 };
 
 const getCurrent = async () => {
   const res = await api.post("UiFetchCurrentRace");
-  if (res.data.raceId) currentRace.value = res.data
+  if (res.data.raceId) currentRace.value = res.data;
 };
 
 const leaveRace = async () => {
   if (currentRace?.value?.raceId) {
-    await api.post("UiLeaveCurrentRace", JSON.stringify(currentRace.value.raceId));
-    currentRace.value = undefined
+    await api.post(
+      "UiLeaveCurrentRace",
+      JSON.stringify(currentRace.value.raceId)
+    );
+    currentRace.value = undefined;
   }
 };
 
 const startRace = async () => {
   if (currentRace?.value?.raceId) {
-    await api.post("UiStartCurrentRace", JSON.stringify(currentRace.value.raceId));
-    currentRace.value = undefined
-    closeApp()
+    await api.post(
+      "UiStartCurrentRace",
+      JSON.stringify(currentRace.value.raceId)
+    );
+    currentRace.value = undefined;
+    closeApp();
   }
 };
 
 const fetchRelevantData = () => {
-  if (tab.value === 'current') getCurrent();
-  else if (tab.value === 'setup') getTracks();
-  else if (tab.value === 'available') getListedRaces();
-}
+  if (tab.value === "current") getCurrent();
+  else if (tab.value === "setup") getTracks();
+  else if (tab.value === "available") getListedRaces();
+};
 
 onMounted(() => {
   getCurrent();
@@ -187,5 +209,8 @@ onMounted(() => {
   overflow-y: auto;
   gap: 1em;
   margin-top: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
 </style>

@@ -3,17 +3,16 @@ fx_version 'cerulean'
 games { 'gta5' }
 
 author 'Coffeelot & Wuggie'
-description 'Racing for QB'
-version '2.0.0'
+description 'CW Racing App'
+version '2.1.0'
 
 ui_page {
     "html/dist/index.html"
 }
 
 shared_scripts {
-    'config.lua',
-    '@qb-core/shared/locale.lua',
     'locales/en.lua',
+    'config.lua',
     '@ox_lib/init.lua',
 }
 

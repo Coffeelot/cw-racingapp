@@ -5,7 +5,7 @@
         <v-form>
           <v-card>
             <v-card-title>
-              Settings
+              {{ translate('settings') }} 
             </v-card-title>
             <v-card-text>
               <v-container>
@@ -15,7 +15,8 @@
                     sm="6"
                   >
                     <v-switch
-                      label="Show GPS Route"
+                      color="primary"
+                      :label="translate('show_gps')"
                       v-model="settings.ShowGpsRoute"
                       @change="updateSetting('ShowGpsRoute')"
                     ></v-switch>
@@ -25,7 +26,8 @@
                     sm="6"
                   >
                     <v-switch
-                      label="GPS ignores roads"
+                      color="primary"
+                      :label="translate('ignore_roads')"
                       v-model="settings.IgnoreRoadsForGps"
                       @change="updateSetting('IgnoreRoadsForGps')"
                     ></v-switch>
@@ -35,7 +37,8 @@
                     sm="6"
                   >
                     <v-switch
-                      label="Use base waypoints"
+                      color="primary"
+                      :label="translate('base_wps')"
                       v-model="settings.UseUglyWaypoint"
                       @change="updateSetting('UseUglyWaypoint')"
                     ></v-switch>
@@ -45,12 +48,13 @@
                     sm="6"
                   >
                         <v-switch
-                          label="Distance check"
+                          color="primary"
+                          :label="translate('distance_check')"
                           v-model="settings.CheckDistance"
                           @change="updateSetting('CheckDistance')"
                         >
                       </v-switch>
-                      <v-tooltip location="top" activator="parent" text="Having this on might have an impact on your performance if there are many racers in a race">
+                      <v-tooltip location="top" activator="parent" :text="translate('distance_info')">
                       </v-tooltip>
                   </v-col>
                   <v-col
@@ -58,10 +62,12 @@
                     sm="6"
                   >
                     <v-select
-                     :items="globalStore.baseData.data.racerNames"
+                      color="primary"
+                      hide-details
+                      :items="globalStore.baseData.data.racerNames"
                       item-value="racername"
                       item-title="racername"
-                      label="Racer Name"
+                      :label="translate('user')"
                       v-model="racerName"
                       :loading="loading"
                       :disabled="globalStore.activeHudData.InRace"
@@ -86,6 +92,7 @@ import { onMounted } from "vue";
 import { Settings } from "@/store/types";
 import { Ref } from "vue";
 import { getBaseData } from "@/helpers/getBaseData";
+import { translate } from "@/helpers/translate";
 
 const globalStore = useGlobalStore();
 const settings: Ref<Settings> = ref({

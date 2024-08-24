@@ -8,7 +8,7 @@
         <div class="blocks">
           <div class="box" v-if="globalStore.activeRace.totalRacers && globalStore.activeRace.totalRacers !== 1">
             <span class="hud-text split big"
-              ><span class="leftAligned">POS:</span
+              ><span class="leftAligned">{{ translate('pos') }}: </span
               ><span id="race-position">{{
                 `${globalStore.activeRace.position}/${globalStore.activeRace.totalRacers}`
               }}</span></span
@@ -16,7 +16,7 @@
           </div>
           <div class="box">
             <span class="hud-text split"
-              ><span class="leftAligned">CHECKPOINTS:</span
+              ><span class="leftAligned">{{ translate('checkpoints') }}:</span
               ><span id="race-checkpoints">
                 {{
                   `${globalStore.activeRace.currentCheckpoint}/${globalStore.activeRace.totalCheckpoints}`
@@ -26,7 +26,7 @@
           </div>
           <div class="box">
             <span class="hud-text split"
-              ><span class="leftAligned">LAP:</span
+              ><span class="leftAligned">{{ translate('lap') }}:</span
               ><span id="race-lap">
                 {{lapText }}</span
               ></span
@@ -34,25 +34,25 @@
           </div>
           <div class="box">
             <span class="hud-text split"
-              ><span class="leftAligned">CURRENT:</span>
+              ><span class="leftAligned">{{ translate('current') }}:</span>
               <span id="race-time">{{ secondsToHMS(globalStore.activeRace.time) }}</span></span
             >
           </div>
           <div class="box">
           <span class="hud-text split"
-            ><span class="leftAligned">BEST:</span>
+            ><span class="leftAligned">{{ translate('best') }}:</span>
             <span id="race-besttime"> {{ secondsToHMS(globalStore.activeRace.bestLap) }}</span></span
           >
         </div>
         <div class="box">
           <span class="hud-text split"
-            ><span class="leftAligned">TOTAL:</span>
+            ><span class="leftAligned">{{ translate('total') }}:</span>
             <span id="race-totaltime">{{ secondsToHMS(globalStore.activeRace.totalTime) }}</span></span
           >
         </div>
     <div class="box">
           <span class="hud-text split"
-            ><span class="leftAligned">TRACK:</span>
+            ><span class="leftAligned">{{ translate('track') }} :</span>
             <span id="race-racename">{{ globalStore.activeRace.raceName }}</span></span
           >
         </div>
@@ -72,6 +72,7 @@ import RacerList from "./RacerList.vue";
 import { useGlobalStore } from "@/store/global";
 import { secondsToHMS } from "@/helpers/secondsToHMS";
 import { computed } from "vue";
+import { translate } from "@/helpers/translate";
 const globalStore = useGlobalStore();
 
 const hudpositionToCss: Record<string, string> = {
@@ -145,6 +146,7 @@ const lapText = computed(() => {
     padding-left: 15px;
     font-weight: 600;
     width: 100%;
+    text-transform: uppercase;
 }
 
 .leftAligned {

@@ -1,23 +1,23 @@
 <template>
   <div id="CrewPage" class="pagecontent">
-    <v-tabs v-model="tab">
-      <v-tab value="myCrew">My Crew</v-tab>
-      <v-tab value="create">Manage</v-tab>
-      <v-tab value="invites">Invites</v-tab>
+    <v-tabs color="primary" v-model="tab">
+      <v-tab value="myCrew">{{ translate("my_crew") }} </v-tab>
+      <v-tab value="create">{{ translate("manage") }} </v-tab>
+      <v-tab value="invites">{{ translate("invites") }} </v-tab>
     </v-tabs>
 
     <v-window v-model="tab">
       <v-window-item value="myCrew" class="tabcontent">
         <v-card v-if="myCrew">
-          <v-card-title>Crew stats</v-card-title>
+          <v-card-title>{{ translate("crew_stats") }} </v-card-title>
           <v-card-text class="text">
-            <v-chip>Ranking: {{ myCrew.rank }} </v-chip>
-            <v-chip>Races: {{ myCrew.races }} </v-chip>
-            <v-chip>Wins: {{ myCrew.wins }} </v-chip>
+            <v-chip>{{ translate("rank") }}: {{ myCrew.rank }} </v-chip>
+            <v-chip>{{ translate("races") }}: {{ myCrew.races }} </v-chip>
+            <v-chip>{{ translate("wins") }}: {{ myCrew.wins }} </v-chip>
           </v-card-text>
         </v-card>
         <div class="subheader inline mt-1">
-          <h3 class="header-text">My Crew</h3>
+          <h3 class="header-text">{{ translate("my_crew") }}</h3>
         </div>
         <div
           class="myRacers-items-container"
@@ -31,17 +31,19 @@
             :member="member"
           ></MyCrewMemberCard>
         </div>
-        <InfoText v-else-if="!myCrew" title="You are not in a crew"></InfoText>
-        <InfoText v-else title="No members in this crew yet"></InfoText>
+        <InfoText
+          v-else-if="!myCrew"
+          :title="translate('not_in_crew')"
+        ></InfoText>
+        <InfoText v-else :title="translate('no_members_in_crew')"></InfoText>
       </v-window-item>
       <v-window-item value="create" class="tabcontent">
         <div class="subheader inline">
-          <h3 class="header-text">Crew Management</h3>
+          <h3 class="header-text">{{ translate("manage") }}</h3>
         </div>
-        <div class="myRacers-items-container">
-          
-          <v-card v-if="globalStore?.baseData?.data?.auth?.createCrew">
-            <v-card-title>Create a new crew</v-card-title>
+        <div class="w-100 invitations">
+          <v-card class="card" v-if="globalStore?.baseData?.data?.auth?.createCrew">
+            <v-card-title>{{ translate("create_crew") }} </v-card-title>
             <v-card-text>
               <v-text-field
                 density="compact"
@@ -58,12 +60,18 @@
                 @click="createCrew()"
                 :loading="loading"
               >
-                Confirm
+                {{ translate("confirm") }}
               </v-btn>
             </v-card-actions>
           </v-card>
-          <v-card v-if="globalStore.baseData.data.currentCrewName && !isFounder">
-            <v-card-title>Leave current crew: {{ globalStore.baseData.data.currentCrewName }}</v-card-title>
+          <v-card
+            class="card"
+            v-if="globalStore.baseData.data.currentCrewName && !isFounder"
+          >
+            <v-card-title
+              >{{ translate('leave_current_crew') }} :
+              {{ globalStore.baseData.data.currentCrewName }}</v-card-title
+            >
             <v-card-actions>
               <v-btn
                 block
@@ -73,12 +81,15 @@
                 @click="leaveCrew()"
                 :loading="loading"
               >
-                Leave
+                {{ translate('leave') }} 
               </v-btn>
             </v-card-actions>
           </v-card>
-          <v-card v-if="globalStore.baseData.data.currentCrewName && isFounder">
-            <v-card-title>Disband current crew: {{ globalStore.baseData.data.currentCrewName }}</v-card-title>
+          <v-card class="card" v-if="globalStore.baseData.data.currentCrewName && isFounder">
+            <v-card-title
+              >{{ translate('disband_crew') }} :
+              {{ globalStore.baseData.data.currentCrewName }}</v-card-title
+            >
             <v-card-actions>
               <v-btn
                 block
@@ -88,7 +99,7 @@
                 @click="disbandCrew()"
                 :loading="loading"
               >
-                Disband
+                {{ translate('confirm') }} 
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -96,11 +107,13 @@
       </v-window-item>
       <v-window-item value="invites" class="tabcontent">
         <div class="subheader inline">
-          <h3 class="header-text">Invites</h3>
+          <h3 class="header-text">{{ translate('invites') }} </h3>
         </div>
         <div class="myRacers-items-container">
           <v-card v-if="myInvites">
-            <v-card-title>Invite from crew: {{ myInvites.crewName }}</v-card-title>
+            <v-card-title
+              >{{ translate('invite_from_crew') }}: {{ myInvites.crewName }}</v-card-title
+            >
             <v-card-actions>
               <v-btn
                 variant="tonal"
@@ -108,7 +121,7 @@
                 @click="denyCrew()"
                 :loading="loading"
               >
-                Deny
+                {{ translate('deny') }} 
               </v-btn>
               <v-btn
                 color="success"
@@ -117,15 +130,15 @@
                 @click="joinCrew()"
                 :loading="loading"
               >
-                Accept
+                {{ translate('accept') }} 
               </v-btn>
             </v-card-actions>
           </v-card>
-          <InfoText v-else title="No invites pending"></InfoText>
+          <InfoText v-else :title="translate('no_invites')"></InfoText>
           <v-divider v-if="isFounder"></v-divider>
           <div class="invitations">
             <v-card class="card" v-if="isFounder">
-              <v-card-title>Invite</v-card-title>
+              <v-card-title>{{ translate('invite') }} </v-card-title>
               <v-card-text>
                 <v-text-field
                   density="compact"
@@ -142,12 +155,12 @@
                   @click="inviteMember()"
                   :loading="loading"
                 >
-                  Send Invite
+                  {{ translate('confirm') }} 
                 </v-btn>
               </v-card-actions>
             </v-card>
             <v-card class="card" v-if="isFounder">
-              <v-card-title>Invite closest person</v-card-title>
+              <v-card-title>{{ translate('invite_closest') }} </v-card-title>
               <v-card-actions>
                 <v-btn
                   block
@@ -157,7 +170,7 @@
                   @click="inviteMemberClosest()"
                   :loading="loading"
                 >
-                  Send Invite
+                {{ translate('confirm') }} 
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -183,92 +196,106 @@ const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentTab);
 const myCrew: Ref<Crew | undefined> = ref(globalStore.myCrew);
 const myInvites: Ref<any | undefined> = ref(undefined);
-const loading = ref(false)
-
-const isFounder = computed(()=> myCrew?.value?.founderName === globalStore.baseData.data.currentRacerName)
+const loading = ref(false);
+import { translate } from "@/helpers/translate";
+const isFounder = computed(
+  () =>
+    myCrew?.value?.founderName === globalStore.baseData.data.currentRacerName
+);
 const creationCrewName = ref("");
 const inviteText = ref("");
 
 const getMyCrew = async () => {
   const response = await api.post("UiGetCrewData");
   if (response.data) {
-    globalStore.myCrew = response.data.crew
+    globalStore.myCrew = response.data.crew;
     myCrew.value = response.data.crew;
     myInvites.value = response.data.invites;
   }
 };
 
 const createCrew = async () => {
-  loading.value = true
-   await api.post(
+  loading.value = true;
+  await api.post(
     "UiCreateCrew",
     JSON.stringify({ crewName: creationCrewName.value })
   );
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
+    loading.value = false;
   }, 1000);
-
 };
 
 const leaveCrew = async () => {
-  loading.value = true
-  api.post("UiLeaveCrew", JSON.stringify({ crewName: globalStore.baseData.data.currentCrewName}));
+  loading.value = true;
+  api.post(
+    "UiLeaveCrew",
+    JSON.stringify({ crewName: globalStore.baseData.data.currentCrewName })
+  );
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
+    loading.value = false;
   }, 1000);
 };
 
 const disbandCrew = async () => {
-  loading.value = true
-  api.post("UiDisbandCrew", JSON.stringify({ crewName: globalStore.baseData.data.currentCrewName}));
+  loading.value = true;
+  api.post(
+    "UiDisbandCrew",
+    JSON.stringify({ crewName: globalStore.baseData.data.currentCrewName })
+  );
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
+    loading.value = false;
   }, 1000);
 };
 
 const joinCrew = async () => {
-  loading.value = true
-  api.post("UiAcceptInvite", JSON.stringify({ crewName: myInvites.value.crewName}));
+  loading.value = true;
+  api.post(
+    "UiAcceptInvite",
+    JSON.stringify({ crewName: myInvites.value.crewName })
+  );
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
+    loading.value = false;
   }, 1000);
 };
 
 const denyCrew = async () => {
-  loading.value = true
+  loading.value = true;
   api.post("UiDenyInvite", JSON.stringify({}));
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
+    loading.value = false;
   }, 1000);
 };
 
 const inviteMember = async () => {
-  loading.value = true
-  const response = await api.post("UiSendInvite", JSON.stringify({ citizenId: inviteText.value}));
+  loading.value = true;
+  const response = await api.post(
+    "UiSendInvite",
+    JSON.stringify({ citizenId: inviteText.value })
+  );
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
-    if (response.data) inviteText.value = ''
+    loading.value = false;
+    if (response.data) inviteText.value = "";
   }, 1000);
 };
 const inviteMemberClosest = async () => {
-  loading.value = true
+  loading.value = true;
   const response = await api.post("UiSendInviteClosest", JSON.stringify({}));
   setTimeout(() => {
-    getBaseData()
+    getBaseData();
     getMyCrew();
-    loading.value = false
+    loading.value = false;
   }, 1000);
 };
 
@@ -292,16 +319,16 @@ onMounted(() => {
 }
 
 .text {
-    display: flex;
-    gap: 0.5em;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
 }
 
 .invitations {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 1em
+  gap: 1em;
 }
 .card {
   flex-grow: 1;

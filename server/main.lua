@@ -2,6 +2,7 @@
 ----   Variables   ----
 -----------------------
 local QBCore = exports['qb-core']:GetCoreObject()
+
 local Tracks = {}
 local AvailableRaces = {}
 local LastRaces = {}
@@ -338,7 +339,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         if useDebug then
            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
         end
-        TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.new_pb"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
+        TriggerClientEvent('QBCore:Notify', src, string.format(Lang("new_pb"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         local playerPlacement = {
             Time = PlayerTime,
             Holder = RacerName,
@@ -356,7 +357,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         return true
 
     elseif not PersonalBest then
-        TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
+        TriggerClientEvent('QBCore:Notify', src, string.format(Lang("time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         if useDebug then
            print('had no pb')
         end
@@ -405,7 +406,7 @@ local function giveSplit(src, racers, position, pot)
     if total > 0 then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, math.floor(total))
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.cryptoType, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.cryptoType, 'success')
         else
             Player.Functions.AddMoney(Config.Options.MoneyType, math.floor(total))
         end
@@ -417,10 +418,10 @@ local function handOutParticipationTrophy(src, position)
     if Config.ParticipationTrophies.amount[position] then
         if Config.ParticipationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType, Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..Config.ParticipationTrophies.amount[position].. ' '.. Config.ParticipationTrophies.cryptoType, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("participation_trophy_crypto")..Config.ParticipationTrophies.amount[position].. ' '.. Config.ParticipationTrophies.cryptoType, 'success')
         else
             Player.Functions.AddMoney(Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..Config.ParticipationTrophies.amount[position], 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("participation_trophy")..Config.ParticipationTrophies.amount[position], 'success')
         end
     end
 end
@@ -430,10 +431,10 @@ local function handOutAutomationPayout(src, amount)
     if Config.Options.MoneyType then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amount)
-            TriggerClientEvent('QBCore:Notify', source, "Extra payout: "..amount.. ' '.. Config.Options.cryptoType, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("extra_payout") ..' '..amount.. ' '.. Config.Options.cryptoType, 'success')
         else
             Player.Functions.AddMoney(Config.Options.MoneyType, amount)
-            TriggerClientEvent('QBCore:Notify', source, "Extra payout: "..amount, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("extra_payout") ..' '..amount, 'success')
         end
     end
 end
@@ -572,10 +573,10 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         local Player = QBCore.Functions.GetPlayer(src)
         if Tracks[RaceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy_crypto")..amountToGive.. ' '.. Tracks[RaceData.RaceId].ParticipationCurrency, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("participation_trophy_crypto")..amountToGive.. ' '.. Tracks[RaceData.RaceId].ParticipationCurrency, 'success')
         else
             Player.Functions.AddMoney(Tracks[RaceData.RaceId].ParticipationCurrency, amountToGive)
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.participation_trophy")..amountToGive, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("participation_trophy")..amountToGive, 'success')
         end
     end
 
@@ -648,7 +649,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
         }}
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
             {json.encode(Tracks[RaceData.RaceId].Records ), RaceData.RaceId})
-            TriggerClientEvent('QBCore:Notify', src, string.format(Lang:t("success.race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
+            TriggerClientEvent('QBCore:Notify', src, string.format(Lang("race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
     end
     AvailableRaces[AvailableKey].RaceData = Tracks[RaceData.RaceId]
     for cid, racer in pairs(Tracks[RaceData.RaceId].Racers) do
@@ -702,10 +703,10 @@ RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerNa
         if IsNameAvailable(RaceName) then
             TriggerClientEvent('cw-racingapp:client:StartRaceEditor', source, RaceName, RacerName, nil, Checkpoints)
         else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("primary.race_name_exists"), 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang("race_name_exists"), 'error')
         end
     else
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("primary.no_permission"), 'error')
+        TriggerClientEvent('QBCore:Notify', source, Lang("no_permission"), 'error')
     end
 end)
 
@@ -723,7 +724,7 @@ local function hasEnoughMoney(source, cost)
         if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
             return true
         else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang("can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
             return false
         end
     else
@@ -771,7 +772,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
         end
 
         if RaceData.BuyIn > 0 and not hasEnoughMoney(src, RaceData.BuyIn) then
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
+            TriggerClientEvent('QBCore:Notify', src, Lang("not_enough_money"))
         else
             if CurrentRace ~= nil then
                 local AmountOfRacers = 0
@@ -785,7 +786,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                     Tracks[CurrentRace].Started = false
                     Tracks[CurrentRace].Waiting = false
                     table.remove(AvailableRaces, PreviousRaceKey)
-                    TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
+                    TriggerClientEvent('QBCore:Notify', src, Lang("race_last_person"))
                     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[CurrentRace])
                     leftRace(src)
                 else
@@ -806,7 +807,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             if RaceData.BuyIn > 0 then
                 if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
                     exports['qb-phone']:RemoveCrypto(src, Config.Options.cryptoType, math.floor(RaceData.BuyIn))
-                    TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.cryptoType, 'success')
+                    TriggerClientEvent('QBCore:Notify', source, Lang("remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.cryptoType, 'success')
                 else
                     Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn, "Bought into Race")
                 end
@@ -839,12 +840,12 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             if not Tracks[RaceId].Automated then
                 local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
                 if creatorsource ~= Player.PlayerData.source then
-                    TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_joined"))
+                    TriggerClientEvent('QBCore:Notify', creatorsource, Lang("race_someone_joined"))
                 end
             end
         end
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"))
+        TriggerClientEvent('QBCore:Notify', src, Lang("race_already_started"))
     end
 end)
 
@@ -852,7 +853,7 @@ local function assignNewOrganizer(RaceId, src)
     for i,v in pairs(Tracks[RaceId].Racers) do
         if i ~= QBCore.Functions.GetPlayer(src).PlayerData.citizenid then
             Tracks[RaceId].OrganizerCID = i
-            TriggerClientEvent('QBCore:Notify', v.RacerSource, Lang:t("text.new_host"))
+            TriggerClientEvent('QBCore:Notify', v.RacerSource, Lang("new_host"))
             for cid, racer in pairs(Tracks[RaceId].Racers) do
                 TriggerClientEvent('cw-racingapp:client:UpdateOrganizer', racer.RacerSource, RaceId, i)
             end
@@ -887,7 +888,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
         end
     
         if creatorsource and creatorsource ~= Player.PlayerData.source then
-            TriggerClientEvent('QBCore:Notify', creatorsource, Lang:t("primary.race_someone_left"))
+            TriggerClientEvent('QBCore:Notify', creatorsource, Lang("race_someone_left"))
         end 
     end
 
@@ -939,7 +940,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
             Tracks[RaceId].Started = false
             Tracks[RaceId].Waiting = false
             table.remove(AvailableRaces, AvailableKey)
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("primary.race_last_person"))
+            TriggerClientEvent('QBCore:Notify', src, Lang("race_last_person"))
             LastRaces[RaceId] = nil
             NotFinished[RaceId] = nil
         end
@@ -993,7 +994,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                 }
                 AvailableRaces[#AvailableRaces+1] = allRaceData
                 if not Automated then
-                    TriggerClientEvent('QBCore:Notify', src,  Lang:t("success.race_created"), 'success')
+                    TriggerClientEvent('QBCore:Notify', src,  Lang("race_created"), 'success')
                     TriggerClientEvent('cw-racingapp:client:ReadyJoinRace', src, allRaceData)
                 end
                 RaceResults[RaceId] = { Data = allRaceData, Result = {}}
@@ -1018,7 +1019,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                                         for cid, _ in pairs(Tracks[RaceId].Racers) do
                                             local RacerData = QBCore.Functions.GetPlayerByCitizenId(cid)
                                             if RacerData ~= nil then
-                                                TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang:t("error.race_timed_out"), 'error')
+                                                TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang("race_timed_out"), 'error')
                                                 TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
                                                 leftRace(src)
                                             end
@@ -1039,7 +1040,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                                 for cid, _ in pairs(Tracks[RaceId].Racers) do
                                     local RacerData = QBCore.Functions.GetPlayerByCitizenId(cid)
                                     if RacerData ~= nil then
-                                        TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang:t("error.race_timed_out"), 'error')
+                                        TriggerClientEvent('QBCore:Notify', RacerData.PlayerData.source, Lang("race_timed_out"), 'error')
                                         TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
                                         leftRace(src)
                                     end
@@ -1058,13 +1059,13 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                     end
                 end)
             else
-                TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"), 'error')
+                TriggerClientEvent('QBCore:Notify', src, Lang("race_already_started"), 'error')
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"), 'error')
+            TriggerClientEvent('QBCore:Notify', src, Lang("race_already_started"), 'error')
         end
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_doesnt_exist"), 'error')
+        TriggerClientEvent('QBCore:Notify', src, Lang("race_doesnt_exist"), 'error')
     end
 
 end
@@ -1080,7 +1081,7 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerNa
         return
     end
     if (BuyIn > 0 and not hasEnoughMoney(src, BuyIn)) then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_enough_money"))
+        TriggerClientEvent('QBCore:Notify', src, Lang("not_enough_money"))
     else
         setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, false, src)
     end
@@ -1214,7 +1215,7 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         end
     else
         -- Attemt to make sure script dont break if something goes wrong
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.youre_not_in_the_race"), 'error')
+        TriggerClientEvent('QBCore:Notify', src, Lang("youre_not_in_the_race"), 'error')
         TriggerClientEvent('cw-racingapp:client:LeaveRace', -1, nil)
         leftRace(src)
     end
@@ -1226,12 +1227,12 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     local AvailableKey = GetOpenedRaceKey(RaceId)
 
     if not RaceId then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.not_in_race"), 'error')
+        TriggerClientEvent('QBCore:Notify', src, Lang("not_in_race"), 'error')
         return
     end
 
     if AvailableRaces[AvailableKey].RaceData.Started then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t("error.race_already_started"), 'error')
+        TriggerClientEvent('QBCore:Notify', src, Lang("race_already_started"), 'error')
         return
     end
 
@@ -1480,7 +1481,7 @@ RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
     local res = MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', {json.encode(access), raceId})
     if res then
         if res == 1 then
-            TriggerClientEvent('QBCore:Notify', src, Lang:t('success.access_updated'), "success")
+            TriggerClientEvent('QBCore:Notify', src, Lang("access_updated"), "success")
         end
         Tracks[raceId].Access = access
     end
@@ -1568,14 +1569,14 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
     if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
         if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
             exports['qb-phone']:RemoveCrypto(source, Config.Options.cryptoType, math.floor(cost))
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("success.remove_crypto").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'success')
+            TriggerClientEvent('QBCore:Notify', source, Lang("remove_crypto").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'success')
         else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang("can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
             return
         end
     else
         if not Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type) then
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.can_not_afford")..' $'.. math.floor(cost), 'error')
+            TriggerClientEvent('QBCore:Notify', source, Lang("can_not_afford")..' $'.. math.floor(cost), 'error')
             return
         end
     end
@@ -1667,7 +1668,7 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
         local citizenId = player.PlayerData.citizenid
         createRacingName(source, citizenId, racerName, type, purchaseType, playerId)
     else
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.could_not_find_person"), "error")
+        TriggerClientEvent('QBCore:Notify', source, Lang("could_not_find_person"), "error")
     end
 end)
 
@@ -1706,7 +1707,7 @@ QBCore.Commands.Add('createracinguser',"Create a racing user", {
         if Player then
             citizenid = Player.PlayerData.citizenid
         else
-            TriggerClientEvent('QBCore:Notify', source, Lang:t("error.id_not_found"), "error")
+            TriggerClientEvent('QBCore:Notify', source, Lang("id_not_found"), "error")
             return
         end
     else
@@ -1714,12 +1715,12 @@ QBCore.Commands.Add('createracinguser',"Create a racing user", {
     end
 
     if #name >= Config.MaxRacerNameLength then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.name_too_short"), "error")
+        TriggerClientEvent('QBCore:Notify', source, Lang("name_too_short"), "error")
         return
     end
 
     if #name <= Config.MinRacerNameLength then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t("error.name_too_long"), "error")
+        TriggerClientEvent('QBCore:Notify', source, Lang("name_too_long"), "error")
         return
     end
 
