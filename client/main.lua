@@ -1943,10 +1943,15 @@ if Config.Trader.active then
             exports['sundown-utils']:addPedToBanlist(traderPed)
         end
 
-        exports['qb-target']:AddTargetEntity(traderPed, {
-            options = options,
-            distance = 2.0
-        })
+        if Config.UseOxTarget then
+            exports.ox_target:addLocalEntity(traderPed, options)
+        else
+            exports['qb-target']:AddTargetEntity(traderPed, {
+                options = options,
+                distance = 2.0
+            })
+        end
+
         Entities[#Entities+1] = traderPed
     end)
 end
@@ -1982,10 +1987,16 @@ if Config.Laptop.active then
         CreateObject(laptopEntity)
         FreezeEntityPosition(laptopEntity, true)
         Entities[#Entities+1] = laptopEntity
-        exports['qb-target']:AddTargetEntity(laptopEntity, {
-            options = options,
-            distance = 3.0 
-        })
+
+        if Config.UseOxTarget then
+            exports.ox_target:addLocalEntity(laptopEntity, options)
+        else
+            exports['qb-target']:AddTargetEntity(laptopEntity, {
+                options = options,
+                distance = 3.0 
+            })
+        end
+        
     end)
 end
 
