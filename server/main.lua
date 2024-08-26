@@ -194,6 +194,7 @@ local function updateRaces()
                     Records = { Records }
                 end
             end
+
             Tracks[v.raceid] = {
                 RaceName = v.name,
                 Checkpoints = json.decode(v.checkpoints),
@@ -207,7 +208,7 @@ local function updateRaces()
                 LastLeaderboard = {},
                 Racers = {},
                 MaxClass = nil,
-                Access = json.decode(v.access),
+                Access = json.decode(v.access) or {},
                 Curated = v.curated,
                 NumStarted = 0
             }
@@ -1290,7 +1291,7 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
             NumStarted = 0,
         }
         MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0, json.encode(RaceData.Access)})
+            {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0, '{}'})
     end
 end)
 

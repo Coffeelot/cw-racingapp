@@ -1688,7 +1688,7 @@ RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x,y)
 end)
 
 local function verifyTrackAccess(track, type)
-    if track.Access[type] ~= nil then
+    if track.Access and track.Access[type] ~= nil then
         if track.Access[type][1] == nil then print('no values', track.RaceName) return true end -- if list is added but emptied 
         local playerCid = QBCore.Functions.GetPlayerData().citizenid
         if track.Creator == playerCid then return true end -- if creator default to true
