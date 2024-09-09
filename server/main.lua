@@ -814,15 +814,6 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                 end
             end
 
-            Tracks[RaceId].Waiting = true
-            Tracks[RaceId].MaxClass = RaceData.MaxClass
-            Tracks[RaceId].Ghosting = RaceData.Ghosting
-            Tracks[RaceId].BuyIn = RaceData.BuyIn
-            Tracks[RaceId].Ranked = RaceData.Ranked
-            Tracks[RaceId].Reversed = RaceData.Reversed
-            Tracks[RaceId].ParticipationAmount = tonumber(RaceData.ParticipationAmount)
-            Tracks[RaceId].ParticipationCurrency = RaceData.ParticipationCurrency
-            Tracks[RaceId].GhostingTime = RaceData.GhostingTime
             Tracks[RaceId].Racers[Player.PlayerData.citizenid] = {
                 Checkpoint = 1,
                 Lap = 1,
@@ -960,10 +951,10 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     end
 end)
 
-local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, Automated, src)
+local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, FirstPerson, Automated, src)
     if useDebug then 
         print('Setting up race', json.encode({
-            RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated, Ranked=Ranked, ParticipationAmount=ParticipationAmount, ParticipationCurrency=ParticipationCurrency
+            RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated, Ranked=Ranked, ParticipationAmount=ParticipationAmount, ParticipationCurrency=ParticipationCurrency, FirstPerson=FirstPerson
         }))
     end 
     if Tracks[RaceId] ~= nil then
@@ -974,9 +965,19 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                 if src then 
                     setupId = Player.PlayerData.citizenid
                 end
+
                 Tracks[RaceId].Waiting = true
                 Tracks[RaceId].Automated = Automated
                 Tracks[RaceId].NumStarted = Tracks[RaceId].NumStarted + 1
+                Tracks[RaceId].Ghosting = GhostingEnabled
+                Tracks[RaceId].GhostingTime = GhostingTime
+                Tracks[RaceId].BuyIn = BuyIn
+                Tracks[RaceId].Ranked = Ranked
+                Tracks[RaceId].Reversed = Reversed
+                Tracks[RaceId].FirstPerson = FirstPerson
+                Tracks[RaceId].ParticipationAmount = tonumber(ParticipationAmount)
+                Tracks[RaceId].ParticipationCurrency = ParticipationCurrency
+
                 local allRaceData = {
                     RaceData = Tracks[RaceId],
                     Laps = Laps,
@@ -991,6 +992,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                     Reversed = Reversed,
                     ParticipationAmount = ParticipationAmount,
                     ParticipationCurrency = ParticipationCurrency,
+                    FirstPerson = FirstPerson,
                     ExpirationTime = os.date("%c", os.time()+60*Config.TimeOutTimerInMinutes),
                 }
                 AvailableRaces[#AvailableRaces+1] = allRaceData
@@ -1071,20 +1073,20 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
 
 end
 
-RegisterNetEvent('cw-racingapp:server:SetupRace', function(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency)
+RegisterNetEvent('cw-racingapp:server:SetupRace', function(setupData)
     local src = source
-    if isToFarAway(src, RaceId, Reversed) then
-        if Reversed then
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y)
+    if isToFarAway(src, setupData.trackId, setupData.reversed) then
+        if setupData.reversed then
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.x, Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.y)
         else
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[setupData.trackId].Checkpoints[1].coords.x, Tracks[setupData.trackId].Checkpoints[1].coords.y)
         end
         return
     end
-    if (BuyIn > 0 and not hasEnoughMoney(src, BuyIn)) then
+    if (setupData.buyIn > 0 and not hasEnoughMoney(src, setupData.buyIn)) then
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_enough_money"))
     else
-        setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, false, src)
+        setupRace(setupData.trackId, setupData.laps, setupData.hostName, setupData.maxClass, setupData.ghostingOn, setupData.ghostingTime, setupData.buyIn, setupData.ranked, setupData.reversed, setupData.participationMoney, setupData.participationCurrency, setupData.firstPerson, false, src)
     end
 end)
 
@@ -1115,7 +1117,7 @@ local function GenerateAutomatedRace()
         if useDebug then print('Automation: rank was not set. defaulting to reversed = false') end
         reversed = false
     end
-    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, reversed, race.participationMoney, race.ParticipationCurrency, true, nil)
+    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, reversed, race.participationMoney, race.ParticipationCurrency, race.firstPerson, true, nil)
 end
 
 if Config.AutomatedOptions and Config.AutomatedRaces then 
@@ -1309,17 +1311,16 @@ RegisterNetEvent('cw-racingapp:server:ClearLeaderboard', function(RaceId)
     {RaceId})
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:getRaceResults', function(_, cb)
-    cb(RaceResults)
+RegisterServerCallback('cw-racingapp:server:GetRaceResults', function(source)
+    return RaceResults
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:getAllRacers', function(_, cb)
+RegisterServerCallback('cw-racingapp:server:getAllRacers', function(source)
     if useDebug then print('Fetching all racers') end
     local allRacers = getAllRacerNames()
     if useDebug then print("^2Result", json.encode(allRacers)) end
-    cb(allRacers)
+    return allRacers
 end)
-
 
 -----------------------
 ----   Functions   ----
@@ -1422,53 +1423,25 @@ local function openRacingApp(source)
     })
 end exports('openRacingApp', openRacingApp)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingLeaderboards', function(source, cb, class, trackName)
-    local Leaderboard = {}
-    Leaderboard[trackName] = getLatestRecordsByName(trackName)
-    if useDebug then
-       print(class, trackName, dump(Leaderboard[trackName]))
-    end
-    if Leaderboard[trackName] then
-        if class == 'all' then
-            cb(sortRecordsByTime(Leaderboard[trackName]))
-        else
-            cb(filterLeaderboardsByClass(Leaderboard[trackName], class))
-        end
-    end
+RegisterServerCallback('cw-racingapp:server:GetRaces', function(source)
+    return AvailableRaces
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetRaces', function(source, cb)
-    cb(AvailableRaces)
+RegisterServerCallback('cw-racingapp:server:GetTracks', function(source)
+    return Tracks
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetListedRaces', function(source, cb)
-    cb(Tracks)
+RegisterServerCallback('cw-racingapp:server:GetTrackData', function(source, raceId)
+    return Tracks[raceId] or false
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacingData', function(source, cb, RaceId)
-    cb(Tracks[RaceId])
-end)
-
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetTracks', function(source, cb)
-    if useDebug then print('Getting all tracks') end
-    cb(Tracks)
-end)
-
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetTrackData', function(source, cb, RaceId)
-    if Tracks[RaceId] then
-        cb(Tracks[RaceId])
-    else
-        cb(false)
-    end
-end)
-
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetAccess', function(source, cb, raceId)
+RegisterServerCallback('cw-racingapp:server:GetAccess', function(source, raceId)
     local res = MySQL.Sync.fetchAll('SELECT access FROM race_tracks WHERE raceid = ?', {raceId})
     if res then
         if res[1] then
-            cb(json.decode(res[1].access))
+            return json.decode(res[1].access)
         else
-            cb('NOTHING')
+            return 'NOTHING'
         end
     end
 end)
@@ -1488,13 +1461,10 @@ RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
     end
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:HasCreatedRace', function(source, cb)
-    cb(HasOpenedRace(QBCore.Functions.GetPlayer(source).PlayerData.citizenid))
+RegisterServerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces', function(source, TrackName)
+    return { permissioned = IsPermissioned(QBCore.Functions.GetPlayer(source).PlayerData.citizenid, 'create'), nameAvailable = IsNameAvailable(TrackName) }
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:IsAuthorizedToCreateRaces', function(source, cb, TrackName)
-    cb(IsPermissioned(QBCore.Functions.GetPlayer(source).PlayerData.citizenid, 'create'), IsNameAvailable(TrackName))
-end)
 
 local function nameIsValid(racerName, citizenId)
     local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1]
@@ -1516,38 +1486,41 @@ local function addRacerName(citizenId, racerName, targetSource, auth, creatorCit
     TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(targetSource))
 end
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetAmountOfTracks', function(source, cb, citizenid)
+RegisterServerCallback('cw-racingapp:server:GetAmountOfTracks', function(source, citizenid)
     if Config.UseNameValidation then
         local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorid = ?', {citizenid})
-        cb(#tracks)
+        return #tracks
     else
-        cb(nil)
+        return 0
     end
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:NameIsAvailable', function(source, cb, racerName, serverId)
+RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source,  racerName, serverId)
     if Config.UseNameValidation then
         local Player = QBCore.Functions.GetPlayer(tonumber(serverId))
         local citizenId = Player.PlayerData.citizenid
         if nameIsValid(racerName, citizenId) then
-            cb(true)
+            return true
         else
-            cb(false)
+            return false
         end
     else
-        cb(true)
+        return true
     end
 end)
 
-
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source, cb, serverId)
-    if useDebug then print('Getting racer names for serverid', serverId) end
-    local Player = QBCore.Functions.GetPlayer(tonumber(serverId))
+RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source)
+    
+    if useDebug then print('Getting racer names for serverid', source) end
+    local Player = QBCore.Functions.GetPlayer(tonumber(source))
+    
     local citizenId = Player.PlayerData.citizenid
     if useDebug then print('Racer citizenid', citizenId) end
+    
     local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
     if useDebug then print('Racer Names found:', json.encode(result)) end
-    cb(result)
+    
+    return result
 end)
 
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource)
@@ -1600,15 +1573,15 @@ local function getRacersCreatedByUser(src, citizenid, type)
     return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE createdby = ?', {citizenid})
 end
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:GetRacersCreatedByUser', function(source, cb, citizenid, type)
-    print('Fetching all racers created by ', citizenid)
+RegisterServerCallback('cw-racingapp:server:GetRacersCreatedByUser', function(source, citizenid, type)
+    if useDebug then print('Fetching all racers created by ', citizenid) end
     local result = getRacersCreatedByUser(source, citizenid, type)
     if useDebug then print('result from fetching racers created by user', citizenid, json.encode(result)) end
-    cb(result)
+    return result
 end)
 
-QBCore.Functions.CreateCallback('cw-racingapp:server:ChangeRacerName', function(source, cb, racerNameInUse)
-    if useDebug then print('Changing Racer Name for (1) src to (2) name', source, racerNameInUse) end
+RegisterServerCallback('cw-racingapp:server:ChangeRacerName', function(source, racerNameInUse)
+    if useDebug then print('Changing Racer Name for src',source,' to name', racerNameInUse) end
     changeRacerName(source, racerNameInUse)
     local Player = QBCore.Functions.GetPlayer(source)
     if useDebug then
@@ -1616,7 +1589,7 @@ QBCore.Functions.CreateCallback('cw-racingapp:server:ChangeRacerName', function(
     end
     local ranking = getRankingForRacer(source, racerNameInUse)
     if useDebug then print('Ranking:', json.encode(ranking)) end
-    cb({ name = Player.PlayerData.metadata.selectedRacerName, type = Player.PlayerData.metadata.selectedRacerAuth, ranking = ranking })
+    return { name = Player.PlayerData.metadata.selectedRacerName, type = Player.PlayerData.metadata.selectedRacerAuth, ranking = ranking }
 end)
 
 RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)

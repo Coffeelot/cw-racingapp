@@ -293,85 +293,81 @@ local function canFounderDisbandCrew(founderCitizenId, crewName)
 end
 
 -- Events
-RegisterServerEvent('cw-racingcrews:server:changeCrew', function(crewName)
+RegisterServerEvent('cw-racingapp:server:changeCrew', function(crewName)
     changeRacerCrew(source, crewName)
 end)
 
 -- Callbacks
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:getCrewData', function(source, cb, citizenId, racerName)
-    cb({ invites = activeInvites[citizenId], crew = getRacingCrewThatCitizenIDIsIn(citizenId) })
+RegisterServerCallback('cw-racingapp:server:getCrewData', function(source, citizenId, racerName)
+    return { invites = activeInvites[citizenId], crew = getRacingCrewThatCitizenIDIsIn(citizenId) }
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:getMyCrew', function(source, cb, racerName)
+RegisterServerCallback('cw-racingapp:server:getMyCrew', function(source, racerName)
     local crew = getRacingCrewThatRacerNameIsIn(racerName)
     if crew then
-        cb(crew.crewName)
+        return crew.crewName
     else
-        cb(nil)
+        return nil
     end
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:getAllCrews', function(source, cb)
+RegisterServerCallback('cw-racingapp:server:getAllCrews', function(source)
     if useDebug then print('Getting all racing crews', racingCrews) end
-    cb(racingCrews)
+    return racingCrews
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:sendInvite', function(source, cb, invitedBySource, invitedCitizenId, crewName)
+RegisterServerCallback('cw-racingapp:server:sendInvite', function(source, invitedBySource, invitedCitizenId, crewName)
     if useDebug then print(invitedBySource, ' is Inviting ',invitedCitizenId, ' to', crewName ) end
-    cb(inviteToCrew(invitedBySource, invitedCitizenId, crewName))
+    return inviteToCrew(invitedBySource, invitedCitizenId, crewName)
 end)
 
-
-QBCore.Functions.CreateCallback('cw-racingcrews:server:sendInviteClosest', function(source, cb, invitedBySource, invitedSource, crewName)
+RegisterServerCallback('cw-racingapp:server:sendInviteClosest', function(source, invitedBySource, invitedSource, crewName)
     local player = QBCore.Functions.GetPlayer(invitedSource)
     if not player then return TriggerClientEvent('cw-racingapp:client:notify', source, Lang("person_no_exist"), 'error') end
 
     local citizenid = player.PlayerData.citizenid
     if useDebug then print(invitedBySource, ' is Inviting ',citizenid, ' to', crewName ) end
-    cb(inviteToCrew(invitedBySource, citizenid, crewName))
+    return inviteToCrew(invitedBySource, citizenid, crewName)
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:acceptInvite', function(source, cb, racerName, invitedCitizenId)
+RegisterServerCallback('cw-racingapp:server:acceptInvite', function(source, racerName, invitedCitizenId)
     if useDebug then print(invitedCitizenId, ' is joining a crew with racer name', racerName ) end
-    cb(acceptInvite(racerName, invitedCitizenId))
+    return acceptInvite(racerName, invitedCitizenId)
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:denyInvite', function(source, cb, invitedCitizenId)
-    cb(denyInvite(invitedCitizenId))
+RegisterServerCallback('cw-racingapp:server:denyInvite', function(source, invitedCitizenId)
+    return denyInvite(invitedCitizenId)
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:createCrew', function(source, cb, founderName, founderCitizenId, crewName)
+RegisterServerCallback('cw-racingapp:server:createCrew', function(source, founderName, founderCitizenId, crewName)
     local canCreateCrew = canFounderCreateCrew(founderCitizenId)
     local trimmedCrewName = string.gsub(crewName, '^%s*(.-)%s*$', '%1')
     if getRacingCrewByName(trimmedCrewName) then 
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_taken"), 'error')
-        cb(false)
-        return
+        return false
     end
     if canCreateCrew then
         if useDebug then print('Player can create ') end
-        cb(createRacingCrew(founderName, founderCitizenId, trimmedCrewName))
-        return
+        return createRacingCrew(founderName, founderCitizenId, trimmedCrewName)
     else
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("disband_crew_first"), 'error')
     end
-    cb(false)
+    return false
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:joinCrew', function(source, cb, memberName, citizenId, crewName)
+RegisterServerCallback('cw-racingapp:server:joinCrew', function(source, memberName, citizenId, crewName)
     local canJoinCrew = isMemberInCrew(citizenId, crewName)
 
     if canJoinCrew then
-        cb(joinRacingCrew(memberName, citizenId, crewName))
-        return
+        return joinRacingCrew(memberName, citizenId, crewName)
     else
         print("Error: Member cannot join the crew")
     end
-    cb(false)
+    return false
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:leaveCrew', function(source, cb, memberName, citizenId, crewName)
+RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberName, citizenId, crewName)
     if not getRacingCrewByName(crewName) then
         if useDebug then print('The racing crew did not exist') end
         changeRacerCrew(source, nil)
@@ -383,34 +379,35 @@ QBCore.Functions.CreateCallback('cw-racingcrews:server:leaveCrew', function(sour
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
     end
     if canLeaveCrew then
-        cb(leaveRacingCrew(memberName, citizenId, crewName))
-        return
+        return leaveRacingCrew(memberName, citizenId, crewName)
     else
         if useDebug then print("Error: Member cannot leave the crew") end
         changeRacerCrew(source, nil)
-        cb(true)
+        return true
     end
-    cb(false)
+    return false
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:disbandCrew', function(source, cb, founderCitizenId, crewName)
+RegisterServerCallback('cw-racingapp:server:disbandCrew', function(source, founderCitizenId, crewName)
     local canDisbandCrew = canFounderDisbandCrew(founderCitizenId, crewName)
 
     if canDisbandCrew then
-        cb(disbandRacingCrew(crewName))
-        return
+        return disbandRacingCrew(crewName)
     else
         print("Error: Only the founder can disband the crew")
     end
-    cb(false)
+    return false
 end)
 
-QBCore.Functions.CreateCallback('cw-racingcrews:server:crewExists', function(source, cb, citizenid, crewName)
-    if getRacingCrewByName(crewName) then
-        cb(true)
+RegisterServerCallback('cw-racingapp:server:disbandCrew', function(source, founderCitizenId, crewName)
+    local canDisbandCrew = canFounderDisbandCrew(founderCitizenId, crewName)
+
+    if canDisbandCrew then
+        return disbandRacingCrew(crewName)
     else
-        cb(false)
+        print("Error: Only the founder can disband the crew")
     end
+    return false
 end)
 
 -- On start
