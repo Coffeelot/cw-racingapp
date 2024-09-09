@@ -1,4 +1,3 @@
-local QBCore = exports['qb-core']:GetCoreObject()
 local useDebug = Config.Debug
 
 local racingCrews = {} -- This table will hold the racing crews locally
@@ -49,8 +48,7 @@ end
 
 local function changeRacerCrew(src, selectedCrew)
     if useDebug then print('Changing racer crew for', src, selectedCrew) end
-    local Player = QBCore.Functions.GetPlayer(src)
-    Player.Functions.SetMetaData("selectedCrew", selectedCrew)
+    updateCrew(src, selectedCrew)
 end
 
 -- SQL calling functions
@@ -182,9 +180,9 @@ local function disbandRacingCrew(crewName)
         for i, crew in ipairs(racingCrews) do
             if crew.crewName == crewName then
                 for _, member in pairs(crew.members) do
-                    local player = QBCore.Functions.GetPlayerByCitizenId(member.citizenID)
-                    if player ~= nil then
-                        TriggerClientEvent('cw-racingapp:client:notify', player.PlayerData.source, Lang("disbanded_crew") , 'error')
+                    local playerSrc = getSrcOfPlayerByCitizenId(member.citizenID)
+                    if playerSrc ~= nil then
+                        TriggerClientEvent('cw-racingapp:client:notify', playerSrc, Lang("disbanded_crew") , 'error')
                     end
                 end
                 table.remove(racingCrews, i)
@@ -198,12 +196,12 @@ end
 
 -- invitations
 local function inviteToCrew(invitedBySource, invitedCitizenId, crewName)
-    local player = QBCore.Functions.GetPlayerByCitizenId(invitedCitizenId)
-    if player ~= nil then
+    local playerSrc = getSrcOfPlayerByCitizenId(invitedCitizenId)
+    if playerSrc ~= nil then
         if getRacingCrewThatCitizenIDIsIn(invitedCitizenId) then TriggerClientEvent('cw-racingapp:client:notify', invitedBySource, Lang("racer_already_in_crew") , 'error') return false end
-        if useDebug then print(invitedBySource, 'is inviting player to crew', player.PlayerData.source) end
+        if useDebug then print(invitedBySource, 'is inviting player to crew', playerSrc) end
         activeInvites[invitedCitizenId] = { crewName = crewName, invitedBySource = invitedBySource }
-        TriggerClientEvent('cw-racingapp:client:notify', player.PlayerData.source, Lang("pending_crew_invite")..' '..crewName)
+        TriggerClientEvent('cw-racingapp:client:notify', playerSrc, Lang("pending_crew_invite")..' '..crewName)
         return true
     else
         return false
@@ -323,12 +321,11 @@ RegisterServerCallback('cw-racingapp:server:sendInvite', function(source, invite
 end)
 
 RegisterServerCallback('cw-racingapp:server:sendInviteClosest', function(source, invitedBySource, invitedSource, crewName)
-    local player = QBCore.Functions.GetPlayer(invitedSource)
-    if not player then return TriggerClientEvent('cw-racingapp:client:notify', source, Lang("person_no_exist"), 'error') end
+    local citizenId = getCitizenId(invitedSource)
+    if not citizenId then return TriggerClientEvent('cw-racingapp:client:notify', source, Lang("person_no_exist"), 'error') end
 
-    local citizenid = player.PlayerData.citizenid
-    if useDebug then print(invitedBySource, ' is Inviting ',citizenid, ' to', crewName ) end
-    return inviteToCrew(invitedBySource, citizenid, crewName)
+    if useDebug then print(invitedBySource, ' is Inviting ',citizenId, ' to', crewName ) end
+    return inviteToCrew(invitedBySource, citizenId, crewName)
 end)
 
 RegisterServerCallback('cw-racingapp:server:acceptInvite', function(source, racerName, invitedCitizenId)
@@ -440,7 +437,7 @@ AddEventHandler('onResourceStart', function(resourceName)
 end)
 
 -- Debugging
-QBCore.Commands.Add('createracingcrew', "Create a new racing crew", {
+registerCommand('createracingcrew', "Create a new racing crew", {
     { name = 'founder', help = 'Founder name' },
     { name = 'citizenid', help = 'Citizen ID' },
     { name = 'crew', help = 'Crew name' },
@@ -449,7 +446,7 @@ QBCore.Commands.Add('createracingcrew', "Create a new racing crew", {
     createRacingCrew(args[1], args[2], args[3])
 end, 'admin')
 
-QBCore.Commands.Add('joinracingcrew', "Join a racing crew", {
+registerCommand('joinracingcrew', "Join a racing crew", {
     { name = 'member', help = 'Member name' },
     { name = 'citizenid', help = 'Citizen ID' },
     { name = 'crew', help = 'Crew name' },
@@ -458,7 +455,7 @@ QBCore.Commands.Add('joinracingcrew', "Join a racing crew", {
     joinRacingCrew(args[1], args[2], args[3])
 end, 'admin')
 
-QBCore.Commands.Add('leaveracingcrew', "Leave a racing crew", {
+registerCommand('leaveracingcrew', "Leave a racing crew", {
     { name = 'member', help = 'Member name' },
     { name = 'citizenid', help = 'Citizen ID' },
     { name = 'crew', help = 'Crew name' },
@@ -467,21 +464,21 @@ QBCore.Commands.Add('leaveracingcrew', "Leave a racing crew", {
     leaveRacingCrew(args[1], args[2], args[3])
 end, 'admin')
 
-QBCore.Commands.Add('addwintocrew', "Add a win to a racing crew", {
+registerCommand('addwintocrew', "Add a win to a racing crew", {
     { name = 'crew', help = 'Crew name' },
 }, true, function(source, args)
     print('Adding a win to racing crew', args[1])
     addWinToCrew(args[1])
 end, 'admin')
 
-QBCore.Commands.Add('addracetocrew', "Add a race to a racing crew", {
+registerCommand('addracetocrew', "Add a race to a racing crew", {
     { name = 'crew', help = 'Crew name' },
 }, true, function(source, args)
     print('Adding a race to racing crew', args[1])
     addRaceToCrew(args[1])
 end, 'admin')
 
-QBCore.Commands.Add('updateranking', "add/remove rank for a racing crew", {
+registerCommand('updateranking', "add/remove rank for a racing crew", {
     { name = 'crew', help = 'Crew name' },
     { name = 'amount', help = 'How much do you want to increase/decrease with' },
 }, true, function(source, args)
@@ -489,19 +486,19 @@ QBCore.Commands.Add('updateranking', "add/remove rank for a racing crew", {
     updateRanking(args[1], args[2])
 end, 'admin')
 
-QBCore.Commands.Add('disbandracingcrew', "Disband a racing crew", {
+registerCommand('disbandracingcrew', "Disband a racing crew", {
     { name = 'crew', help = 'Crew name' },
 }, true, function(source, args)
     print('Disbanding racing crew', args[1])
     disbandRacingCrew(args[1])
 end, 'admin')
 
-QBCore.Commands.Add('printracingcrews', "Print racing crews", {
+registerCommand('printracingcrews', "Print racing crews", {
 }, true, function(source, args)
     print(json.encode(racingCrews))
 end, 'admin')
 
-QBCore.Commands.Add('printinvites', "Print racing crews", {
+registerCommand('printinvites', "Print racing crews", {
 }, true, function(source, args)
     print(json.encode(activeInvites))
 end, 'admin')

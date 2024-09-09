@@ -83,7 +83,7 @@ function getCitizenId()
     end
 end
 
-function getCitizenId()
+function getVehicleList()
     if Config.Core =='qb' then
         return QBCore.Shared.Vehicles -- returns list of all vehicles
     end

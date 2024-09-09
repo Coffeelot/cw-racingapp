@@ -1,8 +1,6 @@
 -----------------------
 ----   Variables   ----
 -----------------------
-local QBCore = exports['qb-core']:GetCoreObject()
-
 local Tracks = {}
 local AvailableRaces = {}
 local LastRaces = {}
@@ -403,38 +401,35 @@ local function giveSplit(src, racers, position, pot)
     else
         if useDebug then print('No one got a payout') end
     end
-    local Player = QBCore.Functions.GetPlayer(src)
     if total > 0 then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, math.floor(total))
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.cryptoType, 'success')
         else
-            Player.Functions.AddMoney(Config.Options.MoneyType, math.floor(total))
+            addMoney(src, Config.Options.MoneyType, math.floor(total))
         end
     end
 end
 
 local function handOutParticipationTrophy(src, position)
-    local Player = QBCore.Functions.GetPlayer(src)
     if Config.ParticipationTrophies.amount[position] then
         if Config.ParticipationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType, Config.ParticipationTrophies.amount[position])
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy_crypto")..Config.ParticipationTrophies.amount[position].. ' '.. Config.ParticipationTrophies.cryptoType, 'success')
         else
-            Player.Functions.AddMoney(Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
+            addMoney(src, Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy")..Config.ParticipationTrophies.amount[position], 'success')
         end
     end
 end
 
 local function handOutAutomationPayout(src, amount)
-    local Player = QBCore.Functions.GetPlayer(src)
     if Config.Options.MoneyType then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amount)
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("extra_payout") ..' '..amount.. ' '.. Config.Options.cryptoType, 'success')
         else
-            Player.Functions.AddMoney(Config.Options.MoneyType, amount)
+            addMoney(src, Config.Options.MoneyType, amount)
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("extra_payout") ..' '..amount, 'success')
         end
     end
@@ -442,14 +437,7 @@ end
 
 local function changeRacerName(src, racerName)
     local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1].auth
-    local Player = QBCore.Functions.GetPlayer(src)
-    if auth then
-        Player.Functions.SetMetaData("selectedRacerAuth", auth)
-    else
-        Player.Functions.SetMetaData("selectedRacerAuth", 'racer')
-    end
-    Player.Functions.SetMetaData("selectedRacerName", racerName)
-    Player.Functions.SetMetaData("selectedCrew", nil)
+    updateRacingUserMetadata(src, racerName, auth)
 end
 
 local function getRankingForRacer(src, racername)
@@ -571,12 +559,11 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTim
             amountToGive = math.floor(amountToGive+ amountToGive*Config.ParticipationAmounts.positionBonuses[PlayersFinished])
         end
         if useDebug then print('Race has participation price set', Tracks[RaceData.RaceId].ParticipationAmount, amountToGive, Tracks[RaceData.RaceId].ParticipationCurrency ) end
-        local Player = QBCore.Functions.GetPlayer(src)
         if Tracks[RaceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy_crypto")..amountToGive.. ' '.. Tracks[RaceData.RaceId].ParticipationCurrency, 'success')
         else
-            Player.Functions.AddMoney(Tracks[RaceData.RaceId].ParticipationCurrency, amountToGive)
+           addMoney(src, Tracks[RaceData.RaceId].ParticipationCurrency, amountToGive)
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy")..amountToGive, 'success')
         end
     end
@@ -698,9 +685,9 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerName, Checkpoints)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local citizenid = getCitizenId(src)
 
-    if IsPermissioned(Player.PlayerData.citizenid, 'create') then
+    if IsPermissioned(src, 'create') then
         if IsNameAvailable(RaceName) then
             TriggerClientEvent('cw-racingapp:client:StartRaceEditor', source, RaceName, RacerName, nil, Checkpoints)
         else
@@ -729,25 +716,19 @@ local function hasEnoughMoney(source, cost)
             return false
         end
     else
-        local Player = QBCore.Functions.GetPlayer(source)
-        if Player.PlayerData.money[Config.Options.MoneyType] >= cost then
-            return true
-        else
-            return false
-        end
-
+        return canPay(source, Config.Options.MoneyType, cost)
     end
 
 end
 
 RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
     local PlayerVehicleEntity = RaceData.PlayerVehicleEntity
     local RaceName = RaceData.RaceData.RaceName
     local RaceId = GetRaceId(RaceName)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
-    local CurrentRace = GetCurrentRace(Player.PlayerData.citizenid)
+    local citizenId = getCitizenId(src)
+    local CurrentRace = GetCurrentRace(citizenId)
     local RacerName = RaceData.RacerName
     local RacerCrew = RaceData.RacerCrew
 
@@ -781,7 +762,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                 for _,_ in pairs(Tracks[CurrentRace].Racers) do
                     AmountOfRacers = AmountOfRacers + 1
                 end
-                Tracks[CurrentRace].Racers[Player.PlayerData.citizenid] = nil
+                Tracks[CurrentRace].Racers[citizenId] = nil
                 if (AmountOfRacers - 1) == 0 then
                     Tracks[CurrentRace].Racers = {}
                     Tracks[CurrentRace].Started = false
@@ -803,18 +784,18 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             end
             if AmountOfRacers == 0 and not Tracks[RaceId].Automated then
                 if useDebug then print('setting creator') end
-                Tracks[RaceId].OrganizerCID = Player.PlayerData.citizenid
+                Tracks[RaceId].OrganizerCID = citizenId
             end
             if RaceData.BuyIn > 0 then
                 if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
                     exports['qb-phone']:RemoveCrypto(src, Config.Options.cryptoType, math.floor(RaceData.BuyIn))
                     TriggerClientEvent('cw-racingapp:client:notify', source, Lang("remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.cryptoType, 'success')
                 else
-                    Player.Functions.RemoveMoney(Config.Options.MoneyType, RaceData.BuyIn, "Bought into Race")
+                    removeMoney(src, Config.Options.MoneyType, RaceData.BuyIn)
                 end
             end
 
-            Tracks[RaceId].Racers[Player.PlayerData.citizenid] = {
+            Tracks[RaceId].Racers[citizenId] = {
                 Checkpoint = 1,
                 Lap = 1,
                 Finished = false,
@@ -830,8 +811,8 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                 TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Tracks[RaceId].Racers)
             end
             if not Tracks[RaceId].Automated then
-                local creatorsource = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId).PlayerData.source
-                if creatorsource ~= Player.PlayerData.source then
+                local creatorsource = getSrcOfPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
+                if creatorsource ~= src then
                     TriggerClientEvent('cw-racingapp:client:notify', creatorsource, Lang("race_someone_joined"))
                 end
             end
@@ -843,7 +824,7 @@ end)
 
 local function assignNewOrganizer(RaceId, src)
     for i,v in pairs(Tracks[RaceId].Racers) do
-        if i ~= QBCore.Functions.GetPlayer(src).PlayerData.citizenid then
+        if i ~= getCitizenId(src) then
             Tracks[RaceId].OrganizerCID = i
             TriggerClientEvent('cw-racingapp:client:notify', v.RacerSource, Lang("new_host"))
             for cid, racer in pairs(Tracks[RaceId].Racers) do
@@ -861,7 +842,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
         print(json.encode(RaceData, {indent=true}))
     end
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local citizenId = getCitizenId(src)
     local RacerName = RaceData.RacerName
     local RaceName = RaceData.RaceName
     if RaceData.RaceData then
@@ -872,14 +853,14 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
     
     if not Tracks[RaceData.RaceId].Automated then
-        local creator = QBCore.Functions.GetPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
+        local creator = getSrcOfPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
         local creatorsource = nil
     
         if creator.PlayerData then
             local creatorsource = creator.PlayerData.source
         end
     
-        if creatorsource and creatorsource ~= Player.PlayerData.source then
+        if creatorsource and creatorsource ~= src then
             TriggerClientEvent('cw-racingapp:client:notify', creatorsource, Lang("race_someone_left"))
         end 
     end
@@ -902,8 +883,8 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
             Holder = RacerName
         }
     end
-    Tracks[RaceId].Racers[Player.PlayerData.citizenid] = nil
-    if Tracks[RaceId].OrganizerCID == QBCore.Functions.GetPlayer(src).PlayerData.citizenid then
+    Tracks[RaceId].Racers[citizenId] = nil
+    if Tracks[RaceId].OrganizerCID == citizenId then
         assignNewOrganizer(RaceId, src)
     end
     if (AmountOfRacers - 1) == 0 then
@@ -960,10 +941,9 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
     if Tracks[RaceId] ~= nil then
         if not Tracks[RaceId].Waiting then            
             if not Tracks[RaceId].Started then
-                local Player = QBCore.Functions.GetPlayer(src)
                 local setupId = 0
                 if src then 
-                    setupId = Player.PlayerData.citizenid
+                    setupId = getCitizenId(src)
                 end
 
                 Tracks[RaceId].Waiting = true
@@ -1020,10 +1000,10 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                                     if useDebug then print('NOT Enough Racers to start automated') end
                                     if amountOfRacers > 0 then
                                         for cid, _ in pairs(Tracks[RaceId].Racers) do
-                                            local RacerData = QBCore.Functions.GetPlayerByCitizenId(cid)
-                                            if RacerData ~= nil then
-                                                TriggerClientEvent('cw-racingapp:client:notify', RacerData.PlayerData.source, Lang("race_timed_out"), 'error')
-                                                TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
+                                            local racerSource = getSrcOfPlayerByCitizenId(cid)
+                                            if racerSource ~= nil then
+                                                TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
+                                                TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
                                                 leftRace(src)
                                             end
                                         end
@@ -1041,10 +1021,10 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                             else
                                 if useDebug then print('Track Timed Out. NOT automated') end
                                 for cid, _ in pairs(Tracks[RaceId].Racers) do
-                                    local RacerData = QBCore.Functions.GetPlayerByCitizenId(cid)
+                                    local racerSource = getSrcOfPlayerByCitizenId(cid)
                                     if RacerData ~= nil then
-                                        TriggerClientEvent('cw-racingapp:client:notify', RacerData.PlayerData.source, Lang("race_timed_out"), 'error')
-                                        TriggerClientEvent('cw-racingapp:client:LeaveRace', RacerData.PlayerData.source, Tracks[RaceId])
+                                        TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
+                                        TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
                                         leftRace(src)
                                     end
                                 end
@@ -1206,13 +1186,12 @@ end
 
 RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    local CitizenId = Player.PlayerData.citizenid
-    if Tracks[RaceId].Racers[CitizenId] then
-        Tracks[RaceId].Racers[CitizenId].Checkpoint = Checkpoint
-        Tracks[RaceId].Racers[CitizenId].Lap = Lap
-        Tracks[RaceId].Racers[CitizenId].Finished = Finished
-        Tracks[RaceId].Racers[CitizenId].RaceTime = RaceTime
+    local citizenId = getCitizenId(src)
+    if Tracks[RaceId].Racers[citizenId] then
+        Tracks[RaceId].Racers[citizenId].Checkpoint = Checkpoint
+        Tracks[RaceId].Racers[citizenId].Lap = Lap
+        Tracks[RaceId].Racers[citizenId].Finished = Finished
+        Tracks[RaceId].Racers[citizenId].RaceTime = RaceTime
         for cid, racer in pairs(Tracks[RaceId].Racers) do
             TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
         end
@@ -1245,10 +1224,10 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     for Index, Value in pairs(Tracks[RaceId].Racers) do
         TotalRacers = TotalRacers + 1
     end
-    for CitizenId, _ in pairs(Tracks[RaceId].Racers) do
-        local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
-        if Player ~= nil then
-            TriggerClientEvent('cw-racingapp:client:RaceCountdown', Player.PlayerData.source,TotalRacers)
+    for citizenId, _ in pairs(Tracks[RaceId].Racers) do
+        local racerSource = getSrcOfPlayerByCitizenId(citizenId)
+        if racerSource ~= nil then
+            TriggerClientEvent('cw-racingapp:client:RaceCountdown', racerSource, TotalRacers)
             setInRace(src, RaceId)
         end
     end
@@ -1257,7 +1236,7 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local citizenId = getCitizenId(src)
     local RaceId = ''
     if RaceData.RaceId ~= nil then
         RaceId = RaceData.RaceId
@@ -1281,7 +1260,7 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
             RaceName = RaceData.RaceName,
             Checkpoints = Checkpoints,
             Records = {},
-            Creator = Player.PlayerData.citizenid,
+            Creator = citizenId,
             CreatorName = RaceData.RacerName,
             RaceId = RaceId,
             Started = false,
@@ -1293,7 +1272,7 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
             NumStarted = 0,
         }
         MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            {RaceData.RaceName, json.encode(Checkpoints), Player.PlayerData.citizenid, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0, '{}'})
+            {RaceData.RaceName, json.encode(Checkpoints), citizenId, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0, '{}'})
     end
 end)
 
@@ -1344,9 +1323,8 @@ function MilliToTime(milli)
     return minutes..":"..seconds.."."..milliseconds;
 end
 
-function IsPermissioned(CitizenId, type)
-    local Player = QBCore.Functions.GetPlayerByCitizenId(CitizenId)
-    local playerAuth = Player.PlayerData.metadata.selectedRacerAuth
+function IsPermissioned(src, type)
+    local auth = getPlayerAuth(src)
     return Config.Permissions[playerAuth][type]
 end
 
@@ -1414,12 +1392,11 @@ function GenerateRaceId()
     return RaceId
 end
 
-local function openRacingApp(source)
-    local Player = QBCore.Functions.GetPlayer(source)
+function openRacingApp(source)
     TriggerClientEvent('cw-racingapp:client:openUi', source, {
-        name = Player.PlayerData.metadata.selectedRacerName,
-        type = Player.PlayerData.metadata.selectedRacerAuth,
-        crew = Player.PlayerData.metadata.selectedCrew 
+        name = getPlayerRacerName(source),
+        type = getPlayerAuth(source),
+        crew = getPlayerCrew(source) 
     })
 end exports('openRacingApp', openRacingApp)
 
@@ -1462,7 +1439,7 @@ RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
 end)
 
 RegisterServerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces', function(source, TrackName)
-    return { permissioned = IsPermissioned(QBCore.Functions.GetPlayer(source).PlayerData.citizenid, 'create'), nameAvailable = IsNameAvailable(TrackName) }
+    return { permissioned = IsPermissioned(source, 'create'), nameAvailable = IsNameAvailable(TrackName) }
 end)
 
 
@@ -1497,8 +1474,7 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source,  racerName, serverId)
     if Config.UseNameValidation then
-        local Player = QBCore.Functions.GetPlayer(tonumber(serverId))
-        local citizenId = Player.PlayerData.citizenid
+        local citizenId = getCitizenId(serverId)
         if nameIsValid(racerName, citizenId) then
             return true
         else
@@ -1512,9 +1488,8 @@ end)
 RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source)
     
     if useDebug then print('Getting racer names for serverid', source) end
-    local Player = QBCore.Functions.GetPlayer(tonumber(source))
     
-    local citizenId = Player.PlayerData.citizenid
+    local citizenId = getCitizenId(source)
     if useDebug then print('Racer citizenid', citizenId) end
     
     local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
@@ -1525,14 +1500,13 @@ end)
 
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource)
     if useDebug then
-        print('Creating a racing fob. Input:')
+        print('Creating a racing user. Input:')
         print('citizenid', citizenid)
         print('racerName', racerName)
         print('type', type)
         print('purchaseType', dump(purchaseType))
     end
 
-    local Player = QBCore.Functions.GetPlayer(source)
     local cost = 1000
     if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
         cost = purchaseType.racingUserCosts[type]
@@ -1549,7 +1523,7 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
             return
         end
     else
-        if not Player.Functions.RemoveMoney(purchaseType.moneyType, cost, "Created Fob: "..type) then
+        if not removeMoney(source, purchaseType.moneyType, cost) then
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford")..' $'.. math.floor(cost), 'error')
             return
         end
@@ -1557,10 +1531,10 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
     if Config.UseRenewedBanking and purchaseType.profiteer and cost > 0 then
         local profit = math.floor(cost * purchaseType.profiteer.cut)
         exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, profit)
-        exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: "..type,  "Unknown", QBCore.Shared.Jobs[purchaseType.profiteer.job].label , "deposit")
+        exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: "..type,  "Unknown", 'RacingApp' , "deposit")
     end
     local creatorCitizenId = 'unknown'
-    if Player.PlayerData and Player.PlayerData.citizenid then creatorCitizenId = Player.PlayerData.citizenid end
+    if getCitizenId(source) then creatorCitizenId = getCitizenId(source) end
     addRacerName(citizenid, racerName, targetSource, type, creatorCitizenId)
 end
 
@@ -1583,27 +1557,30 @@ end)
 RegisterServerCallback('cw-racingapp:server:ChangeRacerName', function(source, racerNameInUse)
     if useDebug then print('Changing Racer Name for src',source,' to name', racerNameInUse) end
     changeRacerName(source, racerNameInUse)
-    local Player = QBCore.Functions.GetPlayer(source)
-    if useDebug then
-       print('New names', Player.PlayerData.metadata.selectedRacerName, Player.PlayerData.metadata.selectedRacerAuth )
-    end
+    
+    local racerName = getPlayerRacerName(source)
+    local racerAuth = getPlayerAuth(source)
+    if useDebug then print('New names', racerName, racerAuth ) end
+
     local ranking = getRankingForRacer(source, racerNameInUse)
     if useDebug then print('Ranking:', json.encode(ranking)) end
-    return { name = Player.PlayerData.metadata.selectedRacerName, type = Player.PlayerData.metadata.selectedRacerAuth, ranking = ranking }
+    return { name = racerName, type = racerAuth, ranking = ranking }
 end)
 
 RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
     if useDebug then print('removing racer with name', racername) end
-    if useDebug then print('removed by source', source, QBCore.Functions.GetPlayer(source).PlayerData.citizenid) end
+    if useDebug then print('removed by source', source, getCitizenId(source)) end
+
     local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racername})[1]
+
     MySQL.query('DELETE FROM racer_names WHERE racername = ?', {racername} )
     Wait(1000)
-    local Player = QBCore.Functions.GetPlayerByCitizenId(res.citizenid)
-    if Player ~= nil then
+    local playerSource = getSrcOfPlayerByCitizenId(res.citizenid)
+    if playerSource ~= nil then
         if useDebug then
-            print('pinging player', Player.PlayerData.source)
+            print('pinging player', playerSource)
         end
-        TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(Player.PlayerData.source))
+        TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(playerSource))
     end
 end)
 
@@ -1615,12 +1592,12 @@ local function setRevokedRacerName(src, racerName, revoked)
         if revoked == 0 then readableRevoked = 'active' end
         TriggerClientEvent('cw-racingapp:client:notify', src, 'User is now set to '..readableRevoked, 'success')
         if useDebug then print('Revoking for citizenid', res.citizenid) end
-        local Player = QBCore.Functions.GetPlayerByCitizenId(res.citizenid)
-        if Player ~= nil then
+        local playerSource = getSrcOfPlayerByCitizenId(res.citizenid)
+        if playerSource ~= nil then
             if useDebug then
-                print('pinging player', Player.PlayerData.source)
+                print('pinging player', playerSource)
             end
-            TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(Player.PlayerData.source))
+            TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(playerSource))
         end
     else
         TriggerClientEvent('cw-racingapp:client:notify', src, 'Race Name Not Found', 'error')
@@ -1637,22 +1614,21 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
         'Creating a user',
         json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType})
     ) end
-    local player = QBCore.Functions.GetPlayer(tonumber(playerId))
-    if player then
-        local citizenId = player.PlayerData.citizenid
+    local citizenId = getCitizenId(tonumber(playerId))
+    if citizenId then
         createRacingName(source, citizenId, racerName, type, purchaseType, playerId)
     else
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("could_not_find_person"), "error")
     end
 end)
 
-QBCore.Commands.Add('createracinguser',"Create a racing user", { 
+registerCommand('createracinguser',"Create a racing user", { 
     {name='type', help='racer/creator/master/god'},
     {name='identifier', help='Server ID'},
     {name='Racer Name', help='Racer name. Put in quotations if multiple words'}
 }, true, function(source, args)
     local type = args[1]
-    local id = args[2]
+    local id = tonumber(args[2])
     print('^3If The following print looks like the wrong variables, your Core might be doing funky things. Just try to match your input accordingly')    
     print(
         'Creating a user',
@@ -1677,10 +1653,9 @@ QBCore.Commands.Add('createracinguser',"Create a racing user", {
 
     local citizenid
     if tonumber(id) then
-        local Player = QBCore.Functions.GetPlayer(tonumber(id))
-        if Player then
-            citizenid = Player.PlayerData.citizenid
-        else
+        citizenid = getCitizenId(tonumber(id))
+        if useDebug then print('CitizenId', citizenid) end
+        if not citizenid then
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("id_not_found"), "error")
             return
         end
@@ -1711,25 +1686,21 @@ QBCore.Commands.Add('createracinguser',"Create a racing user", {
     createRacingName(source, citizenid, name, type:lower(), tradeType, id)
 end, 'dev')
 
-QBCore.Commands.Add('remracename', 'Remove Racing Name From Database', { {name='name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
+registerCommand('remracename', 'Remove Racing Name From Database', { {name='name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
     local name = args[1]
     print('name of racer to delete:', name)
     MySQL.query('DELETE FROM racer_names WHERE racername = ?', {name} )
 end, 'dev')
 
-QBCore.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
-    openRacingApp(source)
-end)
-
 local function dropRacetrackTable()
     MySQL.query('DROP TABLE IF EXISTS race_tracks')
 end
 
-QBCore.Commands.Add('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
+registerCommand('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
     dropRacetrackTable()
 end, 'admin')
 
-QBCore.Commands.Add('racingappcurated', 'Mark/Unmark track as curated', { {name='trackid', help='Track ID (not name). Use quotation marks!!!'}, {name='curated', help='true/false'}  }, true, function(source, args)
+registerCommand('racingappcurated', 'Mark/Unmark track as curated', { {name='trackid', help='Track ID (not name). Use quotation marks!!!'}, {name='curated', help='true/false'}  }, true, function(source, args)
     print('Curating track: ', args[1], args[2])
     local curated = 0
     if args[2] == 'true' then
@@ -1744,7 +1715,7 @@ QBCore.Commands.Add('racingappcurated', 'Mark/Unmark track as curated', { {name=
     end
 end, 'admin')
 
-QBCore.Commands.Add('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
+registerCommand('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
     useDebug = not useDebug
     print('debug is now:', useDebug)
     TriggerClientEvent('cw-racingapp:client:toggleDebug',source, useDebug)
