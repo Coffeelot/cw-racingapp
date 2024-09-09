@@ -11,6 +11,8 @@ Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
+
+Config.Core = 'qb' -- client/functions.lua and server/functions.lua handles core functionality. If your core is not supported you need to add it there
 Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
 Config.UseRenewedCrypto = false -- set to true if you use Renewed crypto
 Config.UseRenewedBanking = false -- set this to true if you use Renewed Banking
