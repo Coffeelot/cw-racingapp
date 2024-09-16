@@ -3,7 +3,7 @@
         <v-card-title>{{ props.race.RaceData.RaceName }}</v-card-title>
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">{{ translate('ranked') }} </v-chip>
-            <v-chip prepend-icon="mdi-hand-coin" color="green" v-if="participationText"> {{ participationText }} 
+            <v-chip prepend-icon="mdi-hand-coin" color="green" v-if="race.ParticipationAmount"> {{ participationText }} 
                 <v-tooltip location="top" activator="parent" :text="translate('participation_info')">
                 </v-tooltip>
             </v-chip>
@@ -11,7 +11,7 @@
             <v-chip prepend-icon="mdi-cash" v-if="buyInText">{{ buyInText }}</v-chip>
             <v-chip prepend-icon="mdi-cash-multiple" v-if="potText && props.race.racers > 1">{{ potText }}</v-chip>
             <v-chip prepend-icon="mdi-account-group">{{ `${props.race.racers} ${translate('racers')}` }}</v-chip>
-            <v-chip prepend-icon="mdi-car-info" v-if="props.race.class">{{ `${translate('class')}: ${props.race.class}` }}</v-chip>
+            <v-chip prepend-icon="mdi-car-info" v-if="props.race.MaxClass">{{ `${translate('class')}: ${props.race.MaxClass}` }}</v-chip>
             <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
             <v-chip prepend-icon="mdi-eye-lock" v-if="props.race.FirstPerson">{{ translate('first_person') }}</v-chip>
             <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? translate('starts') : `${translate('expires')}:`} ${expirationTimeString}` }}</v-chip>
@@ -23,7 +23,6 @@
             <v-btn rounded="lg" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
             <v-btn rounded="lg" variant="flat" color="success" @click='joinRace()'>{{ translate('join_race') }} </v-btn>
         </v-card-actions>
-        
     </v-card>
 </template>
 
@@ -33,6 +32,7 @@ import { closeApp } from "@/helpers/closeApp";
 import { useGlobalStore } from "@/store/global";
 import { translate } from "@/helpers/translate";
 import { computed } from "vue";
+
 const props = defineProps<{
   race: any
 }>()
@@ -44,8 +44,6 @@ const joinRace = async () => {
 }
 
 const participationText = computed(() => {
-    if(props?.race?.ParticipationAmount === 0) return undefined
-
     if(props.race.ParticipationCurrency === 'crypto') {
         return  props.race.ParticipationAmount + ' ' + globalStore.baseData.data.cryptoType
     }
