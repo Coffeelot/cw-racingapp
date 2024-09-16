@@ -50,10 +50,24 @@ Config.EloPunishments = { -- these determine how much is removed when player lea
     cheeseing = -6 -- if player tries to cheese
 }
 
+
+Config.PrimaryUiColor = '#e36a00' -- Primary color in UI, default is orange
 -- GPS stuff
 Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
 Config.ShowGpsRoute = true -- Default for showing GPS route
 Config.UseUglyWaypoint = false -- Use the standard gta waypoint. It will target 2 checkpoints ahead unless finish line is next.
+Config.UseDrawTextWaypoint = true -- Show Drawtext pillars at the 3 upcoming checkpoints
+
+Config.DrawTextSetup = {
+    markerType = 1,  -- Vertical cylinder
+    markerColor = {r = 255, g = 255, b = 255, a = 200},  --Color on the pillar
+    distanceColor = {r = 255, g = 255, b = 255, a = 255},  -- Color on distance text
+    primaryColor = {r = 227, g = 106, b = 0, a = 255},  -- Color on indicator text
+    minHeight = 0.5, -- Height when closest
+    maxHeight = 30.0, -- Height furthest away
+    topSize = 0.5,  -- Pillar size top
+    baseSize = 0.1,  -- Pillar size bottom
+}
 
 Config.CustomAmounts = { -- custom max amout of racer names
     ['QBQ16539'] = 100,
