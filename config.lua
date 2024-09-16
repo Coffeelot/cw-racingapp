@@ -93,7 +93,8 @@ Config.Permissions = {
         startRanked = false, -- can start ranked races
         startElimination = false, -- can start elimination races
         startReversed = true, -- can start races with reversed track (It makes NO sense that this is even needed as an auth, but it was paid for so here it is. Leave it as true)
-        setupParticipation = false -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
+        setupParticipation = false, -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
+        curateTracks = false, 
     },
     creator = {
         join = true,
@@ -106,7 +107,8 @@ Config.Permissions = {
         startRanked = false, 
         startElimination = false,
         startReversed = true,
-        setupParticipation = false 
+        setupParticipation = false,
+        curateTracks = false, 
     },
     master = {
         join = true,
@@ -119,7 +121,8 @@ Config.Permissions = {
         startRanked = true,
         startElimination = true,
         startReversed = true,
-        setupParticipation = false 
+        setupParticipation = false,
+        curateTracks = true, 
     },
     god = {
         join = true,
@@ -132,7 +135,8 @@ Config.Permissions = {
         startRanked = true,
         startElimination = true,
         startReversed = true,
-        setupParticipation = true 
+        setupParticipation = true,
+        curateTracks = true, 
     }
 }
 
@@ -140,6 +144,7 @@ Config.FlareTime = 10000 -- How long the flares are lit
 Config.KickTime = 10*60*1000 -- How long (in ms) until you get kicked if not being at race
 Config.StartAndFinishModel = `prop_beachflag_le` -- comment this line out if you dont want props for start/finish line
 Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --good alternative: `prop_flare_01b` - comment this line out if you dont want entities for checkpoints
+Config.CheckpointBuffer = 3.0 -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
 
 Config.Classes = {
     ['C'] = true,

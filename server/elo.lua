@@ -257,7 +257,7 @@ function calculateTrueSkillRatings(results)
     return tempTable, crewRes
 end
 
-if useDebug then -- Example input for testing
+if false then -- Example input for testing
     local results = { 
         { TotalTime = 100, RacerName = 'Winner' , Ranking = 0, Crew = 'TEST1'},
         { TotalTime = 220, RacerName = 'middle1', Ranking = 0 },

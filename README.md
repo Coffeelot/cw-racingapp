@@ -1,41 +1,33 @@
-# CW rework of [QB-Racing](https://github.com/ItsANoBrainer/qb-racing)
 ### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
 
-[Images here](#Images)
+📷 [Images & Video](#Preview) 📺
 
-**Some of the added features:**
-- Integration with [cw-performance](https://github.com/Coffeelot/cw-performance) to create class based racing
-- ELO system for ranking racers
-- Crew system
-- Elimination races (last to cross finish line on lap gets eliminated)
-- Advanced leaderboard for each track and class showing everyones best times
-- By-class leaderboard
-- Replacement of tire-piles lamps
-- Increased size of checkpoints
-- Not as harsh checkpoint-pass detection compared to qb-racing
-- Remove race tracks you have created
-- See your position in the race
-- Real time positioning (can be toggled off if performance issue)
-- Updated HUD
-- Accurate time (old one would vary depending on computer performance) **NOW IN MS!**
-- Ability to reset/run the SQL scripts from in game
-- Phasing/Ghosting of racers
-- Ability to lock tracks down to people by citizen ID
-- Support for Renewed Crypto
+
+## NOW SUPPORTS QB AND ESX!
+> Note: ESX requires ox_lib and ox_target
+
+**Features:**
+- Create tracks
+- Host races
+- Buy-Ins
+- Vehicle Performance Class limits
+- Phasing/Ghosting
+- Reversed tracks
+- Forced first person
 - Participation payouts
-- Post race leaderboard
-- Custom UI
-- Track curation
-- Ability to select Racing HUD position *(see HUDSettings in Config file)*
+- Elmination races
+- Racing user system with customizeable auth
+- ELO system for ranked racing
+- Crew system with rankings
+- Elmination Races
+- Advanced leaderboards
+- Customizeable checkpoints
+- Race positions
+- Split times
+- Curated tracks (mark tracks as verified good)
+- Support for Renewed Crypto
 - Translateable
-
-**Original features by ItsANoBrainer:**
-- Standalone racing script not requiring qb-phone to utilize
-- Items to immerse your racing scene with Racer Names
-- Config options to adjust item permissions to your liking
-- Config options to adjust different options
-- (Limited) Locale Support
-- Create Custom Races Tracks
+- Optional default tracks
 
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
 
@@ -62,26 +54,14 @@
 
 # Racing App
 
-Options:
- - Join a race
- - View race records
- - Setup a new race
- - Create a new race track
- - Modify old tracks
- - List your own tracks
- - Manage racer users (for master and god rank users)
- - Create and manage crews
-
 ### GPS settings
 At the bottom left corner there's a cog wheel. Clicking this brings up the options menu (more stuff to come). But here you can toggle using the GPS route and the style of it.
 
 ### Track Curation
 Our idea with this feature is to allow admins to flag a track as "DONE". The track can no longer be edited. Additional features of curated tracks might be only allowing participation money to be paid out on those tracks, for example.
 
-Currently you can only curate/uncurate a track via admin command: `/racingappcurated "<race-id>" true/false` **QUOTATION MARKS AROUND RACE ID IS IMPORTANT**
-
 ### Track Creation
-The key to this script working is making GOOD tracks. If you're trying to do 200 checkpoint style races with checkpoints randomly thrown around the map, this is not the script for you. There is a max checkpoint variable in the config that will warn users when they reached the level. Some PCs might struggle with different lower/higher amounts tho, so keep that in mind.
+The key to this script working is making tracks that works well. If you're trying to do 200 checkpoint style races with checkpoints randomly thrown around the map, this is not the script for you. There is a max checkpoint variable in the config that will warn users when they reached the level. Some PCs might struggle with different lower/higher amounts tho, so keep that in mind.
 
 - Avoid placing checkpoints on/under/near bridges/overpasses. 
 - GTA GPS can't handle opposite-directions on roads: Place checkpoints on the correct side of the road
@@ -143,8 +123,16 @@ Server side:
 ```
 
 
-# Preview (in order of updates) 📽
+# Preview
 
+## Latest video
+
+[![YOUTUBE VIDEO](http://img.youtube.com/vi/nRuM03co7Mk/0.jpg)](https://youtu.be/nRuM03co7Mk)
+
+<details>
+  <summary>Older Videos</summary>
+  
+### Might not represent current looks/design/features
 ### Note: Before new UI was added
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/APtMydz4gF8/0.jpg)](https://youtu.be/APtMydz4gF8)
@@ -173,64 +161,10 @@ Update to track editor:
 
 [![YOUTUBE VIDEO](http://img.youtube.com/vi/8Vkj0o8VvCY/0.jpg)](https://youtu.be/8Vkj0o8VvCY)
 
+</details>
 
-# Setup
-
-### Installation
-1. Download ZIP
-2. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
-3. Adjust values in the `config.lua` file to your liking **(Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)**
-4. Add the item to your `qb-core/shared/items.lua`
-```lua
-['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
-```
-4. Add the item image to your inventory image folder
-5. Create a god user with the command (see below)
-
-### Setup Notes
-> You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
-
-> Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. This can be done in 4 ways: Via the trader or laptop (See respetive config option for more info), the racingapp ui (requires an already existing account - BY DEFAULT THIS ALSO REQUIRES A JOB. SEE LAPTOP CONFIG SETTINGS) or the command.
-
-### Use in game
-Use the command `createracinguser` to do this. For example:
-`/createracinguser god 1 IReadTheReadme`
-This will create a god account for the user with serverID 1 (probably you if you're on your dev server) called IReadTheReadme. 
-Spawn the item `racing_gps` normally and use it. 
-> Some users have reported this not working and throwing an error. It seems this is related to Core issues. The order of the input might differ for some cores for some reason. The server side printout should help you determine the order. Just type it in according to that instead.
-
-# Want to change the look?
-RacingApp is built in VUE, this means you can't just edit the files directly. This requires some more know-how than just developing with basic html/js. You can find out more information in this [Boilerplate Repo](https://github.com/alenvalek/fivem-vuejs-boilerplate).
-
-# Updating?
-If you're updating from a previous version these might be for you
-
-### New User Management - 30th November 2023
-You need to update one of your database tables. Run this:
-```sql
-ALTER TABLE racer_names
-ADD COLUMN auth TEXT DEFAULT 'racer',
-ADD COLUMN createdby TEXT,
-ADD COLUMN revoked TINYINT DEFAULT 0;
-```
-You also need to change out the old GPS/fob items to the new one, see setup section. 
-You might also want to read up on the new system, see User Management section.
-
-### VUE update 18th December 2023
-See [setup](#setup) section for instructions on how to build a dist
-
-### Racing Crews and Racing Rank update 14th February 2024
-1) Make sure to run the sql in `cw-racingcrews.sql`
-2) Run this in your Database to update your `racer_names`: 
-```sql
-ALTER TABLE racer_names 
-ADD COLUMN ranking INT(11) NULL DEFAULT '0';
-```
-
-# Dependencies
-* [cw-performance](https://github.com/Coffeelot/cw-performance)
-
-## Images
+<details>
+<summary>Images</summary>
 
 **Track Setup**
 
@@ -268,14 +202,126 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 
 ![Settings](https://media.discordapp.net/attachments/1202695794537537568/1276959445729148991/image.png?ex=66cb6ca8&is=66ca1b28&hm=de9240a7be25638c6d302a2a1bddd8d49ebe83590ae0e3b3f6f10dbf563189c3&=&format=webp&quality=lossless&width=782&height=466)
 
+</details>
+
+# Setup and Installation
+
+### Installation
+1. Download ZIP
+2. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
+    - Optionally also run `default_tracks.sql` if you want to add the default tracks
+3. Adjust values in the `config.lua` file to your liking **(Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)**
+4. Add the item to your `qb-core/shared/items.lua` (If you use another inventory/core you obviously might need to change this part)
+```lua
+['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
+```
+4. Add the item image to your inventory image folder
+5. Create a god user with the command (see below)
+
+### Setup Notes
+> You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
+
+> Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. This can be done in 4 ways: Via the trader or laptop (See respetive config option for more info), the racingapp ui (requires an already existing account - BY DEFAULT THIS ALSO REQUIRES A JOB. SEE LAPTOP CONFIG SETTINGS) or the command.
+
+### Use in game
+Use the command `createracinguser` to do this. For example:
+`/createracinguser god 1 IReadTheReadme`
+This will create a god account for the user with serverID 1 (probably you if you're on your dev server) called IReadTheReadme. 
+Spawn the item `racing_gps` normally and use it. 
+> Some users have reported this not working and throwing an error. It seems this is related to Core issues. The order of the input might differ for some cores for some reason. The server side printout should help you determine the order. Just type it in according to that instead.
+
+# Exports
+RacingApp does not come with a phone app, but maybe you want to create one! Now, including everything from racingapp would be insanity, but at least you can join, leave and setup race via exports now! So you can create your own Phone App an just use these exports to get some of the basic features out of Racingapp.
+
+## Get tracks
+This will get all the existing tracks for you to display
+```lua
+    local tracks = exports['cw-racingapp']:getAvailableTracks()
+    print(json.encode(tracks, {indent=true})) -- This will be the data returned. Do what you will with it
+```
+
+## Get posted races
+This will get all the posted races for you to display
+```lua
+    local races = exports['cw-racingapp']:getAvailableRaces()
+    print(json.encode(races, {indent=true})) -- This will be the data returned. Do what you will with it
+```
+
+
+## Joining a race
+```lua
+local success = exports['cw-racingapp']:joinRace(raceId)
+```
+Where `raceId` is replaced by the id of a race you want to join (same id as track id)
+
+## Leaving a race
+```lua
+local success = exports['cw-racingapp']:leaveRace(raceId)
+```
+Where `raceId` is replaced by the id of a race you want to join (same id as track id)
+
+## Setup a race
+```lua
+
+local setupData = {
+    track = 'TR-IMADETHISUP', -- Track Id. Same as the ID of the track in DB or what you fetched earlier.
+    laps = 2, -- number, amount of laps. 0 = sprint,
+    maxClass = nil, -- nil or a class, if you want to limit vehicle class with cw-performance,
+    ghostingOn = false, -- true of false, if ghosting should be on or not
+    ghostingTime = 0, -- number, how long ghosting stays on. zero for entire race
+    buyIn = 0, -- number, cost to enter race,
+    ranked = false,-- true or false, if you want ranked or not
+    reversed = false, -- true or false, if you want the race to be reversed
+    participationMoney = 0, -- Money users get for just being there (this is normally an admin setup thing)
+    participationCurrency = 'cash', -- Money type of users get for just being there (this is normally an admin setup thing)
+    firstPerson = false, -- true or false, if you want to force first person
+}
+
+local success = exports['cw-racingapp']:attemptSetupRace(setupData)
+```
+
+# Want to change the look?
+RacingApp is built in VUE, this means you can't just edit the files directly. This requires some more know-how than just developing with basic html/js. You can find out more information in this [Boilerplate Repo](https://github.com/alenvalek/fivem-vuejs-boilerplate).
+
+# Updating?
+If you're updating from a previous version these might be for you
+
+### New User Management - 30th November 2023
+You need to update one of your database tables. Run this:
+```sql
+ALTER TABLE racer_names
+ADD COLUMN auth TEXT DEFAULT 'racer',
+ADD COLUMN createdby TEXT,
+ADD COLUMN revoked TINYINT DEFAULT 0;
+```
+You also need to change out the old GPS/fob items to the new one, see setup section. 
+You might also want to read up on the new system, see User Management section.
+
+### VUE update 18th December 2023
+See [setup](#setup) section for instructions on how to build a dist
+
+### Racing Crews and Racing Rank update 14th February 2024
+1) Make sure to run the sql in `cw-racingcrews.sql`
+2) Run this in your Database to update your `racer_names`: 
+```sql
+ALTER TABLE racer_names 
+ADD COLUMN ranking INT(11) NULL DEFAULT '0';
+```
+
+# Dependencies
+* [cw-performance](https://github.com/Coffeelot/cw-performance)
+
 # Uninstalling or full reset
 ## /removeracetracks
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
-## Developed by Coffeelot#1586, Wuggie#1683
-Once upon a time this was a fork of [QB-Racing](https://github.com/ItsANoBrainer/qb-racing), credits to ItsANoBrainer.
 
 # Sponsored Features
 ## Real Time Racing Positions
 @JELLYHITAM | [Quantum Roleplay Indonesia](https://discord.gg/XyP9tPDHX4)
 ## Participation Rewards in UI | Extended auth types | Reverse Tracks | Elimination Races
 @Rithvikk05 | [HTRP](discord.gg/htrp)
+
+# Credits 
+- ItsANoBrainer for [QB-Racing](https://github.com/ItsANoBrainer/qb-racing), which this is was once upton a time based on
+
+- Detroit__Tony for ESX conversion

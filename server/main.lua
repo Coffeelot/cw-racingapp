@@ -803,7 +803,8 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                 RacerCrew = RacerCrew,
                 Placement = 0,
                 PlayerVehicleEntity = PlayerVehicleEntity,
-                RacerSource = src
+                RacerSource = src,
+                CheckpointTimes = {}
             }
             AvailableRaces[AvailableKey].RaceData = Tracks[RaceId]
             TriggerClientEvent('cw-racingapp:client:JoinRace', src, Tracks[RaceId], RaceData.Laps, RacerName)
@@ -854,14 +855,9 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     
     if not Tracks[RaceData.RaceId].Automated then
         local creator = getSrcOfPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
-        local creatorsource = nil
     
-        if creator.PlayerData then
-            local creatorsource = creator.PlayerData.source
-        end
-    
-        if creatorsource and creatorsource ~= src then
-            TriggerClientEvent('cw-racingapp:client:notify', creatorsource, Lang("race_someone_left"))
+        if creator then
+            TriggerClientEvent('cw-racingapp:client:notify', creator, Lang("race_someone_left"))
         end 
     end
 
@@ -932,6 +928,68 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     end
 end)
 
+local function createTimeoutThread(RaceId)
+    CreateThread(function()
+        local count = 0
+        while Tracks[RaceId] and Tracks[RaceId].Waiting do
+            Wait(1000)
+            if count < Config.TimeOutTimerInMinutes * 60 then
+                count = count + 1
+            else
+                local AvailableKey = GetOpenedRaceKey(RaceId)
+                if Tracks[RaceId].Automated then
+                    if useDebug then print('Track Timed Out. Automated') end
+                    local amountOfRacers = getAmountOfRacers(RaceId)
+                    if amountOfRacers > Config.AutomatedOptions.minimumParticipants -1 then
+                        if useDebug then print('Enough Racers to start automated') end
+                        TriggerEvent('cw-racingapp:server:StartRace', RaceId)
+                    else
+                        if useDebug then print('NOT Enough Racers to start automated') end
+                        if amountOfRacers > 0 then
+                            for cid, _ in pairs(Tracks[RaceId].Racers) do
+                                local racerSource = getSrcOfPlayerByCitizenId(cid)
+                                if racerSource ~= nil then
+                                    TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
+                                    TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
+                                    leftRace(src)
+                                end
+                            end
+                        end
+                        table.remove(AvailableRaces, AvailableKey)
+                        Tracks[RaceId].LastLeaderboard = {}
+                        Tracks[RaceId].Racers = {}
+                        Tracks[RaceId].Started = false
+                        Tracks[RaceId].Waiting = false
+                        Tracks[RaceId].MaxClass = nil
+                        Tracks[RaceId].Ghosting = false
+                        Tracks[RaceId].GhostingTime = nil
+                        LastRaces[RaceId] = nil
+                    end
+                else
+                    if useDebug then print('Track Timed Out. NOT automated') end
+                    for cid, _ in pairs(Tracks[RaceId].Racers) do
+                        local racerSource = getSrcOfPlayerByCitizenId(cid)
+                        if RacerData ~= nil then
+                            TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
+                            TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
+                            leftRace(src)
+                        end
+                    end
+                    table.remove(AvailableRaces, AvailableKey)
+                    Tracks[RaceId].LastLeaderboard = {}
+                    Tracks[RaceId].Racers = {}
+                    Tracks[RaceId].Started = false
+                    Tracks[RaceId].Waiting = false
+                    Tracks[RaceId].MaxClass = nil
+                    Tracks[RaceId].Ghosting = false
+                    Tracks[RaceId].GhostingTime = nil
+                    LastRaces[RaceId] = nil
+                end
+            end
+        end
+    end)
+end
+
 local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, FirstPerson, Automated, src)
     if useDebug then 
         print('Setting up race', json.encode({
@@ -982,78 +1040,24 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                 end
                 RaceResults[RaceId] = { Data = allRaceData, Result = {}}
                 if Config.NotifyRacers then TriggerClientEvent('cw-racingapp:client:notifyRacers', -1, 'New Race Available') end
-                CreateThread(function()
-                    local count = 0
-                    while Tracks[RaceId].Waiting do
-                        Wait(1000)
-                        if count < Config.TimeOutTimerInMinutes * 60 then
-                            count = count + 1
-                        else
-                            local AvailableKey = GetOpenedRaceKey(RaceId)
-                            if Tracks[RaceId].Automated then
-                                if useDebug then print('Track Timed Out. Automated') end
-                                local amountOfRacers = getAmountOfRacers(RaceId)
-                                if amountOfRacers > Config.AutomatedOptions.minimumParticipants -1 then
-                                    if useDebug then print('Enough Racers to start automated') end
-                                    TriggerEvent('cw-racingapp:server:StartRace', RaceId)
-                                else
-                                    if useDebug then print('NOT Enough Racers to start automated') end
-                                    if amountOfRacers > 0 then
-                                        for cid, _ in pairs(Tracks[RaceId].Racers) do
-                                            local racerSource = getSrcOfPlayerByCitizenId(cid)
-                                            if racerSource ~= nil then
-                                                TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
-                                                TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
-                                                leftRace(src)
-                                            end
-                                        end
-                                    end
-                                    table.remove(AvailableRaces, AvailableKey)
-                                    Tracks[RaceId].LastLeaderboard = {}
-                                    Tracks[RaceId].Racers = {}
-                                    Tracks[RaceId].Started = false
-                                    Tracks[RaceId].Waiting = false
-                                    Tracks[RaceId].MaxClass = nil
-                                    Tracks[RaceId].Ghosting = false
-                                    Tracks[RaceId].GhostingTime = nil
-                                    LastRaces[RaceId] = nil
-                                end
-                            else
-                                if useDebug then print('Track Timed Out. NOT automated') end
-                                for cid, _ in pairs(Tracks[RaceId].Racers) do
-                                    local racerSource = getSrcOfPlayerByCitizenId(cid)
-                                    if RacerData ~= nil then
-                                        TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
-                                        TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
-                                        leftRace(src)
-                                    end
-                                end
-                                table.remove(AvailableRaces, AvailableKey)
-                                Tracks[RaceId].LastLeaderboard = {}
-                                Tracks[RaceId].Racers = {}
-                                Tracks[RaceId].Started = false
-                                Tracks[RaceId].Waiting = false
-                                Tracks[RaceId].MaxClass = nil
-                                Tracks[RaceId].Ghosting = false
-                                Tracks[RaceId].GhostingTime = nil
-                                LastRaces[RaceId] = nil
-                            end
-                        end
-                    end
-                end)
+                createTimeoutThread()
+                return true
             else
                 TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_already_started"), 'error')
+                return false
             end
         else
             TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_already_started"), 'error')
+            return false
         end
     else
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_doesnt_exist"), 'error')
+        return false
     end
 
 end
 
-RegisterNetEvent('cw-racingapp:server:SetupRace', function(setupData)
+RegisterServerCallback('cw-racingapp:server:SetupRace', function(source, setupData)
     local src = source
     if isToFarAway(src, setupData.trackId, setupData.reversed) then
         if setupData.reversed then
@@ -1061,14 +1065,15 @@ RegisterNetEvent('cw-racingapp:server:SetupRace', function(setupData)
         else
             TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[setupData.trackId].Checkpoints[1].coords.x, Tracks[setupData.trackId].Checkpoints[1].coords.y)
         end
-        return
+        return false
     end
     if (setupData.buyIn > 0 and not hasEnoughMoney(src, setupData.buyIn)) then
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_enough_money"))
     else
-        setupRace(setupData.trackId, setupData.laps, setupData.hostName, setupData.maxClass, setupData.ghostingOn, setupData.ghostingTime, setupData.buyIn, setupData.ranked, setupData.reversed, setupData.participationMoney, setupData.participationCurrency, setupData.firstPerson, false, src)
+        return setupRace(setupData.trackId, setupData.laps, setupData.hostName, setupData.maxClass, setupData.ghostingOn, setupData.ghostingTime, setupData.buyIn, setupData.ranked, setupData.reversed, setupData.participationMoney, setupData.participationCurrency, setupData.firstPerson, false, src)
     end
 end)
+
 
 -- AUTOMATED RACES SETUP
 
@@ -1192,6 +1197,9 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Tracks[RaceId].Racers[citizenId].Lap = Lap
         Tracks[RaceId].Racers[citizenId].Finished = Finished
         Tracks[RaceId].Racers[citizenId].RaceTime = RaceTime
+
+        Tracks[RaceId].Racers[citizenId].CheckpointTimes[#Tracks[RaceId].Racers[citizenId].CheckpointTimes+1] = { lap = Lap, checkpoint = Checkpoint, time = RaceTime }
+        
         for cid, racer in pairs(Tracks[RaceId].Racers) do
             TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
         end
@@ -1325,7 +1333,7 @@ end
 
 function IsPermissioned(src, type)
     local auth = getPlayerAuth(src)
-    return Config.Permissions[playerAuth][type]
+    return Config.Permissions[auth][type]
 end
 
 function IsNameAvailable(RaceName)
@@ -1496,6 +1504,20 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
     if useDebug then print('Racer Names found:', json.encode(result)) end
     
     return result
+end)
+
+RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, trackId, curated)
+    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', {curated, trackId})
+    local status = 'curated'
+    if curated == 0 then status = 'NOT curated' end
+    if res == 1 then
+        TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track '..trackId..' as '..status, 'success')
+        Tracks[trackId].Curated = curated
+        return true
+    else
+        TriggerClientEvent('cw-racingapp:client:notify', source, 'Your input seems to be lacking...', 'error')
+        return false
+    end
 end)
 
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource)

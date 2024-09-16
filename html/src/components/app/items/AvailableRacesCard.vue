@@ -13,12 +13,14 @@
             <v-chip prepend-icon="mdi-account-group">{{ `${props.race.racers} ${translate('racers')}` }}</v-chip>
             <v-chip prepend-icon="mdi-car-info" v-if="props.race.class">{{ `${translate('class')}: ${props.race.class}` }}</v-chip>
             <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
+            <v-chip prepend-icon="mdi-eye-lock" v-if="props.race.FirstPerson">{{ translate('first_person') }}</v-chip>
             <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? translate('starts') : `${translate('expires')}:`} ${expirationTimeString}` }}</v-chip>
             <v-chip v-if="props.race.Reversed" prepend-icon="mdi-backup-restore" >{{ translate('reversed') }} </v-chip>
             <v-chip prepend-icon="mdi-account-star">{{ translate('hosted_by') }} {{ props.race.SetupRacerName }}</v-chip>
         </v-card-text>
         <v-card-actions v-if="!props.race.disabled">
             <v-spacer></v-spacer>
+            <v-btn rounded="lg" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
             <v-btn rounded="lg" variant="flat" color="success" @click='joinRace()'>{{ translate('join_race') }} </v-btn>
         </v-card-actions>
         
@@ -89,6 +91,12 @@ const ghostingText = computed(() => {
     }
     return ghostingText
 })
+
+const showRace = async () => {
+    const res = await api.post("UiShowTrack", JSON.stringify(props.race.RaceId));
+    if (res.data) closeApp()
+}
+
 
 const expirationTimeString = computed(() => {
     const time = new Date(props.race.ExpirationTime)

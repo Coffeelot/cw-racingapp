@@ -3,6 +3,28 @@
     <div class="screen-container" v-if="globalStore.baseData.data">
       <TopBar></TopBar>
       <div class="app-container">
+        <v-snackbar
+        v-model="snackbar"
+        attach=".app-container"
+        transition="slide-y-transition"
+        location="top"
+        contained
+        multi-line
+        vertical
+        :timeout="snackTimeout"
+        :color="globalStore.notification?.type"
+        >
+          <h3 >{{ globalStore.notification?.title }}</h3>
+          <p class="text-subtitle-1 pt-2" v-if=" globalStore.notification?.text">{{ globalStore.notification.text }}</p>
+          <template v-slot:actions>
+          <v-btn
+            variant="text"
+            @click="snackbar = false"
+          >
+              {{ translate('close') }}
+            </v-btn>
+          </template>
+        </v-snackbar>
         <v-layout>
           <SideBar></SideBar>
           <div
@@ -59,8 +81,17 @@ import CrewPage from "@/components/app/pages/CrewPage.vue";
 import { closeApp } from "@/helpers/closeApp";
 import { getBaseData } from "@/helpers/getBaseData";
 import { computed } from "vue";
+import { translate } from "@/helpers/translate";
 
 const globalStore = useGlobalStore();
+
+const snackbar = ref(false)
+const snackTimeout = ref(3000)
+
+const transition = computed(() => ({
+  enter: 'slide-y-transition',
+  leave: 'slide-y-reverse-transition'
+}))
 
 const hasProblem = computed(() => {
   if (
@@ -103,8 +134,19 @@ document.onkeydown = function (evt) {
   if (evt?.key === "Escape") closeApp();
 };
 
+const handleMessageListener = (event: MessageEvent) => {
+  const itemData: any = event?.data;
+  if (itemData.type === 'notify') {
+    globalStore.$state.notification = itemData.data
+    snackbar.value = true
+  }
+  
+};
+
 onMounted(() => {
   getBaseData();
+  window.addEventListener("message", handleMessageListener);
+
 });
 </script>
 
@@ -153,6 +195,7 @@ h2 {
   margin-top: 72px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   border: 1.2em solid #131316;
+  background: #131316;
   border-radius: 1em;
 }
 
@@ -162,7 +205,7 @@ h2 {
   overflow-x: hidden;
   position: relative;
   display: flex;
-  height: calc(100% - 2em)
+  height: calc(100% - 2.6em)
 }
 
 .tabs-container {

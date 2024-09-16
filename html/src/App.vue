@@ -16,6 +16,8 @@ import {
 } from "vue";
 import { useGlobalStore } from "./store/global";
 import api from "@/api/axios";
+import { useTheme } from "vuetify/lib/framework.mjs";
+const theme = useTheme()
 
 const globalStore = useGlobalStore();
 
@@ -64,6 +66,9 @@ const handleMessageListener = (event: MessageEvent) => {
       case 'toggleApp':
         toggleApp(itemData.open)
         break;
+      case 'notify': 
+        globalStore.$state.notification = itemData.data
+        break;
       default:
         break;
     }
@@ -75,6 +80,9 @@ const handleMessageListener = (event: MessageEvent) => {
 const getBaseData = async () => {
   const res = await api.post("GetBaseData");
   globalStore.$state.baseData = res
+  if (res.data.primaryColor) {
+      theme.themes.value.dark.colors.primary = res.data.primaryColor;
+  }
 }
 
 onMounted(() => {

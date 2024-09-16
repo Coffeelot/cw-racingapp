@@ -4,16 +4,6 @@
       <v-card>
         <v-card-title class="title-holder">
           {{ translate('selected_track') }} {{ track.RaceName }}
-          <v-switch
-            color="primary"
-            v-if="globalStore.baseData.data.auth.startReversed"
-            class="reverse-switch"
-            :label="translate('reversed')"
-            v-model="setupData.reversed"
-            density="compact"
-            hide-details
-          >
-          </v-switch>
         </v-card-title>
         <v-card-text>
           <v-container>
@@ -26,6 +16,7 @@
                   item-value="value"
                   item-title="text"
                   :label="translate('laps')"
+                  hideDetails
                   v-model="setupData.laps"
                 ></v-select>
               </v-col>
@@ -37,9 +28,12 @@
                   item-value="value"
                   item-title="text"
                   :label="translate('buy_in')"
+                  hideDetails
                   v-model="setupData.buyIn"
                 ></v-select>
               </v-col>
+            </v-row>
+            <v-row>
               <v-col cols="12" sm="6">
                 <v-select
                   color="primary"
@@ -49,6 +43,7 @@
                   item-value="value"
                   item-title="text"
                   :label="translate('ghosting')"
+                  hideDetails
                   v-model="setupData.ghosting"
                 ></v-select>
               </v-col>
@@ -60,9 +55,35 @@
                   item-value="value"
                   item-title="text"
                   :label="translate('max_class')"
+                  hideDetails
                   v-model="setupData.maxClass"
                 ></v-select>
               </v-col>
+              <v-col cols="12" sm="6">
+                <v-switch
+                  color="primary"
+                  v-if="globalStore.baseData.data.auth.startReversed"
+                  class="reverse-switch"
+                  :label="translate('reversed')"
+                  v-model="setupData.reversed"
+                  density="compact"
+                  hide-details
+                >
+                </v-switch>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-switch
+                  color="primary"
+                  class="reverse-switch"
+                  :label="translate('first_person')"
+                  v-model="setupData.firstPerson"
+                  density="compact"
+                  hide-details
+                >
+                </v-switch>
+              </v-col>
+            </v-row>
+            <v-row>
               <v-col
                 v-if="globalStore?.baseData?.data?.auth?.setupParticipation"
                 cols="12"
@@ -174,6 +195,7 @@ const setupData = ref({
   maxClass: globalStore.baseData.data.classes[0].value,
   ranked: false,
   reversed: false,
+  firstPerson: false,
   participationMoney: 0,
   participationCurrency: "cash",
 });
@@ -199,10 +221,11 @@ const handleConfirm = async () => {
     participationMoney: setupData.value.participationMoney,
     participationCurrency: setupData.value.participationCurrency,
     reversed: setupData.value.reversed,
+    firstPerson: setupData.value.firstPerson,
   };
 
   const res = await api.post("UiSetupRace", JSON.stringify(data));
-  if (res) {
+  if (res.data) {
     open.value = false;
     closeApp();
     emits("goBack");

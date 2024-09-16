@@ -196,9 +196,10 @@ const fetchRelevantData = () => {
 };
 
 onMounted(() => {
-  getCurrent();
+  fetchRelevantData();
   selectedTrack.value = undefined;
 });
+
 </script>
 
 <style scoped lang="scss">

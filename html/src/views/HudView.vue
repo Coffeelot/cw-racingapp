@@ -1,6 +1,5 @@
 <template>
   <v-container class="d-flex fill-height">
-    {{ globalStore.creatorData.RaceName }}
     <EditorHud v-if="globalStore.creatorData && globalStore.activeHudData.InCreator"></EditorHud>
     <RaceHud v-if="globalStore.activeRace && globalStore.activeHudData.InRace"></RaceHud>
     <CountdownHud v-if="globalStore.countdown > -1" :countdownNumber="globalStore.countdown"></CountdownHud>
@@ -8,7 +7,6 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref } from "vue";
 import { useGlobalStore } from "../store/global";
 import EditorHud from "../components/hud/EditorHud.vue";
 import RaceHud from "../components/hud/RaceHud.vue";

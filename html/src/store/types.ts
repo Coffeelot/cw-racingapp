@@ -2,6 +2,12 @@ export type Racer = {
     RacerName: string
 }
 
+export type Notification = {
+    title: string,
+    text?: string,
+    type: string,
+}
+
 export type Auth = {
     join: boolean,
     records: boolean,
@@ -13,7 +19,8 @@ export type Auth = {
     startRanked: boolean,
     startElimination: boolean,
     startReversed: boolean,
-    setupParticipation: boolean
+    setupParticipation: boolean,
+    curateTracks: boolean,
 }
 
 export type Settings = {
@@ -26,6 +33,7 @@ export type Settings = {
 export type CreatorData = {
     Checkpoints: [],
     ConfirmDelete: boolean,
+    ClosestCheckpoint: number,
     IsEdit: boolean,
     RaceDistance: number,
     RaceId: string,
@@ -94,6 +102,12 @@ export type CurrentRace = {
     reversed: boolean,
 }
 
+export type CheckpointTimes = {
+    lap: number,
+    checkpoint: number,
+    time: number,
+}
+
 export type ActiveRacer = {
     Checkpoint: number,
     RacerSource: number,
@@ -101,7 +115,8 @@ export type ActiveRacer = {
     PlayerVehicleEntity: number,
     Lap: number,
     Placement: number,
-    Finished: boolean
+    Finished: boolean,
+    CheckpointTimes: CheckpointTimes[]
 }
 
 export type ActiveRace = {
