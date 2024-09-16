@@ -1040,7 +1040,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                 end
                 RaceResults[RaceId] = { Data = allRaceData, Result = {}}
                 if Config.NotifyRacers then TriggerClientEvent('cw-racingapp:client:notifyRacers', -1, 'New Race Available') end
-                createTimeoutThread()
+                createTimeoutThread(RaceId)
                 return true
             else
                 TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_already_started"), 'error')
@@ -1102,7 +1102,7 @@ local function GenerateAutomatedRace()
         if useDebug then print('Automation: rank was not set. defaulting to reversed = false') end
         reversed = false
     end
-    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, reversed, race.participationMoney, race.ParticipationCurrency, race.firstPerson, true, nil)
+    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, reversed, race.participationMoney, race.participationCurrency, race.firstPerson, true, nil)
 end
 
 if Config.AutomatedOptions and Config.AutomatedRaces then 
