@@ -314,6 +314,11 @@ Config.AutomatedRaces = {
         ghostingEnabled = false, -- Use Ghosting
         ghostingTime = 0, -- Ghosting Time
         buyIn = 2000, -- amount to participate
+        ranked = true, -- ranked or not
+        reversed = false, -- reversed track or not
+        participationMoney = 100, -- how much players get for participating
+        participationCurrency = 'cash', -- currency 
+        firstPerson = false -- forced first person
     },
     -- {
     --     trackId = 'LR-1575',
