@@ -22,7 +22,7 @@
 - Advanced leaderboards
 - [Customizeable checkpoints](#gps-settings)
 - Race positions
-- [Curated tracks](#curated-tracks) (mark tracks as verified good)
+- [Curated tracks](#track-curation) (mark tracks as verified good)
 - Split times
 - Translateable
 - [Track Sharing](#track-sharing)
