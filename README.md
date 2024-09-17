@@ -7,27 +7,29 @@
 > Note: ESX requires ox_lib and ox_target
 
 **Features:**
-- Create tracks
+- [Create tracks](#create-tracks)
 - Host races
 - Buy-Ins
-- Vehicle Performance Class limits
+- [Automated Races](#Automated-Races)
 - Phasing/Ghosting
 - Reversed tracks
-- Forced first person
 - Participation payouts
 - Elmination races
-- Racing user system with customizeable auth
+- [Racing user system with customizeable auth](#user-management)
 - ELO system for ranked racing
 - Crew system with rankings
 - Elmination Races
 - Advanced leaderboards
-- Customizeable checkpoints
+- [Customizeable checkpoints](#gps-settings)
 - Race positions
+- [Curated tracks](#curated-tracks) (mark tracks as verified good)
 - Split times
-- Curated tracks (mark tracks as verified good)
-- Support for Renewed Crypto
 - Translateable
+- [Track Sharing](#track-sharing)
 - Optional default tracks
+- Forced first person mode
+- Vehicle Performance Class limits
+- Support for Renewed Crypto
 
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
 
