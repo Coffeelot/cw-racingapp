@@ -7,7 +7,7 @@
 > Note: ESX requires ox_lib and ox_target
 
 **Features:**
-- [Create tracks](#create-tracks)
+- [Create tracks](#track-creation)
 - Host races
 - Buy-Ins
 - [Automated Races](#Automated-Races)
