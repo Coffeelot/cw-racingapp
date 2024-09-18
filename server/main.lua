@@ -1493,6 +1493,17 @@ RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source,  
     end
 end)
 
+local function racerNameExists(currentName, racerNames)
+    if currentName then
+        for i, user in pairs(racerNames) do
+            if currentName == user.racername then return true end
+        end
+    else
+        return true -- if no name selected then ignore
+    end
+    return false -- if we dont find a name we return false
+end
+
 RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source)
     
     if useDebug then print('Getting racer names for serverid', source) end
@@ -1503,6 +1514,13 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
     local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
     if useDebug then print('Racer Names found:', json.encode(result)) end
     
+    local currentRacerName = getPlayerRacerName(source)
+    
+    if not racerNameExists(currentRacerName, result) then
+        if useDebug then print('Racer name in use does no longer exist') end
+        updateRacingUserMetadata(source, nil, nil)
+    end
+
     return result
 end)
 

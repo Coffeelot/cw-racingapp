@@ -53,6 +53,8 @@ local CurrentRaceData = {
     Ghosted = false,
 }
 
+uiIsOpen = false
+
 RegisterNetEvent('cw-racingapp:client:notify', function(message,type)
     notify(message,type)
 end)
@@ -2307,7 +2309,6 @@ end
 
 -- Custom UI
 
-uiIsOpen = false
 
 RegisterNUICallback('GetBaseData', function(_, cb)
     local classes = { {value = '', text = Lang("no_class_limit"), number = 9000} }
@@ -2466,7 +2467,7 @@ RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
     local currentRacer = findRacerByName(currentName)
     notify(Lang("user_list_updated"))
     debugLog('current user', json.encode(currentRacer, {indent=true}))
-    if currentRacer and currentRacer.revoked == 1 then
+    if currentName and currentRacer and currentRacer.revoked == 1 then
         notify(Lang("revoked_access"), 'error')
         Wait(2000)
         if uiIsOpen then
@@ -2474,7 +2475,7 @@ RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
             closeUi()
         end
     end
-    if not currentRacer then 
+    if currentName and not currentRacer then 
         debugLog('Race user was deleted')
         notify(Lang('removed_user'), 'error')
         Wait(2000)
@@ -3173,14 +3174,14 @@ function setup()
     MyRacerNames = playerNames
     debugLog('player names', json.encode(playerNames))
     
-    if getSizeOfTable(playerNames) == 0 then
-        debugLog('user has been removed')
-        return
-    end
 
     local racerName = getPlayerRacerName()
     local racerAuth = getPlayerAuth()
     local racerCrew = getPlayerCrew()
+    
+    if getSizeOfTable(playerNames) == 0 then
+        return
+    end
 
     if racerName then
         currentName = racerName
@@ -3190,11 +3191,6 @@ function setup()
             print('^3Racer name in metadata: ', racerName) 
             print('^3Racer auth in metadata: ', racerAuth) 
             print('^3Ranking', currentRanking)
-        end
-        local currentRacer = findRacerByName(playerNames)
-        if not currentRacer then
-            useDebug('Race user was deleted')
-            notify(Lang('removed_user'), 'error')
         end
     else
         if getSizeOfTable(playerNames) == 1 then 
