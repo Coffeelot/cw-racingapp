@@ -219,7 +219,7 @@ Config.Options = {
         { value = 500, text = 500 },
         { value = 1000, text = 1000 }
     },
-    MoneyType = 'crypto', --Determines buyins and payouts. cash/bank/crypto
+    MoneyType = 'cash', --Determines buyins and payouts. cash/bank/crypto
     cryptoType = 'cdc' -- rname of your crypto
 }
 

@@ -1696,7 +1696,7 @@ registerCommand('createracinguser',"Create a racing user", {
     end
 
     local tradeType = {
-        moneyType = 'cash',
+        moneyType = Config.Options.MoneyType,
         racingUserCosts = {
             racer = 0,
             creator = 0,

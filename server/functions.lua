@@ -35,7 +35,10 @@ function removeMoney(src, moneyType, amount, reason)
         return Player.Functions.RemoveMoney(moneyType, math.floor(amount))
     elseif Config.Core == 'esx' then
         local xPlayer = ESX.GetPlayerFromId(src)
-        return xPlayer.removeAccountMoney(moneyType, math.floor(amount))
+        if canPay(src, moneyType, amount) then
+            xPlayer.removeAccountMoney(moneyType, math.floor(amount))
+            return true
+        end
     end
 
     return false
