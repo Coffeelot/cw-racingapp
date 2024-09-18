@@ -5,7 +5,8 @@
 
 ## NOW SUPPORTS QB AND ESX!
 > Note: ESX requires ox_lib and ox_target
-> Note: For ESX make sure to change out moneyTypes to corresponding versions in the config (cash => money for example)
+
+> Note: For ESX make sure to change out moneyTypes to corresponding versions in the config (ESX uses "money" instead of "cash" for example)
 
 **Features:**
 - [Create tracks](#track-creation)

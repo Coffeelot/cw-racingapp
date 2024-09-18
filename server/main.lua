@@ -1602,6 +1602,7 @@ RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
         if useDebug then
             print('pinging player', playerSource)
         end
+        updateRacingUserMetadata(tonumber(playerSource), nil, nil)
         TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(playerSource))
     end
 end)

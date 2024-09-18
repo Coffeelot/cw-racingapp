@@ -1679,16 +1679,7 @@ local function findRacerByName(name)
     return false
 end
 
-RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
-    local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
 
-    MyRacerNames = playerNames
-    local currentRacer = findRacerByName(currentName, MyRacerNames)
-    notify(Lang("user_list_updated"))
-    if currentRacer and currentRacer.revoked == 1 then 
-        notify(Lang("revoked_access"), 'error')
-    end
-end)
 
 function split(source)
     local str = source:gsub("%s+", "")
@@ -2456,14 +2447,44 @@ local function sortRacesByName(tracks)
     return temp
 end
 
-
-RegisterNUICallback('UiCloseUi', function(_, cb)
+local function closeUi()
     uiIsOpen = false
     SetNuiFocus(false,false)
-    cb(true)
     StopScreenEffect('MenuMGIn')
     stopAnimation()
+end
+
+RegisterNUICallback('UiCloseUi', function(_, cb)
+    closeUi()
+    cb(true)
 end)
+
+RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
+    Wait(2000)
+    local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
+    MyRacerNames = playerNames
+    local currentRacer = findRacerByName(currentName)
+    notify(Lang("user_list_updated"))
+    debugLog('current user', json.encode(currentRacer, {indent=true}))
+    if currentRacer and currentRacer.revoked == 1 then
+        notify(Lang("revoked_access"), 'error')
+        Wait(2000)
+        if uiIsOpen then
+            SendNUIMessage({ type = 'toggleApp', open = false})
+            closeUi()
+        end
+    end
+    if not currentRacer then 
+        debugLog('Race user was deleted')
+        notify(Lang('removed_user'), 'error')
+        Wait(2000)
+        if uiIsOpen then
+            SendNUIMessage({ type = 'toggleApp', open = false})
+            closeUi()
+        end
+    end
+end)
+
 
 RegisterNUICallback('UiFetchRaceResults', function(_, cb)
     local result = cwCallback.await('cw-racingapp:server:GetRaceResults')
@@ -3152,7 +3173,7 @@ function setup()
     MyRacerNames = playerNames
     debugLog('player names', json.encode(playerNames))
     
-    if getSizeOfTable(MyRacerNames) == 0 then
+    if getSizeOfTable(playerNames) == 0 then
         debugLog('user has been removed')
         return
     end
@@ -3170,9 +3191,14 @@ function setup()
             print('^3Racer auth in metadata: ', racerAuth) 
             print('^3Ranking', currentRanking)
         end
+        local currentRacer = findRacerByName(playerNames)
+        if not currentRacer then
+            useDebug('Race user was deleted')
+            notify(Lang('removed_user'), 'error')
+        end
     else
-        if getSizeOfTable(MyRacerNames) == 1 then 
-            local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', MyRacerNames[1].racername)
+        if getSizeOfTable(playerNames) == 1 then 
+            local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', playerNames[1].racername)
             if result and result.name then
                 debugLog('Only one racername available. Setting to ', result.name, result.type)
                 currentName = result.name

@@ -248,7 +248,7 @@ Config.Laptop = {
     requireToken = false, -- using cw tokens?
     model = 'xm_prop_x17_laptop_mrsr', -- entity model
     location = vector4(938.56, -1549.8, 34.37, 163.59), -- world location
-    moneyType = 'crypto', -- cash/bank/crypto
+    moneyType = 'cash', -- cash/bank/crypto
     cryptoType = 'cdc', -- name of your crypto
     racingUserCosts = { -- cost of creating an account
         racer = 1000,
@@ -285,7 +285,7 @@ Config.ParticipationTrophies = { -- Different from ParticipationAmounts. These a
     buyInMinimum = 200, -- If the above is true, this will be the minimum limit of when participation money is handed out
     enabled = true, -- false if you dont want players getting Participation trophies
     minimumOfRacers = 6, -- minimum of racers to hand out Participation trophies
-    type = 'crypto', -- cash, bank or crypto
+    type = 'cash', -- cash, bank or crypto
     amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10,  [5] = 10, [6] = 10, [7] = 10,[8] = 10,[9] = 10,[10] = 10 }, -- [<position>] = <amount>
     cryptoType = 'cdc', -- name of your crypto
     minumumRaceLength = 3000
