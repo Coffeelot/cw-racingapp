@@ -3062,7 +3062,6 @@ local function displayTrack(track)
     if #checkpointsPreview > 0 then
         hideTrack()
     end
-    notify(Lang("display_tracks"))
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
     else
@@ -3090,6 +3089,8 @@ RegisterNUICallback('UiShowTrack', function(RaceId, cb)
         hideTrack()
     end)
     cb(true)
+    Wait(500)
+    notify(Lang("display_tracks"))
 end)
 
 local function toggleShowRoute(boolean)
