@@ -68,8 +68,10 @@ const getTimeDifference = (racer1: ActiveRacer, racer2: ActiveRacer) => {
 };
 
 </script>
-
 <style scoped lang="scss">
+
+@use 'vuetify/settings' as vuetify-settings;
+
 .name {
   text-overflow: ellipsis;
   max-width: 20em;
@@ -101,7 +103,7 @@ const getTimeDifference = (racer1: ActiveRacer, racer2: ActiveRacer) => {
   padding-left: 2em;
 }
 .me {
-  background: #e36a00;
+  background: rgb(var(--v-theme-primary));
 }
 
 </style>
