@@ -1,23 +1,12 @@
 local useDebug = Config.Debug
 
-local racingCrews = {} -- This table will hold the racing crews locally
+local racingCrews = {} -- This table will hold the racing crews locally, indexed by crew name
 local activeInvites = {}  -- Variable to hold active invites
 
 -- Helper functions
 
-local function getRacingCrewByName(crewName)
-    if crewName then
-        for _, crew in ipairs(racingCrews) do
-            if crew.crewName:lower() == crewName:lower() then
-                return crew
-            end
-        end
-    end
-    return nil
-end
-
 local function getRacingCrewThatCitizenIDIsIn(citizenId)
-    for _, crew in ipairs(racingCrews) do
+    for crewName, crew in pairs(racingCrews) do
         if crew.founderCitizenid == citizenId then
             return crew
         end
@@ -28,11 +17,11 @@ local function getRacingCrewThatCitizenIDIsIn(citizenId)
         end
     end
 
-    return nil  -- Player is not in any racing crew with the specified racer name
+    return nil  -- Player is not in any racing crew
 end
 
 local function getRacingCrewThatRacerNameIsIn(racername)
-    for _, crew in ipairs(racingCrews) do
+    for crewName, crew in pairs(racingCrews) do
         if crew.founderName == racername then
             return crew
         end
@@ -58,14 +47,13 @@ local function joinRacingCrew(memberName, citizenId, crewName)
     local result = MySQL.Sync.execute(query, {citizenId, memberName, crewName})
 
     if result then
-        local crew = getRacingCrewByName(crewName)
-        if crew then
+        if racingCrews[crewName] then
             local newMember = {
                 citizenID = citizenId,
                 racername = memberName,
                 rank = 0
             }
-            table.insert(crew.members, newMember)
+            table.insert(racingCrews[crewName].members, newMember)
         end
         return crewName
     end
@@ -89,7 +77,7 @@ local function createRacingCrew(founderName, citizenId, crewName)
             rank = 0
         }
 
-        table.insert(racingCrews, newCrew)
+        racingCrews[crewName] = newCrew
         joinRacingCrew(founderName, citizenId, crewName)
         return true
     end
@@ -101,11 +89,10 @@ local function leaveRacingCrew(memberName, citizenId, crewName)
     local result = MySQL.Sync.execute(query, {citizenId, crewName})
 
     if result then
-        local crew = getRacingCrewByName(crewName)
-        if crew then
-            for i, member in ipairs(crew.members) do
+        if racingCrews[crewName] then
+            for i, member in ipairs(racingCrews[crewName].members) do
                 if member.citizenID == citizenId then
-                    table.remove(crew.members, i)
+                    table.remove(racingCrews[crewName].members, i)
                     return true
                 end
             end
@@ -119,11 +106,9 @@ local function addWinToCrew(crewName)
     local query = "UPDATE racing_crews SET wins = wins + 1, races = races + 1 WHERE crew_name = ?"
     local result = MySQL.Sync.execute(query, {crewName})
 
-    if result then
-        local crew = getRacingCrewByName(crewName)
-        if crew then
-            crew.wins = crew.wins + 1
-        end
+    if result and racingCrews[crewName] then
+        racingCrews[crewName].wins = racingCrews[crewName].wins + 1
+        racingCrews[crewName].races = racingCrews[crewName].races + 1
     end
 
     return result
@@ -133,11 +118,8 @@ local function addRaceToCrew(crewName)
     local query = "UPDATE racing_crews SET races = races + 1 WHERE crew_name = ?"
     local result = MySQL.Sync.execute(query, {crewName})
 
-    if result then
-        local crew = getRacingCrewByName(crewName)
-        if crew then
-            crew.races = crew.races + 1
-        end
+    if result and racingCrews[crewName] then
+        racingCrews[crewName].races = racingCrews[crewName].races + 1
     end
 
     return result
@@ -148,11 +130,8 @@ local function updateRanking(crewName, amount)
     local query = "UPDATE racing_crews SET rank = rank + ? WHERE crew_name = ?"
     local result = MySQL.Sync.execute(query, {amount, crewName})
 
-    if result then
-        local crew = getRacingCrewByName(crewName)
-        if crew then
-            crew.rank = crew.rank + amount
-        end
+    if result and racingCrews[crewName] then
+        racingCrews[crewName].rank = racingCrews[crewName].rank + amount
     end
 
     return result
@@ -162,11 +141,8 @@ local function decreaseRank(crewName)
     local query = "UPDATE racing_crews SET rank = rank - 1 WHERE crew_name = ?"
     local result = MySQL.Sync.execute(query, {crewName})
 
-    if result then
-        local crew = getRacingCrewByName(crewName)
-        if crew then
-            crew.rank = crew.rank - 1
-        end
+    if result and racingCrews[crewName] then
+        racingCrews[crewName].rank = racingCrews[crewName].rank - 1
     end
 
     return result
@@ -177,17 +153,15 @@ local function disbandRacingCrew(crewName)
     local result = MySQL.Sync.execute(query, {crewName})
 
     if result then
-        for i, crew in ipairs(racingCrews) do
-            if crew.crewName == crewName then
-                for _, member in pairs(crew.members) do
-                    local playerSrc = getSrcOfPlayerByCitizenId(member.citizenID)
-                    if playerSrc ~= nil then
-                        TriggerClientEvent('cw-racingapp:client:notify', playerSrc, Lang("disbanded_crew") , 'error')
-                    end
+        if racingCrews[crewName] then
+            for _, member in pairs(racingCrews[crewName].members) do
+                local playerSrc = getSrcOfPlayerByCitizenId(member.citizenID)
+                if playerSrc ~= nil then
+                    TriggerClientEvent('cw-racingapp:client:notify', playerSrc, Lang("disbanded_crew") , 'error')
                 end
-                table.remove(racingCrews, i)
-                return true
             end
+            racingCrews[crewName] = nil
+            return true
         end
     end
 
@@ -311,7 +285,7 @@ RegisterServerCallback('cw-racingapp:server:getMyCrew', function(source, racerNa
 end)
 
 RegisterServerCallback('cw-racingapp:server:getAllCrews', function(source)
-    if useDebug then print('Getting all racing crews', racingCrews) end
+    if useDebug then print('Getting all racing crews', json.encode(racingCrews, {indent=true})) end
     return racingCrews
 end)
 
@@ -427,7 +401,7 @@ AddEventHandler('onResourceStart', function(resourceName)
                         rank = row.rank
                     }
 
-                    table.insert(racingCrews, crew)
+                    racingCrews[row.crew_name] = crew
                 end
             else
                 print("Error fetching racing crews from database")

@@ -1,6 +1,5 @@
 Config = Config or {}
 Config.Debug = false
-Config.EnableCommands = true -- enable commands
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
 Lang = function(phrase)
@@ -10,10 +9,8 @@ end
 
 Config.UseResetTimer = true 
 Config.RaceResetTimer = 300000
-Config.ShowMechToolOption = true -- set to false if you dont use cw-mechtool
 Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
 
-Config.Core = 'qb' -- client/functions.lua and server/functions.lua handles core functionality. If your core is not supported you need to add it there
 Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
 Config.UseRenewedCrypto = false -- set to true if you use Renewed crypto
 Config.UseRenewedBanking = false -- set this to true if you use Renewed Banking
@@ -52,6 +49,7 @@ Config.EloPunishments = { -- these determine how much is removed when player lea
 
 
 Config.PrimaryUiColor = '#e36a00' -- Primary color in UI, default is orange
+
 -- GPS stuff
 Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
 Config.ShowGpsRoute = true -- Default for showing GPS route
@@ -156,8 +154,8 @@ Config.Permissions = {
 
 Config.FlareTime = 10000 -- How long the flares are lit
 Config.KickTime = 10*60*1000 -- How long (in ms) until you get kicked if not being at race
-Config.StartAndFinishModel = `prop_beachflag_le` -- comment this line out if you dont want props for start/finish line
-Config.CheckpointPileModel = `xm_prop_base_tripod_lampa` --good alternative: `prop_flare_01b` - comment this line out if you dont want entities for checkpoints
+Config.StartAndFinishModel = 'prop_beachflag_le' -- comment this line out if you dont want props for start/finish line
+Config.CheckpointPileModel = 'xm_prop_base_tripod_lampa' --good alternative: 'prop_flare_01b' - comment this line out if you dont want entities for checkpoints
 Config.CheckpointBuffer = 3.0 -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
 
 Config.Classes = {
@@ -167,18 +165,19 @@ Config.Classes = {
     ['S'] = true
 } -- These classes can be used (notice X missing for example). Only use classes from cw-performance here.
 
+-- Racer name limits
 Config.MinRacerNameLength = 3
 Config.MaxRacerNameLength = 24
 
+-- Track Creation stuff
 Config.MinimumCheckpoints = 10 -- Minimum Checkpoints required for a race
-
 Config.MinTireDistance = 2.0 -- Min distance between checkpoint tire piles
 Config.MaxTireDistance = 30.0 -- Max distance between checkpoint tire piles
-
 Config.MinTrackNameLength = 3 -- Min track name length to submit
 Config.MaxTrackNameLength = 24 -- Max track name length to submit
 
-Config.JoinDistance = 200
+
+Config.JoinDistance = 200 -- Distance (in meters) of how close you need to be to join a race
 
 Config.Blips = {
     Generic = { Size = 1.0, Color = 55 },
