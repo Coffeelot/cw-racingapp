@@ -919,6 +919,9 @@ local function getFinishLabel(totalCheckpoints, index)
 end
 
 local function getCheckpointCoord(index, totalCheckpoints)
+    if CurrentRaceData.TotalLaps == 0 and index > #CurrentRaceData.Checkpoints then
+        return nil
+    end
     if CurrentRaceData.Lap > 0 and CurrentRaceData.Lap == CurrentRaceData.TotalLaps then
         if index - 1 == totalCheckpoints then
             return vector3(
