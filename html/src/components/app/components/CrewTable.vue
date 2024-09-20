@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { translate } from "@/helpers/translate";
-import { Crew } from "@/store/types";
+import { Crew, CrewList } from "@/store/types";
 import { Ref, onMounted, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import api from "@/api/axios";
@@ -50,9 +50,8 @@ const crews: Ref<Crew[] | undefined> = ref(undefined)
   const getAllCrews = async () => {
   const response = await api.post("UiGetAllCrews");
   if (response.data)  {
-    let res = response.data;
-    res.sort((a:Crew, b:Crew) => b.rank - a.rank);
-    crews.value = res
+    let res: CrewList = response.data ;
+    crews.value = Object.values(res).sort((crewA, crewB) => crewA.rank - crewB.rank);
     
   }
 

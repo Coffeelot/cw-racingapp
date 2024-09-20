@@ -69,6 +69,8 @@ export type Crew = {
     rank: number
 }
 
+export type CrewList = Record<string, Crew>
+
 export type MyRacer = {
     auth: string,
     citizenid: string,
