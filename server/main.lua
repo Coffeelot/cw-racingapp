@@ -1278,7 +1278,7 @@ function MilliToTime(milli)
 end
 
 function IsPermissioned(src, type)
-    local auth = getPlayerAuth(src)
+    local auth = getRacerData(src).auth
     return Config.Permissions[auth][type]
 end
 
