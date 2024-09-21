@@ -221,7 +221,8 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 ['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
 ```
 4. Add the item image to your inventory image folder
-5. Create a god user with the command (see below)
+5. If you're not using QBOX then comment out `'@qbx_core/modules/playerdata.lua'` in fxmanifest 
+6. Create a god user with the command (see below)
 
 ### Setup Notes
 > You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).

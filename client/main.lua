@@ -3185,9 +3185,9 @@ function initialSetup()
         if getSizeOfTable(playerNames) == 1 then 
             local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', playerNames[1].racername)
             if result and result.name then
-                debugLog('Only one racername available. Setting to ', result.name, result.type)
+                debugLog('Only one racername available. Setting to ', result.name, result.auth)
                 CurrentName = result.name
-                CurrentAuth = result.type
+                CurrentAuth = result.auth
                 CurrentRanking = getCurrentRankingFromRacer(playerNames)
             end
         end
