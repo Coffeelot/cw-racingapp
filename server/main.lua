@@ -1347,11 +1347,7 @@ function GenerateRaceId()
 end
 
 function openRacingApp(source)
-    TriggerClientEvent('cw-racingapp:client:openUi', source, {
-        name = getPlayerRacerName(source),
-        type = getPlayerAuth(source),
-        crew = getPlayerCrew(source) 
-    })
+    TriggerClientEvent('cw-racingapp:client:openUi', source, getRacerData(source))
 end exports('openRacingApp', openRacingApp)
 
 RegisterServerCallback('cw-racingapp:server:GetRaces', function(source)
@@ -1460,7 +1456,7 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
     local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
     if UseDebug then print('Racer Names found:', json.encode(result)) end
     
-    local currentRacerName = getPlayerRacerName(source)
+    local currentRacerName = getRacerData(source).name
     
     if not racerNameExists(currentRacerName, result) then
         if UseDebug then print('Racer name in use does no longer exist') end
@@ -1544,8 +1540,9 @@ RegisterServerCallback('cw-racingapp:server:ChangeRacerName', function(source, r
     if UseDebug then print('Changing Racer Name for src',source,' to name', racerNameInUse) end
     changeRacerName(source, racerNameInUse)
     
-    local racerName = getPlayerRacerName(source)
-    local racerAuth = getPlayerAuth(source)
+    local racerData = getRacerData(source)
+    local racerName = racerData.name
+    local racerAuth = racerData.auth
     if UseDebug then print('New names', racerName, racerAuth ) end
 
     local ranking = getRankingForRacer(source, racerNameInUse)

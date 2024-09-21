@@ -6,34 +6,13 @@ RegisterNetEvent('esx:playerLoaded', function()
     initialSetup()
 end)
 
-
-function getPlayerRacerName()
-    local xPlayer = ESX.GetPlayerData()
-    return xPlayer.selectedRacerName or nil
-end
-
-function getPlayerAuth()
-    local xPlayer = ESX.GetPlayerData()
-    return xPlayer.selectedRacerAuth or nil
-end
-
-function getPlayerCrew()
-    local xPlayer = ESX.GetPlayerData()
-    return xPlayer.selectedCrew or nil
-end
-
-function getPlayerJobName()
-    local xPlayer = ESX.GetPlayerData()
-    if xPlayer and xPlayer.job then
-        return xPlayer.job.name
-    end
-end
-
-function getPlayerJobLevel()
-    local xPlayer = ESX.GetPlayerData()
-    if xPlayer and xPlayer.job and xPlayer.job.grade then
-        return xPlayer.job.grade
-    end
+function getRacerData()
+    local PlayerData = ESX.GetPlayerData()
+    return {
+        name = PlayerData.selectedRacerName,
+        auth = PlayerData.selectedRacerAuth,
+        crew = PlayerData.selectedCrew
+    }
 end
 
 function hasGps()

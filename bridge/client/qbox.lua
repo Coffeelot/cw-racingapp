@@ -1,12 +1,13 @@
-if GetResourceState('qb-core') ~= 'started' or GetResourceState('qbx_core') == 'started' then return end
-local QBCore = exports['qb-core']:GetCoreObject()
+if GetResourceState('qb-core') == 'started' or GetResourceState('qbx_core') ~= 'started' then return end
+local QBX = exports['qbx_core']:GetCoreObject()
+local VEHICLEHASHES = exports.qbx_core:GetVehiclesByHash()
 
-RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
+RegisterNetEvent("QBX:Client:OnPlayerLoaded", function()
     initialSetup()
 end)
 
 function getRacerData()
-    local PlayerData = QBCore.Functions.GetPlayerData()
+    local PlayerData = QBX.PlayerData
     return {
         name = PlayerData.metadata.selectedRacerName,
         auth = PlayerData.metadata.selectedRacerAuth,
@@ -15,14 +16,14 @@ function getRacerData()
 end
 
 function getPlayerJobName()
-    local playerData = QBCore.Functions.GetPlayerData()
+    local playerData = QBX.PlayerData
     if playerData and playerData.job then
         return playerData.job.name
     end
 end
 
 function getPlayerJobLevel()
-    local playerData = QBCore.Functions.GetPlayerData()
+    local playerData = QBX.PlayerData
     if playerData and playerData.job and playerData.job.grade then
         return playerData.job.grade.level
     end
@@ -30,7 +31,7 @@ end
 
 function hasGps()
     if Config.Inventory == 'qb' then
-        if QBCore.Functions.HasItem(Config.ItemName.gps) then
+        if QBX.Functions.HasItem(Config.ItemName.gps) then
             return true
         end
     elseif Config.Inventory == 'ox' then
@@ -42,21 +43,20 @@ function hasGps()
 end
 
 function getCitizenId()
-    return QBCore.Functions.GetPlayerData().citizenid
+    return QBX.PlayerData.citizenid
 end
 
 function getVehicleModel(vehicle)
     local model = GetEntityModel(vehicle)
-    for vmodel, vdata in pairs(QBCore.Shared.Vehicles) do
-        if model == joaat(vmodel) then
-            return vdata.name, vdata.brand
-        end
+    local vehData = VEHICLEHASHES[model]
+    if vehData then
+        return vehData.name, vehData.brand
     end
     return GetDisplayNameFromVehicleModel(model)
 end
 
 function getClosestPlayer()
-    return QBCore.Functions.GetClosestPlayer()
+    return QBX.Functions.GetClosestPlayer()
 end
 
 function notify(text, type)
@@ -78,6 +78,6 @@ function notify(text, type)
             type = type,
         })
     else
-        QBCore.Functions.Notify(text, type)
+        QBX.Functions.Notify(text, type)
     end
 end

@@ -3163,9 +3163,10 @@ function initialSetup()
     debugLog('player names', json.encode(playerNames))
     
 
-    local racerName = getPlayerRacerName()
-    local racerAuth = getPlayerAuth()
-    local racerCrew = getPlayerCrew()
+    local racerData = getRacerData()
+    local racerName = racerData.name
+    local racerAuth = racerData.auth
+    local racerCrew = racerData.crew
     
     if getSizeOfTable(playerNames) == 0 then
         return

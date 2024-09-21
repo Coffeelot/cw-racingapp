@@ -53,20 +53,12 @@ function getSrcOfPlayerByCitizenId(citizenId)
     return QBCore.Functions.GetPlayerByCitizenId(citizenId).PlayerData.source
 end
 
--- Fetches the auth of player via metadata
-function getPlayerAuth(src)
-    local Player = QBCore.Functions.GetPlayer(src)
-    return Player.PlayerData.metadata.selectedRacerAuth
-end
-
--- Fetches the racer name of player via metadata
-function getPlayerRacerName(src)
-    local Player = QBCore.Functions.GetPlayer(src)
-    return Player.PlayerData.metadata.selectedRacerName
-end
-
--- Fetches the crew of player via metadata
-function getPlayerCrew(src)
-    local Player = QBCore.Functions.GetPlayer(src)
-    return Player.PlayerData.metadata.selectedCrew
+-- Fetches the racer data
+function getRacerData(src)
+    local PlayerData = QBCore.Functions.GetPlayer(src).PlayerData
+    return {
+        name = PlayerData.metadata.selectedRacerName,
+        auth = PlayerData.metadata.selectedRacerAuth,
+        crew = PlayerData.metadata.selectedCre,
+    }
 end

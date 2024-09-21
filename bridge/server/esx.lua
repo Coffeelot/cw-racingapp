@@ -62,20 +62,13 @@ function getSrcOfPlayerByCitizenId(citizenId)
     end
 end
 
--- Fetches the auth of player via metadata
-function getPlayerAuth(src)
-    local xPlayer = ESX.GetPlayerFromId(src)
-    return xPlayer.get("selectedRacerAuth")
-end
+-- Fetches the racer data of the player
 
--- Fetches the racer name of player via metadata
-function getPlayerRacerName(src)
-    local xPlayer = ESX.GetPlayerFromId(src)
-    return xPlayer.get("selectedRacerName")
-end
-
--- Fetches the crew of player via metadata
-function getPlayerCrew(src)
-    local xPlayer = ESX.GetPlayerFromId(src)
-    return xPlayer.get("selectedCrew")
+function getRacerData(src)
+    local Player = ESX.GetPlayerFromId(src)
+    return {
+        name = Player.get("selectedRacerName"),
+        auth = Player.get("selectedRacerAuth"),
+        crew = Player.get("selectedCre"),
+    }
 end
