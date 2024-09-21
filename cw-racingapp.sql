@@ -4,6 +4,7 @@ CREATE TABLE `race_tracks` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`checkpoints` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	`metadata` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`records` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`creatorid` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`creatorname` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',

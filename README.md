@@ -292,7 +292,7 @@ RacingApp is built in VUE, this means you can't just edit the files directly. Th
 # Updating?
 If you're updating from a previous version these might be for you
 
-### New User Management - 30th November 2023
+## New User Management - 30th November 2023
 You need to update one of your database tables. Run this:
 ```sql
 ALTER TABLE racer_names
@@ -303,15 +303,22 @@ ADD COLUMN revoked TINYINT DEFAULT 0;
 You also need to change out the old GPS/fob items to the new one, see setup section. 
 You might also want to read up on the new system, see User Management section.
 
-### VUE update 18th December 2023
+## VUE update 18th December 2023
 See [setup](#setup) section for instructions on how to build a dist
 
-### Racing Crews and Racing Rank update 14th February 2024
+## Racing Crews and Racing Rank update 14th February 2024
 1) Make sure to run the sql in `cw-racingcrews.sql`
 2) Run this in your Database to update your `racer_names`: 
 ```sql
 ALTER TABLE racer_names 
 ADD COLUMN ranking INT(11) NULL DEFAULT '0';
+```
+
+## Track table update 
+A new column was added. If you're updating you can run this script to add it to your database
+```sql
+ALTER TABLE `race_tracks`
+ADD COLUMN `metadata` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `checkpoints`;
 ```
 
 # Dependencies
