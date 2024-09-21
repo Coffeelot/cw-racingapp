@@ -1,8 +1,6 @@
 if GetResourceState('qbx_core') ~= 'started' then return end
 
-local QBX = exports['qbx_core']:GetCoreObject()
-
-QBX.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
+exports.qbx_core:CreateUseableItem(Config.ItemName.gps, function(source, item)
     openRacingApp(source)
 end)
 
