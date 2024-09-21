@@ -4,7 +4,7 @@ if Config.Debug then print('Using QBOX bridge') end
 
 local VEHICLEHASHES = exports.qbx_core:GetVehiclesByHash()
 
-RegisterNetEvent("QBX:Client:OnPlayerLoaded", function()
+RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
     initialSetup()
 end)
 

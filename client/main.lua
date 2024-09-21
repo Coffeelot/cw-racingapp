@@ -3157,8 +3157,9 @@ local function getCurrentRankingFromRacer(racerNames)
 end
 
 function initialSetup()
+    LocalPlayer.state:set('inRace', false, true)
+    LocalPlayer.state:set('raceId', nil, true)
     local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
-
     MyRacerNames = playerNames
     debugLog('player names', json.encode(playerNames))
     
@@ -3200,6 +3201,7 @@ function initialSetup()
             CurrentCrew = myCrew
         end
     end
+
 end
 
 
@@ -3215,8 +3217,6 @@ AddEventHandler('onResourceStart', function (resource)
         
         print('^2Permissions:', json.encode(Config.Permissions))
         print('^2Classes: ', json.encode(Classes))
-        LocalPlayer.state:set('inRace', false, true)
-        LocalPlayer.state:set('raceId', nil, true)
+
     end
-    initialSetup()
 end)
