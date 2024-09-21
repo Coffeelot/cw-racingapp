@@ -28,8 +28,11 @@ jobs:
       - name: Bundle files
         run: |
           mkdir -p ./temp/cw-racingapp
-          cp -r ./* ./temp/cw-racingapp
-          rm -rf ./temp/cw-racingapp/.git*
+          rsync -av --progress ./* ./temp/cw-racingapp \
+            --exclude .git \
+            --exclude .github \
+            --exclude temp \
+            --exclude node_modules
           cd ./temp && zip -r ../cw-racingapp.zip ./cw-racingapp
 
       - name: Update CHANGELOG
