@@ -32,14 +32,8 @@ function getPlayerJobLevel()
 end
 
 function hasGps()
-    if Config.Inventory == 'qb' then
-        if QBX.Functions.HasItem(Config.ItemName.gps) then
-            return true
-        end
-    elseif Config.Inventory == 'ox' then
-        if exports.ox_inventory:Search('count', Config.ItemName.gps) >= 1 then
-            return true
-        end
+    if exports.ox_inventory:Search('count', Config.ItemName.gps) >= 1 then
+        return true
     end
     return false
 end
