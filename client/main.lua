@@ -2386,7 +2386,7 @@ end
 local function openUi(data)
     if not uiIsOpen then
         CurrentName = data.name
-        CurrentAuth = data.type
+        CurrentAuth = data.auth
         CurrentCrew = data.crew
         notify(Lang("esc"))
         SetNuiFocus(true,true)
