@@ -1,4 +1,7 @@
 if GetResourceState('qb-core') ~= 'started' or GetResourceState('qbx_core') == 'started' then return end
+if Config.Debug then print('Using QB bridge') end
+
+
 local QBCore = exports['qb-core']:GetCoreObject()
 
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()

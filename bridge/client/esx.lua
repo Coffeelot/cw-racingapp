@@ -1,4 +1,5 @@
 if GetResourceState('es_extended') ~= 'started' then return end
+if Config.Debug then print('Using ESX bridge') end
 
 ESX = exports['es_extended']:getSharedObject()
 
