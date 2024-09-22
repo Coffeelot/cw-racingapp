@@ -8,7 +8,7 @@ on:
 
 jobs:
   create-release:
-    name: Create New Release
+    name: Create New Release (${{ inputs.version }})
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
