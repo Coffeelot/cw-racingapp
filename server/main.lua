@@ -1623,18 +1623,14 @@ registerCommand('createracinguser',"Create a racing user", {
         return
     end
 
-    local name = {}
-    for i = 3, #args do
-        name[#name+1] = args[i]
-    end
-    name = table.concat(name, ' ')
-
     if not Config.Permissions[type:lower()] then
         TriggerClientEvent('cw-racingapp:client:notify', source, "This user type does not exist", "error")
         return
     end
 
     local citizenid
+    local name = args[3]
+
     if tonumber(id) then
         citizenid = getCitizenId(tonumber(id))
         if UseDebug then print('CitizenId', citizenid) end
