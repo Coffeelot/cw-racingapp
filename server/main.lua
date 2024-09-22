@@ -1613,9 +1613,8 @@ registerCommand('createracinguser',"Create a racing user", {
 }, true, function(source, args)
     local type = args[1]
     local id = tonumber(args[2])
-    print('^3If The following print looks like the wrong variables, your Core might be doing funky things. Just try to match your input accordingly')    
     print(
-        'Creating a user',
+        '^4Creating a user with input^0',
             json.encode({ playerId = args[2], racerName = args[3], type = args[1]})
         ) 
     if args[4] then
