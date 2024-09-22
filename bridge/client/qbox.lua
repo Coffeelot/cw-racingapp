@@ -52,7 +52,10 @@ function getVehicleModel(vehicle)
 end
 
 function getClosestPlayer()
-    return QBX.Functions.GetClosestPlayer()
+    local coords = GetEntityCoords(cache.ped)
+    local playerId, _, playerCoords = lib.getClosestPlayer(coords, 50, false)
+    local closestDistance = playerCoords and #(playerCoords - coords) or nil
+    return playerId, closestDistance
 end
 
 function notify(text, type)
@@ -68,12 +71,8 @@ function notify(text, type)
         return
     end
 
-    if Config.OxLibNotify then
-        lib.notify({
-            title = text,
-            type = type,
-        })
-    else
-        QBX.Functions.Notify(text, type)
-    end
+    lib.notify({
+        title = text,
+        type = type,
+    })
 end
