@@ -3,67 +3,67 @@ Config.Debug = false
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
 Lang = function(phrase)
-    if not Config.Locale then print("^1YOU MESSED UP THE TRANSLATION IMPORT")end
+    if not Config.Locale then print("^1YOU MESSED UP THE TRANSLATION IMPORT") end
     return Config.Locale[phrase] or phrase
 end
 
-Config.UseResetTimer = true 
+Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
-Config.DoOffsetGps = true -- Set to true if you want the gps to slighlty offset the point (helps with route)
+Config.DoOffsetGps = true               -- Set to true if you want the gps to slighlty offset the point (helps with route)
 
-Config.Inventory = 'qb' -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
-Config.UseRenewedCrypto = false -- set to true if you use Renewed crypto
-Config.UseRenewedBanking = false -- set this to true if you use Renewed Banking
-Config.UseNameValidation = true -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
-Config.MaxRacerNames = 2 -- Maximum allowed amount of unique names per character
-Config.MaxCheckpoints = 60 -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
-Config.AllowCreateFromShare = true -- toggle this to allow using the share track creation
-Config.CheckDistance = true -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
-Config.TimeOutTimerInMinutes = 5 -- Default = 5 minutes
-Config.NotifyRacers = true -- set to true and anyone holding a racing gps will get a notification when races are hosted
+Config.Inventory = 'qb'                 -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
+Config.UseRenewedCrypto = false         -- set to true if you use Renewed crypto
+Config.UseRenewedBanking = false        -- set this to true if you use Renewed Banking
+Config.UseNameValidation = true         -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
+Config.MaxRacerNames = 2                -- Maximum allowed amount of unique names per character
+Config.MaxCheckpoints = 60              -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
+Config.AllowCreateFromShare = true      -- toggle this to allow using the share track creation
+Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
+Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
+Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
-Config.UseOxLibForKeybind = false -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
-Config.UseOxTarget = false -- Require ox target. Obviously
-Config.OxInput = false -- If you want Oxlib input menus Same as above with fxmanifest ^ 
-Config.OxLibNotify = false -- If you want Oxlib notify Same as above with fxmanifest ^ 
+Config.UseOxLibForKeybind = false       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
+Config.UseOxTarget = false              -- Require ox target. Obviously
+Config.OxInput = false                  -- If you want Oxlib input menus Same as above with fxmanifest ^
+Config.OxLibNotify = false              -- If you want Oxlib notify Same as above with fxmanifest ^
 
-Config.LimitTopListTo = 10 -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
+Config.LimitTopListTo = 10              -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 
 Config.Sounds = {
     Countdown = {
-        start = { lib = "10_SEC_WARNING", sound = "HUD_MINI_GAME_SOUNDSET" }, -- sound that plays when race is readied
-        number = { lib = "Beat_Pulse_Default", sound = "GTAO_Dancing_Sounds" }, -- sound that plays when numbers show
+        start = { lib = "10_SEC_WARNING", sound = "HUD_MINI_GAME_SOUNDSET" },         -- sound that plays when race is readied
+        number = { lib = "Beat_Pulse_Default", sound = "GTAO_Dancing_Sounds" },       -- sound that plays when numbers show
         go = { lib = "Checkpoint_Finish", sound = "DLC_Stunt_Race_Frontend_Sounds" }, -- sound that plays when race starts
     },
-    Checkpoint = { lib = "Beat_Pulse_Default", sound = "GTAO_Dancing_Sounds" }, -- sound that plays when hitting a checkpoint
-    Finish = { lib = "FIRST_PLACE", sound = "HUD_MINI_GAME_SOUNDSET" } -- sound that plays when you finish race
-} -- sounds: https://gist.github.com/Sainan/021bd2f48f1c68d3eb002caab635b5a4
+    Checkpoint = { lib = "Beat_Pulse_Default", sound = "GTAO_Dancing_Sounds" },       -- sound that plays when hitting a checkpoint
+    Finish = { lib = "FIRST_PLACE", sound = "HUD_MINI_GAME_SOUNDSET" }                -- sound that plays when you finish race
+}                                                                                     -- sounds: https://gist.github.com/Sainan/021bd2f48f1c68d3eb002caab635b5a4
 
-Config.EloPunishments = { -- these determine how much is removed when player leaves a ranked and started race
-    leaving = -1, -- if players leaves an ongoing race
-    idling = -2, -- if player idles and gets kicked
-    positionCheat = -1, -- if player tries to start across the starting line
-    cheeseing = -6 -- if player tries to cheese
+Config.EloPunishments = {                                                             -- these determine how much is removed when player leaves a ranked and started race
+    leaving = -1,                                                                     -- if players leaves an ongoing race
+    idling = -2,                                                                      -- if player idles and gets kicked
+    positionCheat = -1,                                                               -- if player tries to start across the starting line
+    cheeseing = -6                                                                    -- if player tries to cheese
 }
 
 
 Config.PrimaryUiColor = '#e36a00' -- Primary color in UI, default is orange
 
 -- GPS stuff
-Config.IgnoreRoadsForGps = false -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
-Config.ShowGpsRoute = true -- Default for showing GPS route
-Config.UseUglyWaypoint = false -- Use the standard gta waypoint. It will target 2 checkpoints ahead unless finish line is next.
+Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
+Config.ShowGpsRoute = true        -- Default for showing GPS route
+Config.UseUglyWaypoint = false    -- Use the standard gta waypoint. It will target 2 checkpoints ahead unless finish line is next.
 Config.UseDrawTextWaypoint = true -- Show Drawtext pillars at the 3 upcoming checkpoints
 
 Config.DrawTextSetup = {
-    markerType = 1,  -- Vertical cylinder
-    markerColor = {r = 255, g = 255, b = 255, a = 200},  --Color on the pillar
-    distanceColor = {r = 255, g = 255, b = 255, a = 255},  -- Color on distance text
-    primaryColor = {r = 227, g = 106, b = 0, a = 255},  -- Color on indicator text
-    minHeight = 0.5, -- Height when closest
-    maxHeight = 30.0, -- Height furthest away
-    baseSize = 0.1,  -- Pillar size
+    markerType = 1,                                       -- Vertical cylinder
+    markerColor = { r = 255, g = 255, b = 255, a = 200 }, --Color on the pillar
+    distanceColor = { r = 255, g = 255, b = 255, a = 255 }, -- Color on distance text
+    primaryColor = { r = 227, g = 106, b = 0, a = 255 },  -- Color on indicator text
+    minHeight = 0.5,                                      -- Height when closest
+    maxHeight = 30.0,                                     -- Height furthest away
+    baseSize = 0.1,                                       -- Pillar size
 }
 
 Config.CustomAmounts = { -- custom max amout of racer names
@@ -72,17 +72,17 @@ Config.CustomAmounts = { -- custom max amout of racer names
     ['SYY99260'] = 100,
 }
 
-Config.LimitTracks = true -- set to true to limit tracks per citizenid. Below two fields are irrelevent if this is false
-Config.MaxCharacterTracks = 2 -- Amount of tracks allowed per citizenid
+Config.LimitTracks = true        -- set to true to limit tracks per citizenid. Below two fields are irrelevent if this is false
+Config.MaxCharacterTracks = 2    -- Amount of tracks allowed per citizenid
 Config.CustomAmountsOfTracks = { -- custom max amout of tracks per citizenid
     ['QBQ16539'] = 100,
     ['FMN22732'] = 100,
     ['SYY99260'] = 100,
 }
 
-Config.HUDSettings = { 
+Config.HUDSettings = {
     location = 'split', -- Position of the Racing Hud. Values that work: 'split', 'right' or 'left'.
-    maxPositions = 5, -- this will be the max amount of racers shown in the positions list. So if set to 5, the top 5 will be shown
+    maxPositions = 5,   -- this will be the max amount of racers shown in the positions list. So if set to 5, the top 5 will be shown
 }
 
 Config.ItemName = {
@@ -93,19 +93,19 @@ Config.AllowRacerCreationForAnyone = true -- set to false if you don't want to a
 -- I advice you to not change these name unless you want to start changing out code and database values.
 -- If you change these and run in to issues THEN THIS IS VERY LIKELY THE REASON. But if you do. ALWAYS USE LOWERCASE FOR THE NAMES
 Config.Permissions = {
-    racer = { 
-        join = true, -- join races
-        records = true, -- see records
-        setup = true, -- setup races
-        create = false, -- create races
-        control = false, -- control users
-        controlAll = false, -- control all users
-        createCrew = false, -- create crews
-        startRanked = false, -- can start ranked races
-        startElimination = false, -- can start elimination races
-        startReversed = true, -- can start races with reversed track (It makes NO sense that this is even needed as an auth, but it was paid for so here it is. Leave it as true)
+    racer = {
+        join = true,                -- join races
+        records = true,             -- see records
+        setup = true,               -- setup races
+        create = false,             -- create races
+        control = false,            -- control users
+        controlAll = false,         -- control all users
+        createCrew = false,         -- create crews
+        startRanked = false,        -- can start ranked races
+        startElimination = false,   -- can start elimination races
+        startReversed = true,       -- can start races with reversed track (It makes NO sense that this is even needed as an auth, but it was paid for so here it is. Leave it as true)
         setupParticipation = false, -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
-        curateTracks = false, 
+        curateTracks = false,
     },
     creator = {
         join = true,
@@ -115,11 +115,11 @@ Config.Permissions = {
         control = false,
         controlAll = false,
         createCrew = false,
-        startRanked = false, 
+        startRanked = false,
         startElimination = false,
         startReversed = true,
         setupParticipation = false,
-        curateTracks = false, 
+        curateTracks = false,
     },
     master = {
         join = true,
@@ -133,7 +133,7 @@ Config.Permissions = {
         startElimination = true,
         startReversed = true,
         setupParticipation = false,
-        curateTracks = true, 
+        curateTracks = true,
     },
     god = {
         join = true,
@@ -147,15 +147,16 @@ Config.Permissions = {
         startElimination = true,
         startReversed = true,
         setupParticipation = true,
-        curateTracks = true, 
+        curateTracks = true,
     }
 }
 
-Config.FlareTime = 10000 -- How long the flares are lit
-Config.KickTime = 10*60*1000 -- How long (in ms) until you get kicked if not being at race
-Config.StartAndFinishModel = 'prop_beachflag_le' -- comment this line out if you dont want props for start/finish line
-Config.CheckpointPileModel = 'xm_prop_base_tripod_lampa' --good alternative: 'prop_flare_01b' - comment this line out if you dont want entities for checkpoints
-Config.CheckpointBuffer = 3.0 -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
+Config.FlareTime = 10000                                 -- How long the flares are lit
+Config.KickTime = 10 * 60 * 1000                         -- How long (in ms) until you get kicked if not being at race
+Config.StartAndFinishModel = 'prop_beachflag_le'         -- comment this line out if you dont want props for start/finish line
+Config.CheckpointPileModel =
+'xm_prop_base_tripod_lampa'                              --good alternative: 'prop_flare_01b' - comment this line out if you dont want entities for checkpoints
+Config.CheckpointBuffer = 3.0                            -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
 
 Config.Classes = {
     ['C'] = true,
@@ -170,9 +171,9 @@ Config.MaxRacerNameLength = 24
 
 -- Track Creation stuff
 Config.MinimumCheckpoints = 10 -- Minimum Checkpoints required for a race
-Config.MinTireDistance = 2.0 -- Min distance between checkpoint tire piles
-Config.MaxTireDistance = 30.0 -- Max distance between checkpoint tire piles
-Config.MinTrackNameLength = 3 -- Min track name length to submit
+Config.MinTireDistance = 2.0   -- Min distance between checkpoint tire piles
+Config.MaxTireDistance = 30.0  -- Max distance between checkpoint tire piles
+Config.MinTrackNameLength = 3  -- Min track name length to submit
 Config.MaxTrackNameLength = 24 -- Max track name length to submit
 
 
@@ -187,38 +188,38 @@ Config.Blips = {
 -- Colors for blips: https://docs.fivem.net/docs/game-references/blips/
 
 
-Config.AllowedJobs = {  -- Wont matter unless you activate "jobRequirement in Config.Trader/Config.Laptop"
-    ['tuner'] = { racer = 1, creator = 4, master = 5, god = 5},
+Config.AllowedJobs = { -- Wont matter unless you activate "jobRequirement in Config.Trader/Config.Laptop"
+    ['tuner'] = { racer = 1, creator = 4, master = 5, god = 5 },
     ['spongebob'] = { racer = 1 },
 }
 
 Config.Options = {
     Laps = {
         { value = -1, text = 'Elimination' },
-        { value = 0, text = 'Sprint' },
-        { value = 1, text = 1 },
-        { value = 2, text = 2 },
-        { value = 3, text = 3 },
-        { value = 4, text = 4 },
-        { value = 5, text = 5 },
-        { value = 6, text = 6 },
-        { value = 7, text = 7 },
-        { value = 8, text = 8 },
-        { value = 9, text = 9 },
+        { value = 0,  text = 'Sprint' },
+        { value = 1,  text = 1 },
+        { value = 2,  text = 2 },
+        { value = 3,  text = 3 },
+        { value = 4,  text = 4 },
+        { value = 5,  text = 5 },
+        { value = 6,  text = 6 },
+        { value = 7,  text = 7 },
+        { value = 8,  text = 8 },
+        { value = 9,  text = 9 },
         { value = 10, text = 10 },
     },
     BuyIns = {
-        { value = 0, text = 'Nothing' },
-        { value = 10, text = 10 },
-        { value = 20, text = 20 },
-        { value = 50, text = 50 },
-        { value = 100, text = 100 },
-        { value = 200, text = 200 },
-        { value = 500, text = 500 },
+        { value = 0,    text = 'Nothing' },
+        { value = 10,   text = 10 },
+        { value = 20,   text = 20 },
+        { value = 50,   text = 50 },
+        { value = 100,  text = 100 },
+        { value = 200,  text = 200 },
+        { value = 500,  text = 500 },
         { value = 1000, text = 1000 }
     },
     MoneyType = 'cash', --Determines buyins and payouts. cash/bank/crypto
-    cryptoType = 'cdc' -- rname of your crypto
+    cryptoType = 'cdc'  -- rname of your crypto
 }
 
 Config.Trader = {
@@ -241,14 +242,14 @@ Config.Trader = {
 }
 
 Config.Laptop = {
-    active = true, -- If the laptop spawns
+    active = true,                                                                -- If the laptop spawns
     jobRequirement = { racer = true, creator = true, master = true, god = true }, -- Tied to Config.AllowedJobs
-    requireToken = false, -- using cw tokens?
-    model = 'xm_prop_x17_laptop_mrsr', -- entity model
-    location = vector4(938.56, -1549.8, 34.37, 163.59), -- world location
-    moneyType = 'cash', -- cash/bank/crypto
-    cryptoType = 'cdc', -- name of your crypto
-    racingUserCosts = { -- cost of creating an account
+    requireToken = false,                                                         -- using cw tokens?
+    model = 'xm_prop_x17_laptop_mrsr',                                            -- entity model
+    location = vector4(938.56, -1549.8, 34.37, 163.59),                           -- world location
+    moneyType = 'cash',                                                           -- cash/bank/crypto
+    cryptoType = 'cdc',                                                           -- name of your crypto
+    racingUserCosts = {                                                           -- cost of creating an account
         racer = 1000,
         creator = 5000,
         master = 10000,
@@ -257,40 +258,40 @@ Config.Laptop = {
 }
 
 Config.Ghosting = {
-    Enabled = true, --adding ability to toggle per started race soon
-    Timer = 0, -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
+    Enabled = true,          --adding ability to toggle per started race soon
+    Timer = 0,               -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
     DistanceLoopTime = 1000, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly.
     Options = {
-        { value = -1, text = 'Off' },
-        { value = 0, text = 'Always' },
-        { value = 10*1000, text = "10 s" },
-        { value = 30*1000, text = "30 s" },
-        { value = 60*1000, text = "60 s" },
-        { value = 120*1000, text = "120 s" },
+        { value = -1,       text = 'Off' },
+        { value = 0,        text = 'Always' },
+        { value = 10 * 1000, text = "10 s" },
+        { value = 30 * 1000, text = "30 s" },
+        { value = 60 * 1000, text = "60 s" },
+        { value = 120 * 1000, text = "120 s" },
     }
 }
 
 -- Splits work as follows: [x] = y means position x gets y % of the profit
 Config.Splits = {
-    three = { [1] = 0.7, [2] = 0.3 }, -- If three racers
+    three = { [1] = 0.7, [2] = 0.3 },          -- If three racers
     more = { [1] = 0.6, [2] = 0.3, [3] = 0.1 } -- If more than 3
 }
 
-Config.ParticipationTrophies = { -- Different from ParticipationAmounts. These are automated
-    requireCurated = true, -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
-    requireRanked = true, -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
-    requireBuyIns = true, -- If this is true, participation money will only be handed out if the race had a buyin
-    buyInMinimum = 200, -- If the above is true, this will be the minimum limit of when participation money is handed out
-    enabled = true, -- false if you dont want players getting Participation trophies
-    minimumOfRacers = 6, -- minimum of racers to hand out Participation trophies
-    type = 'cash', -- cash, bank or crypto
-    amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10,  [5] = 10, [6] = 10, [7] = 10,[8] = 10,[9] = 10,[10] = 10 }, -- [<position>] = <amount>
-    cryptoType = 'cdc', -- name of your crypto
+Config.ParticipationTrophies = {                                                                                    -- Different from ParticipationAmounts. These are automated
+    requireCurated = true,                                                                                          -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
+    requireRanked = true,                                                                                           -- Only give out Participation money if track is marked as curated (admin command '/racingappcurated "<race-id>" true/false')
+    requireBuyIns = true,                                                                                           -- If this is true, participation money will only be handed out if the race had a buyin
+    buyInMinimum = 200,                                                                                             -- If the above is true, this will be the minimum limit of when participation money is handed out
+    enabled = true,                                                                                                 -- false if you dont want players getting Participation trophies
+    minimumOfRacers = 6,                                                                                            -- minimum of racers to hand out Participation trophies
+    type = 'cash',                                                                                                  -- cash, bank or crypto
+    amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10, [5] = 10, [6] = 10, [7] = 10, [8] = 10, [9] = 10, [10] = 10 }, -- [<position>] = <amount>
+    cryptoType = 'cdc',                                                                                             -- name of your crypto
     minumumRaceLength = 3000
 }
 
-Config.ParticipationAmounts = { -- Different from ParticipationTrophies. These are manual
-    positionBonuses = { [1] = 0.3, [2] = 0.2, [3] = 0.1} -- in percentages. example: 0.3 = 30% extra ontop. Set this to empty "{}" if you dont want these 
+Config.ParticipationAmounts = {                          -- Different from ParticipationTrophies. These are manual
+    positionBonuses = { [1] = 0.3, [2] = 0.2, [3] = 0.1 } -- in percentages. example: 0.3 = 30% extra ontop. Set this to empty "{}" if you dont want these
 }
 
 Config.Buttons = {
@@ -305,18 +306,18 @@ Config.Buttons = {
 
 Config.AutomatedRaces = {
     {
-        trackId = 'LR-7666', -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2, -- Laps. 0 for sprint
-        racerName = 'AutoMate', -- Name on the Automation
-        maxClass = 'A', -- Max Class
-        ghostingEnabled = false, -- Use Ghosting
-        ghostingTime = 0, -- Ghosting Time
-        buyIn = 2000, -- amount to participate
-        ranked = true, -- ranked or not
-        reversed = false, -- reversed track or not
-        participationMoney = 100, -- how much players get for participating
-        participationCurrency = 'cash', -- currency 
-        firstPerson = false -- forced first person
+        trackId = 'LR-7666',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
+        racerName = 'AutoMate',         -- Name on the Automation
+        maxClass = 'A',                 -- Max Class
+        ghostingEnabled = false,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 2000,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 100,       -- how much players get for participating
+        participationCurrency = 'cash', -- currency
+        firstPerson = false             -- forced first person
     },
     -- {
     --     trackId = 'LR-1575',
@@ -330,9 +331,9 @@ Config.AutomatedRaces = {
 }
 
 Config.AutomatedOptions = {
-    timeBetweenRaces = 2*60*1000, -- Default = every 20 minutes - change 20 to whateer minutes you wanna use or go look up minutes to milliseconds and learn something
-    minimumParticipants = 1, -- The least amount of participants that are needed for the race to start
-    payouts = { -- Extra payouts from Automated Races
+    timeBetweenRaces = 2 * 60 * 1000, -- Default = every 20 minutes - change 20 to whateer minutes you wanna use or go look up minutes to milliseconds and learn something
+    minimumParticipants = 1,      -- The least amount of participants that are needed for the race to start
+    payouts = {                   -- Extra payouts from Automated Races
         participation = 500,
         winner = 1000,
         perRacer = 50, -- Extra payment per racer, so if it's 50 then if 10 racers show you everyone gets 500 extra for finishing
