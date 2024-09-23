@@ -1465,7 +1465,7 @@ end)
 
 local function racerNameExists(currentName, racerNames)
     if currentName then
-        for i, user in pairs(racerNames) do
+        for _, user in pairs(racerNames) do
             if currentName == user.racername then return true end
         end
     else
