@@ -235,7 +235,7 @@ end
 local function getAmountOfRacers(RaceId)
     local AmountOfRacers = 0
     local PlayersFinished = 0
-    for k, v in pairs(Tracks[RaceId].Racers) do
+    for _, v in pairs(Tracks[RaceId].Racers) do
         if v.Finished then
             PlayersFinished = PlayersFinished + 1
         end
@@ -441,7 +441,7 @@ local function handleEloUpdates(results)
     -- Close the SQL statement
     sql = sql .. ")"
     MySQL.Async.execute(sql)
-    for i, racer in ipairs(results) do
+    for _, racer in ipairs(results) do
         TriggerClientEvent('cw-racingapp:client:updateRanking', racer.RacerSource, racer.TotalChange,
             racer.Ranking + racer.TotalChange)
     end
@@ -625,7 +625,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer',
             end
             if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[raceData.RaceId] ~= nil and
                 next(NotFinished[raceData.RaceId]) ~= nil then
-                for k, v in pairs(NotFinished[raceData.RaceId]) do
+                for _, v in pairs(NotFinished[raceData.RaceId]) do
                     LastRaces[raceData.RaceId][#LastRaces[raceData.RaceId] + 1] = {
                         TotalTime = v.TotalTime,
                         BestLap = v.BestLap,
@@ -813,10 +813,6 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     local src = source
     local citizenId = getCitizenId(src)
     local racerName = RaceData.RacerName
-    local raceName = RaceData.RaceName
-    if RaceData.RaceData then
-        raceName = RaceData.RaceData.RaceName
-    end
 
     local raceId = RaceData.RaceId
     local availableKey = GetOpenedRaceKey(raceId)
@@ -830,7 +826,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     end
 
     local amountOfRacers = 0
-    for k, v in pairs(Tracks[raceId].Racers) do
+    for _, _ in pairs(Tracks[raceId].Racers) do
         amountOfRacers = amountOfRacers + 1
     end
     if NotFinished[raceId] ~= nil then
@@ -886,7 +882,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     end
     TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[raceId])
     leftRace(src)
-    for cid, racer in pairs(Tracks[raceId].Racers) do
+    for _, racer in pairs(Tracks[raceId].Racers) do
         TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, raceId, Tracks[raceId].Racers)
     end
     if RaceData.Ranked and RaceData.Started and RaceData.TotalRacers > 1 and reason then
@@ -1139,7 +1135,7 @@ local function timer(raceId)
                     end
                 end
             end
-            for i, racer in pairs(Tracks[raceId].Racers) do
+            for _, racer in pairs(Tracks[raceId].Racers) do
                 TriggerClientEvent('cw-racingapp:client:LeaveRace', racer.RacerSource, Tracks[raceId])
                 leftRace(racer.RacerSource)
             end
@@ -1181,7 +1177,7 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Tracks[RaceId].Racers[citizenId].CheckpointTimes[#Tracks[RaceId].Racers[citizenId].CheckpointTimes + 1] = { lap =
         Lap, checkpoint = Checkpoint, time = RaceTime }
 
-        for cid, racer in pairs(Tracks[RaceId].Racers) do
+        for _, racer in pairs(Tracks[RaceId].Racers) do
             TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
         end
     else
@@ -1210,7 +1206,7 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     AvailableRaces[AvailableKey].RaceData.Started = true
     AvailableRaces[AvailableKey].RaceData.Waiting = false
     local TotalRacers = 0
-    for Index, Value in pairs(Tracks[RaceId].Racers) do
+    for _, _ in pairs(Tracks[RaceId].Racers) do
         TotalRacers = TotalRacers + 1
     end
     for citizenId, _ in pairs(Tracks[RaceId].Racers) do
@@ -1223,39 +1219,39 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     if Config.UseResetTimer then startTimer(RaceId) end
 end)
 
-RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
+RegisterNetEvent('cw-racingapp:server:SaveTrack', function(raceData)
     local src = source
     local citizenId = getCitizenId(src)
-    local RaceId = ''
-    if RaceData.RaceId ~= nil then
-        RaceId = RaceData.RaceId
+    local raceId
+    if raceData.RaceId ~= nil then
+        raceId = raceData.RaceId
     else
-        RaceId = GenerateRaceId()
+        raceId = GenerateRaceId()
     end
-    local Checkpoints = {}
-    for k, v in pairs(RaceData.Checkpoints) do
-        Checkpoints[k] = {
+    local checkpoints = {}
+    for k, v in pairs(raceData.Checkpoints) do
+        checkpoints[k] = {
             offset = v.offset,
             coords = v.coords
         }
     end
 
-    if RaceData.IsEdit then
-        print('Saving over previous track', RaceData.RaceId)
+    if raceData.IsEdit then
+        print('Saving over previous track', raceData.RaceId)
         MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?',
-            { json.encode(Checkpoints), RaceData.RaceId })
-        Tracks[RaceId].Checkpoints = Checkpoints
+            { json.encode(checkpoints), raceData.RaceId })
+        Tracks[raceId].Checkpoints = checkpoints
     else
-        Tracks[RaceId] = {
-            RaceName = RaceData.RaceName,
-            Checkpoints = Checkpoints,
+        Tracks[raceId] = {
+            RaceName = raceData.RaceName,
+            Checkpoints = checkpoints,
             Records = {},
             Creator = citizenId,
-            CreatorName = RaceData.RacerName,
-            RaceId = RaceId,
+            CreatorName = raceData.RacerName,
+            RaceId = raceId,
             Started = false,
             Waiting = false,
-            Distance = math.ceil(RaceData.RaceDistance),
+            Distance = math.ceil(raceData.RaceDistance),
             Racers = {},
             Access = {},
             LastLeaderboard = {},
@@ -1263,7 +1259,7 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
         }
         MySQL.Async.insert(
             'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            { RaceData.RaceName, json.encode(Checkpoints), citizenId, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0,
+            { raceData.RaceName, json.encode(checkpoints), citizenId, raceData.RacerName, raceData.RaceDistance, raceId, 0,
                 '{}' })
     end
 end)
@@ -1272,7 +1268,9 @@ RegisterNetEvent('cw-racingapp:server:DeleteTrack', function(RaceId)
     print('DELETING ', RaceId)
     Tracks[RaceId] = nil
     local result = MySQL.Sync.fetchAll('SELECT creatorname FROM race_tracks WHERE raceid = ?', { RaceId })[1]
-    MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', { RaceId })
+    if result then
+        MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', { RaceId })
+    end
 end)
 
 RegisterNetEvent('cw-racingapp:server:ClearLeaderboard', function(RaceId)
@@ -1326,16 +1324,6 @@ function IsNameAvailable(RaceName)
         if Tracks[RaceId].RaceName == RaceName then
             retval = false
             break
-        end
-    end
-    return retval
-end
-
-function HasOpenedRace(CitizenId)
-    local retval = false
-    for k, v in pairs(AvailableRaces) do
-        if v.SetupCitizenId == CitizenId then
-            retval = true
         end
     end
     return retval
