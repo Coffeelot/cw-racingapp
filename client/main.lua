@@ -1504,7 +1504,7 @@ end)
 RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(raceData)
     local PlayerPed = PlayerPedId()
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
-    local class = ''
+    local class
     if PlayerIsInVehicle then
         _, class, _ = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
     else
