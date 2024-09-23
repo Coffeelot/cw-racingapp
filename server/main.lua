@@ -1679,12 +1679,12 @@ registerCommand('createracinguser', "Create a racing user", {
     end
 
     if #name >= Config.MaxRacerNameLength then
-        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_short"), "error")
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_long"), "error")
         return
     end
 
     if #name <= Config.MinRacerNameLength then
-        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_long"), "error")
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_short"), "error")
         return
     end
 
