@@ -39,7 +39,7 @@ function registerCommand(command, description, arguments, argsrequired, callback
     
     -- Prepare suggestions for the command
     local suggestions = {}
-    for i, arg in ipairs(arguments) do
+    for _, arg in ipairs(arguments) do
         table.insert(suggestions, {
             name = arg.name,
             help = arg.help
