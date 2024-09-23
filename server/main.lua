@@ -573,10 +573,10 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer',
             }
         end
 
+        local raceType = 'Sprint'
+        if totalLaps > 0 then raceType = 'Circuit' end
         if Tracks[raceData.RaceId].Records ~= nil and next(Tracks[raceData.RaceId].Records) ~= nil then
-            local RaceType = 'Sprint'
-            if totalLaps > 0 then RaceType = 'Circuit' end
-            local gotNewRecord = newRecord(src, racerName, BLap, raceData, carClass, vehicleModel, RaceType, reversed)
+            local gotNewRecord = newRecord(src, racerName, BLap, raceData, carClass, vehicleModel, raceType, reversed)
             if gotNewRecord then
                 if UseDebug then
                     print('Player got a record', BLap)
@@ -591,7 +591,9 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer',
                 Time = BLap,
                 Holder = racerName,
                 Class = carClass,
-                Vehicle = vehicleModel
+                Vehicle = vehicleModel,
+                RaceType = raceType,
+                Reversed = reversed
             } }
             MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
                 { json.encode(Tracks[raceData.RaceId].Records), raceData.RaceId })
