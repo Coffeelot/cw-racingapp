@@ -63,8 +63,7 @@ Config.DrawTextSetup = {
     primaryColor = {r = 227, g = 106, b = 0, a = 255},  -- Color on indicator text
     minHeight = 0.5, -- Height when closest
     maxHeight = 30.0, -- Height furthest away
-    topSize = 0.5,  -- Pillar size top
-    baseSize = 0.1,  -- Pillar size bottom
+    baseSize = 0.1,  -- Pillar size
 }
 
 Config.CustomAmounts = { -- custom max amout of racer names
