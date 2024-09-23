@@ -11,8 +11,8 @@ local Timers = {}
 local RaceResults = {}
 if Config.Debug then
     RaceResults = {
-        ["LR-7666"]= {
-            ["Data"]= {
+        ["LR-7666"] = {
+            ["Data"] = {
                 ["Ghosting"] = false,
                 ["SetupRacerName"] = "PAODPOAS2",
                 ["BuyIn"] = 0,
@@ -21,29 +21,29 @@ if Config.Debug then
                 ["GhostingTime"] = 0,
                 ["RaceId"] = "LR-7666",
                 ["RaceData"] = {
-                    ["Ghosting"]= false,
-                    ["Started"]= false,
-                    ["Waiting"]= false,
-                    ["Records"]= {
+                    ["Ghosting"] = false,
+                    ["Started"] = false,
+                    ["Waiting"] = false,
+                    ["Records"] = {
                         {
-                            ["Holder"]= "mamamamamam",
-                            ["Time"]= 24262,
-                            ["Class"]= "X",
-                            ["Vehicle"]= "Osiris FR",
-                            ["RaceType"]= "Circuit",
+                            ["Holder"] = "mamamamamam",
+                            ["Time"] = 24262,
+                            ["Class"] = "X",
+                            ["Vehicle"] = "Osiris FR",
+                            ["RaceType"] = "Circuit",
                         },
                         {
-                            ["Holder"]= "mamamamamam",
-                            ["Time"]= 26305,
-                            ["Class"]= "S",
-                            ["Vehicle"]= "model not found",
-                            ["RaceType"]= "Sprint",
+                            ["Holder"] = "mamamamamam",
+                            ["Time"] = 26305,
+                            ["Class"] = "S",
+                            ["Vehicle"] = "model not found",
+                            ["RaceType"] = "Sprint",
                         },
                     },
-                    ["Distance"]= 1045,
-                    ["Creator"]= "SYY99260",
-                    ["BuyIn"]= 0,
-                    ["Racers"]= {},
+                    ["Distance"] = 1045,
+                    ["Creator"] = "SYY99260",
+                    ["BuyIn"] = 0,
+                    ["Racers"] = {},
                     ["GhostingTime"] = 0,
                     ["OrganizerCID"] = "SYY99260",
                     ["CreatorName"] = "xXxCoolChadxXx69",
@@ -70,8 +70,8 @@ if Config.Debug then
                 }
             }
         },
-        ["LR-1123"]= {
-            ["Data"]= {
+        ["LR-1123"] = {
+            ["Data"] = {
                 ["Ghosting"] = false,
                 ["SetupRacerName"] = "PAODPOAS2",
                 ["BuyIn"] = 0,
@@ -80,31 +80,31 @@ if Config.Debug then
                 ["GhostingTime"] = 0,
                 ["RaceId"] = "LR-1123",
                 ["RaceData"] = {
-                    ["Ghosting"]= false,
-                    ["Started"]= false,
-                    ["Waiting"]= false,
+                    ["Ghosting"] = false,
+                    ["Started"] = false,
+                    ["Waiting"] = false,
                     ["Ranked"] = true,
-                    ["Records"]= {
+                    ["Records"] = {
                         {
-                            ["Holder"]= "mamamamamam",
-                            ["Time"]= 24262,
-                            ["Class"]= "X",
-                            ["Vehicle"]= "Osiris FR",
-                            ["RaceType"]= "Circuit",
-                     
+                            ["Holder"] = "mamamamamam",
+                            ["Time"] = 24262,
+                            ["Class"] = "X",
+                            ["Vehicle"] = "Osiris FR",
+                            ["RaceType"] = "Circuit",
+
                         },
                         {
-                            ["Holder"]= "mamamamamam",
-                            ["Time"]= 26305,
-                            ["Class"]= "S",
-                            ["Vehicle"]= "model not found",
-                            ["RaceType"]= "Sprint",
+                            ["Holder"] = "mamamamamam",
+                            ["Time"] = 26305,
+                            ["Class"] = "S",
+                            ["Vehicle"] = "model not found",
+                            ["RaceType"] = "Sprint",
                         },
                     },
-                    ["Distance"]= 1045,
-                    ["Creator"]= "SYY99260",
-                    ["BuyIn"]= 0,
-                    ["Racers"]= {},
+                    ["Distance"] = 1045,
+                    ["Creator"] = "SYY99260",
+                    ["BuyIn"] = 0,
+                    ["Racers"] = {},
                     ["GhostingTime"] = 0,
                     ["OrganizerCID"] = "SYY99260",
                     ["CreatorName"] = "xXxCoolChadxXx69",
@@ -172,10 +172,10 @@ local function updateRaces()
                 Records = json.decode(v.records)
                 if #Records == 0 then
                     if UseDebug then
-                       print('Only one record')
+                        print('Only one record')
                     end
                     MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-                     {json.encode({Records}), v.raceid})
+                        { json.encode({ Records }), v.raceid })
                     Records = { Records }
                 end
             end
@@ -201,7 +201,7 @@ local function updateRaces()
     end
 end
 
-MySQL.ready(function ()
+MySQL.ready(function()
     updateRaces()
 end)
 
@@ -209,17 +209,17 @@ local function getAllRacerNames()
     local result = {}
     local query = 'SELECT * FROM racer_names'
     if Config.DontShowRankingsUnderZero then
-        query = query..' WHERE ranking > 0'
+        query = query .. ' WHERE ranking > 0'
     end
     if Config.LimitTopListTo then
-        query = query..' ORDER BY ranking DESC LIMIT '..Config.LimitTopListTo
+        query = query .. ' ORDER BY ranking DESC LIMIT ' .. Config.LimitTopListTo
     end
     result = MySQL.Sync.fetchAll(query)
     return result
 end
 
 local function sortRecordsByTime(Records)
-    table.sort(Records, function (a,b) return a.Time < b.Time end)
+    table.sort(Records, function(a, b) return a.Time < b.Time end)
     return Records
 end
 
@@ -249,8 +249,8 @@ local function racerHasPreviousRecordInClassAndDirection(Records, RacerName, Car
     if Records then
         for i, Record in pairs(Records) do
             if UseDebug then
-               print('Checking previous records:', Record.Holder, Record.Class)
-               print('check', Record.Holder == RacerName, Record.Class == CarClass)
+                print('Checking previous records:', Record.Holder, Record.Class)
+                print('check', Record.Holder == RacerName, Record.Class == CarClass)
             end
             local isReversed = Record.Reversed
             if isReversed == nil then isReversed = false end
@@ -264,12 +264,12 @@ local function racerHasPreviousRecordInClassAndDirection(Records, RacerName, Car
 end
 
 local function getLatestRecordsById(RaceId)
-    local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE raceid = ?', {RaceId})[1]
+    local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE raceid = ?', { RaceId })[1]
     if results.records then
         return json.decode(results.records)
     else
         if UseDebug then
-           print('found no latest')
+            print('found no latest')
         end
         return {}
     end
@@ -290,14 +290,15 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
     if UseDebug then
         local FilteredLeaderboard = {}
         FilteredLeaderboard = filterLeaderboardsByClass(records, CarClass)
-       print('Time for player', PlayerTime, RacerName, CarClass, VehicleModel)
+        print('Time for player', PlayerTime, RacerName, CarClass, VehicleModel)
     end
 
     if PersonalBest and PersonalBest.Time > PlayerTime then
         if UseDebug then
-           print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
+            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
         end
-        TriggerClientEvent('cw-racingapp:client:notify', src, string.format(Lang("new_pb"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
+        TriggerClientEvent('cw-racingapp:client:notify', src,
+            string.format(Lang("new_pb"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         local playerPlacement = {
             Time = PlayerTime,
             Holder = RacerName,
@@ -310,17 +311,17 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         records = sortRecordsByTime(records)
         Tracks[RaceData.RaceId].Records = records
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            {json.encode(records), RaceData.RaceId})
+            { json.encode(records), RaceData.RaceId })
         return true
-
     elseif not PersonalBest then
-        TriggerClientEvent('cw-racingapp:client:notify', src, string.format(Lang("time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
+        TriggerClientEvent('cw-racingapp:client:notify', src,
+            string.format(Lang("time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         if UseDebug then
-           print('had no pb')
+            print('had no pb')
         end
         if UseDebug then
             print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
-         end
+        end
         local playerPlacement = {
             Time = PlayerTime,
             Holder = RacerName,
@@ -333,7 +334,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         records = sortRecordsByTime(records)
         Tracks[RaceData.RaceId].Records = records
         MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            {json.encode(records), RaceData.RaceId})
+            { json.encode(records), RaceData.RaceId })
         return true
     end
 
@@ -345,10 +346,10 @@ local function giveSplit(src, racers, position, pot)
     if (racers == 2 or racers == 1) and position == 1 then
         total = pot
     elseif racers == 3 and (position == 1 or position == 2) then
-        total = Config.Splits['three'][position]*pot
+        total = Config.Splits['three'][position] * pot
         if UseDebug then print('Payout for ', position, total) end
     elseif racers > 3 then
-        total = Config.Splits['more'][position]*pot
+        total = Config.Splits['more'][position] * pot
         if UseDebug then print('Payout for ', position, total) end
     else
         if UseDebug then print('No one got a payout') end
@@ -356,7 +357,8 @@ local function giveSplit(src, racers, position, pot)
     if total > 0 then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, math.floor(total))
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy_crypto").. math.floor(total).. ' '.. Config.Options.cryptoType, 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("participation_trophy_crypto") .. math.floor(total) .. ' ' .. Config.Options.cryptoType, 'success')
         else
             addMoney(src, Config.Options.MoneyType, math.floor(total))
         end
@@ -366,11 +368,16 @@ end
 local function handOutParticipationTrophy(src, position)
     if Config.ParticipationTrophies.amount[position] then
         if Config.ParticipationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType, Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy_crypto")..Config.ParticipationTrophies.amount[position].. ' '.. Config.ParticipationTrophies.cryptoType, 'success')
+            exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType,
+                Config.ParticipationTrophies.amount[position])
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("participation_trophy_crypto") ..
+                Config.ParticipationTrophies.amount[position] .. ' ' .. Config.ParticipationTrophies.cryptoType,
+                'success')
         else
             addMoney(src, Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy")..Config.ParticipationTrophies.amount[position], 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("participation_trophy") .. Config.ParticipationTrophies.amount[position], 'success')
         end
     end
 end
@@ -379,22 +386,23 @@ local function handOutAutomationPayout(src, amount)
     if Config.Options.MoneyType then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amount)
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("extra_payout") ..' '..amount.. ' '.. Config.Options.cryptoType, 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("extra_payout") .. ' ' .. amount .. ' ' .. Config.Options.cryptoType, 'success')
         else
             addMoney(src, Config.Options.MoneyType, amount)
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("extra_payout") ..' '..amount, 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("extra_payout") .. ' ' .. amount, 'success')
         end
     end
 end
 
 local function changeRacerName(src, racerName)
-    local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1].auth
+    local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1].auth
     updateRacingUserMetadata(src, racerName, auth)
 end
 
 local function getRankingForRacer(src, racername)
     if UseDebug then print('Fetching ranking for racer', racername) end
-    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', {racername})
+    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { racername })
     if res and res[1] then
         return res[1].ranking
     end
@@ -402,20 +410,19 @@ local function getRankingForRacer(src, racername)
 end
 
 local function updateRacerNameLastRaced(racerName, Position)
-    local query = 'UPDATE racer_names SET races = races + 1 WHERE racername = "'..racerName..'"'
+    local query = 'UPDATE racer_names SET races = races + 1 WHERE racername = "' .. racerName .. '"'
     if Position == 1 then
-        query = 'UPDATE racer_names SET races = races + 1, wins = wins + 1 WHERE racername = "'..racerName..'"'
+        query = 'UPDATE racer_names SET races = races + 1, wins = wins + 1 WHERE racername = "' .. racerName .. '"'
     end
     MySQL.Async.execute(query)
 end
 
 local function updateRacerElo(source, racerName, eloChange)
-    local sql = "UPDATE racer_names SET ranking = ranking + "..eloChange.. " WHERE racername = '"..racerName.."'"
+    local sql = "UPDATE racer_names SET ranking = ranking + " .. eloChange .. " WHERE racername = '" .. racerName .. "'"
 
     local currentRank = getRankingForRacer(source, racerName)
     MySQL.Async.execute(sql)
-    TriggerClientEvent('cw-racingapp:client:updateRanking', source, eloChange, currentRank+eloChange)
-
+    TriggerClientEvent('cw-racingapp:client:updateRanking', source, eloChange, currentRank + eloChange)
 end
 
 local function handleEloUpdates(results)
@@ -442,195 +449,207 @@ local function handleEloUpdates(results)
     sql = sql .. ")"
     MySQL.Async.execute(sql)
     for i, racer in ipairs(results) do
-        TriggerClientEvent('cw-racingapp:client:updateRanking', racer.RacerSource, racer.TotalChange, racer.Ranking+racer.TotalChange)
+        TriggerClientEvent('cw-racingapp:client:updateRanking', racer.RacerSource, racer.TotalChange,
+            racer.Ranking + racer.TotalChange)
     end
 end
 
-RegisterNetEvent('cw-racingapp:server:FinishPlayer', function(RaceData, TotalTime, TotalLaps, BestLap, CarClass, VehicleModel, Ranking, RacingCrew)
-    local src = source
-    local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
-    local RacerName = RaceData.RacerName
-    local PlayersFinished = 0
-    local AmountOfRacers = 0
-    local Reversed = Tracks[RaceData.RaceId].Reversed
+RegisterNetEvent('cw-racingapp:server:FinishPlayer',
+    function(RaceData, TotalTime, TotalLaps, BestLap, CarClass, VehicleModel, Ranking, RacingCrew)
+        local src = source
+        local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
+        local RacerName = RaceData.RacerName
+        local PlayersFinished = 0
+        local AmountOfRacers = 0
+        local Reversed = Tracks[RaceData.RaceId].Reversed
 
-    RaceResults[RaceData.RaceId].Result[#RaceResults[RaceData.RaceId].Result+1] = { 
-        TotalTime = TotalTime, 
-        BestLap = BestLap, 
-        CarClass = CarClass, 
-        VehicleModel = VehicleModel, 
-        RacerName = RacerName,
-        Ranking = Ranking,
-        RacerSource = src,
-        RacingCrew = RacingCrew
-    }  
-    for k, v in pairs(Tracks[RaceData.RaceId].Racers) do
-        if v.Finished then
-            PlayersFinished = PlayersFinished + 1
-        end
-        AmountOfRacers = AmountOfRacers + 1
-    end
-    if AmountOfRacers > 1 then
-        updateRacerNameLastRaced(RacerName, PlayersFinished)
-    end
-    if UseDebug then
-        print('Total: ', TotalTime)
-        print('Best Lap: ', BestLap)
-        print('Place:', PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
-    end
-    if Tracks[RaceData.RaceId].BuyIn > 0 then
-        giveSplit(src, AmountOfRacers, PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
-    end
-
-    if Config.ParticipationTrophies.enabled and Config.ParticipationTrophies.minimumOfRacers <= AmountOfRacers then
-        if UseDebug then print('Participation Trophies are enabled') end
-        local distance = Tracks[RaceData.RaceId].Distance
-        if TotalLaps > 1 then
-            distance = distance*TotalLaps
-        end
-        if distance > Config.ParticipationTrophies.minumumRaceLength then
-            if not Config.ParticipationTrophies.requireBuyins or (Config.ParticipationTrophies.requireBuyins and Config.ParticipationTrophies.buyInMinimum >= Tracks[RaceData.RaceId].BuyIn) then
-                if UseDebug then print('Participation Trophies buy in check passed', src) end
-                if not Config.ParticipationTrophies.requireRanked or (Config.ParticipationTrophies.requireRanked and AvailableRaces[AvailableKey].Ranked) then
-                    if UseDebug then print('Participation Trophies Rank check passed, handing out to', src) end
-                    handOutParticipationTrophy(src, PlayersFinished)
-                end 
-            end
-        else
-            if UseDebug then print('Race length was to short: ', distance,' Minumum required:', Config.ParticipationTrophies.minumumRaceLength) end
-        end
-    end
-    if UseDebug then print('Race has participation price', Tracks[RaceData.RaceId].ParticipationAmount, Tracks[RaceData.RaceId].ParticipationCurrency ) end
-
-    if Tracks[RaceData.RaceId].ParticipationAmount and Tracks[RaceData.RaceId].ParticipationAmount > 0 then
-        local amountToGive = math.floor(Tracks[RaceData.RaceId].ParticipationAmount)
-        if Config.ParticipationAmounts.positionBonuses[PlayersFinished] then
-            amountToGive = math.floor(amountToGive+ amountToGive*Config.ParticipationAmounts.positionBonuses[PlayersFinished])
-        end
-        if UseDebug then print('Race has participation price set', Tracks[RaceData.RaceId].ParticipationAmount, amountToGive, Tracks[RaceData.RaceId].ParticipationCurrency ) end
-        if Tracks[RaceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy_crypto")..amountToGive.. ' '.. Tracks[RaceData.RaceId].ParticipationCurrency, 'success')
-        else
-           addMoney(src, Tracks[RaceData.RaceId].ParticipationCurrency, amountToGive)
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy")..amountToGive, 'success')
-        end
-    end
-
-    if Tracks[RaceData.RaceId].Automated then
-        if UseDebug then print('Race Was Automated', src) end
-        if Config.AutomatedOptions.payouts then
-            local payoutData = Config.AutomatedOptions.payouts
-            if UseDebug then print('Automation Payouts exist', src) end
-            local total = 0
-            if payoutData.participation then total = total + payoutData.participation end
-            if payoutData.perRacer then 
-                total = total + payoutData.perRacer*AmountOfRacers
-            end
-            if PlayersFinished == 1 and payoutData.winner then 
-                total = total + payoutData.winner
-            end
-            handOutAutomationPayout(src, total)
-        end
-    end
-
-    local BLap = 0
-    if TotalLaps < 2 then
-        if UseDebug then
-            print('Sprint or 1 lap')
-        end
-        BLap = TotalTime
-    else
-        if UseDebug then
-            print('2+ laps')
-        end
-        BLap = BestLap
-    end
-
-    if LastRaces[RaceData.RaceId] ~= nil then
-        LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId]+1] =  {
+        RaceResults[RaceData.RaceId].Result[#RaceResults[RaceData.RaceId].Result + 1] = {
             TotalTime = TotalTime,
-            BestLap = BLap,
-            Holder = RacerName,
-            Reversed = Reversed
+            BestLap = BestLap,
+            CarClass = CarClass,
+            VehicleModel = VehicleModel,
+            RacerName = RacerName,
+            Ranking = Ranking,
+            RacerSource = src,
+            RacingCrew = RacingCrew
         }
-    else
-        LastRaces[RaceData.RaceId] = {}
-        LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId]+1] =  {
-            TotalTime = TotalTime,
-            BestLap = BLap,
-            Holder = RacerName,
-            Reversed = Reversed
-        }
-    end
+        for k, v in pairs(Tracks[RaceData.RaceId].Racers) do
+            if v.Finished then
+                PlayersFinished = PlayersFinished + 1
+            end
+            AmountOfRacers = AmountOfRacers + 1
+        end
+        if AmountOfRacers > 1 then
+            updateRacerNameLastRaced(RacerName, PlayersFinished)
+        end
+        if UseDebug then
+            print('Total: ', TotalTime)
+            print('Best Lap: ', BestLap)
+            print('Place:', PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
+        end
+        if Tracks[RaceData.RaceId].BuyIn > 0 then
+            giveSplit(src, AmountOfRacers, PlayersFinished, Tracks[RaceData.RaceId].BuyIn)
+        end
 
-    if Tracks[RaceData.RaceId].Records ~= nil and next(Tracks[RaceData.RaceId].Records) ~= nil then
-        local RaceType = 'Sprint'
-        if TotalLaps > 0 then RaceType = 'Circuit' end
-        local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel, RaceType, Reversed)
-        if newRecord then
+        if Config.ParticipationTrophies.enabled and Config.ParticipationTrophies.minimumOfRacers <= AmountOfRacers then
+            if UseDebug then print('Participation Trophies are enabled') end
+            local distance = Tracks[RaceData.RaceId].Distance
+            if TotalLaps > 1 then
+                distance = distance * TotalLaps
+            end
+            if distance > Config.ParticipationTrophies.minumumRaceLength then
+                if not Config.ParticipationTrophies.requireBuyins or (Config.ParticipationTrophies.requireBuyins and Config.ParticipationTrophies.buyInMinimum >= Tracks[RaceData.RaceId].BuyIn) then
+                    if UseDebug then print('Participation Trophies buy in check passed', src) end
+                    if not Config.ParticipationTrophies.requireRanked or (Config.ParticipationTrophies.requireRanked and AvailableRaces[AvailableKey].Ranked) then
+                        if UseDebug then print('Participation Trophies Rank check passed, handing out to', src) end
+                        handOutParticipationTrophy(src, PlayersFinished)
+                    end
+                end
+            else
+                if UseDebug then print('Race length was to short: ', distance, ' Minumum required:',
+                        Config.ParticipationTrophies.minumumRaceLength) end
+            end
+        end
+        if UseDebug then print('Race has participation price', Tracks[RaceData.RaceId].ParticipationAmount,
+                Tracks[RaceData.RaceId].ParticipationCurrency) end
+
+        if Tracks[RaceData.RaceId].ParticipationAmount and Tracks[RaceData.RaceId].ParticipationAmount > 0 then
+            local amountToGive = math.floor(Tracks[RaceData.RaceId].ParticipationAmount)
+            if Config.ParticipationAmounts.positionBonuses[PlayersFinished] then
+                amountToGive = math.floor(amountToGive +
+                amountToGive * Config.ParticipationAmounts.positionBonuses[PlayersFinished])
+            end
+            if UseDebug then print('Race has participation price set', Tracks[RaceData.RaceId].ParticipationAmount,
+                    amountToGive, Tracks[RaceData.RaceId].ParticipationCurrency) end
+            if Tracks[RaceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
+                exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
+                TriggerClientEvent('cw-racingapp:client:notify', source,
+                    Lang("participation_trophy_crypto") ..
+                    amountToGive .. ' ' .. Tracks[RaceData.RaceId].ParticipationCurrency, 'success')
+            else
+                addMoney(src, Tracks[RaceData.RaceId].ParticipationCurrency, amountToGive)
+                TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy") .. amountToGive,
+                    'success')
+            end
+        end
+
+        if Tracks[RaceData.RaceId].Automated then
+            if UseDebug then print('Race Was Automated', src) end
+            if Config.AutomatedOptions.payouts then
+                local payoutData = Config.AutomatedOptions.payouts
+                if UseDebug then print('Automation Payouts exist', src) end
+                local total = 0
+                if payoutData.participation then total = total + payoutData.participation end
+                if payoutData.perRacer then
+                    total = total + payoutData.perRacer * AmountOfRacers
+                end
+                if PlayersFinished == 1 and payoutData.winner then
+                    total = total + payoutData.winner
+                end
+                handOutAutomationPayout(src, total)
+            end
+        end
+
+        local BLap = 0
+        if TotalLaps < 2 then
             if UseDebug then
-               print('Player got a record', BLap)
+                print('Sprint or 1 lap')
             end
+            BLap = TotalTime
         else
             if UseDebug then
-               print('Player did not get a record')
+                print('2+ laps')
             end
+            BLap = BestLap
         end
-    else
-        Tracks[RaceData.RaceId].Records = {{
-            Time = BLap,
-            Holder = RacerName,
-            Class = CarClass,
-            Vehicle = VehicleModel
-        }}
-        MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            {json.encode(Tracks[RaceData.RaceId].Records ), RaceData.RaceId})
-            TriggerClientEvent('cw-racingapp:client:notify', src, string.format(Lang("race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
-    end
-    AvailableRaces[AvailableKey].RaceData = Tracks[RaceData.RaceId]
-    for cid, racer in pairs(Tracks[RaceData.RaceId].Racers) do
-        TriggerClientEvent('cw-racingapp:client:PlayerFinish', racer.RacerSource, RaceData.RaceId, PlayersFinished, RacerName)
-        leftRace(racer.RacerSource)
-    end
-    if PlayersFinished == AmountOfRacers then
-        if AmountOfRacers == 1 then
-            if UseDebug then print('^3Only one racer. No ELO change') end
-        else
-            if AvailableRaces[AvailableKey].Ranked then
-                if UseDebug then print('Is ranked. Doing Elo check') end
-                if UseDebug then print('^2 Pre elo', json.encode(RaceResults[RaceData.RaceId].Result)) end
-                local crewResult = {}
-                RaceResults[RaceData.RaceId].Result, crewResult = calculateTrueSkillRatings(RaceResults[RaceData.RaceId].Result)
 
-                if UseDebug then print('^2 Post elo', json.encode(RaceResults[RaceData.RaceId].Result)) end
-                handleEloUpdates(RaceResults[RaceData.RaceId].Result)
-                if #crewResult > 1 then
-                    if UseDebug then print('Enough crews to give ranking') end
-                    handleCrewEloUpdates(crewResult)
+        if LastRaces[RaceData.RaceId] ~= nil then
+            LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId] + 1] = {
+                TotalTime = TotalTime,
+                BestLap = BLap,
+                Holder = RacerName,
+                Reversed = Reversed
+            }
+        else
+            LastRaces[RaceData.RaceId] = {}
+            LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId] + 1] = {
+                TotalTime = TotalTime,
+                BestLap = BLap,
+                Holder = RacerName,
+                Reversed = Reversed
+            }
+        end
+
+        if Tracks[RaceData.RaceId].Records ~= nil and next(Tracks[RaceData.RaceId].Records) ~= nil then
+            local RaceType = 'Sprint'
+            if TotalLaps > 0 then RaceType = 'Circuit' end
+            local newRecord = newRecord(src, RacerName, BLap, RaceData, CarClass, VehicleModel, RaceType, Reversed)
+            if newRecord then
+                if UseDebug then
+                    print('Player got a record', BLap)
+                end
+            else
+                if UseDebug then
+                    print('Player did not get a record')
                 end
             end
+        else
+            Tracks[RaceData.RaceId].Records = { {
+                Time = BLap,
+                Holder = RacerName,
+                Class = CarClass,
+                Vehicle = VehicleModel
+            } }
+            MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
+                { json.encode(Tracks[RaceData.RaceId].Records), RaceData.RaceId })
+            TriggerClientEvent('cw-racingapp:client:notify', src,
+                string.format(Lang("race_record"), RaceData.RaceName, MilliToTime(BLap)), 'success')
         end
-        if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[RaceData.RaceId] ~= nil and
-            next(NotFinished[RaceData.RaceId]) ~= nil then
-            for k, v in pairs(NotFinished[RaceData.RaceId]) do
-                LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId]+1] = {
-                    TotalTime = v.TotalTime,
-                    BestLap = v.BestLap,
-                    Holder = v.Holder
-                }
+        AvailableRaces[AvailableKey].RaceData = Tracks[RaceData.RaceId]
+        for cid, racer in pairs(Tracks[RaceData.RaceId].Racers) do
+            TriggerClientEvent('cw-racingapp:client:PlayerFinish', racer.RacerSource, RaceData.RaceId, PlayersFinished,
+                RacerName)
+            leftRace(racer.RacerSource)
+        end
+        if PlayersFinished == AmountOfRacers then
+            if AmountOfRacers == 1 then
+                if UseDebug then print('^3Only one racer. No ELO change') end
+            else
+                if AvailableRaces[AvailableKey].Ranked then
+                    if UseDebug then print('Is ranked. Doing Elo check') end
+                    if UseDebug then print('^2 Pre elo', json.encode(RaceResults[RaceData.RaceId].Result)) end
+                    local crewResult = {}
+                    RaceResults[RaceData.RaceId].Result, crewResult = calculateTrueSkillRatings(RaceResults
+                    [RaceData.RaceId].Result)
+
+                    if UseDebug then print('^2 Post elo', json.encode(RaceResults[RaceData.RaceId].Result)) end
+                    handleEloUpdates(RaceResults[RaceData.RaceId].Result)
+                    if #crewResult > 1 then
+                        if UseDebug then print('Enough crews to give ranking') end
+                        handleCrewEloUpdates(crewResult)
+                    end
+                end
             end
+            if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[RaceData.RaceId] ~= nil and
+                next(NotFinished[RaceData.RaceId]) ~= nil then
+                for k, v in pairs(NotFinished[RaceData.RaceId]) do
+                    LastRaces[RaceData.RaceId][#LastRaces[RaceData.RaceId] + 1] = {
+                        TotalTime = v.TotalTime,
+                        BestLap = v.BestLap,
+                        Holder = v.Holder
+                    }
+                end
+            end
+            Tracks[RaceData.RaceId].LastLeaderboard = LastRaces[RaceData.RaceId]
+            Tracks[RaceData.RaceId].Racers = {}
+            Tracks[RaceData.RaceId].Started = false
+            Tracks[RaceData.RaceId].Waiting = false
+            table.remove(AvailableRaces, AvailableKey)
+            LastRaces[RaceData.RaceId] = nil
+            NotFinished[RaceData.RaceId] = nil
+            Tracks[RaceData.RaceId].MaxClass = nil
         end
-        Tracks[RaceData.RaceId].LastLeaderboard = LastRaces[RaceData.RaceId]
-        Tracks[RaceData.RaceId].Racers = {}
-        Tracks[RaceData.RaceId].Started = false
-        Tracks[RaceData.RaceId].Waiting = false
-        table.remove(AvailableRaces, AvailableKey)
-        LastRaces[RaceData.RaceId] = nil
-        NotFinished[RaceData.RaceId] = nil
-        Tracks[RaceData.RaceId].MaxClass = nil
-    end
-end)
+    end)
 
 RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerName, Checkpoints)
     local src = source
@@ -649,9 +668,11 @@ end)
 
 local function isToFarAway(src, RaceId, Reversed)
     if Reversed then
-        return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y))
+        return Config.JoinDistance <=
+        #(GetEntityCoords(GetPlayerPed(src)).xy - vec2(Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y))
     else
-        return Config.JoinDistance <= #(GetEntityCoords(GetPlayerPed(src)).xy- vec2(Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y))
+        return Config.JoinDistance <=
+        #(GetEntityCoords(GetPlayerPed(src)).xy - vec2(Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y))
     end
 end
 
@@ -661,13 +682,13 @@ local function hasEnoughMoney(source, cost)
         if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
             return true
         else
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("can_not_afford") .. math.floor(cost) .. ' ' .. Config.Options.cryptoType, 'error')
             return false
         end
     else
         return canPay(source, Config.Options.MoneyType, cost)
     end
-
 end
 
 RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
@@ -691,9 +712,12 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
 
     if isToFarAway(src, RaceId, RaceData.Reversed) then
         if Reversed then
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x, Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y)
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src,
+                Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.x,
+                Tracks[RaceId].Checkpoints[#Tracks[RaceId].Checkpoints].coords.y)
         else
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x, Tracks[RaceId].Checkpoints[1].coords.y)
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[RaceId].Checkpoints[1].coords.x,
+                Tracks[RaceId].Checkpoints[1].coords.y)
         end
         return
     end
@@ -708,7 +732,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             if CurrentRace ~= nil then
                 local AmountOfRacers = 0
                 local PreviousRaceKey = GetOpenedRaceKey(CurrentRace)
-                for _,_ in pairs(Tracks[CurrentRace].Racers) do
+                for _, _ in pairs(Tracks[CurrentRace].Racers) do
                     AmountOfRacers = AmountOfRacers + 1
                 end
                 Tracks[CurrentRace].Racers[citizenId] = nil
@@ -728,7 +752,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             end
 
             local AmountOfRacers = 0
-            for _,_ in pairs(Tracks[RaceId].Racers) do
+            for _, _ in pairs(Tracks[RaceId].Racers) do
                 AmountOfRacers = AmountOfRacers + 1
             end
             if AmountOfRacers == 0 and not Tracks[RaceId].Automated then
@@ -738,7 +762,9 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             if RaceData.BuyIn > 0 then
                 if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
                     exports['qb-phone']:RemoveCrypto(src, Config.Options.cryptoType, math.floor(RaceData.BuyIn))
-                    TriggerClientEvent('cw-racingapp:client:notify', source, Lang("remove_crypto").. math.floor(RaceData.BuyIn).. ' '.. Config.Options.cryptoType, 'success')
+                    TriggerClientEvent('cw-racingapp:client:notify', source,
+                        Lang("remove_crypto") .. math.floor(RaceData.BuyIn) .. ' ' .. Config.Options.cryptoType,
+                        'success')
                 else
                     removeMoney(src, Config.Options.MoneyType, RaceData.BuyIn)
                 end
@@ -758,7 +784,8 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
             AvailableRaces[AvailableKey].RaceData = Tracks[RaceId]
             TriggerClientEvent('cw-racingapp:client:JoinRace', src, Tracks[RaceId], RaceData.Laps, RacerName)
             for cid, racer in pairs(Tracks[RaceId].Racers) do
-                TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId, Tracks[RaceId].Racers)
+                TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, RaceId,
+                    Tracks[RaceId].Racers)
             end
             if not Tracks[RaceId].Automated then
                 local creatorsource = getSrcOfPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
@@ -773,7 +800,7 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
 end)
 
 local function assignNewOrganizer(RaceId, src)
-    for i,v in pairs(Tracks[RaceId].Racers) do
+    for i, v in pairs(Tracks[RaceId].Racers) do
         if i ~= getCitizenId(src) then
             Tracks[RaceId].OrganizerCID = i
             TriggerClientEvent('cw-racingapp:client:notify', v.RacerSource, Lang("new_host"))
@@ -786,10 +813,10 @@ local function assignNewOrganizer(RaceId, src)
 end
 
 RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
-    if UseDebug then 
-        print('Player left race', source) 
-        print('Reason:', reason) 
-        print(json.encode(RaceData, {indent=true}))
+    if UseDebug then
+        print('Player left race', source)
+        print('Reason:', reason)
+        print(json.encode(RaceData, { indent = true }))
     end
     local src = source
     local citizenId = getCitizenId(src)
@@ -801,13 +828,13 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
 
     local RaceId = GetRaceId(RaceName)
     local AvailableKey = GetOpenedRaceKey(RaceData.RaceId)
-    
+
     if not Tracks[RaceData.RaceId].Automated then
         local creator = getSrcOfPlayerByCitizenId(AvailableRaces[AvailableKey].SetupCitizenId)
-    
+
         if creator then
             TriggerClientEvent('cw-racingapp:client:notify', creator, Lang("race_someone_left"))
-        end 
+        end
     end
 
     local AmountOfRacers = 0
@@ -815,14 +842,14 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
         AmountOfRacers = AmountOfRacers + 1
     end
     if NotFinished[RaceData.RaceId] ~= nil then
-        NotFinished[RaceData.RaceId][#NotFinished[RaceData.RaceId]+1] = {
+        NotFinished[RaceData.RaceId][#NotFinished[RaceData.RaceId] + 1] = {
             TotalTime = "DNF",
             BestLap = "DNF",
             Holder = RacerName
         }
     else
         NotFinished[RaceData.RaceId] = {}
-        NotFinished[RaceData.RaceId][#NotFinished[RaceData.RaceId]+1] = {
+        NotFinished[RaceData.RaceId][#NotFinished[RaceData.RaceId] + 1] = {
             TotalTime = "DNF",
             BestLap = "DNF",
             Holder = RacerName
@@ -838,14 +865,14 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
                 nil then
                 for k, v in pairs(NotFinished[RaceId]) do
                     if LastRaces[RaceId] ~= nil then
-                        LastRaces[RaceId][#LastRaces[RaceId]+1] = {
+                        LastRaces[RaceId][#LastRaces[RaceId] + 1] = {
                             TotalTime = v.TotalTime,
                             BestLap = v.BestLap,
                             Holder = v.Holder
                         }
                     else
                         LastRaces[RaceId] = {}
-                        LastRaces[RaceId][#LastRaces[RaceId]+1] = {
+                        LastRaces[RaceId][#LastRaces[RaceId] + 1] = {
                             TotalTime = v.TotalTime,
                             BestLap = v.BestLap,
                             Holder = v.Holder
@@ -872,7 +899,7 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     end
     if RaceData.Ranked and RaceData.Started and RaceData.TotalRacers > 1 and reason then
         if Config.EloPunishments[reason] then
-            updateRacerElo(src, RacerName,  Config.EloPunishments[reason] )
+            updateRacerElo(src, RacerName, Config.EloPunishments[reason])
         end
     end
 end)
@@ -889,7 +916,7 @@ local function createTimeoutThread(RaceId)
                 if Tracks[RaceId].Automated then
                     if UseDebug then print('Track Timed Out. Automated') end
                     local amountOfRacers = getAmountOfRacers(RaceId)
-                    if amountOfRacers > Config.AutomatedOptions.minimumParticipants -1 then
+                    if amountOfRacers > Config.AutomatedOptions.minimumParticipants - 1 then
                         if UseDebug then print('Enough Racers to start automated') end
                         TriggerEvent('cw-racingapp:server:StartRace', RaceId)
                     else
@@ -898,7 +925,8 @@ local function createTimeoutThread(RaceId)
                             for cid, _ in pairs(Tracks[RaceId].Racers) do
                                 local racerSource = getSrcOfPlayerByCitizenId(cid)
                                 if racerSource ~= nil then
-                                    TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
+                                    TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"),
+                                        'error')
                                     TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
                                     leftRace(src)
                                 end
@@ -939,17 +967,20 @@ local function createTimeoutThread(RaceId)
     end)
 end
 
-local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed, ParticipationAmount, ParticipationCurrency, FirstPerson, Automated, src)
-    if UseDebug then 
+local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, GhostingTime, BuyIn, Ranked, Reversed,
+                         ParticipationAmount, ParticipationCurrency, FirstPerson, Automated, src)
+    if UseDebug then
         print('Setting up race', json.encode({
-            RaceId= RaceId, Laps= Laps, RacerName=RacerName, MaxClass = MaxClass, GhostingEnabled=GhostingEnabled, GhostingTime=GhostingTime, BuyIn=BuyIn, Automated=Automated, Ranked=Ranked, ParticipationAmount=ParticipationAmount, ParticipationCurrency=ParticipationCurrency, FirstPerson=FirstPerson
+            RaceId = RaceId, Laps = Laps, RacerName = RacerName, MaxClass = MaxClass, GhostingEnabled = GhostingEnabled, GhostingTime =
+        GhostingTime, BuyIn = BuyIn, Automated = Automated, Ranked = Ranked, ParticipationAmount = ParticipationAmount, ParticipationCurrency =
+        ParticipationCurrency, FirstPerson = FirstPerson
         }))
-    end 
+    end
     if Tracks[RaceId] ~= nil then
-        if not Tracks[RaceId].Waiting then            
+        if not Tracks[RaceId].Waiting then
             if not Tracks[RaceId].Started then
                 local setupId = 0
-                if src then 
+                if src then
                     setupId = getCitizenId(src)
                 end
 
@@ -980,15 +1011,16 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                     ParticipationAmount = ParticipationAmount,
                     ParticipationCurrency = ParticipationCurrency,
                     FirstPerson = FirstPerson,
-                    ExpirationTime = os.date("%c", os.time()+60*Config.TimeOutTimerInMinutes),
+                    ExpirationTime = os.date("%c", os.time() + 60 * Config.TimeOutTimerInMinutes),
                 }
-                AvailableRaces[#AvailableRaces+1] = allRaceData
+                AvailableRaces[#AvailableRaces + 1] = allRaceData
                 if not Automated then
-                    TriggerClientEvent('cw-racingapp:client:notify', src,  Lang("race_created"), 'success')
+                    TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_created"), 'success')
                     TriggerClientEvent('cw-racingapp:client:ReadyJoinRace', src, allRaceData)
                 end
-                RaceResults[RaceId] = { Data = allRaceData, Result = {}}
-                if Config.NotifyRacers then TriggerClientEvent('cw-racingapp:client:notifyRacers', -1, 'New Race Available') end
+                RaceResults[RaceId] = { Data = allRaceData, Result = {} }
+                if Config.NotifyRacers then TriggerClientEvent('cw-racingapp:client:notifyRacers', -1,
+                        'New Race Available') end
                 createTimeoutThread(RaceId)
                 return true
             else
@@ -1003,23 +1035,27 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_doesnt_exist"), 'error')
         return false
     end
-
 end
 
 RegisterServerCallback('cw-racingapp:server:SetupRace', function(source, setupData)
     local src = source
     if isToFarAway(src, setupData.trackId, setupData.reversed) then
         if setupData.reversed then
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.x, Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.y)
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src,
+                Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.x,
+                Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.y)
         else
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[setupData.trackId].Checkpoints[1].coords.x, Tracks[setupData.trackId].Checkpoints[1].coords.y)
+            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src,
+                Tracks[setupData.trackId].Checkpoints[1].coords.x, Tracks[setupData.trackId].Checkpoints[1].coords.y)
         end
         return false
     end
     if (setupData.buyIn > 0 and not hasEnoughMoney(src, setupData.buyIn)) then
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_enough_money"))
     else
-        return setupRace(setupData.trackId, setupData.laps, setupData.hostName, setupData.maxClass, setupData.ghostingOn, setupData.ghostingTime, setupData.buyIn, setupData.ranked, setupData.reversed, setupData.participationMoney, setupData.participationCurrency, setupData.firstPerson, false, src)
+        return setupRace(setupData.trackId, setupData.laps, setupData.hostName, setupData.maxClass, setupData.ghostingOn,
+            setupData.ghostingTime, setupData.buyIn, setupData.ranked, setupData.reversed, setupData.participationMoney,
+            setupData.participationCurrency, setupData.firstPerson, false, src)
     end
 end)
 
@@ -1029,10 +1065,10 @@ local function GenerateAutomatedRace()
     local race = Config.AutomatedRaces[math.random(1, #Config.AutomatedRaces)]
     if race == nil or race.trackId == nil then
         if UseDebug then print('Race Id for generated track was nil, your Config might be incorrect') end
-        return  
+        return
     end
     if Tracks[race.trackId] == nil then
-        if UseDebug then print('ID'.. race.trackId..' does not exist in tracks list') end
+        if UseDebug then print('ID' .. race.trackId .. ' does not exist in tracks list') end
         return
     end
     if Tracks[race.trackId].Waiting then
@@ -1050,12 +1086,16 @@ local function GenerateAutomatedRace()
         if UseDebug then print('Automation: rank was not set. defaulting to reversed = false') end
         reversed = false
     end
-    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race.buyIn, ranked, reversed, race.participationMoney, race.participationCurrency, race.firstPerson, true, nil)
+    setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race
+    .buyIn, ranked, reversed, race.participationMoney, race.participationCurrency, race.firstPerson, true, nil)
 end
 
-if Config.AutomatedOptions and Config.AutomatedRaces then 
+if Config.AutomatedOptions and Config.AutomatedRaces then
     CreateThread(function()
-        if #Config.AutomatedRaces == 0 then if UseDebug then print('^3No automated races in list') end return end
+        if #Config.AutomatedRaces == 0 then
+            if UseDebug then print('^3No automated races in list') end
+            return
+        end
         while true do
             if not UseDebug then Wait(Config.AutomatedOptions.timeBetweenRaces) else Wait(1000) end
             GenerateAutomatedRace()
@@ -1071,33 +1111,35 @@ end)
 
 local function timer(raceId)
     local NumStartedAtTimerCreation = Tracks[raceId].NumStarted
-    if UseDebug then print('============== Creating timer for '..raceId..' with numstarted: '..NumStartedAtTimerCreation.. ' ==============') end
+    if UseDebug then print('============== Creating timer for ' ..
+        raceId .. ' with numstarted: ' .. NumStartedAtTimerCreation .. ' ==============') end
     SetTimeout(Config.RaceResetTimer, function()
-        if UseDebug then print('============== Checking timer for '..raceId..' ==============') end
-        if NumStartedAtTimerCreation ~= Tracks[raceId].NumStarted then 
-            if UseDebug then print('============== A new race has been created on this track. Canceling '..raceId..' ==============') end
+        if UseDebug then print('============== Checking timer for ' .. raceId .. ' ==============') end
+        if NumStartedAtTimerCreation ~= Tracks[raceId].NumStarted then
+            if UseDebug then print('============== A new race has been created on this track. Canceling ' ..
+                raceId .. ' ==============') end
             return
         end
         if next(Tracks[raceId].Racers) == nil then
-            if UseDebug then print('Race is finished. Canceling timer '..raceId..'') end
+            if UseDebug then print('Race is finished. Canceling timer ' .. raceId .. '') end
             return
         end
         if math.abs(GetGameTimer() - Timers[raceId]) < Config.RaceResetTimer then
             Timers[raceId] = GetGameTimer()
             timer(raceId)
         else
-            if UseDebug then print('Cleaning up race '..raceId) end
+            if UseDebug then print('Cleaning up race ' .. raceId) end
             if NotFinished ~= nil and next(NotFinished) ~= nil and NotFinished[raceId] ~= nil and next(NotFinished[raceId]) ~= nil then
                 for k, v in pairs(NotFinished[raceId]) do
                     if LastRaces[raceId] ~= nil then
-                        LastRaces[raceId][#LastRaces[raceId]+1] = {
+                        LastRaces[raceId][#LastRaces[raceId] + 1] = {
                             TotalTime = v.TotalTime,
                             BestLap = v.BestLap,
                             Holder = v.Holder
                         }
                     else
                         LastRaces[raceId] = {}
-                        LastRaces[raceId][#LastRaces[raceId]+1] = {
+                        LastRaces[raceId][#LastRaces[raceId] + 1] = {
                             TotalTime = v.TotalTime,
                             BestLap = v.BestLap,
                             Holder = v.Holder
@@ -1105,8 +1147,8 @@ local function timer(raceId)
                     end
                 end
             end
-            for i,racer in pairs(Tracks[raceId].Racers) do
-                TriggerClientEvent('cw-racingapp:client:LeaveRace', racer.RacerSource, Tracks[raceId] )
+            for i, racer in pairs(Tracks[raceId].Racers) do
+                TriggerClientEvent('cw-racingapp:client:LeaveRace', racer.RacerSource, Tracks[raceId])
                 leftRace(racer.RacerSource)
             end
             Tracks[raceId].LastLeaderboard = LastRaces[raceId]
@@ -1144,8 +1186,9 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Tracks[RaceId].Racers[citizenId].Finished = Finished
         Tracks[RaceId].Racers[citizenId].RaceTime = RaceTime
 
-        Tracks[RaceId].Racers[citizenId].CheckpointTimes[#Tracks[RaceId].Racers[citizenId].CheckpointTimes+1] = { lap = Lap, checkpoint = Checkpoint, time = RaceTime }
-        
+        Tracks[RaceId].Racers[citizenId].CheckpointTimes[#Tracks[RaceId].Racers[citizenId].CheckpointTimes + 1] = { lap =
+        Lap, checkpoint = Checkpoint, time = RaceTime }
+
         for cid, racer in pairs(Tracks[RaceId].Racers) do
             TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
         end
@@ -1207,7 +1250,8 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
 
     if RaceData.IsEdit then
         print('Saving over previous track', RaceData.RaceId)
-        MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?', { json.encode(Checkpoints), RaceData.RaceId})
+        MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?',
+            { json.encode(Checkpoints), RaceData.RaceId })
         Tracks[RaceId].Checkpoints = Checkpoints
     else
         Tracks[RaceId] = {
@@ -1225,23 +1269,25 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(RaceData)
             LastLeaderboard = {},
             NumStarted = 0,
         }
-        MySQL.Async.insert('INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            {RaceData.RaceName, json.encode(Checkpoints), citizenId, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0, '{}'})
+        MySQL.Async.insert(
+            'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            { RaceData.RaceName, json.encode(Checkpoints), citizenId, RaceData.RacerName, RaceData.RaceDistance, RaceId, 0,
+                '{}' })
     end
 end)
 
 RegisterNetEvent('cw-racingapp:server:DeleteTrack', function(RaceId)
     print('DELETING ', RaceId)
     Tracks[RaceId] = nil
-    local result = MySQL.Sync.fetchAll('SELECT creatorname FROM race_tracks WHERE raceid = ?', {RaceId})[1]
-    MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', {RaceId} )
+    local result = MySQL.Sync.fetchAll('SELECT creatorname FROM race_tracks WHERE raceid = ?', { RaceId })[1]
+    MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', { RaceId })
 end)
 
 RegisterNetEvent('cw-racingapp:server:ClearLeaderboard', function(RaceId)
     print('CLEARING LEADERBOARD ', RaceId)
     Tracks[RaceId].Records = nil
     MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?',
-    {RaceId})
+        { RaceId })
 end)
 
 RegisterServerCallback('cw-racingapp:server:GetRaceResults', function(source)
@@ -1265,16 +1311,16 @@ function MilliToTime(milli)
     local seconds = math.floor((milli / 1000) % 60);
     local minutes = math.floor((milli / (60 * 1000)) % 60);
     if minutes < 10 then
-        minutes = "0"..tostring(minutes);
+        minutes = "0" .. tostring(minutes);
     else
         minutes = tostring(minutes)
     end
     if seconds < 10 then
-        seconds = "0"..tostring(seconds);
+        seconds = "0" .. tostring(seconds);
     else
         seconds = tostring(seconds)
     end
-    return minutes..":"..seconds.."."..milliseconds;
+    return minutes .. ":" .. seconds .. "." .. milliseconds;
 end
 
 function IsPermissioned(src, type)
@@ -1348,7 +1394,9 @@ end
 
 function openRacingApp(source)
     TriggerClientEvent('cw-racingapp:client:openUi', source, getRacerData(source))
-end exports('openRacingApp', openRacingApp)
+end
+
+exports('openRacingApp', openRacingApp)
 
 RegisterServerCallback('cw-racingapp:server:GetRaces', function(source)
     return AvailableRaces
@@ -1363,7 +1411,7 @@ RegisterServerCallback('cw-racingapp:server:GetTrackData', function(source, race
 end)
 
 RegisterServerCallback('cw-racingapp:server:GetAccess', function(source, raceId)
-    local res = MySQL.Sync.fetchAll('SELECT access FROM race_tracks WHERE raceid = ?', {raceId})
+    local res = MySQL.Sync.fetchAll('SELECT access FROM race_tracks WHERE raceid = ?', { raceId })
     if res then
         if res[1] then
             return json.decode(res[1].access)
@@ -1379,7 +1427,7 @@ RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
         print('source ', src, 'has updated access for', raceId)
         print(json.encode(access))
     end
-    local res = MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', {json.encode(access), raceId})
+    local res = MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', { json.encode(access), raceId })
     if res then
         if res == 1 then
             TriggerClientEvent('cw-racingapp:client:notify', src, Lang("access_updated"), "success")
@@ -1394,7 +1442,7 @@ end)
 
 
 local function nameIsValid(racerName, citizenId)
-    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1]
+    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1]
     if result then
         if result.citizenid == citizenId then
             return true
@@ -1406,23 +1454,23 @@ local function nameIsValid(racerName, citizenId)
 end
 
 local function addRacerName(citizenId, racerName, targetSource, auth, creatorCitizenId)
-    if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', {racerName, citizenId})[1] then
+    if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', { racerName, citizenId })[1] then
         MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
-        {citizenId, racerName, auth, creatorCitizenId})
+            { citizenId, racerName, auth, creatorCitizenId })
     end
     TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(targetSource))
 end
 
 RegisterServerCallback('cw-racingapp:server:GetAmountOfTracks', function(source, citizenid)
     if Config.UseNameValidation then
-        local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorid = ?', {citizenid})
+        local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorid = ?', { citizenid })
         return #tracks
     else
         return 0
     end
 end)
 
-RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source,  racerName, serverId)
+RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source, racerName, serverId)
     if Config.UseNameValidation then
         local citizenId = getCitizenId(serverId)
         if nameIsValid(racerName, citizenId) then
@@ -1443,21 +1491,20 @@ local function racerNameExists(currentName, racerNames)
     else
         return true -- if no name selected then ignore
     end
-    return false -- if we dont find a name we return false
+    return false    -- if we dont find a name we return false
 end
 
 RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source)
-    
     if UseDebug then print('Getting racer names for serverid', source) end
-    
+
     local citizenId = getCitizenId(source)
     if UseDebug then print('Racer citizenid', citizenId) end
-    
-    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', {citizenId})
+
+    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { citizenId })
     if UseDebug then print('Racer Names found:', json.encode(result)) end
-    
+
     local currentRacerName = getRacerData(source).name
-    
+
     if not racerNameExists(currentRacerName, result) then
         if UseDebug then print('Racer name in use does no longer exist') end
         updateRacingUserMetadata(source, nil, nil)
@@ -1467,11 +1514,12 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
 end)
 
 RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, trackId, curated)
-    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', {curated, trackId})
+    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', { curated, trackId })
     local status = 'curated'
     if curated == 0 then status = 'NOT curated' end
     if res == 1 then
-        TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track '..trackId..' as '..status, 'success')
+        TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track ' .. trackId .. ' as ' .. status,
+            'success')
         Tracks[trackId].Curated = curated
         return true
     else
@@ -1486,34 +1534,39 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
         print('citizenid', citizenid)
         print('racerName', racerName)
         print('type', type)
-        print('purchaseType', json.encode(purchaseType, {indent=true}))
+        print('purchaseType', json.encode(purchaseType, { indent = true }))
     end
 
     local cost = 1000
     if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
         cost = purchaseType.racingUserCosts[type]
     else
-        TriggerClientEvent('cw-racingapp:client:notify', source, 'The user type you entered does not exist, defaulting to $1000', 'error' )
+        TriggerClientEvent('cw-racingapp:client:notify', source,
+            'The user type you entered does not exist, defaulting to $1000', 'error')
     end
 
     if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
         if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
             exports['qb-phone']:RemoveCrypto(source, Config.Options.cryptoType, math.floor(cost))
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("remove_crypto").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("remove_crypto") .. math.floor(cost) .. ' ' .. Config.Options.cryptoType, 'success')
         else
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford").. math.floor(cost).. ' '.. Config.Options.cryptoType, 'error')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                Lang("can_not_afford") .. math.floor(cost) .. ' ' .. Config.Options.cryptoType, 'error')
             return
         end
     else
         if not removeMoney(source, purchaseType.moneyType, cost) then
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford")..' $'.. math.floor(cost), 'error')
+            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford") .. ' $' .. math.floor(cost),
+                'error')
             return
         end
     end
     if Config.UseRenewedBanking and purchaseType.profiteer and cost > 0 then
         local profit = math.floor(cost * purchaseType.profiteer.cut)
         exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, profit)
-        exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: "..type,  "Unknown", 'RacingApp' , "deposit")
+        exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: " .. type,
+            "Unknown", 'RacingApp', "deposit")
     end
     local creatorCitizenId = 'unknown'
     if getCitizenId(source) then creatorCitizenId = getCitizenId(source) end
@@ -1522,11 +1575,11 @@ end
 
 local function getRacersCreatedByUser(src, citizenid, type)
     if Config.Permissions[type] and Config.Permissions[type].controlAll then
-       if UseDebug then  print('Fetching racers for a god') end
+        if UseDebug then print('Fetching racers for a god') end
         return MySQL.Sync.fetchAll('SELECT * FROM racer_names')
     end
-    if UseDebug then  print('Fetching racers for a master') end
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE createdby = ?', {citizenid})
+    if UseDebug then print('Fetching racers for a master') end
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE createdby = ?', { citizenid })
 end
 
 RegisterServerCallback('cw-racingapp:server:GetRacersCreatedByUser', function(source, citizenid, type)
@@ -1537,13 +1590,13 @@ RegisterServerCallback('cw-racingapp:server:GetRacersCreatedByUser', function(so
 end)
 
 RegisterServerCallback('cw-racingapp:server:ChangeRacerName', function(source, racerNameInUse)
-    if UseDebug then print('Changing Racer Name for src',source,' to name', racerNameInUse) end
+    if UseDebug then print('Changing Racer Name for src', source, ' to name', racerNameInUse) end
     changeRacerName(source, racerNameInUse)
-    
+
     local racerData = getRacerData(source)
     local racerName = racerData.name
     local racerAuth = racerData.auth
-    if UseDebug then print('New names', racerName, racerAuth ) end
+    if UseDebug then print('New names', racerName, racerAuth) end
 
     local ranking = getRankingForRacer(source, racerNameInUse)
     if UseDebug then print('Ranking:', json.encode(ranking)) end
@@ -1554,9 +1607,9 @@ RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
     if UseDebug then print('removing racer with name', racername) end
     if UseDebug then print('removed by source', source, getCitizenId(source)) end
 
-    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racername})[1]
+    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racername })[1]
 
-    MySQL.query('DELETE FROM racer_names WHERE racername = ?', {racername} )
+    MySQL.query('DELETE FROM racer_names WHERE racername = ?', { racername })
     Wait(1000)
     local playerSource = getSrcOfPlayerByCitizenId(res.citizenid)
     if playerSource ~= nil then
@@ -1569,12 +1622,12 @@ RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
 end)
 
 local function setRevokedRacerName(src, racerName, revoked)
-    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', {racerName})[1]
+    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1]
     if res then
-        MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), racerName})
+        MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), racerName })
         local readableRevoked = 'revoked'
         if revoked == 0 then readableRevoked = 'active' end
-        TriggerClientEvent('cw-racingapp:client:notify', src, 'User is now set to '..readableRevoked, 'success')
+        TriggerClientEvent('cw-racingapp:client:notify', src, 'User is now set to ' .. readableRevoked, 'success')
         if UseDebug then print('Revoking for citizenid', res.citizenid) end
         local playerSource = getSrcOfPlayerByCitizenId(res.citizenid)
         if playerSource ~= nil then
@@ -1594,10 +1647,12 @@ RegisterNetEvent('cw-racingapp:server:SetRevokedRacenameStatus', function(racern
 end)
 
 RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racerName, type, purchaseType)
-    if UseDebug then print(
-        'Creating a user',
-        json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType})
-    ) end
+    if UseDebug then
+        print(
+            'Creating a user',
+            json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType })
+        )
+    end
     local citizenId = getCitizenId(tonumber(playerId))
     if citizenId then
         createRacingName(source, citizenId, racerName, type, purchaseType, playerId)
@@ -1606,20 +1661,21 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
     end
 end)
 
-registerCommand('createracinguser',"Create a racing user", { 
-    {name='type', help='racer/creator/master/god'},
-    {name='identifier', help='Server ID'},
-    {name='Racer Name', help='Racer name. Put in quotations if multiple words'}
+registerCommand('createracinguser', "Create a racing user", {
+    { name = 'type',     help = 'racer/creator/master/god' },
+    { name = 'identifier', help = 'Server ID' },
+    { name = 'Racer Name', help = 'Racer name. Put in quotations if multiple words' }
 }, true, function(source, args)
     local type = args[1]
     local id = tonumber(args[2])
     print(
         '^4Creating a user with input^0',
-            json.encode({ playerId = args[2], racerName = args[3], type = args[1]})
-        ) 
+        json.encode({ playerId = args[2], racerName = args[3], type = args[1] })
+    )
     if args[4] then
         print('^1Too many args!')
-        TriggerClientEvent('cw-racingapp:client:notify', source, "Too many arguments. You probably did not read the command input suggestions.", "error")
+        TriggerClientEvent('cw-racingapp:client:notify', source,
+            "Too many arguments. You probably did not read the command input suggestions.", "error")
         return
     end
 
@@ -1665,10 +1721,11 @@ registerCommand('createracinguser',"Create a racing user", {
     createRacingName(source, citizenid, name, type:lower(), tradeType, id)
 end, 'dev')
 
-registerCommand('remracename', 'Remove Racing Name From Database', { {name='name', help='Racer name. Put in quotations if multiple words'} }, true, function(source, args)
+registerCommand('remracename', 'Remove Racing Name From Database',
+    { { name = 'name', help = 'Racer name. Put in quotations if multiple words' } }, true, function(source, args)
     local name = args[1]
     print('name of racer to delete:', name)
-    MySQL.query('DELETE FROM racer_names WHERE racername = ?', {name} )
+    MySQL.query('DELETE FROM racer_names WHERE racername = ?', { name })
 end, 'dev')
 
 local function dropRacetrackTable()
@@ -1679,16 +1736,18 @@ registerCommand('removeallracetracks', 'Remove the race_tracks table', {}, true,
     dropRacetrackTable()
 end, 'admin')
 
-registerCommand('racingappcurated', 'Mark/Unmark track as curated', { {name='trackid', help='Track ID (not name). Use quotation marks!!!'}, {name='curated', help='true/false'}  }, true, function(source, args)
+registerCommand('racingappcurated', 'Mark/Unmark track as curated',
+    { { name = 'trackid', help = 'Track ID (not name). Use quotation marks!!!' }, { name = 'curated', help = 'true/false' } },
+    true, function(source, args)
     print('Curating track: ', args[1], args[2])
     local curated = 0
     if args[2] == 'true' then
         curated = 1
     end
-    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', {curated, args[1]})
+    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', { curated, args[1] })
     if res == 1 then
         Tracks[args[1]].Curated = curated
-        TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track curated as '..args[2])
+        TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track curated as ' .. args[2])
     else
         TriggerClientEvent('cw-racingapp:client:notify', source, 'Your input seems to be lacking...')
     end
@@ -1697,5 +1756,5 @@ end, 'admin')
 registerCommand('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
     UseDebug = not UseDebug
     print('debug is now:', UseDebug)
-    TriggerClientEvent('cw-racingapp:client:toggleDebug',source, UseDebug)
+    TriggerClientEvent('cw-racingapp:client:toggleDebug', source, UseDebug)
 end, 'admin')

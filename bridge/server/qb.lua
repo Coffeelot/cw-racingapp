@@ -21,7 +21,7 @@ end
 -- Checks that user can pay
 function canPay(src, moneyType, cost)
     local Player = QBCore.Functions.GetPlayer(src)
-    return Player.PlayerData.money[moneyType] >= cost 
+    return Player.PlayerData.money[moneyType] >= cost
 end
 
 -- Updates Metadata

@@ -48,8 +48,8 @@ local CurrentRaceData = {
     Ghosted = false,
 }
 
-RegisterNetEvent('cw-racingapp:client:notify', function(message,type)
-    notify(message,type)
+RegisterNetEvent('cw-racingapp:client:notify', function(message, type)
+    notify(message, type)
 end)
 
 local Classes = exports['cw-performance']:getPerformanceClasses()
@@ -75,7 +75,7 @@ end
 local function getSizeOfTable(table)
     local count = 0
     if table then
-        for i, item in pairs(table) do
+        for _, _ in pairs(table) do
             count = count + 1
         end
     end
@@ -138,11 +138,10 @@ local function createPile(offset, model)
         SetEntityCollision(Obj, false, true)
         SetEntityCanBeDamaged(Obj, false)
         SetEntityInvincible(Obj, true)
-    
-        return Obj
-    end        
-end
 
+        return Obj
+    end
+end
 
 local ghostLoopStart = 0
 
@@ -153,7 +152,7 @@ local function actuallyValidateTime(Timer)
     else
         if GetTimeDifference(GetGameTimer(), ghostLoopStart) < Timer then
             if UseDebug then
-               print('Timer has NOT been reached', GetTimeDifference(GetGameTimer(), ghostLoopStart) )
+                print('Timer has NOT been reached', GetTimeDifference(GetGameTimer(), ghostLoopStart))
             end
             return true
         end
@@ -166,7 +165,8 @@ local function validateTime()
     if CurrentRaceData.Ghosting and CurrentRaceData.GhostingTime then
         return actuallyValidateTime(CurrentRaceData.GhostingTime)
     else
-        debugLog('Ghosting | Defaulting time validation. Ghosting:', CurrentRaceData.Ghosting, 'Ghosting Time:', CurrentRaceData.GhostingTime )
+        debugLog('Ghosting | Defaulting time validation. Ghosting:', CurrentRaceData.Ghosting, 'Ghosting Time:',
+            CurrentRaceData.GhostingTime)
         return actuallyValidateTime(0)
     end
 end
@@ -185,7 +185,7 @@ local function ghostThread()
                     if playerServerId ~= otherPlayer.RacerSource then
                         local otherPed = GetPlayerPed(GetPlayerFromServerId(otherPlayer.RacerSource))
                         local otherVehicle = GetVehiclePedIsIn(otherPed, false)
-                        
+
                         if DoesEntityExist(otherVehicle) then
                             if playerVehicle and otherVehicle then
                                 SetEntityNoCollisionEntity(playerVehicle, otherVehicle, true)
@@ -213,7 +213,7 @@ end
 local function CreateGhostLoop()
     ghostLoopStart = GetGameTimer()
     if UseDebug then
-       print('^3 Starting ghost loop. All player:', json.encode(CurrentRaceData.Racers, {indent=true}))
+        print('^3 Starting ghost loop. All player:', json.encode(CurrentRaceData.Racers, { indent = true }))
     end
     CurrentRaceData.Ghosted = true
     ghostThread()
@@ -237,15 +237,15 @@ local function isFinishOrStart(CurrentRaceData, checkpoint)
     if CurrentRaceData.TotalLaps == 0 then
         if checkpoint == 1 or checkpoint == #CurrentRaceData.Checkpoints then
             return true
-        else 
+        else
             return false
         end
     else
         if checkpoint == 1 then
             return true
-        else 
+        else
             return false
-        end  
+        end
     end
 end
 
@@ -257,15 +257,14 @@ local function addPointToGpsRoute(cx, cy, offset)
         y = (y + offset.right.y) / 2;
     end
     if IgnoreRoadsForGps then
-        AddPointToGpsCustomRoute(x,y)
+        AddPointToGpsCustomRoute(x, y)
     else
-        AddPointToGpsMultiRoute(x,y)
+        AddPointToGpsMultiRoute(x, y)
     end
-        
 end
 
-local function getIndex (Positions)
-    for k,v in pairs(Positions) do
+local function getIndex(Positions)
+    for k, v in pairs(Positions) do
         if v.RacerName == CurrentRaceData.RacerName then return k end
     end
 end
@@ -291,7 +290,6 @@ local function deleteAllCheckpoints()
             local Blip = CurrentCheckpoint.blip
             if Blip then
                 RemoveBlip(Blip)
-                Blip = nil
             end
         end
     end
@@ -317,7 +315,6 @@ local function deleteAllCheckpoints()
             local Blip = CurrentCheckpoint.blip
             if Blip then
                 RemoveBlip(Blip)
-                Blip = nil
             end
         end
     end
@@ -347,18 +344,23 @@ local function doGPSForRace(started)
         StartGpsMultiRoute(12, started, false)
     else
         ClearGpsMultiRoute()
-        StartGpsMultiRoute(12, started , false)
+        StartGpsMultiRoute(12, started, false)
     end
     if started and CurrentRaceData.TotalLaps > 0 then
-        for k=1, #CurrentRaceData.Checkpoints, 1 do
-            addPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, CurrentRaceData.Checkpoints[k].offset)
+        for k = 1, #CurrentRaceData.Checkpoints, 1 do
+            addPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x, CurrentRaceData.Checkpoints[k].coords.y,
+                CurrentRaceData.Checkpoints[k].offset)
             if started then
-                if isFinishOrStart(CurrentRaceData,k) then
-                    CurrentRaceData.Checkpoints[k].pileleft = createPile(CurrentRaceData.Checkpoints[k].offset.left, StartAndFinishModel)
-                    CurrentRaceData.Checkpoints[k].pileright = createPile(CurrentRaceData.Checkpoints[k].offset.right, StartAndFinishModel)
+                if isFinishOrStart(CurrentRaceData, k) then
+                    CurrentRaceData.Checkpoints[k].pileleft = createPile(CurrentRaceData.Checkpoints[k].offset.left,
+                        StartAndFinishModel)
+                    CurrentRaceData.Checkpoints[k].pileright = createPile(CurrentRaceData.Checkpoints[k].offset.right,
+                        StartAndFinishModel)
                 else
-                    CurrentRaceData.Checkpoints[k].pileleft = createPile(CurrentRaceData.Checkpoints[k].offset.left, CheckpointPileModel)
-                    CurrentRaceData.Checkpoints[k].pileright = createPile(CurrentRaceData.Checkpoints[k].offset.right, CheckpointPileModel)
+                    CurrentRaceData.Checkpoints[k].pileleft = createPile(CurrentRaceData.Checkpoints[k].offset.left,
+                        CheckpointPileModel)
+                    CurrentRaceData.Checkpoints[k].pileright = createPile(CurrentRaceData.Checkpoints[k].offset.right,
+                        CheckpointPileModel)
                 end
                 if k > 1 then
                     CurrentRaceData.Checkpoints[k].blip = createCheckpointBlip(CurrentRaceData.Checkpoints[k].coords, k)
@@ -366,15 +368,18 @@ local function doGPSForRace(started)
             end
         end
         if not IgnoreRoadsForGps then
-            addPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
+            addPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x, CurrentRaceData.Checkpoints[1].coords.y,
+                CurrentRaceData.Checkpoints[1].offset)
         end
-        CurrentRaceData.Checkpoints[1].blip = createCheckpointBlip(CurrentRaceData.Checkpoints[1].coords, #CurrentRaceData.Checkpoints+1)
+        CurrentRaceData.Checkpoints[1].blip = createCheckpointBlip(CurrentRaceData.Checkpoints[1].coords,
+            #CurrentRaceData.Checkpoints + 1)
     else
         -- First Lap setup
         for k, v in pairs(CurrentRaceData.Checkpoints) do
-            addPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x,CurrentRaceData.Checkpoints[k].coords.y, v.offset)
+            addPointToGpsRoute(CurrentRaceData.Checkpoints[k].coords.x, CurrentRaceData.Checkpoints[k].coords.y, v
+            .offset)
             if started then
-                if isFinishOrStart(CurrentRaceData,k) then
+                if isFinishOrStart(CurrentRaceData, k) then
                     CurrentRaceData.Checkpoints[k].pileleft = createPile(v.offset.left, StartAndFinishModel)
                     CurrentRaceData.Checkpoints[k].pileright = createPile(v.offset.right, StartAndFinishModel)
                 else
@@ -385,7 +390,8 @@ local function doGPSForRace(started)
             CurrentRaceData.Checkpoints[k].blip = createCheckpointBlip(v.coords, k)
         end
         if not IgnoreRoadsForGps and CurrentRaceData.TotalLaps > 0 then
-            addPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y,  CurrentRaceData.Checkpoints[1].offset)
+            addPointToGpsRoute(CurrentRaceData.Checkpoints[1].coords.x, CurrentRaceData.Checkpoints[1].coords.y,
+                CurrentRaceData.Checkpoints[1].offset)
         end
     end
     if IgnoreRoadsForGps then
@@ -442,7 +448,6 @@ local function deleteCreatorCheckpoints()
         local Blip = CurrentCheckpoint.blip
         if Blip then
             RemoveBlip(Blip)
-            Blip = nil
         end
 
         if CurrentCheckpoint then
@@ -481,7 +486,7 @@ local function saveRace()
     for k, v in pairs(CreatorData.Checkpoints) do
         if k + 1 <= #CreatorData.Checkpoints then
             local checkpointdistance = #(vector3(v.coords.x, v.coords.y, v.coords.z) -
-                                           vector3(CreatorData.Checkpoints[k + 1].coords.x,
+                vector3(CreatorData.Checkpoints[k + 1].coords.x,
                     CreatorData.Checkpoints[k + 1].coords.y, CreatorData.Checkpoints[k + 1].coords.z))
             RaceDistance = RaceDistance + checkpointdistance
         end
@@ -510,16 +515,16 @@ local function getClosestCheckpoint()
     for id, _ in ipairs(CreatorData.Checkpoints) do
         if current ~= nil then
             if #(pos -
-                vector3(CreatorData.Checkpoints[id].coords.x, CreatorData.Checkpoints[id].coords.y,
-                    CreatorData.Checkpoints[id].coords.z)) < dist then
+                    vector3(CreatorData.Checkpoints[id].coords.x, CreatorData.Checkpoints[id].coords.y,
+                        CreatorData.Checkpoints[id].coords.z)) < dist then
                 current = id
                 dist = #(pos -
-                           vector3(CreatorData.Checkpoints[id].coords.x, CreatorData.Checkpoints[id].coords.y,
+                    vector3(CreatorData.Checkpoints[id].coords.x, CreatorData.Checkpoints[id].coords.y,
                         CreatorData.Checkpoints[id].coords.z))
             end
         else
             dist = #(pos -
-                       vector3(CreatorData.Checkpoints[id].coords.x, CreatorData.Checkpoints[id].coords.y,
+                vector3(CreatorData.Checkpoints[id].coords.x, CreatorData.Checkpoints[id].coords.y,
                     CreatorData.Checkpoints[id].coords.z))
             current = id
         end
@@ -614,7 +619,7 @@ local function addCheckpoint(checkpointId)
         }
     end
     if #CreatorData.Checkpoints > Config.MaxCheckpoints then
-        notify(Lang("max_checkpoints")..Config.MaxCheckpoints , 'error')
+        notify(Lang("max_checkpoints") .. Config.MaxCheckpoints, 'error')
     end
     redrawBlips()
 end
@@ -627,9 +632,9 @@ local function moveCheckpoint()
         dialog = lib.inputDialog(Lang("edit_checkpoint_header"), {
             {
                 text = "Checkpoint number", -- text you want to be displayed as a place holder
-                name = "number", -- name of the input should be unique otherwise it might override
-                type = "number", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
-                isRequired = true, -- Optional [accepted values: true | false] but will submit the form if no value is inputted
+                name = "number",            -- name of the input should be unique otherwise it might override
+                type = "number",            -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+                isRequired = true,          -- Optional [accepted values: true | false] but will submit the form if no value is inputted
             },
         })
     else
@@ -639,9 +644,9 @@ local function moveCheckpoint()
             inputs = {
                 {
                     text = "Checkpoint number", -- text you want to be displayed as a place holder
-                    name = "number", -- name of the input should be unique otherwise it might override
-                    type = "number", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
-                    isRequired = true, -- Optional [accepted values: true | false] but will submit the form if no value is inputted
+                    name = "number",            -- name of the input should be unique otherwise it might override
+                    type = "number",            -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+                    isRequired = true,          -- Optional [accepted values: true | false] but will submit the form if no value is inputted
                 },
             },
         })
@@ -650,7 +655,7 @@ local function moveCheckpoint()
     if dialog ~= nil then
         if UseDebug then
             print('Moving checkpoint', dialog.number or dialog[1])
-         end
+        end
         addCheckpoint(dialog.number or dialog[1])
     end
 end
@@ -679,7 +684,7 @@ local function clickSaveRace()
     if CreatorData.Checkpoints and #CreatorData.Checkpoints >= Config.MinimumCheckpoints then
         saveRace()
     else
-        notify(Lang("not_enough_checkpoints") .. '(' ..Config.MinimumCheckpoints .. ')', 'error')
+        notify(Lang("not_enough_checkpoints") .. '(' .. Config.MinimumCheckpoints .. ')', 'error')
     end
 end
 
@@ -803,21 +808,20 @@ local function startRaceUi()
 end
 
 local function copyWihoutId(original)
-	local copy = {}
-	for key, value in pairs(original) do
-		copy[#copy+1] = value
-	end
-	return copy
+    local copy = {}
+    for key, value in pairs(original) do
+        copy[#copy + 1] = value
+    end
+    return copy
 end
 
 local function bothOpponentsHaveDefinedPositions(aSrc, bSrc)
-
     local currentPlayer = GetPlayerPed(-1)
-    local currentPlayerCoords = GetEntityCoords(currentPlayer, 0)    
+    local currentPlayerCoords = GetEntityCoords(currentPlayer, 0)
 
     local aPly = GetPlayerFromServerId(aSrc)
     local aTarget = GetPlayerPed(aPly)
-    local aCoords = GetEntityCoords(aTarget, 0)    
+    local aCoords = GetEntityCoords(aTarget, 0)
 
     local bPly = GetPlayerFromServerId(bSrc)
     local bTarget = GetPlayerPed(bPly)
@@ -846,9 +850,9 @@ local function distanceToCheckpoint(src, checkpoint)
     if checkpoint + 1 > #CurrentRaceData.Checkpoints then
         next = CurrentRaceData.Checkpoints[1]
     else
-        next = CurrentRaceData.Checkpoints[checkpoint+1]
+        next = CurrentRaceData.Checkpoints[checkpoint + 1]
     end
-    
+
     local distanceToNext = #(pos - vector3(next.coords.x, next.coords.y, next.coords.z))
     return distanceToNext
 end
@@ -856,15 +860,20 @@ end
 local function placements(CurrentRaceData)
     local tempPositions = copyWihoutId(CurrentRaceData.Racers)
     if #tempPositions > 1 then
-        table.sort(tempPositions, function(a,b)
-            if a.Lap > b.Lap then return true
-            elseif a.Lap < b.Lap then return false
+        table.sort(tempPositions, function(a, b)
+            if a.Lap > b.Lap then
+                return true
+            elseif a.Lap < b.Lap then
+                return false
             elseif a.Lap == b.Lap then
-                if a.Checkpoint > b.Checkpoint then return true
-                elseif a.Checkpoint < b.Checkpoint then return false
+                if a.Checkpoint > b.Checkpoint then
+                    return true
+                elseif a.Checkpoint < b.Checkpoint then
+                    return false
                 elseif a.Checkpoint == b.Checkpoint then
                     if CheckDistance and bothOpponentsHaveDefinedPositions(a.RacerSource, b.RacerSource) then
-                        return distanceToCheckpoint(a.RacerSource, a.Checkpoint) < distanceToCheckpoint(b.RacerSource, b.Checkpoint)
+                        return distanceToCheckpoint(a.RacerSource, a.Checkpoint) <
+                        distanceToCheckpoint(b.RacerSource, b.Checkpoint)
                     else
                         if a.RaceTime ~= nil and b.RaceTime ~= nil and a.RaceTime < b.RaceTime then
                             return true
@@ -888,7 +897,6 @@ local function positionThread()
                 CurrentRaceData.Position = MyPosition
                 CurrentRaceData.Positions = positions
             else
-
                 break
             end
             Wait(1000)
@@ -896,19 +904,19 @@ local function positionThread()
     end)
 end
 
-local MarkerType = Config.DrawTextSetup.markerType or 1  -- Vertical cylinder
+local MarkerType = Config.DrawTextSetup.markerType or 1 -- Vertical cylinder
 local MinHeight = Config.DrawTextSetup.minHeight or 1.0
 local MaxHeight = Config.DrawTextSetup.maxHeight or 100.0
-local TopSize = Config.DrawTextSetup.topSize or 0.1  -- Thin pillar
-local BaseSize = Config.DrawTextSetup.baseSize or 0.1  -- Thin pillar
-local MarkerColor = Config.DrawTextSetup.markerColor or {r = 255, g = 255, b = 255, a = 200}  -- White, semi-transparent
-local DistanceColor = Config.DrawTextSetup.distanceColor or {r = 0, g = 255, b = 0, a = 255}  -- Cyan
-local PrimaryColor = Config.DrawTextSetup.primaryColor or {r = 255, g = 0, b = 250, a = 255}  -- White
+local TopSize = Config.DrawTextSetup.topSize or 0.1                                          -- Thin pillar
+local BaseSize = Config.DrawTextSetup.baseSize or 0.1                                        -- Thin pillar
+local MarkerColor = Config.DrawTextSetup.markerColor or { r = 255, g = 255, b = 255, a = 200 } -- White, semi-transparent
+local DistanceColor = Config.DrawTextSetup.distanceColor or { r = 0, g = 255, b = 0, a = 255 } -- Cyan
+local PrimaryColor = Config.DrawTextSetup.primaryColor or { r = 255, g = 0, b = 250, a = 255 } -- White
 
 local function getFinishLabel(totalCheckpoints, index)
     if CurrentRaceData.TotalLaps == 0 and totalCheckpoints == index then -- if sprint
         return Lang('finish')
-    elseif index -1 == totalCheckpoints then -- if laps
+    elseif index - 1 == totalCheckpoints then                            -- if laps
         if CurrentRaceData.Lap == CurrentRaceData.TotalLaps then
             return Lang('finish')
         else
@@ -949,12 +957,13 @@ local function getUpcomingCheckpoints()
     local checkpoints = {}
 
     if CurrentRaceData.Lap < 2 and CurrentRaceData.CurrentCheckpoint == 1 then
-        checkpoints[1] = { coord = vector3(
-            CurrentRaceData.Checkpoints[1].coords.x,
-            CurrentRaceData.Checkpoints[1].coords.y,
-            CurrentRaceData.Checkpoints[1].coords.z
+        checkpoints[1] = {
+            coord = vector3(
+                CurrentRaceData.Checkpoints[1].coords.x,
+                CurrentRaceData.Checkpoints[1].coords.y,
+                CurrentRaceData.Checkpoints[1].coords.z
             ),
-            label = Lang('starting_line') 
+            label = Lang('starting_line')
         }
     end
 
@@ -963,18 +972,18 @@ local function getUpcomingCheckpoints()
     coord3 = getCheckpointCoord(currentIndex + 2, totalCheckpoints)
 
     coord1Label = getFinishLabel(totalCheckpoints, currentIndex) or Lang("checkpoint_next")
-    coord2Label = getFinishLabel(totalCheckpoints, currentIndex + 1 ) or Lang("checkpoint_2nd")
-    coord3Label = getFinishLabel(totalCheckpoints, currentIndex + 2 ) or Lang("checkpoint_3rd")
+    coord2Label = getFinishLabel(totalCheckpoints, currentIndex + 1) or Lang("checkpoint_2nd")
+    coord3Label = getFinishLabel(totalCheckpoints, currentIndex + 2) or Lang("checkpoint_3rd")
 
-    if coord1 then checkpoints[#checkpoints+1] = {coord = coord1, label = coord1Label } end
-    if coord2 then checkpoints[#checkpoints+1] = {coord = coord2, label = coord2Label } end
-    if coord3 then checkpoints[#checkpoints+1] = {coord = coord3, label = coord3Label } end
+    if coord1 then checkpoints[#checkpoints + 1] = { coord = coord1, label = coord1Label } end
+    if coord2 then checkpoints[#checkpoints + 1] = { coord = coord2, label = coord2Label } end
+    if coord3 then checkpoints[#checkpoints + 1] = { coord = coord3, label = coord3Label } end
     return checkpoints
 end
 
 local function draw3DText(coords, text, scale, color)
     local onScreen, x, y = World3dToScreen2d(coords.x, coords.y, coords.z)
-    
+
     if onScreen then
         SetTextScale(scale, scale)
         SetTextFont(4)
@@ -994,35 +1003,35 @@ local function markWithDrawTextWaypoint()
                 local playerPed = PlayerPedId()
                 local playerCoords = GetEntityCoords(playerPed)
 
-                local checkpoints = getUpcomingCheckpoints() 
+                local checkpoints = getUpcomingCheckpoints()
 
                 for i, checkpoint in ipairs(checkpoints) do
                     local distance = #(playerCoords - checkpoint.coord)
                     local height = math.min(MaxHeight, math.max(MinHeight, distance / 2.5))
-                    
+
                     -- Draw the marker
                     DrawMarker(
                         MarkerType,
                         checkpoint.coord.x, checkpoint.coord.y, checkpoint.coord.z,
-                        0.0, 0.0, 0.0,  -- Direction
-                        0.0, 0.0, 0.0,  -- Rotation
-                        BaseSize, BaseSize, height,  -- Scale
+                        0.0, 0.0, 0.0,                  -- Direction
+                        0.0, 0.0, 0.0,                  -- Rotation
+                        BaseSize, BaseSize, height,     -- Scale
                         MarkerColor.r, MarkerColor.g, MarkerColor.b, MarkerColor.a,
-                        false, true, 2, nil, nil, false  -- Bob, face camera, rotate
+                        false, true, 2, nil, nil, false -- Bob, face camera, rotate
                     )
 
                     -- Calculate text positions
                     local baseTextHeight = checkpoint.coord.z + height
-                    local labelHeight = baseTextHeight + 0.7 + height*0.05
+                    local labelHeight = baseTextHeight + 0.7 + height * 0.05
                     local distanceHeight = baseTextHeight + 0.5
-                    
+
                     local color = DistanceColor
                     if i == 1 or i == 2 and #checkpoints > 3 then color = PrimaryColor end
 
                     -- Draw checkpoint label
                     local labelCoords = vector3(checkpoint.coord.x, checkpoint.coord.y, labelHeight)
                     draw3DText(labelCoords, checkpoint.label, 0.25, color)
-                    
+
                     -- Draw distance
                     local distanceCoords = vector3(checkpoint.coord.x, checkpoint.coord.y, distanceHeight)
                     draw3DText(distanceCoords, string.format("%.0fm", distance), 0.5, DistanceColor)
@@ -1076,8 +1085,8 @@ local function showNonLoopParticle(dict, particleName, coords, scale, time)
     UseParticleFxAssetNextCall(dict)
 
     local particleHandle = StartParticleFxLoopedAtCoord(particleName, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0,
-    scale, false, false, false)
-    SetParticleFxLoopedColour(particleHandle,0.0,0.0,1.0)
+        scale, false, false, false)
+    SetParticleFxLoopedColour(particleHandle, 0.0, 0.0, 1.0)
     return particleHandle
 end
 
@@ -1101,7 +1110,6 @@ local function doPilePfx()
     if CurrentRaceData.CurrentCheckpoint == 1 then -- start
         debugLog('start')
         handleFlare(CurrentRaceData.CurrentCheckpoint)
-
     end
     if CurrentRaceData.TotalLaps > 0 and CurrentRaceData.CurrentCheckpoint == #CurrentRaceData.Checkpoints then -- finish
         debugLog('finish')
@@ -1119,16 +1127,16 @@ function MilliToTime(milli)
     local seconds = math.floor((milli / 1000) % 60);
     local minutes = math.floor((milli / (60 * 1000)) % 60);
     if minutes < 10 then
-        minutes = "0"..tostring(minutes);
+        minutes = "0" .. tostring(minutes);
     else
         minutes = tostring(minutes)
     end
     if seconds < 10 then
-        seconds = "0"..tostring(seconds);
+        seconds = "0" .. tostring(seconds);
     else
         seconds = tostring(seconds)
     end
-    return minutes..":"..seconds.."."..milliseconds;
+    return minutes .. ":" .. seconds .. "." .. milliseconds;
 end
 
 function DeleteCurrentRaceCheckpoints()
@@ -1137,7 +1145,6 @@ function DeleteCurrentRaceCheckpoints()
         local Blip = CurrentCheckpoint.blip
         if Blip then
             RemoveBlip(Blip)
-            Blip = nil
         end
 
         local PileLeft = CurrentCheckpoint.pileleft
@@ -1169,7 +1176,7 @@ function DeleteCurrentRaceCheckpoints()
     RaceData.InRace = false
 end
 
-local function isDriver(vehicle) 
+local function isDriver(vehicle)
     return GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()
 end
 
@@ -1217,7 +1224,9 @@ function IsInRace()
         retval = true
     end
     return retval
-end exports('IsInRace', IsInRace)
+end
+
+exports('IsInRace', IsInRace)
 
 
 function IsInEditor()
@@ -1226,7 +1235,9 @@ function IsInEditor()
         retval = true
     end
     return retval
-end exports('IsInEditor', IsInEditor)
+end
+
+exports('IsInEditor', IsInEditor)
 
 
 function DrawText3Ds(x, y, z, text)
@@ -1284,11 +1295,14 @@ end
 local function markWithUglyWaypoint()
     if UseUglyWaypoint then
         if #CurrentRaceData.Checkpoints == CurrentRaceData.CurrentCheckpoint then
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.y)
-        elseif #CurrentRaceData.Checkpoints > CurrentRaceData.CurrentCheckpoint+1 then
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+2].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+2].coords.y)
+            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.x,
+                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.y)
+        elseif #CurrentRaceData.Checkpoints > CurrentRaceData.CurrentCheckpoint + 1 then
+            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 2].coords.x,
+                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 2].coords.y)
         else
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1].coords.y)
+            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
         end
     end
 end
@@ -1309,7 +1323,7 @@ end
 
 local function getMaxDistance(OffsetCoords)
     local Distance = #(vector3(OffsetCoords.left.x, OffsetCoords.left.y, OffsetCoords.left.z) -
-                         vector3(OffsetCoords.right.x, OffsetCoords.right.y, OffsetCoords.right.z))
+        vector3(OffsetCoords.right.x, OffsetCoords.right.y, OffsetCoords.right.z))
 
     return Distance + (Config.CheckpointBuffer or 0)
 end
@@ -1334,9 +1348,13 @@ CreateThread(function()
                         if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             if IgnoreRoadsForGps then
-                                AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                AddPointToGpsCustomRoute(
+                                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                             else
-                                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                AddPointToGpsMultiRoute(
+                                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                             end
                             TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
@@ -1354,21 +1372,24 @@ CreateThread(function()
                             FinishRace()
                         end
                         timeWhenLastCheckpointWasPassed = GetGameTimer()
-                    else -- Circuit
+                    else                                                                             -- Circuit
                         if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then -- If new lap
-                            if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then -- if finish
+                            if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then              -- if finish
                                 doPilePfx()
                                 PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
-                                    debugLog('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap)
+                                    debugLog('racetime less than bestlap',
+                                        CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime,
+                                        CurrentRaceData.BestLap)
                                 elseif CurrentRaceData.BestLap == 0 then
                                     debugLog('bestlap == 0', CurrentRaceData.BestLap)
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
                                 CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true,
+                                    CurrentRaceData.TotalTime)
                                 FinishRace()
                                 PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
                             else -- if next lap
@@ -1376,7 +1397,9 @@ CreateThread(function()
                                 resetBlips()
                                 PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
                                 if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
-                                    debugLog('racetime less than bestlap', CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime, CurrentRaceData.BestLap)
+                                    debugLog('racetime less than bestlap',
+                                        CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime,
+                                        CurrentRaceData.BestLap)
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 elseif CurrentRaceData.BestLap == 0 then
                                     debugLog('bestlap == 0', CurrentRaceData.BestLap)
@@ -1386,39 +1409,52 @@ CreateThread(function()
                                 CurrentRaceData.Lap = CurrentRaceData.Lap + 1
                                 CurrentRaceData.CurrentCheckpoint = 1
                                 if IgnoreRoadsForGps then
-                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                    AddPointToGpsCustomRoute(
+                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                                        CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 else
-                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                    AddPointToGpsMultiRoute(
+                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                                        CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 end
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
+                                    CurrentRaceData.TotalTime)
                                 doGPSForRace(true)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                                 markWithUglyWaypoint()
                             end
                             timeWhenLastCheckpointWasPassed = GetGameTimer()
-                        else -- if next checkpoint 
+                        else -- if next checkpoint
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
                                 if IgnoreRoadsForGps then
-                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                    AddPointToGpsCustomRoute(
+                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                                        CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 else
-                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                                    AddPointToGpsMultiRoute(
+                                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                                        CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 end
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
+                                    CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                                 markWithUglyWaypoint()
                             else
                                 if IgnoreRoadsForGps then
-                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+                                    AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[1].coords.x,
+                                        CurrentRaceData.Checkpoints[1].coords.y)
                                 else
-                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,CurrentRaceData.Checkpoints[1].coords.y)
+                                    AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
+                                        CurrentRaceData.Checkpoints[1].coords.y)
                                 end
                                 TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
+                                    CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[1].blip)
                                 markWithUglyWaypoint()
@@ -1433,9 +1469,9 @@ CreateThread(function()
                 end
             else
                 local data = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
-                DrawMarker(4, data.coords.x, data.coords.y, data.coords.z+1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
+                DrawMarker(4, data.coords.x, data.coords.y, data.coords.z + 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
                     1.5, 255, 255, 255, 255, 0, 1, 0, 0, 0, 0, 0)
-                    nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1].blip)
+                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
             end
         else
             Wait(1000)
@@ -1469,8 +1505,10 @@ CreateThread(function()
                         z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
                     }
                 }
-                DrawMarker(22, Offset.left.x, Offset.left.y, Offset.left.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
-                DrawMarker(22, Offset.right.x, Offset.right.y, Offset.right.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
+                DrawMarker(22, Offset.left.x, Offset.left.y, Offset.left.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5,
+                    255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
+                DrawMarker(22, Offset.right.x, Offset.right.y, Offset.right.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5,
+                    1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
             end
         end
         Wait(0)
@@ -1502,13 +1540,13 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(RaceData)
         notify(Lang('not_in_a_vehicle'), 'error')
         return
     end
-    
+
     if myCarClassIsAllowed(RaceData.MaxClass, class) then
         RaceData.RacerName = CurrentName
         RaceData.RaceCrew = CurrentCrew
         RaceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
         TriggerServerEvent('cw-racingapp:server:JoinRace', RaceData)
-    else 
+    else
         notify(Lang('incorrect_class'), 'error')
     end
 end)
@@ -1543,13 +1581,12 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(RaceName, Racer
                 CreatorData.IsEdit = true
                 debugLog('Checkpoints in track:', #result.Checkpoints or 0)
                 for i, checkpoint in pairs(result.Checkpoints) do
-                    CreatorData.Checkpoints[#CreatorData.Checkpoints+1] = checkpoint
+                    CreatorData.Checkpoints[#CreatorData.Checkpoints + 1] = checkpoint
                 end
                 openCreatorUi()
-                
             else
                 print('^1Something went wrong with fetching this track')
-                debugLog(json.encode(result, {indent=true}))
+                debugLog(json.encode(result, { indent = true }))
             end
         else
             CreatorData.IsEdit = false
@@ -1636,12 +1673,12 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
 end)
 
 RegisterNetEvent("cw-racingapp:Client:DeleteTrackConfirmed", function(data)
-    notify(data.RaceName.." "..Lang("has_been_removed"))
+    notify(data.RaceName .. " " .. Lang("has_been_removed"))
     TriggerServerEvent("cw-racingapp:server:DeleteTrack", data.RaceId)
 end)
 
 RegisterNetEvent("cw-racingapp:Client:ClearLeaderboardConfirmed", function(data)
-    notify(data.RaceName.." "..Lang("leaderboard_has_been_cleared"))
+    notify(data.RaceName .. " " .. Lang("leaderboard_has_been_cleared"))
     TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", data.RaceId)
 end)
 
@@ -1666,12 +1703,13 @@ function split(source)
         local a, b = str:find(',')
         if not a then break end
         local candidat = str:sub(1, a - 1)
-        if candidat ~= "" then 
+        if candidat ~= "" then
             result[i] = candidat
-        end i=i+1
+        end
+        i = i + 1
         str = str:sub(b + 1)
     end
-    if str ~= "" then 
+    if str ~= "" then
         result[i] = str
     end
     return result
@@ -1679,7 +1717,7 @@ end
 
 local function filterTracksByRacer(Tracks)
     local filteredTracks = {}
-    for i, track in pairs(Tracks) do      
+    for i, track in pairs(Tracks) do
         if track.Creator == getCitizenId() then
             filteredTracks[i] = track
         end
@@ -1691,13 +1729,13 @@ local function isPositionCheating()
     local ped = PlayerPedId()
     local pos = GetEntityCoords(ped)
     local current = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
-    local next = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint+1]
-    
+    local next = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1]
+
     local distanceToStart = #(pos - vector3(current.coords.x, current.coords.y, current.coords.z))
     local distanceToNext = #(pos - vector3(next.coords.x, next.coords.y, next.coords.z))
 
     local distanceBetween = #(vector3(next.coords.x, next.coords.y, next.coords.z) - vector3(current.coords.x, current.coords.y, current.coords.z))
-    
+
     return distanceBetween > distanceToNext
 end
 
@@ -1739,9 +1777,9 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
     positionThread()
-    if CurrentRaceData.TotalLaps == -1 then 
-        debugLog('^3Race is Elimination! setting laps to:', CurrentRaceData.TotalRacers-1)
-        CurrentRaceData.TotalLaps = CurrentRaceData.TotalRacers-1
+    if CurrentRaceData.TotalLaps == -1 then
+        debugLog('^3Race is Elimination! setting laps to:', CurrentRaceData.TotalRacers - 1)
+        CurrentRaceData.TotalLaps = CurrentRaceData.TotalRacers - 1
         CurrentRaceData.IsElimination = true
     end
     if CurrentRaceData.RaceId ~= nil then
@@ -1765,19 +1803,22 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
         if CurrentRaceData.RaceName ~= nil then
             updateCountdown(0)
             PlaySoundFrontend(-1, Config.Sounds.Countdown.go.lib, Config.Sounds.Countdown.go.sound)
-            if isPositionCheating() then 
+            if isPositionCheating() then
                 TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'positionCheat')
                 notify(Lang("kicked_line"), 'error')
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
-                return 
+                return
             end
             if IgnoreRoadsForGps then
-                AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                AddPointToGpsCustomRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             else
-               AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x, CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+                AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                    CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
             end
             markWithUglyWaypoint()
-            SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip, Config.Blips.Generic.Size)
+            SetBlipScale(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip,
+                Config.Blips.Generic.Size)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             doPilePfx()
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
@@ -1801,25 +1842,28 @@ end)
 RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, RacerName)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
-            notify(RacerName .. " ".. Lang("racer_finished_place") .. Place, 'primary', 3500)
+            notify(RacerName .. " " .. Lang("racer_finished_place") .. Place, 'primary', 3500)
         end
     end
 end)
 
-local function notCloseEnough(x,y)
+local function notCloseEnough(x, y)
     notify(Lang('not_close_enough_to_join'), 'error')
     SetNewWaypoint(x, y)
 end
 
-RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x,y)
-    notCloseEnough(x,y)
+RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x, y)
+    notCloseEnough(x, y)
 end)
 
 local function verifyTrackAccess(track, type)
     if track.Access and track.Access[type] ~= nil then
-        if track.Access[type][1] == nil then print('no values', track.RaceName) return true end -- if list is added but emptied 
+        if track.Access[type][1] == nil then
+            print('no values', track.RaceName)
+            return true
+        end                                                                                     -- if list is added but emptied
         local playerCid = getCitizenId()
-        if track.Creator == playerCid then return true end -- if creator default to true
+        if track.Creator == playerCid then return true end                                      -- if creator default to true
         if UseDebug then
             print('track', track.RaceName, 'has access limitations for', type)
             print('player cid', playerCid)
@@ -1847,10 +1891,10 @@ local function racerNameIsValid(name)
 end
 
 local function hasPermission(userType)
-    if CurrentAuth == 'god' then 
+    if CurrentAuth == 'god' then
         return true
     elseif userType == 'racer' and Config.AllowRacerCreationForAnyone then
-        return true 
+        return true
     elseif CurrentAuth == 'master' and (userType == 'creator' or userType == 'racer') then
         return true
     end
@@ -1859,9 +1903,9 @@ end
 
 local function hasAuth(tradeType, userType)
     debugLog('current auth', CurrentAuth)
-    if CurrentAuth and Config.Permissions[CurrentAuth] and Config.Permissions[CurrentAuth].controlAll then 
+    if CurrentAuth and Config.Permissions[CurrentAuth] and Config.Permissions[CurrentAuth].controlAll then
         debugLog('User has controlall auth')
-        return true 
+        return true
     end
 
     if tradeType.jobRequirement[userType] == true then
@@ -1870,7 +1914,7 @@ local function hasAuth(tradeType, userType)
         local playerHasJob = jobName and Config.AllowedJobs[jobName]
         local jobGradeReq = nil
         if UseDebug then
-           print('Player job: ', jobName)
+            print('Player job: ', jobName)
         end
         if playerHasJob then
             local jobLevel = getPlayerJobLevel()
@@ -1878,7 +1922,7 @@ local function hasAuth(tradeType, userType)
             if Config.AllowedJobs[jobName] ~= nil then
                 jobGradeReq = Config.AllowedJobs[jobName][userType]
                 if UseDebug then
-                   print('Required job grade: ', jobGradeReq)
+                    print('Required job grade: ', jobGradeReq)
                 end
                 if jobGradeReq ~= nil then
                     if jobLevel >= jobGradeReq then
@@ -1908,14 +1952,15 @@ end
 
 local function createOxInput(fobType, purchaseType)
     if not lib then
-        print('^1OxInput is enabled but no lib was found. Might be missing from fxmanifest or the dev is not able to read the config')
+        print(
+        '^1OxInput is enabled but no lib was found. Might be missing from fxmanifest or the dev is not able to read the config')
     else
-        local options = {{type = 'input', label = 'Racer Name', required = true, min = 1, max = 100}}
+        local options = { { type = 'input', label = 'Racer Name', required = true, min = 1, max = 100 } }
 
         if not purchaseType.useSlimmed then
-            options[#options+1] =  {type = 'number', label = 'Paypal/temp id (leave empty if for you)', min = 1, max = 20}
+            options[#options + 1] = { type = 'number', label = 'Paypal/temp id (leave empty if for you)', min = 1, max = 20 }
         end
-        local FobInput = lib.inputDialog('Creating a ['..fobType..'] type user', options)
+        local FobInput = lib.inputDialog('Creating a [' .. fobType .. '] type user', options)
         return FobInput
     end
 end
@@ -1924,20 +1969,20 @@ local function createQbInput(fobType, purchaseType)
     local inputs = {
         {
             text = 'Racer Name', -- text you want to be displayed as a place holder
-            name = "racerName", -- name of the input should be unique otherwise it might override
-            type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+            name = "racerName",  -- name of the input should be unique otherwise it might override
+            type = "text",       -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
         },
     }
 
     if not purchaseType.useSlimmed then
-        inputs[#inputs+1] = {
+        inputs[#inputs + 1] = {
             text = 'Paypal/temp id (leave empty if for you)', -- text you want to be displayed as a place holder
-            name = "racerId", -- name of the input should be unique otherwise it might override
-            type = "text", -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
+            name = "racerId",                                 -- name of the input should be unique otherwise it might override
+            type = "text",                                    -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
         }
     end
     local dialog = exports['qb-input']:ShowInput({
-        header = 'Creating a ['..fobType..'] type user',
+        header = 'Creating a [' .. fobType .. '] type user',
         submitText = 'Submit',
         inputs = inputs
     })
@@ -1945,7 +1990,7 @@ local function createQbInput(fobType, purchaseType)
 end
 
 local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
-    if UseDebug then 
+    if UseDebug then
         print('Racername', racerName)
         print('RacerId', racerId)
     end
@@ -1968,12 +2013,12 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
 
             if nameIsNotTaken then
                 TriggerServerEvent('cw-racingapp:server:CreateRacerName', racerId, racerName, fobType, purchaseType)
-                TriggerEvent('animations:client:EmoteCommandStart', {"keyfob"})
+                TriggerEvent('animations:client:EmoteCommandStart', { "keyfob" })
             else
-                notify( Lang("name_is_used")..racerName, 'error')
+                notify(Lang("name_is_used") .. racerName, 'error')
             end
         else
-            notify( Lang("to_many_names"), 'error')
+            notify(Lang("to_many_names"), 'error')
         end
     end
 end
@@ -1982,7 +2027,7 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
 
-    notify(Lang("max_uniques").. " " ..Config.MaxRacerNames)
+    notify(Lang("max_uniques") .. " " .. Config.MaxRacerNames)
 
     local dialog = nil
     local racerName = nil
@@ -2003,9 +2048,8 @@ RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
 
     if dialog ~= nil then
         attemptCreateUser(racerName, racerId, fobType, purchaseType)
-
     else
-        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerEvent('animations:client:EmoteCommandStart', { "c" })
     end
 end)
 
@@ -2018,7 +2062,7 @@ if Config.Trader.active then
         else
             animation = "WORLD_HUMAN_STAND_IMPATIENT"
         end
-    
+
         local currency = ''
         if trader.moneyType == 'cash' or trader.moneyType == 'bank' then
             currency = '$'
@@ -2033,16 +2077,16 @@ if Config.Trader.active then
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Create a new '..authName..' user ('..currency..trader.racingUserCosts[authName]..')',
+                label = 'Create a new ' .. authName .. ' user (' .. currency .. trader.racingUserCosts[authName] .. ')',
                 purchaseType = trader,
                 fobType = authName,
                 canInteract = function()
                     return hasAuth(trader, authName)
                 end
             }
-            options[#options+1] = option
+            options[#options + 1] = option
         end
-       
+
         RequestModel(trader.model)
         while not HasModelLoaded(trader.model) do
             Wait(0)
@@ -2058,7 +2102,7 @@ if Config.Trader.active then
         SetPedCombatAttributes(TraderPed, 46, true)
         TaskStartScenarioInPlace(TraderPed, trader.animation, 0, true)
         SetEntityInvincible(TraderPed, true)
-        SetEntityCanBeDamaged(TraderPed,false)
+        SetEntityCanBeDamaged(TraderPed, false)
         SetEntityProofs(TraderPed, true, true, true, true, true, true, 1, true)
         FreezeEntityPosition(TraderPed, true)
 
@@ -2075,13 +2119,13 @@ if Config.Trader.active then
             })
         end
 
-        Entities[#Entities+1] = TraderPed
+        Entities[#Entities + 1] = TraderPed
     end)
 end
 
 local laptopEntity
 if Config.Laptop.active then
-    CreateThread(function()        
+    CreateThread(function()
         local laptop = Config.Laptop
         local currency = ''
         if laptop.moneyType == 'cash' or laptop.moneyType == 'bank' then
@@ -2090,46 +2134,46 @@ if Config.Laptop.active then
             currency = Config.Options.cryptoType
         end
 
-            local options = {}
+        local options = {}
         for authName, authData in pairs(Config.Permissions) do
             local option = {
                 type = "client",
                 event = "cw-racingapp:client:OpenFobInput",
                 icon = "fas fa-flag-checkered",
-                label = 'Create a new '..authName..' user ('..currency..laptop.racingUserCosts[authName]..')',
+                label = 'Create a new ' .. authName .. ' user (' .. currency .. laptop.racingUserCosts[authName] .. ')',
                 purchaseType = laptop,
                 fobType = authName,
                 canInteract = function()
                     return hasAuth(laptop, authName)
                 end
             }
-            options[#options+1] = option
+            options[#options + 1] = option
         end
-        laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, false,  false, true)
+        laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, false, false,
+            true)
         SetEntityHeading(laptopEntity, laptop.location.w)
         CreateObject(laptopEntity)
         FreezeEntityPosition(laptopEntity, true)
-        Entities[#Entities+1] = laptopEntity
+        Entities[#Entities + 1] = laptopEntity
 
         if Config.UseOxTarget then
             exports.ox_target:addLocalEntity(laptopEntity, options)
         else
             exports['qb-target']:AddTargetEntity(laptopEntity, {
                 options = options,
-                distance = 3.0 
+                distance = 3.0
             })
         end
-        
     end)
 end
 
-AddEventHandler('onResourceStop', function (resource)
-   if resource ~= GetCurrentResourceName() then return end
-   for i, entity in pairs(Entities) do
-       debugLog('Racing app cleanup: ^2', entity)
-       if DoesEntityExist(entity) then
-          DeleteEntity(entity)
-       end
+AddEventHandler('onResourceStop', function(resource)
+    if resource ~= GetCurrentResourceName() then return end
+    for i, entity in pairs(Entities) do
+        debugLog('Racing app cleanup: ^2', entity)
+        if DoesEntityExist(entity) then
+            DeleteEntity(entity)
+        end
     end
 end)
 --- CREATOR BUTTONS
@@ -2137,7 +2181,7 @@ if Config.UseOxLibForKeybind then
     if not lib then
         print('^1UseOxLibForKeybind is enabled but no lib was found. Might be missing from fxmanifest')
     else
-        local keyb= lib.addKeybind({
+        local keyb = lib.addKeybind({
             name = 'clickAddCheckpoint',
             description = '(Track Creator) Add checkpoint',
             defaultKey = Config.Buttons.AddCheckpoint,
@@ -2207,7 +2251,7 @@ if Config.UseOxLibForKeybind then
                 end
             end
         })
-    end 
+    end
 else
     RegisterCommand("clickAddCheckpoint", function()
         if RaceData.InCreator then
@@ -2218,9 +2262,9 @@ else
             end
         end
     end, false)
-    
+
     RegisterKeyMapping("clickAddCheckpoint", "(Track Creator) Add checkpoint", "keyboard", Config.Buttons.AddCheckpoint)
-    
+
     RegisterCommand("clickDeleteCheckpoint", function()
         if RaceData.InCreator then
             local Player = PlayerPedId()
@@ -2230,9 +2274,10 @@ else
             end
         end
     end, false)
-    
-    RegisterKeyMapping("clickDeleteCheckpoint", "(Track Creator) Remove checkpoint", "keyboard", Config.Buttons.DeleteCheckpoint)
-    
+
+    RegisterKeyMapping("clickDeleteCheckpoint", "(Track Creator) Remove checkpoint", "keyboard",
+        Config.Buttons.DeleteCheckpoint)
+
     RegisterCommand("clickMoveCheckpoint", function()
         if RaceData.InCreator then
             local Player = PlayerPedId()
@@ -2242,9 +2287,10 @@ else
             end
         end
     end, false)
-    
-    RegisterKeyMapping("clickMoveCheckpoint", "(Track Creator) Move checkpoint", "keyboard", Config.Buttons.MoveCheckpoint)
-    
+
+    RegisterKeyMapping("clickMoveCheckpoint", "(Track Creator) Move checkpoint", "keyboard",
+        Config.Buttons.MoveCheckpoint)
+
     RegisterCommand("clickSaveRace", function()
         if RaceData.InCreator then
             local Player = PlayerPedId()
@@ -2254,9 +2300,9 @@ else
             end
         end
     end, false)
-    
+
     RegisterKeyMapping("clickSaveRace", "(Track Creator) Save track", "keyboard", Config.Buttons.SaveRace)
-    
+
     RegisterCommand("clickIncreaseDistance", function()
         if RaceData.InCreator then
             local Player = PlayerPedId()
@@ -2266,9 +2312,10 @@ else
             end
         end
     end, false)
-    
-    RegisterKeyMapping("clickIncreaseDistance", "(Track Creator) Increase Checkpoint Size", "keyboard", Config.Buttons.IncreaseDistance)
-    
+
+    RegisterKeyMapping("clickIncreaseDistance", "(Track Creator) Increase Checkpoint Size", "keyboard",
+        Config.Buttons.IncreaseDistance)
+
     RegisterCommand("clickDecreaseDistance", function()
         if RaceData.InCreator then
             local Player = PlayerPedId()
@@ -2278,9 +2325,10 @@ else
             end
         end
     end, false)
-    
-    RegisterKeyMapping("clickDecreaseDistance", "(Track Creator) Decrease Checkpoint Size", "keyboard", Config.Buttons.DecreaseDistance)
-    
+
+    RegisterKeyMapping("clickDecreaseDistance", "(Track Creator) Decrease Checkpoint Size", "keyboard",
+        Config.Buttons.DecreaseDistance)
+
     RegisterCommand("clickExit", function()
         if RaceData.InCreator then
             local Player = PlayerPedId()
@@ -2290,7 +2338,7 @@ else
             end
         end
     end, false)
-    
+
     RegisterKeyMapping("clickExit", "(Track Creator) Exit track creation", "keyboard", Config.Buttons.Exit)
 end
 
@@ -2298,15 +2346,15 @@ end
 
 
 RegisterNUICallback('GetBaseData', function(_, cb)
-    local classes = { {value = '', text = Lang("no_class_limit"), number = 9000} }
+    local classes = { { value = '', text = Lang("no_class_limit"), number = 9000 } }
     for i, class in pairs(Classes) do
         if UseDebug then
             print(i, Classes[i])
         end
-        classes[#classes+1] = { value = i, text = i, number = Classes[i] }
+        classes[#classes + 1] = { value = i, text = i, number = Classes[i] }
     end
 
-    table.sort(classes, function(a,b)
+    table.sort(classes, function(a, b)
         return a.number > b.number
     end)
     local setup = {
@@ -2341,7 +2389,7 @@ local attachedProp = nil
 
 local function clearProp()
     if UseDebug then
-       print('REMOVING PROP', attachedProp)
+        print('REMOVING PROP', attachedProp)
     end
     if DoesEntityExist(attachedProp) then
         DeleteEntity(attachedProp)
@@ -2361,7 +2409,7 @@ local function attachProp()
         Wait(100)
     end
     attachedProp = CreateObject(model, 1.0, 1.0, 1.0, 1, 1, 0)
-    local x, y,z = 0.0, -0.03, 0.0
+    local x, y, z = 0.0, -0.03, 0.0
     local xR, yR, zR = 20.0, -90.0, 0.0
     AttachEntityToEntity(attachedProp, GetPlayerPed(-1), bone, x, y, z, xR, yR, zR, 0, true, false, true, 2, true)
 end
@@ -2389,8 +2437,8 @@ local function openUi(data)
         CurrentAuth = data.auth
         CurrentCrew = data.crew
         notify(Lang("esc"))
-        SetNuiFocus(true,true)
-        SendNUIMessage({ type = 'toggleApp', open = true})
+        SetNuiFocus(true, true)
+        SendNUIMessage({ type = 'toggleApp', open = true })
         uiIsOpen = true
         StartScreenEffect('MenuMGIn', 1, true)
         handleAnimation()
@@ -2404,7 +2452,8 @@ local function openRacingApp()
         crew = CurrentCrew
     }
     openUi(data)
-end exports('openRacingApp', openRacingApp)
+end
+exports('openRacingApp', openRacingApp)
 
 RegisterNetEvent("cw-racingapp:client:openUi", function(data)
     openUi(data)
@@ -2414,14 +2463,14 @@ RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)
     CurrentRanking = newRank
     local type = 'success'
     if change < 0 then type = 'error' end
-    notify(Lang("rank_update") .. " "..change..". "..Lang("new_rank")..newRank, type)
+    notify(Lang("rank_update") .. " " .. change .. ". " .. Lang("new_rank") .. newRank, type)
 end)
 
 -- UI CALLBACKS
 
 local function sortTracksByName(tracks)
     local temp = tracks
-    table.sort(temp, function (a,b)
+    table.sort(temp, function(a, b)
         return a.RaceName > b.RaceName
     end)
     return temp
@@ -2429,7 +2478,7 @@ end
 
 local function sortRacesByName(tracks)
     local temp = tracks
-    table.sort(temp, function (a,b)
+    table.sort(temp, function(a, b)
         return a.RaceData.RaceName > b.RaceData.RaceName
     end)
     return temp
@@ -2437,7 +2486,7 @@ end
 
 local function closeUi()
     uiIsOpen = false
-    SetNuiFocus(false,false)
+    SetNuiFocus(false, false)
     StopScreenEffect('MenuMGIn')
     stopAnimation()
 end
@@ -2453,21 +2502,21 @@ RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
     MyRacerNames = playerNames
     local currentRacer = findRacerByName(CurrentName)
     notify(Lang("user_list_updated"))
-    debugLog('current user', json.encode(currentRacer, {indent=true}))
+    debugLog('current user', json.encode(currentRacer, { indent = true }))
     if CurrentName and currentRacer and currentRacer.revoked == 1 then
         notify(Lang("revoked_access"), 'error')
         Wait(2000)
         if uiIsOpen then
-            SendNUIMessage({ type = 'toggleApp', open = false})
+            SendNUIMessage({ type = 'toggleApp', open = false })
             closeUi()
         end
     end
-    if CurrentName and not currentRacer then 
+    if CurrentName and not currentRacer then
         debugLog('Race user was deleted')
         notify(Lang('removed_user'), 'error')
         Wait(2000)
         if uiIsOpen then
-            SendNUIMessage({ type = 'toggleApp', open = false})
+            SendNUIMessage({ type = 'toggleApp', open = false })
             closeUi()
         end
     end
@@ -2492,9 +2541,8 @@ RegisterNUICallback('UiStartCurrentRace', function(raceid, cb)
 end)
 
 RegisterNUICallback('UiChangeRacerName', function(racername, cb)
-    
     local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', racername)
-    
+
     if result and result.name then
         debugLog('New name and type', result.name, result.type)
         CurrentName = result.name
@@ -2522,7 +2570,7 @@ RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
     MyRacerNames = playerNames
     debugLog('player names', #playerNames, json.encode(playerNames))
     local currentRacer = findRacerByName(CurrentName)
-    if currentRacer and currentRacer.revoked == 1 then 
+    if currentRacer and currentRacer.revoked == 1 then
         notify(Lang("revoked_access"), 'error')
     end
     if currentRacer and currentRacer.ranking then
@@ -2554,7 +2602,7 @@ end)
 
 RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
     local options = {}
-    
+
     local currency = ''
     if Config.Laptop.moneyType == 'cash' or Config.Laptop.moneyType == 'bank' then
         currency = '$'
@@ -2565,11 +2613,11 @@ RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
     for authName, authData in pairs(Config.Permissions) do
         if hasAuth(Config.Laptop, authName) then
             local option = {
-                label = authName..' user ('..currency..Config.Laptop.racingUserCosts[authName]..')',
+                label = authName .. ' user (' .. currency .. Config.Laptop.racingUserCosts[authName] .. ')',
                 purchaseType = Config.Laptop,
                 fobType = authName,
             }
-            options[#options+1] = option
+            options[#options + 1] = option
         end
     end
     cb(options)
@@ -2615,12 +2663,13 @@ local function joinRace(raceId)
             debugLog('^2 joining race with race id', raceId)
             TriggerServerEvent('cw-racingapp:server:JoinRace', currentRace)
             return true
-        else 
+        else
             notify(Lang('incorrect_class'), 'error')
         end
     end
     return false
-end exports('joinRace', joinRace)
+end
+exports('joinRace', joinRace)
 
 RegisterNUICallback('UiJoinRace', function(raceId, cb)
     cb(joinRace(raceId))
@@ -2628,14 +2677,14 @@ end)
 
 RegisterNUICallback('UiClearLeaderboard', function(track, cb)
     debugLog('clearing leaderboard for ', track.RaceName)
-    notify(track.RaceName..Lang("leaderboard_has_been_cleared"))
+    notify(track.RaceName .. Lang("leaderboard_has_been_cleared"))
     TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiDeleteTrack', function(track, cb)
     debugLog('deleting track', track.RaceName)
-    notify(track.RaceName..Lang("has_been_removed"))
+    notify(track.RaceName .. Lang("has_been_removed"))
     TriggerServerEvent("cw-racingapp:server:DeleteTrack", track.RaceId)
     cb(true)
 end)
@@ -2652,20 +2701,22 @@ RegisterNUICallback('UiGetAccess', function(track, cb)
     local result = cwCallback.await('cw-racingapp:server:GetAccess', track.RaceId)
     if not result then
         if UseDebug then
-           print('Access table was empty')
+            print('Access table was empty')
         end
-        result = { race = ''}
-    else            
+        result = { race = '' }
+    else
         local raceText = ''
         if result.race then
             for i, v in pairs(result.race) do
-                if i == 1 then raceText = v else
-                    raceText = raceText..', '..v
+                if i == 1 then
+                    raceText = v
+                else
+                    raceText = raceText .. ', ' .. v
                 end
             end
-            result = { race = raceText}
+            result = { race = raceText }
         else
-        result.race = ''
+            result.race = ''
         end
     end
     cb(result)
@@ -2694,15 +2745,15 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             trackName = CurrentRaceData.RaceName,
             racers = racers,
             laps = CurrentRaceData.TotalLaps,
-            class =  tostring(maxClass),
+            class = tostring(maxClass),
             cantStart = (not (CurrentRaceData.OrganizerCID == getCitizenId()) or
-            CurrentRaceData.Started),
+                CurrentRaceData.Started),
             raceId = CurrentRaceData.RaceId,
             ghosting = CurrentRaceData.Ghosting,
             ranked = CurrentRaceData.Ranked,
             reversed = CurrentRaceData.Reversed
         }
-        debugLog('Current race', json.encode(data, {indent=true}))
+        debugLog('Current race', json.encode(data, { indent = true }))
         cb(data)
     else
         cb({})
@@ -2710,7 +2761,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
 end)
 
 RegisterNUICallback('UiGetSettings', function(_, cb)
-    cb({IgnoreRoadsForGps = IgnoreRoadsForGps, ShowGpsRoute = ShowGpsRoute, UseUglyWaypoint = UseUglyWaypoint, CheckDistance = CheckDistance})
+    cb({ IgnoreRoadsForGps = IgnoreRoadsForGps, ShowGpsRoute = ShowGpsRoute, UseUglyWaypoint = UseUglyWaypoint, CheckDistance =
+    CheckDistance })
 end)
 
 local function getAvailableTracks()
@@ -2718,11 +2770,12 @@ local function getAvailableTracks()
     local tracks = {}
     for id, track in pairs(result) do
         if not track.Waiting and verifyTrackAccess(track, 'race') then
-            tracks[#tracks+1] = track
+            tracks[#tracks + 1] = track
         end
     end
     return sortTracksByName(tracks)
-end exports('getAvailableTracks', getAvailableTracks)
+end
+exports('getAvailableTracks', getAvailableTracks)
 
 RegisterNUICallback('UiGetAvailableTracks', function(data, cb)
     cb(getAvailableTracks())
@@ -2753,11 +2806,12 @@ local function getAvailableRaces()
             race.racers = racers
             race.disabled = CurrentRaceData.RaceId
             race.laps = race.Laps
-            availableRaces[#availableRaces+1] = race
+            availableRaces[#availableRaces + 1] = race
         end
     end
     return sortRacesByName(availableRaces)
-end exports('getAvailableRaces', getAvailableRaces)
+end
+exports('getAvailableRaces', getAvailableRaces)
 
 RegisterNUICallback('UiGetListedRaces', function(_, cb)
     cb(getAvailableRaces())
@@ -2818,16 +2872,18 @@ local function attemptSetupRace(setupData)
         notify(Lang('not_in_a_vehicle'), 'error')
         return false
     end
-end exports('attemptSetupRace', attemptSetupRace)
+end
+exports('attemptSetupRace', attemptSetupRace)
 
 RegisterNUICallback('UiSetupRace', function(setupData, cb)
     cb(attemptSetupRace(setupData))
 end)
 
-local function verifyCheckpoints(checkpoints) 
+local function verifyCheckpoints(checkpoints)
     for index, data in pairs(checkpoints) do
         local coordsExist = data.coords.x and data.coords.y and data.coords.z
-        local offsetExists = data.offset.left.x and data.offset.left.y and data.offset.left.z and data.offset.right.x and data.offset.right.y and data.offset.right.z
+        local offsetExists = data.offset.left.x and data.offset.left.y and data.offset.left.z and data.offset.right.x and
+        data.offset.right.y and data.offset.right.z
         if coordsExist and offsetExists then return true end
     end
     return false
@@ -2840,7 +2896,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
         print('No data')
         return
     end
-    
+
     local checkpoints = createData.checkpoints
     local decodedCheckpoints = json.decode(checkpoints)
     if checkpoints ~= nil then
@@ -2866,7 +2922,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
     debugLog('Max allowed for you:', maxCharacterTracks, "You have this many tracks:", tracks)
 
     if Config.LimitTracks and tracks >= maxCharacterTracks then
-        notify(Lang("max_tracks").. maxCharacterTracks)
+        notify(Lang("max_tracks") .. maxCharacterTracks)
         return
     else
         if not #createData.name then
@@ -2874,21 +2930,21 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             cb(false)
             return
         end
-    
+
         if #createData.name < Config.MinTrackNameLength then
             notify(Lang("name_too_short"), 'error')
             cb(false)
             return
         end
-    
+
         if #createData.name > Config.MaxTrackNameLength then
             notify(Lang("name_too_long"), 'error')
             cb(false)
             return
         end
-        
+
         local result = cwCallback.await('cw-racingapp:server:IsAuthorizedToCreateRaces', createData.name)
-    
+
         if not result.permissioned then
             notify(Lang("not_auth"), 'error')
             cb(false)
@@ -2949,7 +3005,11 @@ RegisterNUICallback('UiDisbandCrew', function(data, cb)
 end)
 
 RegisterNUICallback('UiCreateCrew', function(data, cb)
-    if #data.crewName == 0 then notify(Lang("name_too_short"), 'error')  cb(false) return end
+    if #data.crewName == 0 then
+        notify(Lang("name_too_short"), 'error')
+        cb(false)
+        return
+    end
     local citizenId = getCitizenId()
     local result = cwCallback.await('cw-racingapp:server:createCrew', CurrentName, citizenId, data.crewName)
 
@@ -2971,8 +3031,12 @@ RegisterNUICallback('UiCreateUser', function(data, cb)
 end)
 
 RegisterNUICallback('UiSendInvite', function(data, cb)
-    if data.citizenId.length == 0 then notify(Lang("bad_input"), 'error')  cb(false) return end
-    local myServerID = GetPlayerServerId( PlayerId())
+    if data.citizenId.length == 0 then
+        notify(Lang("bad_input"), 'error')
+        cb(false)
+        return
+    end
+    local myServerID = GetPlayerServerId(PlayerId())
 
     local result = cwCallback.await('cw-racingapp:server:sendInviteClosest', myServerID, data.citizenId, CurrentCrew)
 
@@ -2981,10 +3045,14 @@ RegisterNUICallback('UiSendInvite', function(data, cb)
 end)
 RegisterNUICallback('UiSendInviteClosest', function(data, cb)
     local closestP, distance = getClosestPlayer()
-    if closestP == nil or distance > 5 then notify(Lang("prox_error"), 'error') cb(false) return end
+    if closestP == nil or distance > 5 then
+        notify(Lang("prox_error"), 'error')
+        cb(false)
+        return
+    end
 
     local closestServerID = GetPlayerServerId(closestP)
-    local myServerID = GetPlayerServerId( PlayerId())
+    local myServerID = GetPlayerServerId(PlayerId())
 
     local result = cwCallback.await('cw-racingapp:server:sendInviteClosest', myServerID, closestServerID, CurrentCrew)
     debugLog('Success: ', result)
@@ -3034,13 +3102,13 @@ local trackIsBeingDisplayed = false
 local checkpointsPreview = {}
 
 local function hideTrack()
-    local trackIsBeingDisplayed = false
+    trackIsBeingDisplayed = false
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
     else
         ClearGpsMultiRoute()
     end
-    for i, blip in pairs(checkpointsPreview) do
+    for _, blip in pairs(checkpointsPreview) do
         RemoveBlip(blip)
     end
 end
@@ -3054,24 +3122,24 @@ local function displayTrack(track)
     else
         ClearGpsMultiRoute()
     end
-    StartGpsMultiRoute(12, false , false)
+    StartGpsMultiRoute(12, false, false)
     for i, checkpoint in pairs(track.Checkpoints) do
-        addPointToGpsRoute(checkpoint.coords.x,checkpoint.coords.y, checkpoint.offset)
-        checkpointsPreview[#checkpointsPreview+1] = createCheckpointBlip(checkpoint.coords, i)
+        addPointToGpsRoute(checkpoint.coords.x, checkpoint.coords.y, checkpoint.offset)
+        checkpointsPreview[#checkpointsPreview + 1] = createCheckpointBlip(checkpoint.coords, i)
         if IgnoreRoadsForGps then
             SetGpsCustomRouteRender(true, 16, 16)
         else
             SetGpsMultiRouteRender(true, 16, 16)
         end
     end
-    local trackIsBeingDisplayed = true
+    trackIsBeingDisplayed = true
 end
 
 RegisterNUICallback('UiShowTrack', function(RaceId, cb)
     debugLog('displaying track', RaceId)
     local tracks = cwCallback.await('cw-racingapp:server:GetTracks')
     displayTrack(tracks[RaceId])
-    SetTimeout(20*1000, function()
+    SetTimeout(20 * 1000, function()
         FinishedUITimeout = false
         hideTrack()
     end)
@@ -3134,11 +3202,11 @@ end)
 RegisterNUICallback('UiUpdateSettings', function(data, cb)
     if data.setting == 'IgnoreRoadsForGps' then
         toggleIgnoreRoadsForGps(data.value)
-    elseif data.setting =='ShowGpsRoute' then
+    elseif data.setting == 'ShowGpsRoute' then
         toggleShowRoute(data.value)
-    elseif data.setting =='UseUglyWaypoint' then
+    elseif data.setting == 'UseUglyWaypoint' then
         toggleUglyWaypoint(data.value)
-    elseif data.setting =='CheckDistance' then
+    elseif data.setting == 'CheckDistance' then
         CheckDistance = data.value
         if CheckDistance then
             notify(Lang("distance_on"), 'success')
@@ -3162,13 +3230,13 @@ function initialSetup()
     local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
     MyRacerNames = playerNames
     debugLog('player names', json.encode(playerNames))
-    
+
 
     local racerData = getRacerData()
     local racerName = racerData.name
     local racerAuth = racerData.auth
     local racerCrew = racerData.crew
-    
+
     if getSizeOfTable(playerNames) == 0 then
         return
     end
@@ -3177,13 +3245,13 @@ function initialSetup()
         CurrentName = racerName
         CurrentAuth = racerAuth
         CurrentRanking = getCurrentRankingFromRacer(playerNames)
-        if UseDebug then 
-            print('^3Racer name in metadata: ', racerName) 
-            print('^3Racer auth in metadata: ', racerAuth) 
+        if UseDebug then
+            print('^3Racer name in metadata: ', racerName)
+            print('^3Racer auth in metadata: ', racerAuth)
             print('^3Ranking', CurrentRanking)
         end
     else
-        if getSizeOfTable(playerNames) == 1 then 
+        if getSizeOfTable(playerNames) == 1 then
             local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', playerNames[1].racername)
             if result and result.name then
                 debugLog('Only one racername available. Setting to ', result.name, result.auth)
@@ -3201,22 +3269,19 @@ function initialSetup()
             CurrentCrew = myCrew
         end
     end
-
 end
 
-
-AddEventHandler('onResourceStart', function (resource)
+AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-    if UseDebug then 
+    if UseDebug then
         print('^3--- Debug is on for Racingapp --- ')
 
         print('^2Inventory is set to ', Config.Inventory)
         print('^2Using Oxlib for keybinds ', Config.UseOxLibForKeybind)
         print('^2Using Renewed Crypto ', Config.UseRenewedCrypto)
         print('^2Using Renewed Banking ', Config.UseRenewedBanking)
-        
+
         print('^2Permissions:', json.encode(Config.Permissions))
         print('^2Classes: ', json.encode(Classes))
-
     end
 end)
