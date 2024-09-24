@@ -59,6 +59,6 @@ function getRacerData(src)
     return {
         name = PlayerData.metadata.selectedRacerName,
         auth = PlayerData.metadata.selectedRacerAuth,
-        crew = PlayerData.metadata.selectedCre,
+        crew = PlayerData.metadata.selectedCrew,
     }
 end

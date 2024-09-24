@@ -69,6 +69,6 @@ function getRacerData(src)
     return {
         name = Player.get("selectedRacerName"),
         auth = Player.get("selectedRacerAuth"),
-        crew = Player.get("selectedCre"),
+        crew = Player.get("selectedCrew"),
     }
 end
