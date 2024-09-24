@@ -63,11 +63,14 @@ local UseUglyWaypoint = Config.UseUglyWaypoint or false
 local UseDrawTextWaypoint = Config.UseDrawTextWaypoint or false
 local CheckDistance = Config.CheckDistance or false
 
-local function debugLog(message, message2)
+local function debugLog(message, message2, message3)
     if UseDebug then
         print('^2CW-RACINGAPP DEBUG:^0', message)
         if message2 then
             print(message2)
+        end
+        if message3 then
+            print(message3)
         end
     end
 end
@@ -1966,7 +1969,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
         racerId = GetPlayerServerId(PlayerId())
     end
     if racerNameIsValid(racerName) then
-        local playerNames = cwCallback.await('cw-racingapp:server:GetRaceResults', racerId)
+        local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer', racerId)
 
         debugLog('player names', #playerNames, json.encode(playerNames))
         local maxRacerNames = Config.MaxRacerNames
@@ -1974,7 +1977,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
             maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
         end
 
-        debugLog('Racer names allowed for', racerId, maxRacerNames)
+        debugLog('Racer names allowed for id '..racerId, maxRacerNames)
         if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
             local nameIsNotTaken = cwCallback.await('cw-racingapp:server:NameIsAvailable', racerName, racerId)
 
@@ -3245,4 +3248,5 @@ AddEventHandler('onResourceStart', function(resource)
         print('^2Permissions:', json.encode(Config.Permissions))
         print('^2Classes: ', json.encode(Classes))
     end
+    initialSetup()
 end)
