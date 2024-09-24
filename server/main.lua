@@ -1451,6 +1451,7 @@ RegisterServerCallback('cw-racingapp:server:GetAmountOfTracks', function(source,
 end)
 
 RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source, racerName, serverId)
+    if useDebug then print('checking availability for', json.encode({racerName = racerName, sererId = serverId}, {indent=true})) end
     if Config.UseNameValidation then
         local citizenId = getCitizenId(serverId)
         if nameIsValid(racerName, citizenId) then
@@ -1474,20 +1475,22 @@ local function racerNameExists(currentName, racerNames)
     return false    -- if we dont find a name we return false
 end
 
-RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source)
-    if UseDebug then print('Getting racer names for serverid', source) end
+RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source, serverId)
+    local playerSource = serverId or source
+    
+    if UseDebug then print('Getting racer names for serverid', playerSource) end
 
-    local citizenId = getCitizenId(source)
+    local citizenId = getCitizenId(playerSource)
     if UseDebug then print('Racer citizenid', citizenId) end
 
     local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { citizenId })
     if UseDebug then print('Racer Names found:', json.encode(result)) end
 
-    local currentRacerName = getRacerData(source).name
+    local currentRacerName = getRacerData(playerSource).name
 
     if not racerNameExists(currentRacerName, result) then
         if UseDebug then print('Racer name in use does no longer exist') end
-        updateRacingUserMetadata(source, nil, nil)
+        updateRacingUserMetadata(playerSource, nil, nil)
     end
 
     return result
