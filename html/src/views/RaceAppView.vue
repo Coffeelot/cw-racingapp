@@ -163,7 +163,7 @@ h2 {
   z-index: 2000;
   width: 100%;
   position: absolute;
-  bottom: 10%;
+  bottom: 1em;
   display: flex;
   justify-content: center;
   z-index: 2000;
@@ -191,7 +191,7 @@ h2 {
 
 .screen-container {
   width: 70vw;
-  height: 40vw;
+  height: 90vh;
   margin-top: 72px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   border: 1.2em solid #131316;
