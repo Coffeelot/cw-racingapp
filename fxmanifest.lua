@@ -4,7 +4,7 @@ games { 'gta5' }
 
 author 'Coffeelot & Wuggie'
 description 'CW Racing App'
-version '3.4.3'
+version '3.4.4'
 
 ui_page {
     "html/dist/index.html"
