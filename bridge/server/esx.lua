@@ -24,11 +24,17 @@ end
 -- Checks that user can pay
 function canPay(src, moneyType, cost)
     local xPlayer = ESX.GetPlayerFromId(src)
-    if xPlayer.getAccount(moneyType).money >= cost then
-        return true
+    if xPlayer then
+        local account = xPlayer.getAccount(moneyType)
+        if account and account.money >= cost then
+            return true
+        else
+            return false
+        end
+    else
+        print("Player not found for source: " .. tostring(src))
+        return false
     end
-
-    return false
 end
 
 -- Updates Metadata
