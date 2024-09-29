@@ -412,69 +412,71 @@ AddEventHandler('onResourceStart', function(resourceName)
     end
 end)
 
--- Debugging
-registerCommand('createracingcrew', "Create a new racing crew", {
-    { name = 'founder',   help = 'Founder name' },
-    { name = 'citizenid', help = 'Citizen ID' },
-    { name = 'crew',      help = 'Crew name' },
-}, true, function(source, args)
-    print('Creating racing crew for', args[1], 'citizenid', args[2], 'named', args[3])
-    createRacingCrew(args[1], args[2], args[3])
-end, 'admin')
-
-registerCommand('joinracingcrew', "Join a racing crew", {
-    { name = 'member',    help = 'Member name' },
-    { name = 'citizenid', help = 'Citizen ID' },
-    { name = 'crew',      help = 'Crew name' },
-}, true, function(source, args)
-    print(args[1], 'joining racing crew', args[3])
-    joinRacingCrew(args[1], args[2], args[3])
-end, 'admin')
-
-registerCommand('leaveracingcrew', "Leave a racing crew", {
-    { name = 'member',    help = 'Member name' },
-    { name = 'citizenid', help = 'Citizen ID' },
-    { name = 'crew',      help = 'Crew name' },
-}, true, function(source, args)
-    print(args[1], 'leaving racing crew', args[3])
-    leaveRacingCrew(args[1], args[2], args[3])
-end, 'admin')
-
-registerCommand('addwintocrew', "Add a win to a racing crew", {
-    { name = 'crew', help = 'Crew name' },
-}, true, function(source, args)
-    print('Adding a win to racing crew', args[1])
-    addWinToCrew(args[1])
-end, 'admin')
-
-registerCommand('addracetocrew', "Add a race to a racing crew", {
-    { name = 'crew', help = 'Crew name' },
-}, true, function(source, args)
-    print('Adding a race to racing crew', args[1])
-    addRaceToCrew(args[1])
-end, 'admin')
-
-registerCommand('updateranking', "add/remove rank for a racing crew", {
-    { name = 'crew',   help = 'Crew name' },
-    { name = 'amount', help = 'How much do you want to increase/decrease with' },
-}, true, function(source, args)
-    print('changing rank of racing crew', args[1], 'with', args[2])
-    updateRanking(args[1], args[2])
-end, 'admin')
-
-registerCommand('disbandracingcrew', "Disband a racing crew", {
-    { name = 'crew', help = 'Crew name' },
-}, true, function(source, args)
-    print('Disbanding racing crew', args[1])
-    disbandRacingCrew(args[1])
-end, 'admin')
-
-registerCommand('printracingcrews', "Print racing crews", {
-}, true, function(source, args)
-    print(json.encode(RacingCrews))
-end, 'admin')
-
-registerCommand('printinvites', "Print racing crews", {
-}, true, function(source, args)
-    print(json.encode(ActiveInvites))
-end, 'admin')
+if useDebug then
+    -- Debugging
+    registerCommand('createracingcrew', "Create a new racing crew", {
+        { name = 'founder',   help = 'Founder name' },
+        { name = 'citizenid', help = 'Citizen ID' },
+        { name = 'crew',      help = 'Crew name' },
+    }, true, function(source, args)
+        print('Creating racing crew for', args[1], 'citizenid', args[2], 'named', args[3])
+        createRacingCrew(args[1], args[2], args[3])
+    end, true)
+    
+    registerCommand('joinracingcrew', "Join a racing crew", {
+        { name = 'member',    help = 'Member name' },
+        { name = 'citizenid', help = 'Citizen ID' },
+        { name = 'crew',      help = 'Crew name' },
+    }, true, function(source, args)
+        print(args[1], 'joining racing crew', args[3])
+        joinRacingCrew(args[1], args[2], args[3])
+    end, true)
+    
+    registerCommand('leaveracingcrew', "Leave a racing crew", {
+        { name = 'member',    help = 'Member name' },
+        { name = 'citizenid', help = 'Citizen ID' },
+        { name = 'crew',      help = 'Crew name' },
+    }, true, function(source, args)
+        print(args[1], 'leaving racing crew', args[3])
+        leaveRacingCrew(args[1], args[2], args[3])
+    end, true)
+    
+    registerCommand('addwintocrew', "Add a win to a racing crew", {
+        { name = 'crew', help = 'Crew name' },
+    }, true, function(source, args)
+        print('Adding a win to racing crew', args[1])
+        addWinToCrew(args[1])
+    end, true)
+    
+    registerCommand('addracetocrew', "Add a race to a racing crew", {
+        { name = 'crew', help = 'Crew name' },
+    }, true, function(source, args)
+        print('Adding a race to racing crew', args[1])
+        addRaceToCrew(args[1])
+    end, true)
+    
+    registerCommand('updateranking', "add/remove rank for a racing crew", {
+        { name = 'crew',   help = 'Crew name' },
+        { name = 'amount', help = 'How much do you want to increase/decrease with' },
+    }, true, function(source, args)
+        print('changing rank of racing crew', args[1], 'with', args[2])
+        updateRanking(args[1], args[2])
+    end, true)
+    
+    registerCommand('disbandracingcrew', "Disband a racing crew", {
+        { name = 'crew', help = 'Crew name' },
+    }, true, function(source, args)
+        print('Disbanding racing crew', args[1])
+        disbandRacingCrew(args[1])
+    end, true)
+    
+    registerCommand('printracingcrews', "Print racing crews", {
+    }, true, function(source, args)
+        print(json.encode(RacingCrews))
+    end, true)
+    
+    registerCommand('printinvites', "Print racing crews", {
+    }, true, function(source, args)
+        print(json.encode(ActiveInvites))
+    end, true)
+end

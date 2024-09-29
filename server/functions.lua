@@ -26,13 +26,6 @@ end
 function registerCommand(command, description, arguments, argsrequired, callback, restricted)
     -- Register the command
     RegisterCommand(command, function(source, args, rawCommand)
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {255, 0, 0},
-                multiline = true,
-                args = {"System", "Insufficient arguments provided."}
-            })
-            return
-        
         -- Call the callback function
         callback(source, args, rawCommand)
     end, restricted)
