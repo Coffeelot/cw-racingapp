@@ -69,6 +69,9 @@ const handleMessageListener = (event: MessageEvent) => {
       case 'notify': 
         globalStore.$state.notification = itemData.data
         break;
+      case 'updateBaseData':
+        getBaseData()
+        break;
       default:
         break;
     }

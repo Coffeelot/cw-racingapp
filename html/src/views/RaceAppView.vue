@@ -59,6 +59,7 @@
                 :icon="hasProblem.icon ? hasProblem.icon : '$error'"
               >
               </v-alert>
+              <UserCreation v-if="globalStore.baseData.data.anyoneCanCreate && globalStore.baseData.data.racerNames.length === 0"></UserCreation>
             </div>
           </div>
         </v-layout>
@@ -82,16 +83,12 @@ import { closeApp } from "@/helpers/closeApp";
 import { getBaseData } from "@/helpers/getBaseData";
 import { computed } from "vue";
 import { translate } from "@/helpers/translate";
+import UserCreation from "@/components/app/components/UserCreation.vue";
 
 const globalStore = useGlobalStore();
 
 const snackbar = ref(false)
 const snackTimeout = ref(3000)
-
-const transition = computed(() => ({
-  enter: 'slide-y-transition',
-  leave: 'slide-y-reverse-transition'
-}))
 
 const hasProblem = computed(() => {
   if (
@@ -100,8 +97,11 @@ const hasProblem = computed(() => {
     globalStore.baseData.data.racerNames.length === 0
   ) {
     return {
-      title: "You are lacking a racing app user",
-      text: "You need to have at least one user account to access this",
+      title: translate('error_lacking_user'),
+      text: translate('error_lacking_user_desc'),
+      color: "info",
+      icon: "$info",
+      type: 'no_user'
     };
   } else if (globalStore.baseData.data.currentRacerName) {
     const currentRacer = globalStore.baseData.data.racerNames?.find(
@@ -110,22 +110,25 @@ const hasProblem = computed(() => {
     if (currentRacer) {
       if (currentRacer.revoked) {
         return {
-          title: "Your current user has had it's access revoked",
-          text: "It has not been removed, yet",
+          title: translate('error_revoked'),
+          text: translate('error_revoked_desc'),
+          type: 'revoked'
         };
       }
     } else {
       return {
-        title: "Your current user has been permanently removed",
-        text: "Sucks to suck I guess",
+        title: translate('error_permanently_removed'),
+        text: translate('error_permanently_removed_desc'),
+        type: 'removed'
       };
     }
   } else {
     return {
-      title: "No user selected",
-      text: "Select a user in the settings page",
+      title: translate('error_no_user'),
+      text: translate('error_no_user_desc'),
       color: "info",
       icon: "$info",
+      type: 'no_user'
     };
   }
   return false;

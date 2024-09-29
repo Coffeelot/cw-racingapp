@@ -30,6 +30,9 @@ Config.OxLibNotify = false              -- If you want Oxlib notify Same as abov
 Config.LimitTopListTo = 10              -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 
+Config.AllowAnyoneToCreateUserInApp = true -- If True then anyone can create their own user in the app. If there are no users in the DB the user will automatically be a GOD type
+Config.BasePermission = 'racer' -- this is the base user type your racingapp users can create if you allow creation in app. Should match the user you want from Config.Permissions
+
 Config.Sounds = {
     Countdown = {
         start = { lib = "10_SEC_WARNING", sound = "HUD_MINI_GAME_SOUNDSET" },         -- sound that plays when race is readied

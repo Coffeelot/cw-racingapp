@@ -187,7 +187,9 @@ export type BaseData = {
         currentRanking: number,
         auth: Auth
         hudSettings: { location: string, maxPositions: number },
-        translations: Record<string,string>
+        translations: Record<string,string>,
+        anyoneCanCreate: boolean,
+        isFirstUser: boolean,
     }
 }
 

@@ -276,4 +276,15 @@ TranslationsEN = {
         wins = "Wins",
         yes = "Yes",
         you_have_to_place_a_new_checkpoint_down_first = "You have to place down a new checkpoint first",
+        error_lacking_user = "You are lacking a racing app user",
+        error_lacking_user_desc = "You need to have a user selected to access this. If you have one you can select it in settings",
+        error_revoked = "Your current user has had it's access revoked",
+        error_revoked_desc = "It has not been removed, yet",
+        error_removed = "Your current user has been permanently removed",
+        error_removed_desc = "Sucks to suck I guess",
+        error_no_user = "No User selected",
+        error_no_user_desc = "Select a user in the settings page",
+        create_user = "Create a user",
+        is_first_user = "You're the first user in the database. Your account will be created as a GOD account",
+
 }

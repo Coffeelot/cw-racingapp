@@ -7,6 +7,7 @@ local LastRaces = {}
 local NotFinished = {}
 local UseDebug = Config.Debug
 local Timers = {}
+local IsFirstUser = false
 
 local RaceResults = {}
 if Config.Debug then
@@ -199,6 +200,8 @@ local function updateRaces()
             }
         end
     end
+    IsFirstUser = MySQL.Sync.fetchScalar('SELECT COUNT(*) FROM racer_names', {}) == 0
+    
 end
 
 MySQL.ready(function()
@@ -1293,6 +1296,11 @@ RegisterServerCallback('cw-racingapp:server:getAllRacers', function(source)
     return allRacers
 end)
 
+RegisterServerCallback('cw-racingapp:server:isFirstUser', function(source)
+    if UseDebug then print('Is first user:', IsFirstUser) end
+    return IsFirstUser
+end)
+
 -----------------------
 ----   Functions   ----
 -----------------------
@@ -1435,6 +1443,7 @@ end
 
 local function addRacerName(citizenId, racerName, targetSource, auth, creatorCitizenId)
     if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', { racerName, citizenId })[1] then
+        IsFirstUser = false
         MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
             { citizenId, racerName, auth, creatorCitizenId })
     end
@@ -1466,7 +1475,7 @@ end)
 
 local function racerNameExists(currentName, racerNames)
     if currentName then
-        for _, user in pairs(racerNames) do
+        for i, user in pairs(racerNames) do
             if currentName == user.racername then return true end
         end
     else
@@ -1489,7 +1498,7 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
     local currentRacerName = getRacerData(playerSource).name
 
     if not racerNameExists(currentRacerName, result) then
-        if UseDebug then print('Racer name in use does no longer exist') end
+        if UseDebug then print('Racer name selected does no longer exist') end
         updateRacingUserMetadata(playerSource, nil, nil)
     end
 
@@ -1644,100 +1653,103 @@ RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racer
     end
 end)
 
-registerCommand('createracinguser', "Create a racing user", {
-    { name = 'type',     help = 'racer/creator/master/god' },
-    { name = 'identifier', help = 'Server ID' },
-    { name = 'Racer Name', help = 'Racer name. Put in quotations if multiple words' }
-}, true, function(source, args)
-    local type = args[1]
-    local id = tonumber(args[2])
-    print(
-        '^4Creating a user with input^0',
-        json.encode({ playerId = args[2], racerName = args[3], type = args[1] })
-    )
-    if args[4] then
-        print('^1Too many args!')
-        TriggerClientEvent('cw-racingapp:client:notify', source,
-            "Too many arguments. You probably did not read the command input suggestions.", "error")
-        return
-    end
-
-    if not Config.Permissions[type:lower()] then
-        TriggerClientEvent('cw-racingapp:client:notify', source, "This user type does not exist", "error")
-        return
-    end
-
-    local citizenid
-    local name = args[3]
-
-    if tonumber(id) then
-        citizenid = getCitizenId(tonumber(id))
-        if UseDebug then print('CitizenId', citizenid) end
-        if not citizenid then
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("id_not_found"), "error")
+if UseDebug then
+    registerCommand('createracinguser', "Create a racing user", {
+        { name = 'type',     help = 'racer/creator/master/god' },
+        { name = 'identifier', help = 'Server ID' },
+        { name = 'Racer Name', help = 'Racer name. Put in quotations if multiple words' }
+    }, true, function(source, args)
+        local type = args[1]
+        local id = tonumber(args[2])
+        print(
+            '^4Creating a user with input^0',
+            json.encode({ playerId = args[2], racerName = args[3], type = args[1] })
+        )
+        if args[4] then
+            print('^1Too many args!')
+            TriggerClientEvent('cw-racingapp:client:notify', source,
+                "Too many arguments. You probably did not read the command input suggestions.", "error")
             return
         end
-    else
-        citizenid = id
+    
+        if not Config.Permissions[type:lower()] then
+            TriggerClientEvent('cw-racingapp:client:notify', source, "This user type does not exist", "error")
+            return
+        end
+    
+        local citizenid
+        local name = args[3]
+    
+        if tonumber(id) then
+            citizenid = getCitizenId(tonumber(id))
+            if UseDebug then print('CitizenId', citizenid) end
+            if not citizenid then
+                TriggerClientEvent('cw-racingapp:client:notify', source, Lang("id_not_found"), "error")
+                return
+            end
+        else
+            citizenid = id
+        end
+    
+        if #name >= Config.MaxRacerNameLength then
+            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_long"), "error")
+            return
+        end
+    
+        if #name <= Config.MinRacerNameLength then
+            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_short"), "error")
+            return
+        end
+    
+        local tradeType = {
+            moneyType = Config.Options.MoneyType,
+            racingUserCosts = {
+                racer = 0,
+                creator = 0,
+                master = 0,
+                god = 0
+            },
+        }
+    
+        createRacingName(source, citizenid, name, type:lower(), tradeType, id)
+    end, true)
+    
+    registerCommand('remracename', 'Remove Racing Name From Database',
+        { { name = 'name', help = 'Racer name. Put in quotations if multiple words' } }, true, function(source, args)
+        local name = args[1]
+        print('name of racer to delete:', name)
+        MySQL.query('DELETE FROM racer_names WHERE racername = ?', { name })
+    end, true)
+    
+    local function dropRacetrackTable()
+        MySQL.query('DROP TABLE IF EXISTS race_tracks')
     end
-
-    if #name >= Config.MaxRacerNameLength then
-        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_long"), "error")
-        return
-    end
-
-    if #name <= Config.MinRacerNameLength then
-        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_too_short"), "error")
-        return
-    end
-
-    local tradeType = {
-        moneyType = Config.Options.MoneyType,
-        racingUserCosts = {
-            racer = 0,
-            creator = 0,
-            master = 0,
-            god = 0
-        },
-    }
-
-    createRacingName(source, citizenid, name, type:lower(), tradeType, id)
-end, 'dev')
-
-registerCommand('remracename', 'Remove Racing Name From Database',
-    { { name = 'name', help = 'Racer name. Put in quotations if multiple words' } }, true, function(source, args)
-    local name = args[1]
-    print('name of racer to delete:', name)
-    MySQL.query('DELETE FROM racer_names WHERE racername = ?', { name })
-end, 'dev')
-
-local function dropRacetrackTable()
-    MySQL.query('DROP TABLE IF EXISTS race_tracks')
+    
+    registerCommand('removeallracetracks', 'Remove the race_tracks table', {}, true,function(source, args)
+        dropRacetrackTable()
+    end, true)
+    
+    registerCommand('racingappcurated', 'Mark/Unmark track as curated',
+        { { name = 'trackid', help = 'Track ID (not name). Use quotation marks!!!' }, { name = 'curated', help = 'true/false' } },
+        true,
+        function(source, args)
+        print('Curating track: ', args[1], args[2])
+        local curated = 0
+        if args[2] == 'true' then
+            curated = 1
+        end
+        local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', { curated, args[1] })
+        if res == 1 then
+            Tracks[args[1]].Curated = curated
+            TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track curated as ' .. args[2])
+        else
+            TriggerClientEvent('cw-racingapp:client:notify', source, 'Your input seems to be lacking...')
+        end
+    end,true)
+    
+    registerCommand('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
+        UseDebug = not UseDebug
+        print('debug is now:', UseDebug)
+        TriggerClientEvent('cw-racingapp:client:toggleDebug', source, UseDebug)
+    end, true)
 end
-
-registerCommand('removeallracetracks', 'Remove the race_tracks table', {}, true, function(source, args)
-    dropRacetrackTable()
-end, 'admin')
-
-registerCommand('racingappcurated', 'Mark/Unmark track as curated',
-    { { name = 'trackid', help = 'Track ID (not name). Use quotation marks!!!' }, { name = 'curated', help = 'true/false' } },
-    true, function(source, args)
-    print('Curating track: ', args[1], args[2])
-    local curated = 0
-    if args[2] == 'true' then
-        curated = 1
-    end
-    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', { curated, args[1] })
-    if res == 1 then
-        Tracks[args[1]].Curated = curated
-        TriggerClientEvent('cw-racingapp:client:notify', source, 'Successfully set track curated as ' .. args[2])
-    else
-        TriggerClientEvent('cw-racingapp:client:notify', source, 'Your input seems to be lacking...')
-    end
-end, 'admin')
-
-registerCommand('cwdebugracing', 'toggle debug for racing', {}, true, function(source, args)
-    UseDebug = not UseDebug
-    print('debug is now:', UseDebug)
-    TriggerClientEvent('cw-racingapp:client:toggleDebug', source, UseDebug)
-end, 'admin')
