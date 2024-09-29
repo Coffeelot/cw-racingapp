@@ -40,8 +40,8 @@ end
 -- Updates Metadata
 function updateRacingUserMetadata(src, racerName, auth)
     local xPlayer = ESX.GetPlayerFromId(src)
-    xPlayer.set("selectedRacerAuth", auth or 'racer')
     xPlayer.set("selectedRacerName", racerName)
+    xPlayer.set("selectedRacerAuth", auth)
     xPlayer.set("selectedCrew", nil)
 end
 

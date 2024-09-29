@@ -25,11 +25,7 @@ end
 -- Updates Metadata
 function updateRacingUserMetadata(src, racerName, auth)
     local player = exports.qbx_core:GetPlayer(tonumber(src))
-    if auth then
-        player.Functions.SetMetaData("selectedRacerAuth", auth)
-    else
-        player.Functions.SetMetaData("selectedRacerAuth", 'racer')
-    end
+    player.Functions.SetMetaData("selectedRacerAuth", auth)
     player.Functions.SetMetaData("selectedRacerName", racerName)
     player.Functions.SetMetaData("selectedCrew", nil)
 end
