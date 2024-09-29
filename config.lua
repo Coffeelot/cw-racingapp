@@ -309,7 +309,7 @@ Config.Buttons = {
 
 Config.AutomatedRaces = {
     {
-        trackId = 'LR-7666',            -- TrackId. Found in your tracks in racingapp or in DB
+        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
         laps = 2,                       -- Laps. 0 for sprint
         racerName = 'AutoMate',         -- Name on the Automation
         maxClass = 'A',                 -- Max Class
