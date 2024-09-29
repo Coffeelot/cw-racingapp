@@ -222,12 +222,11 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 ```
 4. Add the item image to your inventory image folder
 5. If you're not using QBOX then comment out `'@qbx_core/modules/playerdata.lua'` in fxmanifest 
-6. Create a god user with the command (see below)
+6. Open the game and give yourself the item. When you open the app for the first time you'll be prompted to create a user. The first user to be created will be a `god` user, after that the rest will be `racer` type of whatever you set it to in the config. Optionally you can create a god user with the command (see below)
 
 ### Setup Notes
 > You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
 
-> Depending on how you're setting it up, you might want to spawn yourself a racingapp item and create an account. This can be done in 4 ways: Via the trader or laptop (See respetive config option for more info), the racingapp ui (requires an already existing account - BY DEFAULT THIS ALSO REQUIRES A JOB. SEE LAPTOP CONFIG SETTINGS) or the command.
 
 ### Use in game
 Use the command `createracinguser` to do this. For example:
