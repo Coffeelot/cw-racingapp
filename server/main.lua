@@ -1460,7 +1460,7 @@ RegisterServerCallback('cw-racingapp:server:GetAmountOfTracks', function(source,
 end)
 
 RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source, racerName, serverId)
-    if useDebug then print('checking availability for', json.encode({racerName = racerName, sererId = serverId}, {indent=true})) end
+    if UseDebug then print('checking availability for', json.encode({racerName = racerName, sererId = serverId}, {indent=true})) end
     if Config.UseNameValidation then
         local citizenId = getCitizenId(serverId)
         if nameIsValid(racerName, citizenId) then
@@ -1475,7 +1475,7 @@ end)
 
 local function racerNameExists(currentName, racerNames)
     if currentName then
-        for i, user in pairs(racerNames) do
+        for _, user in pairs(racerNames) do
             if currentName == user.racername then return true end
         end
     else

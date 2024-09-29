@@ -3238,8 +3238,6 @@ function initialSetup()
                 CurrentAuth = result.auth
                 CurrentRanking = getCurrentRankingFromRacer(playerNames)
             end
-        else
-            
         end
     end
     if racerCrew then
