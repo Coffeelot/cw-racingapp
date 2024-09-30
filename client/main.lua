@@ -476,7 +476,7 @@ local function saveRace()
     end
 
     CreatorData.RaceDistance = raceDistance
-    TriggerServerEvent('cw-racingapp:server:SaveTrack', CreatorData)
+    TriggerServerEvent('cw-racingapp:server:saveTrack', CreatorData)
     Lang("slow_down")
     notify(Lang("race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
 
@@ -1163,7 +1163,7 @@ local function FinishRace()
     local vehicle = GetVehiclePedIsIn(PlayerPed, false)
     if not isDriver(vehicle) then
         notify(Lang('kicked_cheese'), 'error')
-        TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'cheeseing')
+        TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'cheeseing')
         return
     end
 
@@ -1171,7 +1171,7 @@ local function FinishRace()
     local vehicleModel = getVehicleModel(vehicle)
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
-    TriggerServerEvent('cw-racingapp:server:FinishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
+    TriggerServerEvent('cw-racingapp:server:finishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, CurrentRanking, CurrentCrew)
     notify(Lang("race_finished") .. milliToTime(CurrentRaceData.TotalTime), 'success')
     if CurrentRaceData.BestLap ~= 0 then
@@ -1291,7 +1291,7 @@ local function checkCheckPointTime()
         if not Kicked then
             Kicked = true
             notify(Lang('kicked_idling'), 'error')
-            TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'idling')
+            TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'idling')
         end
     end
 end
@@ -1331,7 +1331,7 @@ CreateThread(function()
                                 CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                             end
-                            TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
+                            TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
                             doPilePfx()
                             PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
@@ -1341,7 +1341,7 @@ CreateThread(function()
                         else
                             doPilePfx()
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                            TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
+                            TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                 CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
                             PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
                             FinishRace()
@@ -1362,7 +1362,7 @@ CreateThread(function()
                                     CurrentRaceData.BestLap = CurrentRaceData.RaceTime
                                 end
                                 CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                                TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true,
                                     CurrentRaceData.TotalTime)
                                 FinishRace()
@@ -1392,7 +1392,7 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                         CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 end
-                                TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
                                     CurrentRaceData.TotalTime)
                                 doGPSForRace(true)
@@ -1413,7 +1413,7 @@ CreateThread(function()
                                     CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
                                         CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
                                 end
-                                TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
                                     CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
@@ -1427,7 +1427,7 @@ CreateThread(function()
                                     AddPointToGpsMultiRoute(CurrentRaceData.Checkpoints[1].coords.x,
                                         CurrentRaceData.Checkpoints[1].coords.y)
                                 end
-                                TriggerServerEvent('cw-racingapp:server:UpdateRacerData', CurrentRaceData.RaceId,
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
                                     CurrentRaceData.TotalTime)
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
@@ -1505,7 +1505,7 @@ AddEventHandler('onResourceStop', function(resource)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(raceData)
+RegisterNetEvent('cw-racingapp:client:readyJoinRace', function(raceData)
     local PlayerPed = PlayerPedId()
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
     local class
@@ -1520,7 +1520,7 @@ RegisterNetEvent('cw-racingapp:client:ReadyJoinRace', function(raceData)
         raceData.RacerName = CurrentName
         raceData.RaceCrew = CurrentCrew
         raceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
-        TriggerServerEvent('cw-racingapp:server:JoinRace', raceData)
+        TriggerServerEvent('cw-racingapp:server:joinRace', raceData)
     else
         notify(Lang('incorrect_class'), 'error')
     end
@@ -1532,7 +1532,7 @@ local function openCreatorUi()
     startCreatorLoopThread()
 end
 
-RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(raceName, racerName, raceId, checkpoints)
+RegisterNetEvent('cw-racingapp:client:startRaceEditor', function(raceName, racerName, raceId, checkpoints)
     if not RaceData.InCreator then
         CreatorData.RaceName = raceName
         CreatorData.RacerName = racerName
@@ -1545,7 +1545,7 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(raceName, racer
         end
         if raceId then
             debugLog('Opening RaceTrack Editor')
-            local result = cwCallback.await('cw-racingapp:server:GetTrackData', raceId)
+            local result = cwCallback.await('cw-racingapp:server:getTrackData', raceId)
             if result then
                 CreatorData.RaceName = raceName
                 CreatorData.RacerName = racerName
@@ -1572,7 +1572,6 @@ RegisterNetEvent('cw-racingapp:client:StartRaceEditor', function(raceName, racer
     end
 end)
 
-
 -- Exampl
 local function checkElimination()
     local currentPlayerIsLast = true
@@ -1592,12 +1591,12 @@ local function checkElimination()
     -- Check if the current racer is the last one who completed the lap
     if currentPlayerIsLast and lastCompletedLap >= CurrentRaceData.Lap then
         debugLog("Eliminating racer: " .. getCitizenId())
-        TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'elimination')
+        TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'elimination')
         notify(Lang("eliminated"), 'error')
     end
 end
 
-RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(raceId, raceData)
+RegisterNetEvent('cw-racingapp:client:updateRaceRacerData', function(raceId, raceData)
     if (CurrentRaceData.RaceId ~= nil) and CurrentRaceData.RaceId == raceId then
         debugLog('Race is Elimination:', CurrentRaceData.IsElimination)
         CurrentRaceData.Racers = raceData.Racers
@@ -1607,33 +1606,33 @@ RegisterNetEvent('cw-racingapp:client:UpdateRaceRacerData', function(raceId, rac
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:JoinRace', function(Data, Laps, RacerName)
+RegisterNetEvent('cw-racingapp:client:joinRace', function(Data, Laps, RacerName)
     if not RaceData.InRace then
         Data.RacerName = RacerName
         RaceData.InRace = true
         setupRace(Data, Laps)
         notify(Lang("race_joined"))
-        TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, false, true)
+        TriggerServerEvent('cw-racingapp:server:updateRaceState', CurrentRaceData.RaceId, false, true)
     else
         notify(Lang("already_in_race"), 'error')
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:UpdateRaceRacers', function(RaceId, Racers)
+RegisterNetEvent('cw-racingapp:client:updateRaceRacers', function(RaceId, Racers)
     if CurrentRaceData.RaceId == RaceId then
         CurrentRaceData.Racers = Racers
     end
 end)
 
 
-RegisterNetEvent('cw-racingapp:client:UpdateOrganizer', function(RaceId, organizer)
+RegisterNetEvent('cw-racingapp:client:updateOrganizer', function(RaceId, organizer)
     if CurrentRaceData.RaceId == RaceId then
         debugLog('updating organizer')
         CurrentRaceData.OrganizerCID = organizer
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
+RegisterNetEvent('cw-racingapp:client:leaveRace', function(data)
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
     else
@@ -1647,25 +1646,25 @@ RegisterNetEvent('cw-racingapp:client:LeaveRace', function(data)
     CurrentRaceData.RaceId = nil
 end)
 
-RegisterNetEvent("cw-racingapp:Client:DeleteTrackConfirmed", function(data)
+RegisterNetEvent("cw-racingapp:client:DeletetrackConfirmed", function(data)
     notify(data.RaceName .. " " .. Lang("has_been_removed"))
-    TriggerServerEvent("cw-racingapp:server:DeleteTrack", data.RaceId)
+    TriggerServerEvent("cw-racingapp:server:deleteTrack", data.RaceId)
 end)
 
-RegisterNetEvent("cw-racingapp:Client:ClearLeaderboardConfirmed", function(data)
+RegisterNetEvent("cw-racingapp:client:clearLeaderboardConfirmed", function(data)
     notify(data.RaceName .. " " .. Lang("leaderboard_has_been_cleared"))
-    TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", data.RaceId)
+    TriggerServerEvent("cw-racingapp:server:clearLeaderboard", data.RaceId)
 end)
 
-RegisterNetEvent("cw-racingapp:Client:EditTrack", function(data)
-    TriggerEvent("cw-racingapp:client:StartRaceEditor", data.RaceName, data.name, data.RaceId)
+RegisterNetEvent("cw-racingapp:client:editTrack", function(data)
+    TriggerEvent("cw-racingapp:client:startRaceEditor", data.RaceName, data.name, data.RaceId)
 end)
 
 local function findRacerByName()
     if #MyRacerNames == 1 and CurrentName == nil then
         CurrentName = MyRacerNames[1].racername
         CurrentAuth = MyRacerNames[1].auth
-        cwCallback.await('cw-racingapp:server:ChangeRacerName', CurrentName)
+        cwCallback.await('cw-racingapp:server:changeRacerName', CurrentName)
         return MyRacerNames[1]
     end
     if MyRacerNames then
@@ -1748,11 +1747,11 @@ local function getPlayers()
 end
 
 
-RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
+RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
     doGPSForRace(true)
     Players = {}
     Kicked = false
-    TriggerServerEvent('cw-racingapp:server:UpdateRaceState', CurrentRaceData.RaceId, true, false)
+    TriggerServerEvent('cw-racingapp:server:updateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
     positionThread()
     if CurrentRaceData.TotalLaps == -1 then
@@ -1782,7 +1781,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
             updateCountdown(0)
             PlaySoundFrontend(-1, Config.Sounds.Countdown.go.lib, Config.Sounds.Countdown.go.sound)
             if isPositionCheating() then
-                TriggerServerEvent("cw-racingapp:server:LeaveRace", CurrentRaceData, 'positionCheat')
+                TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'positionCheat')
                 notify(Lang("kicked_line"), 'error')
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
                 return
@@ -1817,7 +1816,7 @@ RegisterNetEvent('cw-racingapp:client:RaceCountdown', function(TotalRacers)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:PlayerFinish', function(RaceId, Place, RacerName)
+RegisterNetEvent('cw-racingapp:client:playerFinish', function(RaceId, Place, RacerName)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
             notify(RacerName .. " " .. Lang("racer_finished_place") .. Place, 'primary', 3500)
@@ -1830,7 +1829,7 @@ local function notCloseEnough(x, y)
     SetNewWaypoint(x, y)
 end
 
-RegisterNetEvent('cw-racingapp:client:NotCloseEnough', function(x, y)
+RegisterNetEvent('cw-racingapp:client:notCloseEnough', function(x, y)
     notCloseEnough(x, y)
 end)
 
@@ -1978,7 +1977,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
         racerId = GetPlayerServerId(PlayerId())
     end
     if racerNameIsValid(racerName) then
-        local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer', racerId)
+        local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer', racerId)
 
         debugLog('player names', #playerNames, json.encode(playerNames))
         local maxRacerNames = Config.MaxRacerNames
@@ -1988,10 +1987,10 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
 
         debugLog('Racer names allowed for id '..racerId, maxRacerNames)
         if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
-            local nameIsNotTaken = cwCallback.await('cw-racingapp:server:NameIsAvailable', racerName, racerId)
+            local nameIsNotTaken = cwCallback.await('cw-racingapp:server:nameIsAvailable', racerName, racerId)
 
             if nameIsNotTaken then
-                TriggerServerEvent('cw-racingapp:server:CreateRacerName', racerId, racerName, fobType, purchaseType)
+                TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType)
             else
                 notify(Lang("name_is_used") .. racerName, 'error')
             end
@@ -2001,7 +2000,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
     end
 end
 
-RegisterNetEvent("cw-racingapp:client:OpenFobInput", function(data)
+RegisterNetEvent("cw-racingapp:client:openFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
 
@@ -2053,7 +2052,7 @@ if Config.Trader.active then
         for authName, _ in pairs(Config.Permissions) do
             local option = {
                 type = "client",
-                event = "cw-racingapp:client:OpenFobInput",
+                event = "cw-racingapp:client:openFobInput",
                 icon = "fas fa-flag-checkered",
                 label = 'Create a new ' .. authName .. ' user (' .. currency .. trader.racingUserCosts[authName] .. ')',
                 purchaseType = trader,
@@ -2116,7 +2115,7 @@ if Config.Laptop.active then
         for authName, _ in pairs(Config.Permissions) do
             local option = {
                 type = "client",
-                event = "cw-racingapp:client:OpenFobInput",
+                event = "cw-racingapp:client:openFobInput",
                 icon = "fas fa-flag-checkered",
                 label = 'Create a new ' .. authName .. ' user (' .. currency .. laptop.racingUserCosts[authName] .. ')',
                 purchaseType = laptop,
@@ -2476,9 +2475,9 @@ RegisterNUICallback('UiCloseUi', function(_, cb)
     cb(true)
 end)
 
-RegisterNetEvent("cw-racingapp:Client:UpdateRacerNames", function(data)
+RegisterNetEvent("cw-racingapp:client:updateRacerNames", function(data)
     Wait(2000)
-    local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
+    local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
     MyRacerNames = playerNames
     local currentRacer = findRacerByName()
     notify(Lang("user_list_updated"))
@@ -2505,24 +2504,24 @@ end)
 
 
 RegisterNUICallback('UiFetchRaceResults', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:GetRaceResults')
+    local result = cwCallback.await('cw-racingapp:server:getRaceResults')
     cb(result)
 end)
 
 RegisterNUICallback('UiLeaveCurrentRace', function(raceid, cb)
     debugLog('Leaving race with race id', raceid)
-    TriggerServerEvent('cw-racingapp:server:LeaveRace', CurrentRaceData, 'leaving')
+    TriggerServerEvent('cw-racingapp:server:leaveRace', CurrentRaceData, 'leaving')
     cb(true)
 end)
 
 RegisterNUICallback('UiStartCurrentRace', function(raceid, cb)
     debugLog('starting race with race id', raceid)
-    TriggerServerEvent('cw-racingapp:server:StartRace', raceid)
+    TriggerServerEvent('cw-racingapp:server:startRace', raceid)
     cb(true)
 end)
 
 RegisterNUICallback('UiChangeRacerName', function(racername, cb)
-    local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', racername)
+    local result = cwCallback.await('cw-racingapp:server:changeRacerName', racername)
 
     if result and result.name then
         debugLog('New name and type', result.name, result.type)
@@ -2546,7 +2545,7 @@ RegisterNUICallback('UiChangeRacerName', function(racername, cb)
 end)
 
 RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
-    local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
+    local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
 
     MyRacerNames = playerNames
     debugLog('player names', #playerNames, json.encode(playerNames))
@@ -2565,17 +2564,17 @@ RegisterNUICallback('UiRevokeRacer', function(data, cb)
     debugLog('revoking racename', data.racername, data.status)
     local newStatus = 0
     if data.status == 0 then newStatus = 1 end
-    TriggerServerEvent("cw-racingapp:server:SetRevokedRacenameStatus", data.racername, newStatus)
+    TriggerServerEvent("cw-racingapp:server:setRevokedRacenameStatus", data.racername, newStatus)
 end)
 
 RegisterNUICallback('UiRemoveRacer', function(data, cb)
     debugLog('permanently removing racename', data.racername)
-    TriggerServerEvent("cw-racingapp:server:RemoveRacerName", data.racername)
+    TriggerServerEvent("cw-racingapp:server:removeRacerName", data.racername)
 end)
 
 RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
     local racerId = getCitizenId()
-    local playerNames = cwCallback.await('cw-racingapp:server:GetRacersCreatedByUser', racerId, CurrentAuth)
+    local playerNames = cwCallback.await('cw-racingapp:server:getRacersCreatedByUser', racerId, CurrentAuth)
 
     debugLog('player names', #playerNames, json.encode(playerNames))
     cb(playerNames)
@@ -2638,7 +2637,7 @@ local function joinRace(raceId)
         return false
     end
 
-    local result = cwCallback.await('cw-racingapp:server:GetRaces')
+    local result = cwCallback.await('cw-racingapp:server:getRaces')
     local currentRace = getRaceByRaceId(result, raceId)
 
     if currentRace == nil then
@@ -2648,7 +2647,7 @@ local function joinRace(raceId)
             currentRace.RacerName = CurrentName
             currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
             debugLog('^2 joining race with race id', raceId)
-            TriggerServerEvent('cw-racingapp:server:JoinRace', currentRace)
+            TriggerServerEvent('cw-racingapp:server:joinRace', currentRace)
             return true
         else
             notify(Lang('incorrect_class'), 'error')
@@ -2665,27 +2664,27 @@ end)
 RegisterNUICallback('UiClearLeaderboard', function(track, cb)
     debugLog('clearing leaderboard for ', track.RaceName)
     notify(track.RaceName .. Lang("leaderboard_has_been_cleared"))
-    TriggerServerEvent("cw-racingapp:server:ClearLeaderboard", track.RaceId)
+    TriggerServerEvent("cw-racingapp:server:clearLeaderboard", track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiDeleteTrack', function(track, cb)
     debugLog('deleting track', track.RaceName)
     notify(track.RaceName .. Lang("has_been_removed"))
-    TriggerServerEvent("cw-racingapp:server:DeleteTrack", track.RaceId)
+    TriggerServerEvent("cw-racingapp:server:deleteTrack", track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiEditTrack', function(track, cb)
     debugLog('opening track editor for', track.RaceName)
-    TriggerEvent("cw-racingapp:client:StartRaceEditor", track.RaceName, CurrentName, track.RaceId)
+    TriggerEvent("cw-racingapp:client:startRaceEditor", track.RaceName, CurrentName, track.RaceId)
     cb(true)
 end)
 
 RegisterNUICallback('UiGetAccess', function(track, cb)
     debugLog('gettingAccessFor', track.RaceName)
 
-    local result = cwCallback.await('cw-racingapp:server:GetAccess', track.RaceId)
+    local result = cwCallback.await('cw-racingapp:server:getAccess', track.RaceId)
     if not result then
         if UseDebug then
             print('Access table was empty')
@@ -2714,7 +2713,7 @@ RegisterNUICallback('UiEditAccess', function(track, cb)
     local newAccess = {
         race = split(track.NewAccess.race)
     }
-    TriggerServerEvent("cw-racingapp:server:SetAccess", track.RaceId, newAccess)
+    TriggerServerEvent("cw-racingapp:server:setAccess", track.RaceId, newAccess)
     cb(true)
 end)
 
@@ -2753,7 +2752,7 @@ RegisterNUICallback('UiGetSettings', function(_, cb)
 end)
 
 local function getAvailableTracks()
-    local result = cwCallback.await('cw-racingapp:server:GetTracks')
+    local result = cwCallback.await('cw-racingapp:server:getTracks')
     local tracks = {}
     for _, track in pairs(result) do
         if not track.Waiting and verifyTrackAccess(track, 'race') then
@@ -2769,7 +2768,7 @@ RegisterNUICallback('UiGetAvailableTracks', function(data, cb)
 end)
 
 local function getAvailableRaces()
-    local result = cwCallback.await('cw-racingapp:server:GetRaces')
+    local result = cwCallback.await('cw-racingapp:server:getRaces')
     local availableRaces = {}
     if #result > 0 then
         debugLog('Fetching available races:', json.encode(result))
@@ -2804,18 +2803,18 @@ RegisterNUICallback('UiGetListedRaces', function(_, cb)
 end)
 
 RegisterNUICallback('UiGetTracks', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:GetTracks')
+    local result = cwCallback.await('cw-racingapp:server:getTracks')
     cb(sortRacesByName(result))
 end)
 
 RegisterNUICallback('UiGetMyTracks', function(data, cb)
-    local result = cwCallback.await('cw-racingapp:server:GetTracks')
+    local result = cwCallback.await('cw-racingapp:server:getTracks')
     local filtered = filterTracksByRacer(result)
     cb(sortRacesByName(filtered))
 end)
 
 RegisterNUICallback('UiGetRacingResults', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:GetRaceResults')
+    local result = cwCallback.await('cw-racingapp:server:getRaceResults')
     cb(result)
 end)
 
@@ -2847,7 +2846,7 @@ local function attemptSetupRace(setupData)
                 participationCurrency = setupData.participationCurrency,
                 firstPerson = setupData.firstPerson
             }
-            local res = cwCallback.await('cw-racingapp:server:SetupRace', data)
+            local res = cwCallback.await('cw-racingapp:server:setupRace', data)
             return res
         else
             notify(Lang('incorrect_class'), 'error')
@@ -2897,7 +2896,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
     end
 
     local citizenId = getCitizenId()
-    local tracks = cwCallback.await('cw-racingapp:server:GetAmountOfTracks', citizenId)
+    local tracks = cwCallback.await('cw-racingapp:server:getAmountOfTracks', citizenId)
 
     local maxCharacterTracks = Config.MaxCharacterTracks
     if Config.CustomAmountsOfTracks[citizenId] then
@@ -2928,7 +2927,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             return
         end
 
-        local result = cwCallback.await('cw-racingapp:server:IsAuthorizedToCreateRaces', createData.name)
+        local result = cwCallback.await('cw-racingapp:server:isAuthorizedToCreateRaces', createData.name)
 
         if not result.permissioned then
             notify(Lang("not_auth"), 'error')
@@ -2939,7 +2938,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             cb(false)
         end
 
-        TriggerServerEvent('cw-racingapp:server:CreateLapRace', createData.name, CurrentName, decodedCheckpoints)
+        TriggerServerEvent('cw-racingapp:server:createLapRace', createData.name, CurrentName, decodedCheckpoints)
         cb(true)
     end
 end)
@@ -3119,7 +3118,7 @@ end
 
 RegisterNUICallback('UiShowTrack', function(RaceId, cb)
     debugLog('displaying track', RaceId)
-    local tracks = cwCallback.await('cw-racingapp:server:GetTracks')
+    local tracks = cwCallback.await('cw-racingapp:server:getTracks')
     displayTrack(tracks[RaceId])
     SetTimeout(20 * 1000, function()
         FinishedUITimeout = false
@@ -3211,7 +3210,7 @@ function initialSetup()
 
     LocalPlayer.state:set('inRace', false, true)
     LocalPlayer.state:set('raceId', nil, true)
-    local playerNames = cwCallback.await('cw-racingapp:server:GetRacerNamesByPlayer')
+    local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
     MyRacerNames = playerNames
     debugLog('player names', json.encode(playerNames))
 
@@ -3231,7 +3230,7 @@ function initialSetup()
         end
     else
         if getSizeOfTable(playerNames) == 1 then
-            local result = cwCallback.await('cw-racingapp:server:ChangeRacerName', playerNames[1].racername)
+            local result = cwCallback.await('cw-racingapp:server:changeRacerName', playerNames[1].racername)
             if result and result.name then
                 debugLog('Only one racername available. Setting to ', result.name, result.auth)
                 CurrentName = result.name

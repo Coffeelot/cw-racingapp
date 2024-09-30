@@ -43,10 +43,7 @@ end
 -- SQL calling functions
 
 local function joinRacingCrew(memberName, citizenId, crewName)
-    local query =
-    "UPDATE racing_crews SET members = JSON_ARRAY_APPEND(members, '$', JSON_OBJECT('citizenID', ?, 'racername', ?, 'rank', 0)) WHERE crew_name = ?"
-    local result = MySQL.Sync.execute(query, { citizenId, memberName, crewName })
-
+    local result = RADB.joinRacingCrew(citizenId, memberName, crewName)
     if result then
         if RacingCrews[crewName] then
             local newMember = {
@@ -63,9 +60,7 @@ local function joinRacingCrew(memberName, citizenId, crewName)
 end
 
 local function createRacingCrew(founderName, citizenId, crewName)
-    local query =
-    "INSERT INTO racing_crews (crew_name, founder_name, founder_citizenid, members, wins, races, rank) VALUES (?, ?, ?, '[]', 0, 0, 0)"
-    local result = MySQL.Sync.execute(query, { crewName, founderName, citizenId })
+    local result = RADB.createRacingCrew(crewName, founderName, citizenId)
 
     if result then
         local newCrew = {
@@ -86,11 +81,9 @@ local function createRacingCrew(founderName, citizenId, crewName)
     return false
 end
 
-local function leaveRacingCrew(memberName, citizenId, crewName)
-    local query =
-    "UPDATE racing_crews SET members = JSON_REMOVE(members, JSON_UNQUOTE(JSON_SEARCH(members, 'one', ?))) WHERE crew_name = ?"
-    local result = MySQL.Sync.execute(query, { citizenId, crewName })
+local function leaveRacingCrew(citizenId, crewName)
 
+    local result = RADB.leaveRacingCrew(citizenId, crewName)
     if result then
         if RacingCrews[crewName] then
             for i, member in ipairs(RacingCrews[crewName].members) do
@@ -106,8 +99,7 @@ local function leaveRacingCrew(memberName, citizenId, crewName)
 end
 
 local function addWinToCrew(crewName)
-    local query = "UPDATE racing_crews SET wins = wins + 1, races = races + 1 WHERE crew_name = ?"
-    local result = MySQL.Sync.execute(query, { crewName })
+    local result = RADB.increaseCrewWins(crewName)
 
     if result and RacingCrews[crewName] then
         RacingCrews[crewName].wins = RacingCrews[crewName].wins + 1
@@ -118,8 +110,7 @@ local function addWinToCrew(crewName)
 end
 
 local function addRaceToCrew(crewName)
-    local query = "UPDATE racing_crews SET races = races + 1 WHERE crew_name = ?"
-    local result = MySQL.Sync.execute(query, { crewName })
+    local result = RADB.increaseCrewRaces(crewName)
 
     if result and RacingCrews[crewName] then
         RacingCrews[crewName].races = RacingCrews[crewName].races + 1
@@ -133,9 +124,8 @@ local function updateRanking(crewName, amount)
         print('^1Input for ranking update was incorrect')
         return
     end
-    local query = "UPDATE racing_crews SET rank = rank + ? WHERE crew_name = ?"
-    local result = MySQL.Sync.execute(query, { amount, crewName })
 
+    local result = RADB.changeCrewRank(crewName, amount)
     if result and RacingCrews[crewName] then
         RacingCrews[crewName].rank = RacingCrews[crewName].rank + amount
     end
@@ -144,8 +134,7 @@ local function updateRanking(crewName, amount)
 end
 
 local function disbandRacingCrew(crewName)
-    local query = "DELETE FROM racing_crews WHERE crew_name = ?"
-    local result = MySQL.Sync.execute(query, { crewName })
+    local result = RADB.disbandCrew(crewName)
 
     if result then
         if RacingCrews[crewName] then
@@ -353,7 +342,7 @@ RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberN
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
     end
     if canLeaveCrew then
-        return leaveRacingCrew(memberName, citizenId, crewName)
+        return leaveRacingCrew(citizenId, crewName)
     else
         if useDebug then print("Error: Member cannot leave the crew") end
         changeRacerCrew(source, nil)
@@ -387,9 +376,7 @@ end)
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() == resourceName then
         MySQL.ready(function()
-            local query = "SELECT * FROM racing_crews"
-            local result = MySQL.Sync.fetchAll(query, {})
-
+            local result = RADB.getAllCrews()
             if result then
                 for _, row in ipairs(result) do
                     local crew = {
@@ -433,12 +420,11 @@ if useDebug then
     end, true)
     
     registerCommand('leaveracingcrew', "Leave a racing crew", {
-        { name = 'member',    help = 'Member name' },
         { name = 'citizenid', help = 'Citizen ID' },
         { name = 'crew',      help = 'Crew name' },
     }, true, function(source, args)
-        print(args[1], 'leaving racing crew', args[3])
-        leaveRacingCrew(args[1], args[2], args[3])
+        print(args[1], 'leaving racing crew', args[2])
+        leaveRacingCrew(args[1], args[2])
     end, true)
     
     registerCommand('addwintocrew', "Add a win to a racing crew", {

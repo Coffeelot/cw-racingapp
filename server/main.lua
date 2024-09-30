@@ -165,26 +165,25 @@ local function setInRace(src, raceId)
 end
 
 local function updateRaces()
-    local races = MySQL.Sync.fetchAll('SELECT * FROM race_tracks', {})
+    local races = RADB.getAllRaceTracks()
     if races[1] ~= nil then
         for _, v in pairs(races) do
-            local Records = {}
+            local records = {}
             if v.records ~= nil then
-                Records = json.decode(v.records)
-                if #Records == 0 then
+                records = json.decode(v.records)
+                if #records == 0 then
                     if UseDebug then
                         print('Only one record')
                     end
-                    MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-                        { json.encode({ Records }), v.raceid })
-                    Records = { Records }
+                    records = { records }
+                    RADB.setTrackRecords(records, v.raceid)
                 end
             end
 
             Tracks[v.raceid] = {
                 RaceName = v.name,
                 Checkpoints = json.decode(v.checkpoints),
-                Records = Records,
+                Records = records,
                 Creator = v.creatorid,
                 CreatorName = v.creatorname,
                 RaceId = v.raceid,
@@ -200,40 +199,17 @@ local function updateRaces()
             }
         end
     end
-    IsFirstUser = MySQL.Sync.fetchScalar('SELECT COUNT(*) FROM racer_names', {}) == 0
-    
+    IsFirstUser = RADB.getSizeOfRacerNameTable() == 0
 end
 
 MySQL.ready(function()
     updateRaces()
 end)
 
-local function getAllRacerNames()
-    local query = 'SELECT * FROM racer_names'
-    if Config.DontShowRankingsUnderZero then
-        query = query .. ' WHERE ranking > 0'
-    end
-    if Config.LimitTopListTo then
-        query = query .. ' ORDER BY ranking DESC LIMIT ' .. Config.LimitTopListTo
-    end
-    local result = MySQL.Sync.fetchAll(query)
-    return result
-end
-
 local function sortRecordsByTime(Records)
     table.sort(Records, function(a, b) return a.Time < b.Time end)
     return Records
 end
-
--- local function filterLeaderboardsByClass(Leaderboard, class)
---     local filteredLeaderboard = {}
---     for i, Record in pairs(Leaderboard) do
---         if Record.Class == class then
---             table.insert(filteredLeaderboard, Record)
---         end
---     end
---     return sortRecordsByTime(filteredLeaderboard)
--- end
 
 local function getAmountOfRacers(RaceId)
     local AmountOfRacers = 0
@@ -266,15 +242,7 @@ local function racerHasPreviousRecordInClassAndDirection(Records, RacerName, Car
 end
 
 local function getLatestRecordsById(RaceId)
-    local results = MySQL.Sync.fetchAll('SELECT records FROM race_tracks WHERE raceid = ?', { RaceId })[1]
-    if results.records then
-        return json.decode(results.records)
-    else
-        if UseDebug then
-            print('found no latest')
-        end
-        return {}
-    end
+    return Tracks[RaceId].Records or {}
 end
 
 local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType, Reversed)
@@ -289,7 +257,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         PersonalBest, index = racerHasPreviousRecordInClassAndDirection(records, RacerName, CarClass)
     end
 
-    if PersonalBest and PersonalBest.Time > PlayerTime then
+    if PersonalBest and PersonalBest.Time > PlayerTime and index then -- if player had a record already
         if UseDebug then
             print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
         end
@@ -306,8 +274,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         records[index] = playerPlacement
         records = sortRecordsByTime(records)
         Tracks[RaceData.RaceId].Records = records
-        MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            { json.encode(records), RaceData.RaceId })
+        RADB.setTrackRecords(records, RaceData.RaceId)
         return true
     elseif not PersonalBest then
         TriggerClientEvent('cw-racingapp:client:notify', src,
@@ -329,8 +296,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         table.insert(records, playerPlacement)
         records = sortRecordsByTime(records)
         Tracks[RaceData.RaceId].Records = records
-        MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-            { json.encode(records), RaceData.RaceId })
+        RADB.setTrackRecords(records, RaceData.RaceId)
         return true
     end
 
@@ -392,65 +358,30 @@ local function handOutAutomationPayout(src, amount)
 end
 
 local function changeRacerName(src, racerName)
-    local auth = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1].auth
+    local auth = RADB.getRaceUserByName(racerName).auth
     updateRacingUserMetadata(src, racerName, auth)
 end
 
-local function getRankingForRacer(src, racername)
-    if UseDebug then print('Fetching ranking for racer', racername) end
-    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { racername })
-    if res and res[1] then
-        return res[1].ranking
-    end
-    return 0
-end
-
-local function updateRacerNameLastRaced(racerName, Position)
-    local query = 'UPDATE racer_names SET races = races + 1 WHERE racername = "' .. racerName .. '"'
-    if Position == 1 then
-        query = 'UPDATE racer_names SET races = races + 1, wins = wins + 1 WHERE racername = "' .. racerName .. '"'
-    end
-    MySQL.Async.execute(query)
+local function getRankingForRacer(racerName)
+    if UseDebug then print('Fetching ranking for racer', racerName) end
+    return RADB.getRaceUserRankingByName(racerName) or 0
 end
 
 local function updateRacerElo(source, racerName, eloChange)
-    local sql = "UPDATE racer_names SET ranking = ranking + " .. eloChange .. " WHERE racername = '" .. racerName .. "'"
-
-    local currentRank = getRankingForRacer(source, racerName)
-    MySQL.Async.execute(sql)
+    local currentRank = getRankingForRacer(racerName)
+    RADB.updateRacerElo(racerName, eloChange)
     TriggerClientEvent('cw-racingapp:client:updateRanking', source, eloChange, currentRank + eloChange)
 end
 
 local function handleEloUpdates(results)
-    -- Prepare the SQL statement
-    local sql = "UPDATE racer_names SET Ranking = CASE"
-
-    -- Iterate over the racers table to build the SQL statement
-    for _, racer in ipairs(results) do
-        sql = sql .. " WHEN RacerName = '" .. racer.RacerName .. "' THEN Ranking + " .. racer.TotalChange
-    end
-
-    -- Add the default case and close the SQL statement
-    sql = sql .. " END WHERE RacerName IN ("
-
-    -- Append the RacerName values to the SQL statement
-    for i, racer in ipairs(results) do
-        if i > 1 then
-            sql = sql .. ", "
-        end
-        sql = sql .. "'" .. racer.RacerName .. "'"
-    end
-
-    -- Close the SQL statement
-    sql = sql .. ")"
-    MySQL.Async.execute(sql)
+    RADB.updateEloForRaceResult(results)
     for _, racer in ipairs(results) do
         TriggerClientEvent('cw-racingapp:client:updateRanking', racer.RacerSource, racer.TotalChange,
             racer.Ranking + racer.TotalChange)
     end
 end
 
-RegisterNetEvent('cw-racingapp:server:FinishPlayer',
+RegisterNetEvent('cw-racingapp:server:finishPlayer',
     function(raceData, totalTime, totalLaps, bestLap, carClass, vehicleModel, ranking, racingCrew)
         local src = source
         local availableKey = GetOpenedRaceKey(raceData.RaceId)
@@ -476,7 +407,7 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer',
             amountOfRacers = amountOfRacers + 1
         end
         if amountOfRacers > 1 then
-            updateRacerNameLastRaced(racerName, playersFinished)
+            RADB.increaseRaceCount(racerName, playersFinished)
         end
         if UseDebug then
             print('Total: ', totalTime)
@@ -598,14 +529,13 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer',
                 RaceType = raceType,
                 Reversed = reversed
             } }
-            MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?',
-                { json.encode(Tracks[raceData.RaceId].Records), raceData.RaceId })
+            RADB.setTrackRecords(Tracks[raceData.RaceId].Records, raceData.RaceId)
             TriggerClientEvent('cw-racingapp:client:notify', src,
                 string.format(Lang("race_record"), raceData.RaceName, MilliToTime(BLap)), 'success')
         end
         AvailableRaces[availableKey].RaceData = Tracks[raceData.RaceId]
         for _, racer in pairs(Tracks[raceData.RaceId].Racers) do
-            TriggerClientEvent('cw-racingapp:client:PlayerFinish', racer.RacerSource, raceData.RaceId, playersFinished,
+            TriggerClientEvent('cw-racingapp:client:playerFinish', racer.RacerSource, raceData.RaceId, playersFinished,
                 racerName)
             leftRace(racer.RacerSource)
         end
@@ -649,12 +579,12 @@ RegisterNetEvent('cw-racingapp:server:FinishPlayer',
         end
     end)
 
-RegisterNetEvent('cw-racingapp:server:CreateLapRace', function(RaceName, RacerName, Checkpoints)
+RegisterNetEvent('cw-racingapp:server:createLapRace', function(RaceName, RacerName, Checkpoints)
     local src = source
 
     if IsPermissioned(src, 'create') then
         if IsNameAvailable(RaceName) then
-            TriggerClientEvent('cw-racingapp:client:StartRaceEditor', source, RaceName, RacerName, nil, Checkpoints)
+            TriggerClientEvent('cw-racingapp:client:startRaceEditor', source, RaceName, RacerName, nil, Checkpoints)
         else
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("race_name_exists"), 'error')
         end
@@ -688,7 +618,7 @@ local function hasEnoughMoney(source, cost)
     end
 end
 
-RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
+RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local src = source
     local playerVehicleEntity = RaceData.PlayerVehicleEntity
     local raceName = RaceData.RaceData.RaceName
@@ -709,11 +639,11 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
 
     if isToFarAway(src, raceId, RaceData.Reversed) then
         if RaceData.Reversed then
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src,
+            TriggerClientEvent('cw-racingapp:client:notCloseEnough', src,
                 Tracks[raceId].Checkpoints[#Tracks[raceId].Checkpoints].coords.x,
                 Tracks[raceId].Checkpoints[#Tracks[raceId].Checkpoints].coords.y)
         else
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src, Tracks[raceId].Checkpoints[1].coords.x,
+            TriggerClientEvent('cw-racingapp:client:notCloseEnough', src, Tracks[raceId].Checkpoints[1].coords.x,
                 Tracks[raceId].Checkpoints[1].coords.y)
         end
         return
@@ -739,11 +669,11 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                     Tracks[currentRace].Waiting = false
                     table.remove(AvailableRaces, PreviousRaceKey)
                     TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_last_person"))
-                    TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[currentRace])
+                    TriggerClientEvent('cw-racingapp:client:leaveRace', src, Tracks[currentRace])
                     leftRace(src)
                 else
                     AvailableRaces[PreviousRaceKey].RaceData = Tracks[currentRace]
-                    TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[currentRace])
+                    TriggerClientEvent('cw-racingapp:client:leaveRace', src, Tracks[currentRace])
                     leftRace(src)
                 end
             end
@@ -779,9 +709,9 @@ RegisterNetEvent('cw-racingapp:server:JoinRace', function(RaceData)
                 CheckpointTimes = {}
             }
             AvailableRaces[availableKey].RaceData = Tracks[raceId]
-            TriggerClientEvent('cw-racingapp:client:JoinRace', src, Tracks[raceId], RaceData.Laps, racerName)
+            TriggerClientEvent('cw-racingapp:client:joinRace', src, Tracks[raceId], RaceData.Laps, racerName)
             for _, racer in pairs(Tracks[raceId].Racers) do
-                TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, raceId,
+                TriggerClientEvent('cw-racingapp:client:updateRaceRacers', racer.RacerSource, raceId,
                     Tracks[raceId].Racers)
             end
             if not Tracks[raceId].Automated then
@@ -802,14 +732,14 @@ local function assignNewOrganizer(RaceId, src)
             Tracks[RaceId].OrganizerCID = i
             TriggerClientEvent('cw-racingapp:client:notify', v.RacerSource, Lang("new_host"))
             for _, racer in pairs(Tracks[RaceId].Racers) do
-                TriggerClientEvent('cw-racingapp:client:UpdateOrganizer', racer.RacerSource, RaceId, i)
+                TriggerClientEvent('cw-racingapp:client:updateOrganizer', racer.RacerSource, RaceId, i)
             end
             return
         end
     end
 end
 
-RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
+RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
     if UseDebug then
         print('Player left race', source)
         print('Reason:', reason)
@@ -885,10 +815,10 @@ RegisterNetEvent('cw-racingapp:server:LeaveRace', function(RaceData, reason)
     else
         AvailableRaces[availableKey].RaceData = Tracks[raceId]
     end
-    TriggerClientEvent('cw-racingapp:client:LeaveRace', src, Tracks[raceId])
+    TriggerClientEvent('cw-racingapp:client:leaveRace', src, Tracks[raceId])
     leftRace(src)
     for _, racer in pairs(Tracks[raceId].Racers) do
-        TriggerClientEvent('cw-racingapp:client:UpdateRaceRacers', racer.RacerSource, raceId, Tracks[raceId].Racers)
+        TriggerClientEvent('cw-racingapp:client:updateRaceRacers', racer.RacerSource, raceId, Tracks[raceId].Racers)
     end
     if RaceData.Ranked and RaceData.Started and RaceData.TotalRacers > 1 and reason then
         if Config.EloPunishments[reason] then
@@ -911,7 +841,7 @@ local function createTimeoutThread(RaceId)
                     local amountOfRacers = getAmountOfRacers(RaceId)
                     if amountOfRacers > Config.AutomatedOptions.minimumParticipants - 1 then
                         if UseDebug then print('Enough Racers to start automated') end
-                        TriggerEvent('cw-racingapp:server:StartRace', RaceId)
+                        TriggerEvent('cw-racingapp:server:startRace', RaceId)
                     else
                         if UseDebug then print('NOT Enough Racers to start automated') end
                         if amountOfRacers > 0 then
@@ -920,7 +850,7 @@ local function createTimeoutThread(RaceId)
                                 if racerSource ~= nil then
                                     TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"),
                                         'error')
-                                    TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
+                                    TriggerClientEvent('cw-racingapp:client:leaveRace', racerSource, Tracks[RaceId])
                                     leftRace(racerSource)
                                 end
                             end
@@ -941,7 +871,7 @@ local function createTimeoutThread(RaceId)
                         local racerSource = getSrcOfPlayerByCitizenId(cid)
                         if racerSource then
                             TriggerClientEvent('cw-racingapp:client:notify', racerSource, Lang("race_timed_out"), 'error')
-                            TriggerClientEvent('cw-racingapp:client:LeaveRace', racerSource, Tracks[RaceId])
+                            TriggerClientEvent('cw-racingapp:client:leaveRace', racerSource, Tracks[RaceId])
                             leftRace(racerSource)
                         end
                     end
@@ -1009,7 +939,7 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                 AvailableRaces[#AvailableRaces + 1] = allRaceData
                 if not Automated then
                     TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_created"), 'success')
-                    TriggerClientEvent('cw-racingapp:client:ReadyJoinRace', src, allRaceData)
+                    TriggerClientEvent('cw-racingapp:client:readyJoinRace', src, allRaceData)
                 end
                 RaceResults[RaceId] = { Data = allRaceData, Result = {} }
                 if Config.NotifyRacers then TriggerClientEvent('cw-racingapp:client:notifyRacers', -1,
@@ -1030,15 +960,15 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
     end
 end
 
-RegisterServerCallback('cw-racingapp:server:SetupRace', function(source, setupData)
+RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupData)
     local src = source
     if isToFarAway(src, setupData.trackId, setupData.reversed) then
         if setupData.reversed then
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src,
+            TriggerClientEvent('cw-racingapp:client:notCloseEnough', src,
                 Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.x,
                 Tracks[setupData.trackId].Checkpoints[#Tracks[setupData.trackId].Checkpoints].coords.y)
         else
-            TriggerClientEvent('cw-racingapp:client:NotCloseEnough', src,
+            TriggerClientEvent('cw-racingapp:client:notCloseEnough', src,
                 Tracks[setupData.trackId].Checkpoints[1].coords.x, Tracks[setupData.trackId].Checkpoints[1].coords.y)
         end
         return false
@@ -1051,7 +981,6 @@ RegisterServerCallback('cw-racingapp:server:SetupRace', function(source, setupDa
             setupData.participationCurrency, setupData.firstPerson, false, src)
     end
 end)
-
 
 -- AUTOMATED RACES SETUP
 local function GenerateAutomatedRace()
@@ -1097,7 +1026,7 @@ if Config.AutomatedOptions and Config.AutomatedRaces then
     end)
 end
 
-RegisterNetEvent('cw-racingapp:server:UpdateRaceState', function(RaceId, Started, Waiting)
+RegisterNetEvent('cw-racingapp:server:updateRaceState', function(RaceId, Started, Waiting)
     Tracks[RaceId].Waiting = Waiting
     Tracks[RaceId].Started = Started
 end)
@@ -1141,7 +1070,7 @@ local function timer(raceId)
                 end
             end
             for _, racer in pairs(Tracks[raceId].Racers) do
-                TriggerClientEvent('cw-racingapp:client:LeaveRace', racer.RacerSource, Tracks[raceId])
+                TriggerClientEvent('cw-racingapp:client:leaveRace', racer.RacerSource, Tracks[raceId])
                 leftRace(racer.RacerSource)
             end
             Tracks[raceId].LastLeaderboard = LastRaces[raceId]
@@ -1170,7 +1099,7 @@ local function updateTimer(raceId)
     Timers[raceId] = GetGameTimer()
 end
 
-RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
+RegisterNetEvent('cw-racingapp:server:updateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
     local src = source
     local citizenId = getCitizenId(src)
     if Tracks[RaceId].Racers[citizenId] then
@@ -1183,18 +1112,18 @@ RegisterNetEvent('cw-racingapp:server:UpdateRacerData', function(RaceId, Checkpo
         Lap, checkpoint = Checkpoint, time = RaceTime }
 
         for _, racer in pairs(Tracks[RaceId].Racers) do
-            TriggerClientEvent('cw-racingapp:client:UpdateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
+            TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
         end
     else
         -- Attemt to make sure script dont break if something goes wrong
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("youre_not_in_the_race"), 'error')
-        TriggerClientEvent('cw-racingapp:client:LeaveRace', -1, nil)
+        TriggerClientEvent('cw-racingapp:client:leaveRace', -1, nil)
         leftRace(src)
     end
     if Config.UseResetTimer then updateTimer(RaceId) end
 end)
 
-RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
+RegisterNetEvent('cw-racingapp:server:startRace', function(RaceId)
     local src = source
     local AvailableKey = GetOpenedRaceKey(RaceId)
 
@@ -1217,14 +1146,14 @@ RegisterNetEvent('cw-racingapp:server:StartRace', function(RaceId)
     for citizenId, _ in pairs(Tracks[RaceId].Racers) do
         local racerSource = getSrcOfPlayerByCitizenId(citizenId)
         if racerSource ~= nil then
-            TriggerClientEvent('cw-racingapp:client:RaceCountdown', racerSource, TotalRacers)
+            TriggerClientEvent('cw-racingapp:client:raceCountdown', racerSource, TotalRacers)
             setInRace(src, RaceId)
         end
     end
     if Config.UseResetTimer then startTimer(RaceId) end
 end)
 
-RegisterNetEvent('cw-racingapp:server:SaveTrack', function(raceData)
+RegisterNetEvent('cw-racingapp:server:saveTrack', function(raceData)
     local src = source
     local citizenId = getCitizenId(src)
     local raceId
@@ -1243,8 +1172,7 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(raceData)
 
     if raceData.IsEdit then
         print('Saving over previous track', raceData.RaceId)
-        MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?',
-            { json.encode(checkpoints), raceData.RaceId })
+        RADB.setTrackCheckpoints(checkpoints, raceData.RaceId)
         Tracks[raceId].Checkpoints = checkpoints
     else
         Tracks[raceId] = {
@@ -1262,36 +1190,27 @@ RegisterNetEvent('cw-racingapp:server:SaveTrack', function(raceData)
             LastLeaderboard = {},
             NumStarted = 0,
         }
-        MySQL.Async.insert(
-            'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            { raceData.RaceName, json.encode(checkpoints), citizenId, raceData.RacerName, raceData.RaceDistance, raceId, 0,
-                '{}' })
+        RADB.createTrack(raceData, checkpoints, citizenId, raceId)
     end
 end)
 
-RegisterNetEvent('cw-racingapp:server:DeleteTrack', function(RaceId)
-    print('DELETING ', RaceId)
-    Tracks[RaceId] = nil
-    local result = MySQL.Sync.fetchAll('SELECT creatorname FROM race_tracks WHERE raceid = ?', { RaceId })[1]
-    if result then
-        MySQL.query('DELETE FROM race_tracks WHERE raceid = ?', { RaceId })
-    end
+RegisterNetEvent('cw-racingapp:server:deleteTrack', function(raceId)
+    RADB.deleteTrack(raceId)
+    Tracks[raceId] = nil
 end)
 
-RegisterNetEvent('cw-racingapp:server:ClearLeaderboard', function(RaceId)
-    print('CLEARING LEADERBOARD ', RaceId)
-    Tracks[RaceId].Records = nil
-    MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?',
-        { RaceId })
+RegisterNetEvent('cw-racingapp:server:clearLeaderboard', function(raceId)
+    Tracks[raceId].Records = nil
+    RADB.clearLeaderboardForTrack(raceId)
 end)
 
-RegisterServerCallback('cw-racingapp:server:GetRaceResults', function(source)
+RegisterServerCallback('cw-racingapp:server:getRaceResults', function(source)
     return RaceResults
 end)
 
 RegisterServerCallback('cw-racingapp:server:getAllRacers', function(source)
     if UseDebug then print('Fetching all racers') end
-    local allRacers = getAllRacerNames()
+    local allRacers = RADB.getAllRacerNames()
     if UseDebug then print("^2Result", json.encode(allRacers)) end
     return allRacers
 end)
@@ -1386,36 +1305,30 @@ end
 
 exports('openRacingApp', openRacingApp)
 
-RegisterServerCallback('cw-racingapp:server:GetRaces', function(source)
+RegisterServerCallback('cw-racingapp:server:getRaces', function(source)
     return AvailableRaces
 end)
 
-RegisterServerCallback('cw-racingapp:server:GetTracks', function(source)
+RegisterServerCallback('cw-racingapp:server:getTracks', function(source)
     return Tracks
 end)
 
-RegisterServerCallback('cw-racingapp:server:GetTrackData', function(source, raceId)
+RegisterServerCallback('cw-racingapp:server:getTrackData', function(source, raceId)
     return Tracks[raceId] or false
 end)
 
-RegisterServerCallback('cw-racingapp:server:GetAccess', function(source, raceId)
-    local res = MySQL.Sync.fetchAll('SELECT access FROM race_tracks WHERE raceid = ?', { raceId })
-    if res then
-        if res[1] then
-            return json.decode(res[1].access)
-        else
-            return 'NOTHING'
-        end
-    end
+RegisterServerCallback('cw-racingapp:server:getAccess', function(source, raceId)
+    local track = Tracks[raceId]
+    return track.Access or 'NOTHING'
 end)
 
-RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
+RegisterNetEvent('cw-racingapp:server:setAccess', function(raceId, access)
     local src = source
     if UseDebug then
         print('source ', src, 'has updated access for', raceId)
         print(json.encode(access))
     end
-    local res = MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', { json.encode(access), raceId })
+    local res = RADB.setAccessForTrack(access, raceId)
     if res then
         if res == 1 then
             TriggerClientEvent('cw-racingapp:client:notify', src, Lang("access_updated"), "success")
@@ -1424,13 +1337,13 @@ RegisterNetEvent('cw-racingapp:server:SetAccess', function(raceId, access)
     end
 end)
 
-RegisterServerCallback('cw-racingapp:server:IsAuthorizedToCreateRaces', function(source, TrackName)
+RegisterServerCallback('cw-racingapp:server:isAuthorizedToCreateRaces', function(source, TrackName)
     return { permissioned = IsPermissioned(source, 'create'), nameAvailable = IsNameAvailable(TrackName) }
 end)
 
 
 local function nameIsValid(racerName, citizenId)
-    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1]
+    local result = RADB.getRaceUserByName(racerName)
     if result then
         if result.citizenid == citizenId then
             return true
@@ -1442,24 +1355,23 @@ local function nameIsValid(racerName, citizenId)
 end
 
 local function addRacerName(citizenId, racerName, targetSource, auth, creatorCitizenId)
-    if not MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ? AND citizenid = ?', { racerName, citizenId })[1] then
+    if not RADB.getRaceUserByName(racerName) then
         IsFirstUser = false
-        MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
-            { citizenId, racerName, auth, creatorCitizenId })
+        RADB.createRaceUser(citizenId, racerName, auth, creatorCitizenId)
+        TriggerClientEvent('cw-racingapp:client:updateRacerNames', tonumber(targetSource))
     end
-    TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(targetSource))
 end
 
-RegisterServerCallback('cw-racingapp:server:GetAmountOfTracks', function(source, citizenid)
+RegisterServerCallback('cw-racingapp:server:getAmountOfTracks', function(source, citizenId)
     if Config.UseNameValidation then
-        local tracks = MySQL.Sync.fetchAll('SELECT name FROM race_tracks WHERE creatorid = ?', { citizenid })
+        local tracks = RADB.getTracksByCitizenId(citizenId)
         return #tracks
     else
         return 0
     end
 end)
 
-RegisterServerCallback('cw-racingapp:server:NameIsAvailable', function(source, racerName, serverId)
+RegisterServerCallback('cw-racingapp:server:nameIsAvailable', function(source, racerName, serverId)
     if UseDebug then print('checking availability for', json.encode({racerName = racerName, sererId = serverId}, {indent=true})) end
     if Config.UseNameValidation then
         local citizenId = getCitizenId(serverId)
@@ -1484,7 +1396,7 @@ local function racerNameExists(currentName, racerNames)
     return false    -- if we dont find a name we return false
 end
 
-RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(source, serverId)
+RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(source, serverId)
     local playerSource = serverId or source
     
     if UseDebug then print('Getting racer names for serverid', playerSource) end
@@ -1492,7 +1404,7 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
     local citizenId = getCitizenId(playerSource)
     if UseDebug then print('Racer citizenid', citizenId) end
 
-    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { citizenId })
+    local result = RADB.getRaceUsersCreatedByCitizenId(citizenId)
     if UseDebug then print('Racer Names found:', json.encode(result)) end
 
     local currentRacerName = getRacerData(playerSource).name
@@ -1506,7 +1418,7 @@ RegisterServerCallback('cw-racingapp:server:GetRacerNamesByPlayer', function(sou
 end)
 
 RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, trackId, curated)
-    local res = MySQL.Sync.execute('UPDATE race_tracks SET curated = ? WHERE raceid = ?', { curated, trackId })
+    local res = RADB.setCurationForTrack(curated, trackId)
     local status = 'curated'
     if curated == 0 then status = 'NOT curated' end
     if res == 1 then
@@ -1565,23 +1477,23 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
     addRacerName(citizenid, racerName, targetSource, type, creatorCitizenId)
 end
 
-local function getRacersCreatedByUser(src, citizenid, type)
+local function getRacersCreatedByUser(src, citizenId, type)
     if Config.Permissions[type] and Config.Permissions[type].controlAll then
         if UseDebug then print('Fetching racers for a god') end
-        return MySQL.Sync.fetchAll('SELECT * FROM racer_names')
+        return RADB.getAllRaceUser()
     end
     if UseDebug then print('Fetching racers for a master') end
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE createdby = ?', { citizenid })
+    return RADB.getTracksByCitizenId(citizenId)
 end
 
-RegisterServerCallback('cw-racingapp:server:GetRacersCreatedByUser', function(source, citizenid, type)
+RegisterServerCallback('cw-racingapp:server:getRacersCreatedByUser', function(source, citizenid, type)
     if UseDebug then print('Fetching all racers created by ', citizenid) end
     local result = getRacersCreatedByUser(source, citizenid, type)
     if UseDebug then print('result from fetching racers created by user', citizenid, json.encode(result)) end
     return result
 end)
 
-RegisterServerCallback('cw-racingapp:server:ChangeRacerName', function(source, racerNameInUse)
+RegisterServerCallback('cw-racingapp:server:changeRacerName', function(source, racerNameInUse)
     if UseDebug then print('Changing Racer Name for src', source, ' to name', racerNameInUse) end
     changeRacerName(source, racerNameInUse)
 
@@ -1595,13 +1507,13 @@ RegisterServerCallback('cw-racingapp:server:ChangeRacerName', function(source, r
     return { name = racerName, type = racerAuth, ranking = ranking }
 end)
 
-RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
-    if UseDebug then print('removing racer with name', racername) end
+RegisterNetEvent('cw-racingapp:server:removeRacerName', function(racerName)
+    if UseDebug then print('removing racer with name', racerName) end
     if UseDebug then print('removed by source', source, getCitizenId(source)) end
 
-    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racername })[1]
+    local res = RADB.getRaceUserByName(racerName)
 
-    MySQL.query('DELETE FROM racer_names WHERE racername = ?', { racername })
+    RADB.removeRaceUserByName(racerName)
     Wait(1000)
     local playerSource = getSrcOfPlayerByCitizenId(res.citizenid)
     if playerSource ~= nil then
@@ -1609,14 +1521,14 @@ RegisterNetEvent('cw-racingapp:server:RemoveRacerName', function(racername)
             print('pinging player', playerSource)
         end
         updateRacingUserMetadata(tonumber(playerSource), nil, nil)
-        TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(playerSource))
+        TriggerClientEvent('cw-racingapp:client:updateRacerNames', tonumber(playerSource))
     end
 end)
 
 local function setRevokedRacerName(src, racerName, revoked)
-    local res = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1]
+    local res = RADB.getRaceUserByName(racerName)
     if res then
-        MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), racerName })
+        RADB.setRaceUserRevoked(racerName, revoked)
         local readableRevoked = 'revoked'
         if revoked == 0 then readableRevoked = 'active' end
         TriggerClientEvent('cw-racingapp:client:notify', src, 'User is now set to ' .. readableRevoked, 'success')
@@ -1626,19 +1538,19 @@ local function setRevokedRacerName(src, racerName, revoked)
             if UseDebug then
                 print('pinging player', playerSource)
             end
-            TriggerClientEvent('cw-racingapp:Client:UpdateRacerNames', tonumber(playerSource))
+            TriggerClientEvent('cw-racingapp:client:updateRacerNames', tonumber(playerSource))
         end
     else
         TriggerClientEvent('cw-racingapp:client:notify', src, 'Race Name Not Found', 'error')
     end
 end
 
-RegisterNetEvent('cw-racingapp:server:SetRevokedRacenameStatus', function(racername, revoked)
+RegisterNetEvent('cw-racingapp:server:setRevokedRacenameStatus', function(racername, revoked)
     if UseDebug then print('revoking racename', racername, revoked) end
     setRevokedRacerName(source, racername, revoked)
 end)
 
-RegisterNetEvent('cw-racingapp:server:CreateRacerName', function(playerId, racerName, type, purchaseType)
+RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racerName, type, purchaseType)
     if UseDebug then
         print(
             'Creating a user',
@@ -1718,15 +1630,11 @@ if UseDebug then
         { { name = 'name', help = 'Racer name. Put in quotations if multiple words' } }, true, function(source, args)
         local name = args[1]
         print('name of racer to delete:', name)
-        MySQL.query('DELETE FROM racer_names WHERE racername = ?', { name })
+        RADB.removeRaceUserByName(name)
     end, true)
-    
-    local function dropRacetrackTable()
-        MySQL.query('DROP TABLE IF EXISTS race_tracks')
-    end
-    
+        
     registerCommand('removeallracetracks', 'Remove the race_tracks table', {}, true,function(source, args)
-        dropRacetrackTable()
+        RADB.wipeTracksTable()
     end, true)
     
     registerCommand('racingappcurated', 'Mark/Unmark track as curated',
