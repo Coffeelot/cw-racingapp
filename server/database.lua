@@ -2,26 +2,27 @@ local function getAllRaceTracks()
     return MySQL.Sync.fetchAll('SELECT * FROM race_tracks', {})
 end
 
-local function setTrackRecords(records, raceid) 
+local function setTrackRecords(records, raceid)
     MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?', { json.encode(records), raceid })
 end
 
-local function setTrackCheckpoints(checkpoints, raceid) 
+local function setTrackCheckpoints(checkpoints, raceid)
     MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?', { json.encode(checkpoints), raceid })
 end
 
 local function createTrack(raceData, checkpoints, citizenId, raceId)
     MySQL.Async.insert(
         'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        { raceData.RaceName, json.encode(checkpoints), citizenId, raceData.RacerName, raceData.RaceDistance, raceId, 0, '{}' })
+        { raceData.RaceName, json.encode(checkpoints), citizenId, raceData.RacerName, raceData.RaceDistance, raceId, 0,
+            '{}' })
 end
 
 local function getSizeOfRacerNameTable()
-    return MySQL.Sync.fetchScalar('SELECT COUNT(*) FROM racer_names', {}) 
+    return MySQL.Sync.fetchScalar('SELECT COUNT(*) FROM racer_names', {})
 end
 
 local function clearLeaderboardForTrack(raceId)
-    MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?',{ raceId })
+    MySQL.query('UPDATE race_tracks SET records = NULL WHERE raceid = ?', { raceId })
 end
 
 local function deleteTrack(raceId)
@@ -52,7 +53,8 @@ local function getRaceUserByName(racerName)
 end
 
 local function createRaceUser(citizenId, racerName, auth, creatorCitizenId)
-    MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)', { citizenId, racerName, auth, creatorCitizenId })
+    MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
+        { citizenId, racerName, auth, creatorCitizenId })
 end
 
 local function getRaceUserRankingByName(racerName)
