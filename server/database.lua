@@ -56,7 +56,7 @@ local function createRaceUser(citizenId, racerName, auth, creatorCitizenId)
 end
 
 local function getRaceUserRankingByName(racerName)
-    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { racername })
+    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { racerName })
     if res and res[1] then
         return res[1].ranking
     end
