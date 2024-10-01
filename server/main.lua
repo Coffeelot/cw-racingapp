@@ -1480,7 +1480,7 @@ end
 local function getRacersCreatedByUser(src, citizenId, type)
     if Config.Permissions[type] and Config.Permissions[type].controlAll then
         if UseDebug then print('Fetching racers for a god') end
-        return RADB.getAllRaceUser()
+        return RADB.getAllRaceUsers()
     end
     if UseDebug then print('Fetching racers for a master') end
     return RADB.getTracksByCitizenId(citizenId)
