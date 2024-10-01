@@ -2605,7 +2605,11 @@ end)
 
 RegisterNuiCallback('UiGetPermissionedUserTypeFirstUser', function(_, cb)
     local data = {}
-    data.fobType = Config.BasePermission
+    if IsFirstUser then 
+        data.fobType = 'god'
+    else
+        data.fobType = Config.BasePermission
+    end
     data.purchaseType = Config.Laptop
     cb(data)
 end)
