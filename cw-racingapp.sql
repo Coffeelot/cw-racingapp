@@ -34,6 +34,7 @@ CREATE TABLE `racer_names` (
 	`createdby` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
 	`revoked` TINYINT(4) NULL DEFAULT '0',
 	`ranking` INT(11) NULL DEFAULT '0',
+	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `id` (`id`) USING BTREE
 )
 COLLATE='utf8mb4_general_ci'
