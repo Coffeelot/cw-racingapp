@@ -31,18 +31,37 @@ function getPlayerJobLevel()
     end
 end
 
+-- Fix New qb-inventory only server side
+
+-- function hasGps()
+--     if Config.Inventory == 'qb' then
+--         if QBCore.Functions.HasItem(Config.ItemName.gps) then
+--             return true
+--         end
+--     elseif Config.Inventory == 'ox' then
+--         if exports.ox_inventory:Search('count', Config.ItemName.gps) >= 1 then
+--             return true
+--         end
+--     end
+--     return false
+-- end
+
 function hasGps()
-    if Config.Inventory == 'qb' then
-        if QBCore.Functions.HasItem(Config.ItemName.gps) then
-            return true
-        end
-    elseif Config.Inventory == 'ox' then
-        if exports.ox_inventory:Search('count', Config.ItemName.gps) >= 1 then
-            return true
-        end
-    end
-    return false
+    TriggerServerEvent('check:hasGps')
 end
+
+RegisterNetEvent('hasGps:result')
+AddEventHandler('hasGps:result', function(hasItem)
+    if hasItem then
+        print("El jugador tiene un GPS.")
+        return true
+    else
+        print("El jugador no tiene un GPS.")
+        return false
+    end
+end)
+
+--
 
 function getCitizenId()
     return QBCore.Functions.GetPlayerData().citizenid

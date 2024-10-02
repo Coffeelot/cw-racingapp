@@ -5,6 +5,24 @@ QBCore.Functions.CreateUseableItem(Config.ItemName.gps, function(source, item)
     openRacingApp(source)
 end)
 
+-- Fix New qb-inventory only server side
+RegisterNetEvent('check:hasGps')
+AddEventHandler('check:hasGps', function()
+    local player = QBCore.Functions.GetPlayer(source)
+    local hasItem = false
+
+    if Config.Inventory == 'qb' then
+        if player.Functions.HasItem(Config.ItemName.gps) then
+            hasItem = true
+        end
+    elseif Config.Inventory == 'ox' then
+        if exports.ox_inventory:Search('count', Config.ItemName.gps) >= 1 then
+            hasItem = true
+        end
+    end
+
+    TriggerClientEvent('hasGps:result', source, hasItem)
+end)
 
 -- Adds money to user
 function addMoney(src, moneyType, amount)
