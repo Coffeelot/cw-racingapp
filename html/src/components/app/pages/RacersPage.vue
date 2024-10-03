@@ -114,12 +114,10 @@ const getMyRacers = async () => {
   if (response.data) {
     myRacers.value = response.data
   }
-  console.log('done')
   const typeResults = await api.post('UiGetPermissionedUserTypes')
   if (typeResults.data) {
     creationTypes.value = typeResults.data
   }
-  console.log('done2')
 }
 
 const createUser = async () => {
