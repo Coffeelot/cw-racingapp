@@ -6,29 +6,25 @@
       v-if="tab !== 'setup2'"
       v-on:update:model-value="fetchRelevantData()"
     >
-      <v-tab value="current">{{ translate('current') }} </v-tab>
-      <v-tab value="available">{{ translate('available') }} </v-tab>
+      <v-tab value="current">{{ translate('available_races') }} </v-tab>
       <v-tab value="setup">{{ translate('setup') }} </v-tab>
     </v-tabs>
     <v-window v-model="tab" class="page-container">
       <v-window-item  value="current" class="tabcontent">
-        <div class="current-race-container page-container">
+        <div class="current-race-container">
           <div id="current-race-selection" v-if="currentRace">
+            <div class="mb-1" id="subheader">
+              <h3>{{ translate('hosting') }} </h3>
+            </div>
             <CurrentRaceCard
               :race="currentRace"
               @leave="leaveRace()"
               @start="startRace()"
             ></CurrentRaceCard>
           </div>
-          <div id="current-race-none" v-else>
-            <h3 class="inline centered">{{ translate('no_races') }} </h3>
-          </div>
         </div>
-      </v-window-item>
-      <v-window-item value="available" class="tabcontent">
-        <div class="subheader">
+        <div class="subheader mt-2">
           <h3>{{ translate('available_races') }} </h3>
-          <v-btn variant="text" @click="getListedRaces"> {{ translate('refresh') }}  </v-btn>
         </div>
         <div
           v-if="isLoading"
@@ -190,9 +186,11 @@ const startRace = async () => {
 };
 
 const fetchRelevantData = () => {
-  if (tab.value === "current") getCurrent();
+  if (tab.value === "current"){ 
+    getCurrent();
+    getListedRaces();
+  }
   else if (tab.value === "setup") getTracks();
-  else if (tab.value === "available") getListedRaces();
 };
 
 onMounted(() => {
@@ -205,7 +203,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .available-races {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex-wrap: wrap;
   overflow-y: auto;
   gap: 1em;

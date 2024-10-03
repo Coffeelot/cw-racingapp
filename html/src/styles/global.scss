@@ -135,6 +135,9 @@
   overflow-y: auto;
 }
 
+.pagecontent {
+  height: calc(80vh - 42px - 2em);
+}
 
 .page-container {
   margin-left: auto;
@@ -143,8 +146,8 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  max-height: 70vh;
   overflow: auto;
+  max-height: calc(80vh - 120px - 2em);
 }
 
 // .v-card{

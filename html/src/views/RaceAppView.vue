@@ -193,12 +193,13 @@ h2 {
 }
 
 .screen-container {
-  width: 70vw;
-  height: 90vh;
+  width: 80vw;
+  height: 80vh;
   margin-top: 72px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
-  border: 1.2em solid #131316;
+  border: 1px solid #484848b3;
   background: #131316;
+  padding: 1em;
   border-radius: 1em;
 }
 

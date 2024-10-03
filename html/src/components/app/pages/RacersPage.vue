@@ -39,7 +39,7 @@
                 v-model="create.racerId"
               />
               <v-select
-                  v-if="creationTypes.length>0"
+                  v-if="creationTypes && creationTypes.length>0"
                   color="primary"
                   density="compact"
                   hide-details
@@ -114,10 +114,12 @@ const getMyRacers = async () => {
   if (response.data) {
     myRacers.value = response.data
   }
+  console.log('done')
   const typeResults = await api.post('UiGetPermissionedUserTypes')
   if (typeResults.data) {
     creationTypes.value = typeResults.data
   }
+  console.log('done2')
 }
 
 const createUser = async () => {
