@@ -163,13 +163,13 @@ h2 {
 }
 
 .ui-container {
-  z-index: 2000;
-  width: 100%;
-  position: absolute;
-  bottom: 1em;
+  height: 100vh;
   display: flex;
   justify-content: center;
+  width: 100%;
+  align-items: center;
   z-index: 2000;
+  position: absolute;
 }
 
 #revoked-message-container {
@@ -195,7 +195,6 @@ h2 {
 .screen-container {
   width: 80vw;
   height: 80vh;
-  margin-top: 72px;
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   border: 1px solid #484848b3;
   background: #131316;

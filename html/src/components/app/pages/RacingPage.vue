@@ -77,7 +77,7 @@
         >
           <span class="loader"></span>
         </div>
-        <div v-else class="page-container available-races">
+        <div v-else class="page-container available-tracks">
           <AvailableTracksCard
             v-for="track in filteredTracks"
             :track="track"
@@ -204,6 +204,18 @@ onMounted(() => {
 .available-races {
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  gap: 1em;
+  margin-top: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  width: fit-content;
+}
+
+.available-tracks {
+  display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   overflow-y: auto;
   gap: 1em;

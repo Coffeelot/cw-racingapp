@@ -17,13 +17,22 @@
             v-model="search"
           ></v-text-field>
         </div>
-        <div class="mytracks-items scrollable" v-if="filtereredTracks">
+        <div class="mytracks-items scrollable" v-if="filtereredTracks && filtereredTracks.length>0">
           <MyTrackCard
             v-for="track in filtereredTracks"
+            @update="getMyTracks"
             :track="track"
           ></MyTrackCard>
         </div>
         <InfoText :title="translate('no_data')" v-else />
+        <div class="mytracks-items scrollable" v-if="globalStore.baseData.data.auth.controlAll">
+          <h3 class="header-text">{{ translate('tracks') }} </h3>
+          <MyTrackCard
+            v-for="track in filteredAllTracks"
+            @update="getMyTracks"
+            :track="track"
+          ></MyTrackCard>
+        </div>
       </v-window-item>
       <v-window-item value="create" class="tabcontent create mt">
         <v-card class="card">
@@ -110,6 +119,18 @@ const filtereredTracks = computed(() => {
 
   return fTracks;
 });
+
+const filteredAllTracks = computed(() => {
+  let fTracks = tracks.value
+  if (fTracks && search.value !== "")
+    fTracks = fTracks.filter(
+      (track) =>
+        track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
+        track.RaceId.toLowerCase().includes(search.value.toLowerCase())
+    );
+
+  return fTracks;
+})
 
 const getMyTracks = async () => {
   const response = await api.post("UiGetMyTracks");

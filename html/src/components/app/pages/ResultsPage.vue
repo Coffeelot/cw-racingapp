@@ -1,22 +1,22 @@
 <template>
   <div id="ResultsPage" class="pagecontent">
     <v-tabs color="primary" v-model="tab">
+      <v-tab value="results">{{ translate('race_results') }} </v-tab>
       <v-tab value="crewRank">{{ translate('crew_rankings') }} </v-tab>
       <v-tab value="racerRank">{{ translate('racer_rankings') }} </v-tab>
-      <v-tab value="results">{{ translate('race_results') }} </v-tab>
-      <v-tab value="records">{{ translate('racer_records') }} </v-tab>
+      <v-tab value="records">{{ translate('track_records') }} </v-tab>
     </v-tabs>
 
-    <v-window v-model="tab" class="page-container">
+    <v-window v-model="tab">
+      <v-window-item value="results" class="tabcontent">
+        <RaceResults v-if="allResults" :allResults="allResults"></RaceResults>
+        <InfoText v-else :title="translate('no_data')" />
+      </v-window-item>
       <v-window-item value="crewRank" class="tabcontent">
         <CrewTable></CrewTable>
       </v-window-item>
       <v-window-item value="racerRank" class="tabcontent">
         <RacersTable></RacersTable>
-      </v-window-item>
-      <v-window-item value="results" class="tabcontent">
-        <RaceResults v-if="allResults" :allResults="allResults"></RaceResults>
-        <InfoText v-else :title="translate('no_data')" />
       </v-window-item>
       <v-window-item value="records" class="tabcontent">
         <RaceRecords v-if="allRecords" :allRecords="allRecords"></RaceRecords>

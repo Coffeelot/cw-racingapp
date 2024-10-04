@@ -1,25 +1,26 @@
 <template>
-  <div class="results-container">
+  <div class="results-container page-container">
     <div class="inline standardGap header">
-      <h3 style="width: 160px">{{ translate('select_race') }}</h3>
       <v-select
-        color="primary"
-        density="compact"
-        hide-details
-        :items="Object.values(allRecords)"
-        return-object
-        item-title="RaceName"
-        v-model="selectedRace"
-      ></v-select>
+          color="primary"
+          density="compact"
+          hide-details
+          :items="Object.values(allRecords)"
+          return-object
+          item-title="RaceName"
+          v-model="selectedRace"
+          :placeholder="translate('select_track')"
+          class="w-50"
+        ></v-select>
+        <v-switch
+          color="primary"
+          density="compact"
+          :label="translate('reversed')"
+          v-model="reversed"
+          hide-details
+          >
+        </v-switch>
     </div>
-    <v-switch
-      color="primary"
-      density="compact"
-      :label="translate('reversed')"
-      v-model="reversed"
-      hide-details
-      >
-    </v-switch>
     <div class="loading-container" id="results-items-loader">
       <span class="loader"></span>
     </div>
@@ -91,4 +92,7 @@ const filteredRecords = computed(() => selectedRace.value?.Records.filter((recor
 .header {
   align-items: center;
   margin-bottom: 1em;
+  width: 100%;
+  justify-content: space-between;
+  gap: 2em;
 }</style>

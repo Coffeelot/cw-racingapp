@@ -2584,7 +2584,7 @@ RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
     local options = {}
 
     local currency
-    if Config.Laptop.moneyType == 'cash' or Config.Laptop.moneyType == 'bank' then
+    if Config.Laptop.moneyType == 'cash' or Config.Laptop.moneyType == 'money' or Config.Laptop.moneyType == 'bank' then
         currency = '$'
     else
         currency = Config.Options.cryptoType
@@ -2752,7 +2752,7 @@ end)
 
 RegisterNUICallback('UiGetSettings', function(_, cb)
     cb({ IgnoreRoadsForGps = IgnoreRoadsForGps, ShowGpsRoute = ShowGpsRoute, UseUglyWaypoint = UseUglyWaypoint, CheckDistance =
-    CheckDistance })
+    CheckDistance, UseDrawTextWaypoint = UseDrawTextWaypoint })
 end)
 
 local function getAvailableTracks()
@@ -2813,8 +2813,7 @@ end)
 
 RegisterNUICallback('UiGetMyTracks', function(data, cb)
     local result = cwCallback.await('cw-racingapp:server:getTracks')
-    local filtered = filterTracksByRacer(result)
-    cb(sortRacesByName(filtered))
+    cb(sortRacesByName(result))
 end)
 
 RegisterNUICallback('UiGetRacingResults', function(_, cb)
@@ -3078,6 +3077,12 @@ RegisterNUICallback('UiGetAllRacers', function(data, cb)
     cb(result)
 end)
 
+RegisterNUICallback('UiConfirmSettings', function(data, cb)
+    debugLog('Settings data for track '.. data.RaceId, json.encode(data.Metadata, {indent=true}))
+    local result = cwCallback.await('cw-racingapp:server:updateTrackMetadata', data.RaceId, data.Metadata)
+    cb(result)
+end)
+
 RegisterNUICallback('UiGetCrewData', function(data, cb)
     local citizenId = getCitizenId()
     local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentName)
@@ -3180,6 +3185,19 @@ local function toggleUglyWaypoint(boolean)
     end
 end
 
+local function toggleDrawTextWaypoint(boolean)
+    if boolean == nil then
+        UseDrawTextWaypoint = not UseDrawTextWaypoint
+    else
+        UseDrawTextWaypoint = boolean
+    end
+    if UseDrawTextWaypoint then
+        notify(Lang("draw_text_wps_on"), 'success')
+    else
+        notify(Lang("draw_text_wps_off"), 'error')
+    end
+end
+
 RegisterCommand('basicwaypoint', function()
     toggleUglyWaypoint()
 end)
@@ -3189,6 +3207,8 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
         toggleIgnoreRoadsForGps(data.value)
     elseif data.setting == 'ShowGpsRoute' then
         toggleShowRoute(data.value)
+    elseif data.setting == 'UseDrawTextWaypoint' then
+        toggleDrawTextWaypoint(data.value)
     elseif data.setting == 'UseUglyWaypoint' then
         toggleUglyWaypoint(data.value)
     elseif data.setting == 'CheckDistance' then

@@ -32,6 +32,10 @@ local function deleteTrack(raceId)
     end
 end
 
+local function updateTrackMetadata(raceId, metadata)
+    return MySQL.Sync.execute('UPDATE race_tracks SET metadata = ? WHERE raceid = ?', { json.encode(metadata), raceId })
+end
+
 local function getAllRacerNames()
     local query = 'SELECT * FROM racer_names'
     if Config.DontShowRankingsUnderZero then
@@ -203,5 +207,6 @@ RADB = {
     setTrackRecords = setTrackRecords,
     updateEloForRaceResult = updateEloForRaceResult,
     updateRacerElo = updateRacerElo,
-    wipeTracksTable = wipeTracksTable
+    wipeTracksTable = wipeTracksTable,
+    updateTrackMetadata = updateTrackMetadata,
 }

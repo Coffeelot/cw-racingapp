@@ -1,7 +1,6 @@
 <template>
   <div class="results-container page-container">
     <div class="inline standardGap header">
-      <h3 style="width: 160px">{{ translate('select_race') }}</h3>
       <v-select
         color="primary"
         density="compact"
@@ -10,6 +9,8 @@
         return-object
         item-title="Data.RaceData.RaceName"
         v-model="selectedRace"
+        :placeholder="translate('select_track')"
+        class="w-50"
       ></v-select>
     </div>
     <div v-if="!selectedRace">

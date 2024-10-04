@@ -9,6 +9,11 @@ local UseDebug = Config.Debug
 local Timers = {}
 local IsFirstUser = false
 
+local DefaultTrackMetadata = {
+    description = nil,
+    raceType = nil
+}
+
 local RaceResults = {}
 if Config.Debug then
     RaceResults = {
@@ -179,6 +184,16 @@ local function updateRaces()
                     RADB.setTrackRecords(records, v.raceid)
                 end
             end
+            local metadata
+
+            if v.metadata ~= nil then
+                metadata = json.decode(v.metadata)
+            else
+                if UseDebug then
+                    print('Metadata is undefined')
+                end
+                metadata = deepCopy(DefaultTrackMetadata)
+            end
 
             Tracks[v.raceid] = {
                 RaceName = v.name,
@@ -195,8 +210,10 @@ local function updateRaces()
                 MaxClass = nil,
                 Access = json.decode(v.access) or {},
                 Curated = v.curated,
-                NumStarted = 0
+                NumStarted = 0,
+                Metadata = metadata
             }
+            print('metadata', json.encode(metadata, {indent=true}))
         end
     end
     IsFirstUser = RADB.getSizeOfRacerNameTable() == 0
@@ -1505,6 +1522,18 @@ RegisterServerCallback('cw-racingapp:server:changeRacerName', function(source, r
     local ranking = getRankingForRacer(source, racerNameInUse)
     if UseDebug then print('Ranking:', json.encode(ranking)) end
     return { name = racerName, type = racerAuth, ranking = ranking }
+end)
+
+RegisterServerCallback('cw-racingapp:server:updateTrackMetadata', function(source, trackId, metadata)
+    if not trackId then
+        return false
+    end
+    if UseDebug then print('Updating track', trackId, ' metadata with:', json.encode(metadata, {indent=true})) end
+    if RADB.updateTrackMetadata(trackId, metadata) then
+        Tracks[trackId].Metadata = metadata
+        return true
+    end
+    return false
 end)
 
 RegisterNetEvent('cw-racingapp:server:removeRacerName', function(racerName)

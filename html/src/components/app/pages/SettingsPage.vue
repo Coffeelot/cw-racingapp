@@ -32,6 +32,8 @@
                       @change="updateSetting('IgnoreRoadsForGps')"
                     ></v-switch>
                   </v-col>
+                </v-row>
+                <v-row>
                   <v-col
                     cols="12"
                     sm="6"
@@ -57,6 +59,24 @@
                       <v-tooltip location="top" activator="parent" :text="translate('distance_info')">
                       </v-tooltip>
                   </v-col>
+                </v-row>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    sm="6"
+                  >
+                        <v-switch
+                          color="primary"
+                          :label="translate('pillar_columns')"
+                          v-model="settings.UseDrawTextWaypoint"
+                          @change="updateSetting('UseDrawTextWaypoint')"
+                        >
+                      </v-switch>
+                      <v-tooltip location="top" activator="parent" :text="translate('distance_info')">
+                      </v-tooltip>
+                  </v-col>
+                </v-row>
+                <v-row>
                   <v-col
                     cols="12"
                     sm="6"
@@ -100,6 +120,7 @@ const settings: Ref<Settings> = ref({
     IgnoreRoadsForGps: false,
     UseUglyWaypoint: false,
     CheckDistance: false,
+    UseDrawTextWaypoint: false,
 })
 const racerName = ref(globalStore.baseData.data.currentRacerName)
 const loading = ref(false)

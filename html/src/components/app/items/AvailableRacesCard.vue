@@ -1,5 +1,5 @@
 <template>
-    <v-card rounded="lg" class="small-card">
+    <v-card rounded="lg">
         <v-card-title>{{ props.race.RaceData.RaceName }}</v-card-title>
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">{{ translate('ranked') }} </v-chip>

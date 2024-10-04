@@ -6,7 +6,7 @@
       <v-tab value="invites">{{ translate("invites") }} </v-tab>
     </v-tabs>
 
-    <v-window v-model="tab">
+    <v-window v-model="tab" class="page-container">
       <v-window-item value="myCrew" class="tabcontent">
         <v-card v-if="myCrew">
           <v-card-title>{{ translate("crew_stats") }} </v-card-title>

@@ -1,9 +1,13 @@
 <template>
     <v-card rounded="lg" class="available-card">
-        <v-card-title>{{ props.track.RaceName}} {{ props.track.Curated? '⭐':'' }}</v-card-title>
-        <v-card-text class="inline standardGap">
-            <v-chip>{{ translate('creator') }} : {{ props.track.CreatorName }} </v-chip>
-            <v-chip>{{ translate('length') }} : {{ props.track.Distance }}</v-chip>
+        <v-card-title>{{ track.RaceName}} {{ track.Curated? '⭐':'' }}</v-card-title>
+        <v-card-subtitle class="subtitle-text" v-if="track.Metadata?.description">{{ track.Metadata.description }}</v-card-subtitle>
+        <v-card-text>
+            <div class="inline standardGap">
+                <v-chip prepend-icon="mdi-account-star">{{ translate('creator') }} : {{ track.CreatorName }} </v-chip>
+                <v-chip>{{ translate('length') }} : {{ track.Distance }}</v-chip>
+                <v-chip v-if="track.Metadata?.raceType && track.Metadata.raceType !== 'any_type' " prepend-icon="mdi-go-kart-track">{{ translate(track.Metadata.raceType) }}</v-chip>
+            </div>
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
@@ -37,7 +41,13 @@ const startRace = async () => {
 
 <style scoped lang="scss">
 .available-card {
-    width: 49%;
+    width: fit-content;
+    min-width: 30%;
+    max-width: 49%;
+    flex-grow: 1;
     height: fit-content;
+}
+.subtitle-text {
+    white-space: pre-wrap;
 }
 </style>

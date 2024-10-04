@@ -2,6 +2,11 @@ export type Racer = {
     RacerName: string
 }
 
+export type TrackMetadata = {
+    description?: string,
+    raceType?: string,
+}
+
 export type Notification = {
     title: string,
     text?: string,
@@ -27,7 +32,8 @@ export type Settings = {
     IgnoreRoadsForGps: boolean,
     ShowGpsRoute: boolean,
     UseUglyWaypoint: boolean,
-    CheckDistance: boolean
+    CheckDistance: boolean,
+    UseDrawTextWaypoint: boolean,
 }
 
 export type CreatorData = {
@@ -232,6 +238,7 @@ export type Track = {
     Records: TrackRecord[],
     Started: boolean,
     Waiting: boolean,
+    Metadata: TrackMetadata,
 }
 
 

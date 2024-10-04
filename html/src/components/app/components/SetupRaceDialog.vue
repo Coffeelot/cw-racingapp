@@ -184,12 +184,21 @@ const lapsFiltered = computed(() =>
       // For elimination
       return globalStore.baseData.data.auth.startElimination;
     }
+    if (props.track.Metadata?.raceType) {
+      if (props.track.Metadata.raceType === 'sprint' && lapType.value > 0) return false
+      if (props.track.Metadata.raceType === 'circuit' && lapType.value === 0) return false
+    }
     return true;
   })
 );
 
+const trackHasDefinedType = props.track.Metadata?.raceType === 'circuit' || props.track.Metadata?.raceType === 'sprint'
+const defaultLapValue = trackHasDefinedType ? (
+  props.track.Metadata?.raceType === 'circuit' ? globalStore.baseData.data.laps[2].value :globalStore.baseData.data.laps[1].value ):
+  globalStore.baseData.data.laps[1].value
+
 const setupData = ref({
-  laps: globalStore.baseData.data.laps[1].value,
+  laps: defaultLapValue,
   buyIn: globalStore.baseData.data.buyIns[0].value,
   ghosting: globalStore.baseData.data.ghostingTimes[0].value,
   maxClass: globalStore.baseData.data.classes[0].value,
