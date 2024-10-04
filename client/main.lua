@@ -1695,16 +1695,6 @@ local function split(source)
     return result
 end
 
-local function filterTracksByRacer(Tracks)
-    local filteredTracks = {}
-    for i, track in pairs(Tracks) do
-        if track.Creator == getCitizenId() then
-            filteredTracks[i] = track
-        end
-    end
-    return filteredTracks
-end
-
 local function isPositionCheating()
     local ped = PlayerPedId()
     local pos = GetEntityCoords(ped)
@@ -2605,7 +2595,7 @@ end)
 
 RegisterNuiCallback('UiGetPermissionedUserTypeFirstUser', function(_, cb)
     local data = {}
-    if IsFirstUser then 
+    if IsFirstUser then
         data.fobType = 'god'
     else
         data.fobType = Config.BasePermission
