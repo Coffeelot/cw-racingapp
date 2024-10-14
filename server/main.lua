@@ -1521,7 +1521,7 @@ RegisterServerCallback('cw-racingapp:server:changeRacerName', function(source, r
 
     local ranking = getRankingForRacer(source, racerNameInUse)
     if UseDebug then print('Ranking:', json.encode(ranking)) end
-    return { name = racerName, type = racerAuth, ranking = ranking }
+    return { name = racerName, auth = racerAuth, ranking = ranking }
 end)
 
 RegisterServerCallback('cw-racingapp:server:updateTrackMetadata', function(source, trackId, metadata)

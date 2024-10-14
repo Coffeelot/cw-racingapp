@@ -2417,7 +2417,7 @@ end
 local function openRacingApp()
     local data = {
         name = CurrentName,
-        type = CurrentAuth,
+        auth = CurrentAuth,
         crew = CurrentCrew
     }
     openUi(data)
@@ -2971,7 +2971,7 @@ end)
 
 RegisterNUICallback('UiDisbandCrew', function(data, cb)
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:leaveCrew', citizenId, data.crewName)
+    local result = cwCallback.await('cw-racingapp:server:disbandCrew', citizenId, data.crewName)
 
     debugLog('Success: ', result)
     if result then
