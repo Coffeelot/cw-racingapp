@@ -2516,7 +2516,7 @@ RegisterNUICallback('UiChangeRacerName', function(racername, cb)
     if result and result.name then
         debugLog('New name and type', result.name, result.type)
         CurrentName = result.name
-        CurrentAuth = result.type
+        CurrentAuth = result.auth
         local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
 
         if myCrew then
