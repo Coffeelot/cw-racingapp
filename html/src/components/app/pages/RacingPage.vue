@@ -7,7 +7,7 @@
       v-on:update:model-value="fetchRelevantData()"
     >
       <v-tab value="current">{{ translate('available_races') }} </v-tab>
-      <v-tab value="setup">{{ translate('setup') }} </v-tab>
+      <v-tab value="setup" v-if="globalStore.baseData.data.auth.setup">{{ translate('setup') }} </v-tab>
     </v-tabs>
     <v-window v-model="tab" class="page-container">
       <v-window-item  value="current" class="tabcontent">
