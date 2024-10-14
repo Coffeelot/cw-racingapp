@@ -7,6 +7,20 @@ RegisterNetEvent('esx:playerLoaded', function()
     initialSetup()
 end)
 
+function getPlayerJobName()
+    local playerData = ESX.PlayerData
+    if playerData and playerData.job then
+        return playerData.job.name
+    end
+end
+
+function getPlayerJobLevel()
+    local playerData = ESX.PlayerData
+    if playerData and playerData.job and playerData.job.grade then
+        return playerData.job.grade
+    end
+end
+
 function getRacerData()
     local PlayerData = ESX.GetPlayerData()
     return {
