@@ -361,17 +361,6 @@ RegisterServerCallback('cw-racingapp:server:disbandCrew', function(source, found
     return false
 end)
 
-RegisterServerCallback('cw-racingapp:server:disbandCrew', function(source, founderCitizenId, crewName)
-    local canDisbandCrew = canFounderDisbandCrew(founderCitizenId, crewName)
-
-    if canDisbandCrew then
-        return disbandRacingCrew(crewName)
-    else
-        print("Error: Only the founder can disband the crew")
-    end
-    return false
-end)
-
 -- On start
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() == resourceName then
