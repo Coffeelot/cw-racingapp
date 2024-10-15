@@ -8,14 +8,14 @@ RegisterNetEvent('esx:playerLoaded', function()
 end)
 
 function getPlayerJobName()
-    local playerData = ESX.PlayerData
+    local playerData = ESX.GetPlayerData()
     if playerData and playerData.job then
         return playerData.job.name
     end
 end
 
 function getPlayerJobLevel()
-    local playerData = ESX.PlayerData
+    local playerData = ESX.GetPlayerData()
     if playerData and playerData.job and playerData.job.grade then
         return playerData.job.grade
     end
