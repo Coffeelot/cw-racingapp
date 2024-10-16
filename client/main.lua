@@ -2527,6 +2527,7 @@ RegisterNUICallback('UiChangeRacerName', function(racername, cb)
         else
             CurrentCrew = nil
             CurrentRanking = nil
+            TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
         end
         cb(true)
     else
@@ -3254,11 +3255,15 @@ function initialSetup()
         end
     end
     if racerCrew then
+        debugLog('Has a crew set in metadata')
         CurrentCrew = racerCrew
         local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
         if myCrew then
             debugLog('Is in a crew', myCrew)
             CurrentCrew = myCrew
+        else
+            cwCallback.await('cw-racingapp:server:changeCrew', nil)
+            CurrentCrew = nil
         end
     end
 

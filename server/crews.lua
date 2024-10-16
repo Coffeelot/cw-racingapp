@@ -262,7 +262,7 @@ end)
 -- Callbacks
 
 RegisterServerCallback('cw-racingapp:server:getCrewData', function(source, citizenId, racerName)
-    return { invites = ActiveInvites[citizenId], crew = getRacingCrewThatCitizenIDIsIn(citizenId) }
+    return { invites = ActiveInvites[citizenId], crew = getRacingCrewThatRacerNameIsIn(racerName) }
 end)
 
 RegisterServerCallback('cw-racingapp:server:getMyCrew', function(source, racerName)
