@@ -2517,16 +2517,15 @@ RegisterNUICallback('UiChangeRacerName', function(racername, cb)
         debugLog('New name and type', result.name, result.type)
         CurrentName = result.name
         CurrentAuth = result.auth
+        CurrentRanking = result.ranking
         local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
 
         if myCrew then
             debugLog('Is in a crew', myCrew)
             CurrentCrew = myCrew
             TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentCrew)
-            CurrentRanking = myCrew.ranking
         else
             CurrentCrew = nil
-            CurrentRanking = nil
             TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
         end
         cb(true)

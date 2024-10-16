@@ -778,8 +778,10 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
     end
 
     local amountOfRacers = 0
-    for _, _ in pairs(Tracks[raceId].Racers) do
-        amountOfRacers = amountOfRacers + 1
+    for _, v in pairs(Tracks[raceId].Racers) do
+        if not v.Finished then
+            amountOfRacers = amountOfRacers + 1
+        end
     end
     if NotFinished[raceId] ~= nil then
         NotFinished[raceId][#NotFinished[raceId] + 1] = {
@@ -1513,7 +1515,6 @@ end)
 RegisterServerCallback('cw-racingapp:server:changeRacerName', function(source, racerNameInUse)
     if UseDebug then print('Changing Racer Name for src', source, ' to name', racerNameInUse) end
     changeRacerName(source, racerNameInUse)
-
     local racerData = getRacerData(source)
     local racerName = racerData.name
     local racerAuth = racerData.auth
