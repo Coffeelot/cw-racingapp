@@ -336,7 +336,7 @@ local function giveSplit(src, racers, position, pot)
     if total > 0 then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, math.floor(total))
-            TriggerClientEvent('cw-racingapp:client:notify', source,
+            TriggerClientEvent('cw-racingapp:client:notify', src,
                 Lang("participation_trophy_crypto") .. math.floor(total) .. ' ' .. Config.Options.cryptoType, 'success')
         else
             addMoney(src, Config.Options.MoneyType, math.floor(total))
@@ -349,13 +349,13 @@ local function handOutParticipationTrophy(src, position)
         if Config.ParticipationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType,
                 Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('cw-racingapp:client:notify', source,
+            TriggerClientEvent('cw-racingapp:client:notify', src,
                 Lang("participation_trophy_crypto") ..
                 Config.ParticipationTrophies.amount[position] .. ' ' .. Config.ParticipationTrophies.cryptoType,
                 'success')
         else
             addMoney(src, Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('cw-racingapp:client:notify', source,
+            TriggerClientEvent('cw-racingapp:client:notify', src,
                 Lang("participation_trophy") .. Config.ParticipationTrophies.amount[position], 'success')
         end
     end
@@ -365,11 +365,11 @@ local function handOutAutomationPayout(src, amount)
     if Config.Options.MoneyType then
         if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
             exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amount)
-            TriggerClientEvent('cw-racingapp:client:notify', source,
+            TriggerClientEvent('cw-racingapp:client:notify', src,
                 Lang("extra_payout") .. ' ' .. amount .. ' ' .. Config.Options.cryptoType, 'success')
         else
             addMoney(src, Config.Options.MoneyType, amount)
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("extra_payout") .. ' ' .. amount, 'success')
+            TriggerClientEvent('cw-racingapp:client:notify', src, Lang("extra_payout") .. ' ' .. amount, 'success')
         end
     end
 end
@@ -467,12 +467,12 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                     amountToGive, Tracks[raceData.RaceId].ParticipationCurrency) end
             if Tracks[raceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
                 exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
-                TriggerClientEvent('cw-racingapp:client:notify', source,
+                TriggerClientEvent('cw-racingapp:client:notify', src,
                     Lang("participation_trophy_crypto") ..
                     amountToGive .. ' ' .. Tracks[raceData.RaceId].ParticipationCurrency, 'success')
             else
                 addMoney(src, Tracks[raceData.RaceId].ParticipationCurrency, amountToGive)
-                TriggerClientEvent('cw-racingapp:client:notify', source, Lang("participation_trophy") .. amountToGive,
+                TriggerClientEvent('cw-racingapp:client:notify', src, Lang("participation_trophy") .. amountToGive,
                     'success')
             end
         end
