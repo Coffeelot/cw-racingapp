@@ -1976,7 +1976,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
         end
 
         debugLog('Racer names allowed for id '..racerId, maxRacerNames)
-        if playerNames == nil or racerNameExists(playerNames, racerName) or #playerNames < maxRacerNames then
+        if playerNames == nil or racerNameExists(playerNames, strictSanitize(racerName)) or #playerNames < maxRacerNames then
             local nameIsNotTaken = cwCallback.await('cw-racingapp:server:nameIsAvailable', racerName, racerId)
 
             if nameIsNotTaken then
@@ -2982,18 +2982,19 @@ RegisterNUICallback('UiDisbandCrew', function(data, cb)
 end)
 
 RegisterNUICallback('UiCreateCrew', function(data, cb)
-    if #data.crewName == 0 then
+    local sanitizedName = strictSanitize(data.crewName)
+    if #sanitizedName == 0 then
         notify(Lang("name_too_short"), 'error')
         cb(false)
         return
     end
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:createCrew', CurrentName, citizenId, data.crewName)
+    local result = cwCallback.await('cw-racingapp:server:createCrew', CurrentName, citizenId, sanitizedName)
 
     debugLog('Success: ', result)
     if result then
-        CurrentCrew = data.crewName
-        TriggerServerEvent('cw-racingapp:server:changeCrew', data.crewName)
+        CurrentCrew = sanitizedName
+        TriggerServerEvent('cw-racingapp:server:changeCrew', sanitizedName)
     end
     cb(result)
 end)
@@ -3257,12 +3258,19 @@ function initialSetup()
         debugLog('Has a crew set in metadata')
         CurrentCrew = racerCrew
         local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
-        if myCrew then
+        if myCrew == racerCrew then
             debugLog('Is in a crew', myCrew)
             CurrentCrew = myCrew
         else
-            cwCallback.await('cw-racingapp:server:changeCrew', nil)
+            debugLog('Crew does not exist anymore', myCrew)
+            TriggerServerEvent('cw-racingapp:server:changeCrew', myCrew.crewName)
             CurrentCrew = nil
+        end
+    else
+        local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
+        debugLog('Did not have crew set but found one in DB. Setting to', myCrew)
+        if myCrew then
+            TriggerServerEvent('cw-racingapp:server:changeCrew', myCrew)
         end
     end
 

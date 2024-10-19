@@ -17,7 +17,7 @@
           </v-card-text>
         </v-card>
         <div class="subheader inline mt-1">
-          <h3 class="header-text">{{ translate("my_crew") }}</h3>
+          <h3 class="header-text">{{ translate("my_crew") }} {{ myCrew?.crewName }}</h3>
         </div>
         <div
           class="myRacers-items-container"
@@ -42,7 +42,7 @@
           <h3 class="header-text">{{ translate("manage") }}</h3>
         </div>
         <div class="w-100 invitations">
-          <v-card class="card" v-if="globalStore?.baseData?.data?.auth?.createCrew">
+          <v-card class="card" v-if="globalStore?.baseData?.data?.auth?.createCrew && !isFounder">
             <v-card-title>{{ translate("create_crew") }} </v-card-title>
             <v-card-text>
               <v-text-field

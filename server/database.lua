@@ -1,3 +1,20 @@
+function strictSanitize(input)
+    if type(input) ~= "string" then
+        return input
+    end
+
+    -- Convert to lowercase
+    input = input:lower()
+
+    -- Remove leading/trailing spaces and collapse multiple spaces into single spaces
+    input = input:gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")
+
+    -- Keep only allowed characters
+    input = input:gsub("[^%w%s%-_]", "")
+
+    return input
+end
+
 local function getAllRaceTracks()
     return MySQL.Sync.fetchAll('SELECT * FROM race_tracks', {})
 end
@@ -13,8 +30,8 @@ end
 local function createTrack(raceData, checkpoints, citizenId, raceId)
     MySQL.Async.insert(
         'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        { raceData.RaceName, json.encode(checkpoints), citizenId, raceData.RacerName, raceData.RaceDistance, raceId, 0,
-            '{}' })
+        { strictSanitize(raceData.RaceName), json.encode(checkpoints), citizenId, strictSanitize(raceData.RacerName), raceData.RaceDistance, raceId, 0, '{}' }
+    )
 end
 
 local function getSizeOfRacerNameTable()
@@ -42,10 +59,10 @@ local function getAllRacerNames()
         query = query .. ' WHERE ranking > 0'
     end
     if Config.LimitTopListTo then
-        query = query .. ' ORDER BY ranking DESC LIMIT ' .. Config.LimitTopListTo
+        query = query .. ' ORDER BY ranking DESC LIMIT ?'
+        return MySQL.Sync.fetchAll(query, { Config.LimitTopListTo })
     end
-    local result = MySQL.Sync.fetchAll(query)
-    return result
+    return MySQL.Sync.fetchAll(query)
 end
 
 local function setAccessForTrack(raceId, access)
@@ -53,57 +70,47 @@ local function setAccessForTrack(raceId, access)
 end
 
 local function getRaceUserByName(racerName)
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { racerName })[1]
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })[1]
 end
 
 local function createRaceUser(citizenId, racerName, auth, creatorCitizenId)
     MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
-        { citizenId, racerName, auth, creatorCitizenId })
+        { citizenId, strictSanitize(racerName), auth, creatorCitizenId })
 end
 
 local function getRaceUserRankingByName(racerName)
-    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { racerName })
+    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
     if res and res[1] then
         return res[1].ranking
     end
 end
 
 local function increaseRaceCount(racerName, position)
-    local query = 'UPDATE racer_names SET races = races + 1 WHERE racername = "' .. racerName .. '"'
+    local query = 'UPDATE racer_names SET races = races + 1'
     if position == 1 then
-        query = 'UPDATE racer_names SET races = races + 1, wins = wins + 1 WHERE racername = "' .. racerName .. '"'
+        query = query .. ', wins = wins + 1'
     end
-    MySQL.Async.execute(query)
+    query = query .. ' WHERE racername = ?'
+    MySQL.Async.execute(query, { strictSanitize(racerName) })
 end
 
 local function updateRacerElo(racerName, eloChange)
-    local sql = "UPDATE racer_names SET ranking = ranking + " .. eloChange .. " WHERE racername = '" .. racerName .. "'"
-    MySQL.Async.execute(sql)
+    MySQL.Async.execute('UPDATE racer_names SET ranking = ranking + ? WHERE racername = ?', { eloChange, strictSanitize(racerName) })
 end
 
 local function updateEloForRaceResult(results)
-    -- Prepare the SQL statement
-    local sql = "UPDATE racer_names SET Ranking = CASE"
-
-    -- Iterate over the racers table to build the SQL statement
+    local placeholders = {}
+    local params = {}
     for _, racer in ipairs(results) do
-        sql = sql .. " WHEN RacerName = '" .. racer.RacerName .. "' THEN Ranking + " .. racer.TotalChange
+        table.insert(placeholders, "(?, ?)")
+        table.insert(params, strictSanitize(racer.RacerName))
+        table.insert(params, racer.TotalChange)
     end
-
-    -- Add the default case and close the SQL statement
-    sql = sql .. " END WHERE RacerName IN ("
-
-    -- Append the RacerName values to the SQL statement
-    for i, racer in ipairs(results) do
-        if i > 1 then
-            sql = sql .. ", "
-        end
-        sql = sql .. "'" .. racer.RacerName .. "'"
-    end
-
-    -- Close the SQL statement
-    sql = sql .. ")"
-    MySQL.Async.execute(sql)
+    local sql = "UPDATE racer_names SET Ranking = Ranking + (CASE RacerName " ..
+                table.concat(placeholders, " ") ..
+                " END) WHERE RacerName IN (" ..
+                table.concat(table.map(results, function(_, i) return "?" end), ", ") .. ")"
+    MySQL.Async.execute(sql, params)
 end
 
 local function getTracksByCitizenId(citizenId)
@@ -123,11 +130,11 @@ local function getAllRaceUsers()
 end
 
 local function removeRaceUserByName(racerName)
-    return MySQL.query('DELETE FROM racer_names WHERE racername = ?', { racerName })
+    return MySQL.query('DELETE FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
 end
 
 local function setRaceUserRevoked(racerName, revoked)
-    return MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), racerName })
+    return MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?', { tonumber(revoked), strictSanitize(racerName) })
 end
 
 local function wipeTracksTable()
@@ -135,41 +142,38 @@ local function wipeTracksTable()
 end
 
 local function joinRacingCrew(citizenId, memberName, crewName)
-    local query =
-    "UPDATE racing_crews SET members = JSON_ARRAY_APPEND(members, '$', JSON_OBJECT('citizenID', ?, 'racername', ?, 'rank', 0)) WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { citizenId, memberName, crewName })
+    local query = "UPDATE racing_crews SET members = JSON_ARRAY_APPEND(members, '$', JSON_OBJECT('citizenID', ?, 'racername', ?, 'rank', 0)) WHERE crew_name = ?"
+    return MySQL.Sync.execute(query, { citizenId, strictSanitize(memberName), strictSanitize(crewName) })
 end
 
 local function createRacingCrew(crewName, founderName, citizenId)
-    local query =
-    "INSERT INTO racing_crews (crew_name, founder_name, founder_citizenid, members, wins, races, rank) VALUES (?, ?, ?, '[]', 0, 0, 0)"
-    return MySQL.Sync.execute(query, { crewName, founderName, citizenId })
+    local query = "INSERT INTO racing_crews (crew_name, founder_name, founder_citizenid, members, wins, races, rank) VALUES (?, ?, ?, '[]', 0, 0, 0)"
+    return MySQL.Sync.execute(query, { strictSanitize(crewName), strictSanitize(founderName), citizenId })
 end
 
 local function leaveRacingCrew(citizenId, crewName)
-    local query =
-    "UPDATE racing_crews SET members = JSON_REMOVE(members, JSON_UNQUOTE(JSON_SEARCH(members, 'one', ?))) WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { citizenId, crewName })
+    local query = "UPDATE racing_crews SET members = JSON_REMOVE(members, JSON_UNQUOTE(JSON_SEARCH(members, 'one', ?))) WHERE crew_name = ?"
+    return MySQL.Sync.execute(query, { citizenId, strictSanitize(crewName) })
 end
 
 local function increaseCrewWins(crewName)
     local query = "UPDATE racing_crews SET wins = wins + 1, races = races + 1 WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { crewName })
+    return MySQL.Sync.execute(query, { strictSanitize(crewName) })
 end
 
 local function increaseCrewRaces(crewName)
     local query = "UPDATE racing_crews SET races = races + 1 WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { crewName })
+    return MySQL.Sync.execute(query, { strictSanitize(crewName) })
 end
 
 local function changeCrewRank(crewName, amount)
     local query = "UPDATE racing_crews SET rank = rank + ? WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { amount, crewName })
+    return MySQL.Sync.execute(query, { amount, strictSanitize(crewName) })
 end
 
 local function disbandCrew(crewName)
     local query = "DELETE FROM racing_crews WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { crewName })
+    return MySQL.Sync.execute(query, { strictSanitize(crewName) })
 end
 
 local function getAllCrews()
