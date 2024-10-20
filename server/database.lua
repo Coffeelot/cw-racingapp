@@ -3,9 +3,6 @@ function strictSanitize(input)
         return input
     end
 
-    -- Convert to lowercase
-    input = input:lower()
-
     -- Remove leading/trailing spaces and collapse multiple spaces into single spaces
     input = input:gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")
 
