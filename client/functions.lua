@@ -26,3 +26,20 @@ AddEventHandler('client:serverCallback', function(id, ...)
         callbacks[id] = nil
     end
 end)
+
+function strictSanitize(input)
+    if type(input) ~= "string" then
+        return input
+    end
+
+    -- Convert to lowercase
+    input = input:lower()
+
+    -- Remove leading/trailing spaces and collapse multiple spaces into single spaces
+    input = input:gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")
+
+    -- Keep only allowed characters
+    input = input:gsub("[^%w%s%-_]", "")
+
+    return input
+end
