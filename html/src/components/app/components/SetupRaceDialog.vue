@@ -186,15 +186,15 @@ const lapsFiltered = computed(() =>
     }
     if (props.track.Metadata?.raceType) {
       if (props.track.Metadata.raceType === 'sprint' && lapType.value > 0) return false
-      if (props.track.Metadata.raceType === 'circuit' && lapType.value === 0) return false
+      if (props.track.Metadata.raceType === 'circuit_only' && lapType.value === 0) return false
     }
     return true;
   })
 );
 
-const trackHasDefinedType = props.track.Metadata?.raceType === 'circuit' || props.track.Metadata?.raceType === 'sprint'
+const trackHasDefinedType = props.track.Metadata?.raceType === 'circuit_only' || props.track.Metadata?.raceType === 'sprint'
 const defaultLapValue = trackHasDefinedType ? (
-  props.track.Metadata?.raceType === 'circuit' ? globalStore.baseData.data.laps[2].value :globalStore.baseData.data.laps[1].value ):
+  props.track.Metadata?.raceType === 'circuit_only' ? globalStore.baseData.data.laps[2].value :globalStore.baseData.data.laps[1].value ):
   globalStore.baseData.data.laps[1].value
 
 const setupData = ref({
