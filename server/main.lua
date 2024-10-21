@@ -1205,6 +1205,7 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(raceData)
             Waiting = false,
             Distance = math.ceil(raceData.RaceDistance),
             Racers = {},
+            Metadata = deepCopy(DefaultTrackMetadata),
             Access = {},
             LastLeaderboard = {},
             NumStarted = 0,
