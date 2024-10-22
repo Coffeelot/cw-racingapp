@@ -1147,12 +1147,12 @@ RegisterNetEvent('cw-racingapp:server:startRace', function(RaceId)
     local AvailableKey = GetOpenedRaceKey(RaceId)
 
     if not RaceId then
-        TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_in_race"), 'error')
+        if src then TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_in_race"), 'error') end
         return
     end
 
     if AvailableRaces[AvailableKey].RaceData.Started then
-        TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_already_started"), 'error')
+        if src then TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_already_started"), 'error') end
         return
     end
 
@@ -1166,7 +1166,7 @@ RegisterNetEvent('cw-racingapp:server:startRace', function(RaceId)
         local racerSource = getSrcOfPlayerByCitizenId(citizenId)
         if racerSource ~= nil then
             TriggerClientEvent('cw-racingapp:client:raceCountdown', racerSource, TotalRacers)
-            setInRace(src, RaceId)
+            setInRace(racerSource, RaceId)
         end
     end
     if Config.UseResetTimer then startTimer(RaceId) end
