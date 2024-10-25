@@ -12,7 +12,7 @@
         <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn rounded="lg" variant="flat" color="red" @click='leaveRace()'>{{ translate('leave_race') }} </v-btn>
-            <v-btn rounded="lg" variant="flat" color="success" @click='startRace()' v-if="!props.race.cantStart">{{ translate('start_race') }} </v-btn>
+            <v-btn rounded="lg" variant="flat" color="success" @click='startRace()' v-if="props.race.canStart">{{ translate('start_race') }} </v-btn>
         </v-card-actions>
         
     </v-card>

@@ -1,24 +1,27 @@
-if GetResourceState('qbx_core') ~= 'started' then return end
+if GetResourceState('ox_core') ~= 'started' then return end
+local Ox = require '@ox_core.lib.init'
 
-if Config.Debug then print('Using QBOX bridge') end
+if Config.Debug then print('Using OX Core bridge') end
 
-local VEHICLEHASHES = exports.qbx_core:GetVehiclesByHash()
+-- Get vehicle data from ox_core
+local VEHICLEHASHES = Ox.GetVehicleData()
 
-RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
+-- Listen for player loaded event
+RegisterNetEvent('ox:playerLoaded', function()
     initialSetup()
 end)
 
 function getPlayerJobName()
-    local playerData = QBX.PlayerData
-    if playerData and playerData.job then
-        return playerData.job.name
+    local player = Ox.GetPlayer()
+    if player and player.job then
+        return player.job.name
     end
 end
 
 function getPlayerJobLevel()
-    local playerData = QBX.PlayerData
-    if playerData and playerData.job and playerData.job.grade then
-        return playerData.job.grade.level
+    local player = Ox.GetPlayer()
+    if player and player.job and player.job.grade then
+        return player.job.grade
     end
 end
 
@@ -30,14 +33,15 @@ function hasGps()
 end
 
 function getCitizenId()
-    return QBX.PlayerData.citizenid
+    local player = Ox.GetPlayer()
+    return player.charId
 end
 
 function getVehicleModel(vehicle)
     local model = GetEntityModel(vehicle)
     local vehData = VEHICLEHASHES[model]
     if vehData then
-        return vehData.name, vehData.brand
+        return vehData.name, vehData.make
     end
     return GetDisplayNameFromVehicleModel(model)
 end

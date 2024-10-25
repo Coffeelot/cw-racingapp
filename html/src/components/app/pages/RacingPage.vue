@@ -14,7 +14,7 @@
         <div class="current-race-container">
           <div id="current-race-selection" v-if="currentRace">
             <div class="mb-1" id="subheader">
-              <h3>{{ translate('hosting') }} </h3>
+              <h3>{{ translate('active') }} </h3>
             </div>
             <CurrentRaceCard
               :race="currentRace"
@@ -26,6 +26,7 @@
         <div class="subheader mt-2">
           <h3>{{ translate('available_races') }} </h3>
         </div>
+
         <div
           v-if="isLoading"
           class="loading-container"
@@ -35,7 +36,8 @@
         </div>
         <div v-else class="available-races">
           <AvailableRacesCard
-            v-for="race in races"
+            v-for="race in racesNotStarted"
+            :key="race"
             :race="race"
           ></AvailableRacesCard>
         </div>
@@ -80,6 +82,7 @@
         <div v-else class="page-container available-tracks">
           <AvailableTracksCard
             v-for="track in filteredTracks"
+            :key="track.RaceId"
             :track="track"
             @select="(track) => selectTrack(track)"
           ></AvailableTracksCard>
@@ -140,10 +143,12 @@ const resetTrackSetup = () => {
   selectedTrack.value = undefined;
 };
 
+const racesNotStarted = computed(() => races.value.filter((race:any) => !race.RaceData.Started))
+
 const getListedRaces = async () => {
   isLoading.value = true;
   const res = await api.post("UiGetListedRaces");
-  races.value = res.data;
+  races.value = res.data ;
   isLoading.value = false;
 };
 

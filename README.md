@@ -320,6 +320,14 @@ ALTER TABLE `race_tracks`
 ADD COLUMN `metadata` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `checkpoints`;
 ```
 
+## Race User Update
+Two new columns were added to the race user table. You can run this to update an existing table
+```sql
+ALTER TABLE `racer_names`
+ADD COLUMN `crew` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+ADD COLUMN `active` INT(11) NOT NULL DEFAULT '0';
+```
+
 # Dependencies
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
 

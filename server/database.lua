@@ -62,8 +62,35 @@ local function getAllRacerNames()
     return MySQL.Sync.fetchAll(query)
 end
 
+local function getAllRacerNames()
+    local query = 'SELECT * FROM racer_names'
+    if Config.DontShowRankingsUnderZero then
+        query = query .. ' WHERE ranking > 0'
+    end
+    if Config.LimitTopListTo then
+        query = query .. ' ORDER BY ranking DESC LIMIT ?'
+        return MySQL.Sync.fetchAll(query, { Config.LimitTopListTo })
+    end
+    return MySQL.Sync.fetchAll(query)
+end
+
 local function setAccessForTrack(raceId, access)
     return MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', { json.encode(access), raceId })
+end
+
+local function changeRaceUser(citizenId, racerName)
+    if MySQL.Sync.execute('UPDATE racer_names SET active = 0 WHERE citizenid = ?', { citizenId }) then
+        return MySQL.Sync.execute('UPDATE racer_names SET active = 1 WHERE citizenid = ? AND racername = ?', { citizenId, racerName })
+    end
+    return nil
+end
+
+local function getActiveRacerName(citizenId)
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { strictSanitize(citizenId) })[1]
+end
+
+local function getUserAuth(citizenId)
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ? AND active = 1', { strictSanitize(citizenId) })[1]
 end
 
 local function getRaceUserByName(racerName)
@@ -115,6 +142,10 @@ local function getTracksByCitizenId(citizenId)
 end
 
 local function getRaceUsersCreatedByCitizenId(citizenId)
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE createdby = ?', { citizenId })
+end
+
+local function getRaceUsersBelongingToCitizenId(citizenId)
     return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { citizenId })
 end
 
@@ -190,8 +221,12 @@ RADB = {
     getAllRacerNames = getAllRacerNames,
     getAllRaceTracks = getAllRaceTracks,
     getAllRaceUsers = getAllRaceUsers,
+    changeRaceUser = changeRaceUser,
     getRaceUserByName = getRaceUserByName,
+    getUserAuth = getUserAuth,
+    getActiveRacerName = getActiveRacerName,
     getRaceUserRankingByName = getRaceUserRankingByName,
+    getRaceUsersBelongingToCitizenId = getRaceUsersBelongingToCitizenId,
     getRaceUsersCreatedByCitizenId = getRaceUsersCreatedByCitizenId,
     getSizeOfRacerNameTable = getSizeOfRacerNameTable,
     getTracksByCitizenId = getTracksByCitizenId,

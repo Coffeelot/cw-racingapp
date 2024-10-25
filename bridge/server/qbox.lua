@@ -22,14 +22,6 @@ function canPay(src, moneyType, cost)
     return player.PlayerData.money[moneyType] >= cost
 end
 
--- Updates Metadata
-function updateRacingUserMetadata(src, racerName, auth)
-    local player = exports.qbx_core:GetPlayer(tonumber(src))
-    player.Functions.SetMetaData("selectedRacerAuth", auth)
-    player.Functions.SetMetaData("selectedRacerName", racerName)
-    player.Functions.SetMetaData("selectedCrew", nil)
-end
-
 -- Updates Crew
 function updateCrew(src, crewName)
     local player = exports.qbx_core:GetPlayer(tonumber(src))
@@ -45,14 +37,4 @@ end
 -- Fetches the Source of an online player by citizenid
 function getSrcOfPlayerByCitizenId(citizenId)
     return exports.qbx_core:GetPlayerByCitizenId(citizenId).PlayerData.source
-end
-
--- Fetches the player data
-function getRacerData(src)
-    local PlayerData = exports.qbx_core:GetPlayer(tonumber(src)).PlayerData
-    return {
-        name = PlayerData.metadata.selectedRacerName,
-        auth = PlayerData.metadata.selectedRacerAuth,
-        crew = PlayerData.metadata.selectedCrew,
-    }
 end

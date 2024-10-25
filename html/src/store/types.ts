@@ -102,7 +102,7 @@ export type CurrentRace = {
     racers: number,
     laps: number,
     class: string,
-    cantStart: boolean,
+    canStart: boolean,
     ghosted: boolean,
     raceId: string,
     ghosting: boolean,

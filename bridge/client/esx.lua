@@ -21,15 +21,6 @@ function getPlayerJobLevel()
     end
 end
 
-function getRacerData()
-    local PlayerData = ESX.GetPlayerData()
-    return {
-        name = PlayerData.selectedRacerName,
-        auth = PlayerData.selectedRacerAuth,
-        crew = PlayerData.selectedCrew
-    }
-end
-
 function hasGps()
     if Config.Inventory == 'esx' then
         local xPlayer = ESX.GetPlayerData()

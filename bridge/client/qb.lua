@@ -8,15 +8,6 @@ RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
     initialSetup()
 end)
 
-function getRacerData()
-    local PlayerData = QBCore.Functions.GetPlayerData()
-    return {
-        name = PlayerData.metadata.selectedRacerName,
-        auth = PlayerData.metadata.selectedRacerAuth,
-        crew = PlayerData.metadata.selectedCrew
-    }
-end
-
 function getPlayerJobName()
     local playerData = QBCore.Functions.GetPlayerData()
     if playerData and playerData.job then

@@ -37,14 +37,6 @@ function canPay(src, moneyType, cost)
     end
 end
 
--- Updates Metadata
-function updateRacingUserMetadata(src, racerName, auth)
-    local xPlayer = ESX.GetPlayerFromId(src)
-    xPlayer.set("selectedRacerName", racerName)
-    xPlayer.set("selectedRacerAuth", auth)
-    xPlayer.set("selectedCrew", nil)
-end
-
 -- Updates Crew
 function updateCrew(src, crewName)
     local xPlayer = ESX.GetPlayerFromId(src)
@@ -66,15 +58,4 @@ function getSrcOfPlayerByCitizenId(citizenId)
             return playerId
         end
     end
-end
-
--- Fetches the racer data of the player
-
-function getRacerData(src)
-    local Player = ESX.GetPlayerFromId(src)
-    return {
-        name = Player.get("selectedRacerName"),
-        auth = Player.get("selectedRacerAuth"),
-        crew = Player.get("selectedCrew"),
-    }
 end

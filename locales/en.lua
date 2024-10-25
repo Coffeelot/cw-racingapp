@@ -273,6 +273,7 @@ TranslationsEN = {
         start_race = "Start Race",
         starting_line = "Start Line",
         starts = "Starts",
+        starts_in = "Starts in",
         time = "Time",
         time_added = "Your time has been added to the leaderboard",
         tire_distance = "Tire distance",

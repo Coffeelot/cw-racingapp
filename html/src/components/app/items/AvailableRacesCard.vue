@@ -14,7 +14,7 @@
             <v-chip prepend-icon="mdi-car-info" v-if="props.race.MaxClass">{{ `${translate('class')}: ${props.race.MaxClass}` }}</v-chip>
             <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
             <v-chip prepend-icon="mdi-eye-lock" v-if="props.race.FirstPerson">{{ translate('first_person') }}</v-chip>
-            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? translate('starts') : `${translate('expires')}:`} ${expirationTimeString}` }}</v-chip>
+            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? translate('starts_in') : `${translate('expires')}:`} ${minutes}:${seconds}` }}</v-chip>
             <v-chip v-if="props.race.Reversed" prepend-icon="mdi-backup-restore" >{{ translate('reversed') }} </v-chip>
             <v-chip prepend-icon="mdi-account-star">{{ translate('hosted_by') }} {{ props.race.SetupRacerName }}</v-chip>
         </v-card-text>
@@ -31,7 +31,7 @@ import api from "@/api/axios";
 import { closeApp } from "@/helpers/closeApp";
 import { useGlobalStore } from "@/store/global";
 import { translate } from "@/helpers/translate";
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps<{
   race: any
@@ -95,10 +95,32 @@ const showRace = async () => {
     if (res.data) closeApp()
 }
 
+const futureTimestamp = ref<number>(props.race.ExpirationTime)
 
-const expirationTimeString = computed(() => {
-    const time = new Date(props.race.ExpirationTime)
-    return time.getHours() + ':' + (time.getMinutes() > 10 ? time.getMinutes() : '0'+ time.getMinutes())
+const remainingTime = ref<number>(futureTimestamp.value ? futureTimestamp.value - Math.floor(Date.now() / 1000): 0)
+
+const minutes = computed(() => Math.floor(remainingTime.value / 60).toString().padStart(2, '0'))
+const seconds = computed(() => (remainingTime.value % 60).toString().padStart(2, '0'))
+
+const startCountdown = () => {
+    if (futureTimestamp.value) {
+        const interval = setInterval(() => {
+          remainingTime.value -= 1
+          if (remainingTime.value <= 0) {
+            remainingTime.value = 0
+            clearInterval(interval)
+          }
+        }, 1000)
+        
+        onUnmounted(() => {
+          startCountdown()
+          clearInterval(interval)
+        })
+    }
+}
+
+onMounted(() => {
+    startCountdown()
 })
 
 </script>

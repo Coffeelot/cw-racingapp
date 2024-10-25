@@ -24,13 +24,6 @@ function canPay(src, moneyType, cost)
     return Player.PlayerData.money[moneyType] >= cost
 end
 
--- Updates Metadata
-function updateRacingUserMetadata(src, racerName, auth)
-    local Player = QBCore.Functions.GetPlayer(src)
-    Player.Functions.SetMetaData("selectedRacerAuth", auth)
-    Player.Functions.SetMetaData("selectedRacerName", racerName)
-    Player.Functions.SetMetaData("selectedCrew", nil)
-end
 
 -- Updates Crew
 function updateCrew(src, crewName)
@@ -47,14 +40,4 @@ end
 -- Fetches the Source of an online player by citizenid
 function getSrcOfPlayerByCitizenId(citizenId)
     return QBCore.Functions.GetPlayerByCitizenId(citizenId).PlayerData.source
-end
-
--- Fetches the racer data
-function getRacerData(src)
-    local PlayerData = QBCore.Functions.GetPlayer(src).PlayerData
-    return {
-        name = PlayerData.metadata.selectedRacerName,
-        auth = PlayerData.metadata.selectedRacerAuth,
-        crew = PlayerData.metadata.selectedCrew,
-    }
 end

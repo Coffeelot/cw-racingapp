@@ -1030,7 +1030,7 @@ local function setupRace(raceData, Laps)
     CurrentRaceData = {
         RaceId = raceData.RaceId,
         Creator = raceData.Creator,
-        OrganizerCID = raceData.OrganizerCID,
+        SetupCitizenId = raceData.SetupCitizenId,
         RacerName = raceData.RacerName,
         RaceName = raceData.RaceName,
         Checkpoints = checkpoints,
@@ -1628,7 +1628,7 @@ end)
 RegisterNetEvent('cw-racingapp:client:updateOrganizer', function(RaceId, organizer)
     if CurrentRaceData.RaceId == RaceId then
         debugLog('updating organizer')
-        CurrentRaceData.OrganizerCID = organizer
+        CurrentRaceData.SetupCitizenId = organizer
     end
 end)
 
@@ -2400,11 +2400,10 @@ local function handleAnimation()
     attachProp()
 end
 
-local function openUi(data)
+local function openUi()
+    debugLog('opening ui')
+
     if not UiIsOpen then
-        CurrentName = data.name
-        CurrentAuth = data.auth
-        CurrentCrew = data.crew
         notify(Lang("esc"))
         SetNuiFocus(true, true)
         SendNUIMessage({ type = 'toggleApp', open = true })
@@ -2415,17 +2414,12 @@ local function openUi(data)
 end
 
 local function openRacingApp()
-    local data = {
-        name = CurrentName,
-        auth = CurrentAuth,
-        crew = CurrentCrew
-    }
-    openUi(data)
+    openUi()
 end
 exports('openRacingApp', openRacingApp)
 
-RegisterNetEvent("cw-racingapp:client:openUi", function(data)
-    openUi(data)
+RegisterNetEvent("cw-racingapp:client:openUi", function()
+    openUi()
 end)
 
 RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)
@@ -2465,11 +2459,26 @@ RegisterNUICallback('UiCloseUi', function(_, cb)
     cb(true)
 end)
 
-RegisterNetEvent("cw-racingapp:client:updateRacerNames", function(data)
+local function getActiveRacerName()
+    for index, user in pairs(MyRacerNames) do
+        if user.active == 1 then return user end
+    end
+end
+
+
+RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
     Wait(2000)
     local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
     MyRacerNames = playerNames
-    local currentRacer = findRacerByName()
+    local currentRacer = getActiveRacerName()
+    debugLog('Current racer after change', json.encode(currentRacer, {indent=true}))
+
+    if currentRacer then
+        CurrentName = currentRacer.racername
+        CurrentAuth = currentRacer.auth
+        CurrentRanking = currentRacer.ranking
+    end
+
     notify(Lang("user_list_updated"))
     debugLog('current user', json.encode(currentRacer, { indent = true }))
     if CurrentName and currentRacer and currentRacer.revoked == 1 then
@@ -2488,6 +2497,7 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function(data)
             closeUi()
         end
     else
+
         SendNUIMessage({ type = 'updateBaseData' })
     end
 end)
@@ -2512,22 +2522,7 @@ end)
 
 RegisterNUICallback('UiChangeRacerName', function(racername, cb)
     local result = cwCallback.await('cw-racingapp:server:changeRacerName', racername)
-
-    if result and result.name then
-        debugLog('New name and type', result.name, result.type)
-        CurrentName = result.name
-        CurrentAuth = result.auth
-        CurrentRanking = result.ranking
-        local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
-
-        if myCrew then
-            debugLog('Is in a crew', myCrew)
-            CurrentCrew = myCrew
-            TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentCrew)
-        else
-            CurrentCrew = nil
-            TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
-        end
+    if result then
         cb(true)
     else
         cb(false)
@@ -2721,13 +2716,16 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
         if (CurrentRaceData.MaxClass ~= nil and CurrentRaceData.MaxClass ~= "") then
             maxClass = CurrentRaceData.MaxClass
         end
+        local canStart = false
+        if CurrentRaceData.SetupCitizenId then
+            canStart = (CurrentRaceData.SetupCitizenId == getCitizenId()) and not CurrentRaceData.Started
+        end
         local data = {
             trackName = CurrentRaceData.RaceName,
             racers = racers,
             laps = CurrentRaceData.TotalLaps,
             class = tostring(maxClass),
-            cantStart = (CurrentRaceData.OrganizerCID ~= getCitizenId() or
-                CurrentRaceData.Started),
+            canStart = canStart,
             raceId = CurrentRaceData.RaceId,
             ghosting = CurrentRaceData.Ghosting,
             ranked = CurrentRaceData.Ranked,
@@ -3229,8 +3227,10 @@ function initialSetup()
     MyRacerNames = playerNames
     debugLog('player names', json.encode(playerNames))
 
-    local racerData = getRacerData()
-    local racerName = racerData.name
+    local racerData = getActiveRacerName()
+    if not racerData then return end
+
+    local racerName = racerData.racername
     local racerAuth = racerData.auth
     local racerCrew = racerData.crew
 
