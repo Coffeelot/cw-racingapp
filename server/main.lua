@@ -960,7 +960,6 @@ local function setupRace(RaceId, Laps, RacerName, MaxClass, GhostingEnabled, Gho
                     FirstPerson = FirstPerson,
                     ExpirationTime = os.time() + 60 * Config.TimeOutTimerInMinutes,
                 }
-                print('exipirationtime', allRaceData.ExpirationTime)
                 AvailableRaces[#AvailableRaces + 1] = allRaceData
                 if not Automated then
                     TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_created"), 'success')
