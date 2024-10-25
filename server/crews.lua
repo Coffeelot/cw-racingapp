@@ -35,9 +35,9 @@ local function getRacingCrewThatRacerNameIsIn(racername)
     return nil -- Player is not in any racing crew with the specified racer name
 end
 
-local function changeRacerCrew(src, selectedCrew)
+local function changeRacerCrew(src,racerName, selectedCrew)
     if useDebug then print('Changing racer crew for', src, selectedCrew) end
-    updateCrew(src, selectedCrew)
+    RADB.setActiveRacerCrew(racerName, selectedCrew)
 end
 
 -- SQL calling functions
@@ -255,8 +255,8 @@ local function canFounderDisbandCrew(founderCitizenId, crewName)
 end
 
 -- Events
-RegisterServerEvent('cw-racingapp:server:changeCrew', function(crewName)
-    changeRacerCrew(source, crewName)
+RegisterServerEvent('cw-racingapp:server:changeCrew', function(racerName, crewName)
+    changeRacerCrew(source,racerName, crewName)
 end)
 
 -- Callbacks
@@ -333,7 +333,7 @@ end)
 RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberName, citizenId, crewName)
     if not RacingCrews[crewName] then
         if useDebug then print('The racing crew did not exist') end
-        changeRacerCrew(source, nil)
+        changeRacerCrew(source,memberName, nil)
     end
     local canLeaveCrew = isMemberInCrew(citizenId, crewName)
     local isFounder = canFounderDisbandCrew(citizenId, crewName)
@@ -345,7 +345,7 @@ RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberN
         return leaveRacingCrew(citizenId, crewName)
     else
         if useDebug then print("Error: Member cannot leave the crew") end
-        changeRacerCrew(source, nil)
+        changeRacerCrew(source,memberName, nil)
         return true
     end
 end)

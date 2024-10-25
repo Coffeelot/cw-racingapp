@@ -62,18 +62,6 @@ local function getAllRacerNames()
     return MySQL.Sync.fetchAll(query)
 end
 
-local function getAllRacerNames()
-    local query = 'SELECT * FROM racer_names'
-    if Config.DontShowRankingsUnderZero then
-        query = query .. ' WHERE ranking > 0'
-    end
-    if Config.LimitTopListTo then
-        query = query .. ' ORDER BY ranking DESC LIMIT ?'
-        return MySQL.Sync.fetchAll(query, { Config.LimitTopListTo })
-    end
-    return MySQL.Sync.fetchAll(query)
-end
-
 local function setAccessForTrack(raceId, access)
     return MySQL.Sync.execute('UPDATE race_tracks SET access = ? WHERE raceid = ?', { json.encode(access), raceId })
 end
@@ -87,6 +75,14 @@ end
 
 local function getActiveRacerName(citizenId)
     return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { strictSanitize(citizenId) })[1]
+end
+
+local function getActiveRacerCrew(racerName)
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })[1].crew
+end
+
+local function setActiveRacerCrew(racerName, crewName)
+    return MySQL.Sync.execute('UPDATE racer_names SET crew = 1 WHERE racername = ?', { crewName, racerName })
 end
 
 local function getUserAuth(citizenId)
@@ -225,6 +221,8 @@ RADB = {
     getRaceUserByName = getRaceUserByName,
     getUserAuth = getUserAuth,
     getActiveRacerName = getActiveRacerName,
+    getActiveRacerCrew = getActiveRacerCrew,
+    setActiveRacerCrew = setActiveRacerCrew,
     getRaceUserRankingByName = getRaceUserRankingByName,
     getRaceUsersBelongingToCitizenId = getRaceUsersBelongingToCitizenId,
     getRaceUsersCreatedByCitizenId = getRaceUsersCreatedByCitizenId,

@@ -3263,7 +3263,7 @@ function initialSetup()
             CurrentCrew = myCrew
         else
             debugLog('Crew does not exist anymore', myCrew)
-            TriggerServerEvent('cw-racingapp:server:changeCrew', myCrew.crewName)
+            TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentName, nil)
             CurrentCrew = nil
         end
     else

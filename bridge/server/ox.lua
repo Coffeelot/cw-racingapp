@@ -49,9 +49,7 @@ end
 -- Updates Crew
 function updateCrew(src, crewName)
     local player = Ox.GetPlayer(tonumber(src))
-    if not player then return end
-    
-    player.setMetadata('selectedCrew', crewName)
+    if not player then return end    
 end
 
 -- Fetches the CitizenId by Source
