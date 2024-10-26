@@ -2,8 +2,9 @@
 
 📷 [Images & Video](#Preview) 📺
 
+## If you are updating make sure to check [Updating](#updating) for relevant SQL updates
 
-## NOW SUPPORTS QB AND ESX!
+## NOW SUPPORTS QB, QBOX, OX AND ESX!
 > Note: ESX requires ox_lib and ox_target
 
 > Note: For ESX make sure to change out moneyTypes to corresponding versions in the config (ESX uses "money" instead of "cash" for example)
@@ -320,7 +321,7 @@ ALTER TABLE `race_tracks`
 ADD COLUMN `metadata` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `checkpoints`;
 ```
 
-## Race User Update
+## Race User Update - 25th Oct 2024
 Two new columns were added to the race user table. You can run this to update an existing table
 ```sql
 ALTER TABLE `racer_names`
