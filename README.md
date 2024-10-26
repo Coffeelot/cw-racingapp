@@ -13,7 +13,7 @@
 - [Create tracks](#track-creation)
 - Host races
 - Buy-Ins
-- [Automated Races](#Automated-Races)
+- [Automated Races](#Automated-Races)pse
 - Phasing/Ghosting
 - Reversed tracks
 - Participation payouts
@@ -327,6 +327,15 @@ Two new columns were added to the race user table. You can run this to update an
 ALTER TABLE `racer_names`
 ADD COLUMN `crew` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
 ADD COLUMN `active` INT(11) NOT NULL DEFAULT '0';
+```
+
+This **WILL** break your crews, so to fix this, after you've run the above, you can run this:
+> note:  This is for QBOX/QB, not sure if the table names are the same for ESX so make sure to check that
+```sql
+UPDATE racer_names rn
+JOIN players p ON JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedRacerName')) = rn.racername
+SET rn.crew = JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew'))
+WHERE JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew')) IS NOT NULL;
 ```
 
 # Dependencies
