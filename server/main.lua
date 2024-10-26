@@ -215,7 +215,6 @@ local function updateRaces()
                 NumStarted = 0,
                 Metadata = metadata
             }
-            print('metadata', json.encode(metadata, {indent=true}))
         end
     end
     IsFirstUser = RADB.getSizeOfRacerNameTable() == 0
@@ -603,15 +602,16 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
 RegisterNetEvent('cw-racingapp:server:createLapRace', function(RaceName, RacerName, Checkpoints)
     local src = source
+    if UseDebug then print(src, RacerName, 'is creating a track named', RaceName) end
 
     if IsPermissioned(src, 'create') then
         if IsNameAvailable(RaceName) then
-            TriggerClientEvent('cw-racingapp:client:startRaceEditor', source, RaceName, RacerName, nil, Checkpoints)
+            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, RaceName, RacerName, nil, Checkpoints)
         else
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("race_name_exists"), 'error')
+            TriggerClientEvent('cw-racingapp:client:notify', src, Lang("race_name_exists"), 'error')
         end
     else
-        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("no_permission"), 'error')
+        TriggerClientEvent('cw-racingapp:client:notify', src, Lang("no_permission"), 'error')
     end
 end)
 
@@ -1270,6 +1270,7 @@ end
 function IsPermissioned(src, type)
     local citizenId = getCitizenId(src)
     local auth = RADB.getUserAuth(citizenId)
+    if UseDebug then print(src, 'has auth', auth) end
     return Config.Permissions[auth][type]
 end
 

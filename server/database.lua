@@ -86,7 +86,7 @@ local function setActiveRacerCrew(racerName, crewName)
 end
 
 local function getUserAuth(citizenId)
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ? AND active = 1', { strictSanitize(citizenId) })[1]
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ? AND active = 1', { strictSanitize(citizenId) })[1].auth
 end
 
 local function getRaceUserByName(racerName)
