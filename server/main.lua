@@ -1415,7 +1415,7 @@ end)
 
 local function getActiveRacerName(raceUsers)
     if raceUsers then
-        for index, user in pairs(raceUsers) do
+        for _, user in pairs(raceUsers) do
             if user.active then return user end
         end
     end
@@ -1429,7 +1429,7 @@ RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(sou
     local citizenId = getCitizenId(playerSource)
     if UseDebug then print('Racer citizenid', citizenId) end
 
-    local result = RADB.getRaceUsersCreatedByCitizenId(citizenId)
+    local result = RADB.getRaceUsersBelongingToCitizenId(citizenId)
     if UseDebug then print('Racer Names found:', json.encode(result)) end
 
     if not getActiveRacerName(result) then
