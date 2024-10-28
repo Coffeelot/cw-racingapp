@@ -1296,9 +1296,9 @@ local function checkCheckPointTime()
     end
 end
 
-local function getMaxDistance(OffsetCoords)
-    local Distance = #(vector3(OffsetCoords.left.x, OffsetCoords.left.y, OffsetCoords.left.z) -
-        vector3(OffsetCoords.right.x, OffsetCoords.right.y, OffsetCoords.right.z))
+local function getMaxDistance(center, offsetCoords)
+    local Distance = #(vector3(center.x, center.y, center.z) -
+        vector3(offsetCoords.left.x, offsetCoords.left.y, offsetCoords.left.z))
 
     return Distance + (Config.CheckpointBuffer or 0)
 end
@@ -1316,8 +1316,9 @@ CreateThread(function()
                     cp = CurrentRaceData.CurrentCheckpoint + 1
                 end
                 local data = CurrentRaceData.Checkpoints[cp]
-                local CheckpointDistance = #(pos - vector3(data.coords.x, data.coords.y, data.coords.z))
-                local MaxDistance = getMaxDistance(CurrentRaceData.Checkpoints[cp].offset)
+                local currentCheckpointCenterCoords =vector3(data.coords.x, data.coords.y, data.coords.z)
+                local CheckpointDistance = #(pos - currentCheckpointCenterCoords)
+                local MaxDistance = getMaxDistance(currentCheckpointCenterCoords, CurrentRaceData.Checkpoints[cp].offset)
                 if CheckpointDistance < MaxDistance then
                     if CurrentRaceData.TotalLaps == 0 then -- Sprint
                         if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then
