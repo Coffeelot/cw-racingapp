@@ -2918,7 +2918,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             return
         end
 
-        local result = cwCallback.await('cw-racingapp:server:isAuthorizedToCreateRaces', createData.name)
+        local result = cwCallback.await('cw-racingapp:server:isAuthorizedToCreateRaces', createData.name, CurrentName)
 
         if not result.permissioned then
             notify(Lang("not_auth"), 'error')

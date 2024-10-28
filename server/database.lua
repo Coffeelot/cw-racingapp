@@ -85,8 +85,11 @@ local function setActiveRacerCrew(racerName, crewName)
     return MySQL.Sync.execute('UPDATE racer_names SET crew = 1 WHERE racername = ?', { crewName, racerName })
 end
 
-local function getUserAuth(citizenId)
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ? AND active = 1', { strictSanitize(citizenId) })[1].auth
+local function getUserAuth(racerName)
+    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })[1]
+    if result then
+        return result.auth
+    end
 end
 
 local function getRaceUserByName(racerName)

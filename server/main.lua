@@ -604,7 +604,7 @@ RegisterNetEvent('cw-racingapp:server:createLapRace', function(RaceName, RacerNa
     local src = source
     if UseDebug then print(src, RacerName, 'is creating a track named', RaceName) end
 
-    if IsPermissioned(src, 'create') then
+    if IsPermissioned(RacerName, 'create') then
         if IsNameAvailable(RaceName) then
             TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, RaceName, RacerName, nil, Checkpoints)
         else
@@ -1267,10 +1267,13 @@ function MilliToTime(milli)
     return minutes .. ":" .. seconds .. "." .. milliseconds;
 end
 
-function IsPermissioned(src, type)
-    local citizenId = getCitizenId(src)
-    local auth = RADB.getUserAuth(citizenId)
-    if UseDebug then print(src, 'has auth', auth) end
+function IsPermissioned(racerName, type)
+    local auth = RADB.getUserAuth(racerName)
+    if not auth then 
+        if UseDebug then print('Could not find user with this racer Name', racerName) end
+        return false 
+    end
+    if UseDebug then print(racerName, 'has auth', auth) end
     return Config.Permissions[auth][type]
 end
 
@@ -1366,8 +1369,8 @@ RegisterNetEvent('cw-racingapp:server:setAccess', function(raceId, access)
     end
 end)
 
-RegisterServerCallback('cw-racingapp:server:isAuthorizedToCreateRaces', function(source, TrackName)
-    return { permissioned = IsPermissioned(source, 'create'), nameAvailable = IsNameAvailable(TrackName) }
+RegisterServerCallback('cw-racingapp:server:isAuthorizedToCreateRaces', function(source, trackName, racerName)
+    return { permissioned = IsPermissioned(racerName, 'create'), nameAvailable = IsNameAvailable(trackName) }
 end)
 
 
