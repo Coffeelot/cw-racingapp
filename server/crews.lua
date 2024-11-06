@@ -20,21 +20,6 @@ local function getRacingCrewThatCitizenIDIsIn(citizenId)
     return nil -- Player is not in any racing crew
 end
 
-local function getRacingCrewThatRacerNameIsIn(racername)
-    for _, crew in pairs(RacingCrews) do
-        if crew.founderName == racername then
-            return crew
-        end
-        for _, member in ipairs(crew.members) do
-            if member.racername == racername then
-                return crew
-            end
-        end
-    end
-
-    return nil -- Player is not in any racing crew with the specified racer name
-end
-
 local function changeRacerCrew(src,racerName, selectedCrew)
     if useDebug then print('Changing racer crew for', src, selectedCrew) end
     RADB.setActiveRacerCrew(racerName, selectedCrew)
