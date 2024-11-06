@@ -593,7 +593,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
         if playersFinished == amountOfRacers then
             if amountOfRacers == 1 then
                 if UseDebug then print('^3Only one racer. No ELO change') end
-            else
+            elseif amountOfRacers > 0 then
                 if AvailableRaces[availableKey].Ranked then
                     if UseDebug then print('Is ranked. Doing Elo check') end
                     if UseDebug then print('^2 Pre elo', json.encode(RaceResults[raceData.RaceId].Result)) end

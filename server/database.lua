@@ -121,19 +121,31 @@ local function updateRacerElo(racerName, eloChange)
     MySQL.Async.execute('UPDATE racer_names SET ranking = ranking + ? WHERE racername = ?', { eloChange, strictSanitize(racerName) })
 end
 
+local function mapTable(tbl, func)
+    local t = {}
+    for i, v in ipairs(tbl) do
+        t[i] = func(v, i)
+    end
+    return t
+end
+
 local function updateEloForRaceResult(results)
-    local placeholders = {}
     local params = {}
+    local sql = "UPDATE racer_names SET Ranking = Ranking + (CASE RacerName "
     for _, racer in ipairs(results) do
-        table.insert(placeholders, "(?, ?)")
-        table.insert(params, strictSanitize(racer.RacerName))
+        sql = sql .. "WHEN ? THEN ? "
+        table.insert(params, racer.RacerName)
         table.insert(params, racer.TotalChange)
     end
-    local sql = "UPDATE racer_names SET Ranking = Ranking + (CASE RacerName " ..
-                table.concat(placeholders, " ") ..
-                " END) WHERE RacerName IN (" ..
-                table.concat(table.map(results, function(_, i) return "?" end), ", ") .. ")"
+    sql = sql .. "END) WHERE RacerName IN (" .. 
+          table.concat(mapTable(results, function() return "?" end), ", ") .. ")"
+    
+    -- Add all RacerName values to the params again for the WHERE clause
+    for _, racer in ipairs(results) do
+        table.insert(params, racer.RacerName)
+    end
     MySQL.Async.execute(sql, params)
+    
 end
 
 local function getTracksByCitizenId(citizenId)
