@@ -136,6 +136,15 @@ if Config.Debug then
             },
             ["Result"] = {
                 {
+                    ["VehicleModel"] = "A cool car",
+                    ["RacerName"] = "YOMOM",
+                    ["TotalTime"] = 134128,
+                    ["CarClass"] = "A",
+                    ["BestLap"] = 1231,
+                    ["Ranking"] = 15,
+                    ["TotalChange"] = -11
+                },
+                {
                     ["VehicleModel"] = "Euros ZR300",
                     ["RacerName"] = "PAODPOAS2",
                     ["RacingCrew"] = "Cool Peoples Crew",
@@ -144,15 +153,6 @@ if Config.Debug then
                     ["BestLap"] = 12353,
                     ["Ranking"] = 10,
                     ["TotalChange"] = 1
-                },
-                {
-                    ["VehicleModel"] = "A cool car",
-                    ["RacerName"] = "YOMOM",
-                    ["TotalTime"] = 134128,
-                    ["CarClass"] = "A",
-                    ["BestLap"] = 1231,
-                    ["Ranking"] = 15,
-                    ["TotalChange"] = -11
                 },
             }
         }
@@ -244,12 +244,14 @@ end
 local function racerHasPreviousRecordInClassAndDirection(Records, RacerName, CarClass, Reversed)
     if Records then
         for i, Record in pairs(Records) do
+            local isReversed = Record.Reversed
             if UseDebug then
                 print('Checking previous records:', Record.Holder, Record.Class)
                 print('check', Record.Holder == RacerName, Record.Class == CarClass)
+                print('Race was reversed', Reversed, 'previous record was reversed', isReversed)
             end
-            local isReversed = Record.Reversed
             if isReversed == nil then isReversed = false end
+            if Reversed == nil then Reversed = false end
             if Record.Holder == RacerName and Record.Class == CarClass and (isReversed == Reversed) then
                 return Record, i
             end
@@ -298,7 +300,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         TriggerClientEvent('cw-racingapp:client:notify', src,
             string.format(Lang("time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         if UseDebug then
-            print('had no pb')
+            print('no pb')
         end
         if UseDebug then
             print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
