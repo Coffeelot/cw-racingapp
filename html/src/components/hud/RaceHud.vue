@@ -31,19 +31,19 @@
           </div>
           <div class="row">
             <span id="race-time">{{
-              secondsToHMS(globalStore.activeRace.time)
+              msToHMS(globalStore.activeRace.time)
             }}</span>
             <v-icon icon="mdi-timer-sync-outline"></v-icon>
           </div>
           <div class="row">
             <span id="race-time">{{
-              secondsToHMS(globalStore.activeRace.totalTime)
+              msToHMS(globalStore.activeRace.totalTime)
             }}</span>
             <v-icon icon="mdi-timer-outline"></v-icon>
           </div>
           <div class="row">
             <span id="race-time">{{
-              secondsToHMS(globalStore.activeRace.bestLap)
+              msToHMS(globalStore.activeRace.bestLap)
             }}</span>
             <v-icon icon="mdi-timer-star-outline"></v-icon>
           </div>
@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import RacerList from "./RacerList.vue";
 import { useGlobalStore } from "@/store/global";
-import { secondsToHMS } from "@/helpers/secondsToHMS";
+import { msToHMS } from "@/helpers/msToHMS";
 import { computed } from "vue";
 const globalStore = useGlobalStore();
 import { translate } from "@/helpers/translate";

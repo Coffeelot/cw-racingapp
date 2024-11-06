@@ -53,7 +53,7 @@
             :key="`${item.Holder}-${item.Class}`"
           >
             <td>{{ index +1 }}. {{ item.Holder }}</td>
-            <td>{{ secondsToHMS(item.Time) }}</td>
+            <td>{{ msToHMS(item.Time) }}</td>
             <td>{{ item.Vehicle }}</td>
             <td>{{ item.Class }}</td>
             <td>{{ item.RaceType }}</td>
@@ -71,7 +71,7 @@
 import { Ref, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import { Track } from "@/store/types";
-import { secondsToHMS } from "@/helpers/secondsToHMS";
+import { msToHMS } from "@/helpers/msToHMS";
 import { computed } from "vue";
 import { translate } from "@/helpers/translate";
 

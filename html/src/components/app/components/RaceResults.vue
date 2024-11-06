@@ -49,8 +49,8 @@
           >
             <td> {{ index +1 }}. {{ item.RacerName }} {{ item.RacingCrew ? '[' + item.RacingCrew + ']' : '' }}</td>
             <td>{{ item.Ranking }}</td>
-            <td>{{ secondsToHMS(item.TotalTime) }}</td>
-            <td>{{ secondsToHMS(item.BestLap) }}</td>
+            <td>{{ msToHMS(item.TotalTime) }}</td>
+            <td>{{ msToHMS(item.BestLap) }}</td>
             <td>{{ item.VehicleModel }}</td>
             <td>{{ item.CarClass }}</td>
             <td  v-if="selectedRace.Data.RaceData.Ranked">{{ item.TotalChange}}</td>
@@ -68,7 +68,7 @@
 import { ResultData } from "@/store/types";
 import { computed, Ref, ref } from "vue";
 import InfoText from "./InfoText.vue";
-import { secondsToHMS } from "@/helpers/secondsToHMS";
+import { msToHMS } from "@/helpers/msToHMS";
 import { translate } from "@/helpers/translate";
 
 const props = defineProps<{
