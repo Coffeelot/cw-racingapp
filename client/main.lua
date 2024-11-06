@@ -2493,6 +2493,7 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
         CurrentName = currentRacer.racername
         CurrentAuth = currentRacer.auth
         CurrentRanking = currentRacer.ranking
+        CurrentCrew = currentRacer.crew
     end
 
     notify(Lang("user_list_updated"))
@@ -2513,7 +2514,6 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
             closeUi()
         end
     else
-
         SendNUIMessage({ type = 'updateBaseData' })
     end
 end)
