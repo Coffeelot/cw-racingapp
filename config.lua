@@ -11,7 +11,7 @@ Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.DoOffsetGps = true               -- Set to true if you want the gps to slighlty offset the point (helps with route)
 
-Config.Inventory = 'qb'                 -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
+Config.Inventory = 'ox'                 -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
 Config.UseRenewedCrypto = false         -- set to true if you use Renewed crypto
 Config.UseRenewedBanking = false        -- set this to true if you use Renewed Banking
 Config.UseNameValidation = true         -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
@@ -22,10 +22,10 @@ Config.CheckDistance = true             -- If enabled, distances to checkpoints 
 Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
-Config.UseOxLibForKeybind = false       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
-Config.UseOxTarget = false              -- Require ox target. Obviously
+Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
+Config.UseOxTarget = true              -- Require ox target. Obviously
 Config.OxInput = false                  -- If you want Oxlib input menus Same as above with fxmanifest ^
-Config.OxLibNotify = false              -- If you want Oxlib notify Same as above with fxmanifest ^
+Config.OxLibNotify = true              -- If you want Oxlib notify Same as above with fxmanifest ^
 
 Config.LimitTopListTo = 10              -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
@@ -154,6 +154,7 @@ Config.Permissions = {
     }
 }
 
+Config.MarkAmountOfCheckpointsAhead = 3
 Config.FlareTime = 10000                                 -- How long the flares are lit
 Config.KickTime = 10 * 60 * 1000                         -- How long (in ms) until you get kicked if not being at race
 Config.StartAndFinishModel = 'prop_beachflag_le'         -- comment this line out if you dont want props for start/finish line
@@ -182,6 +183,9 @@ Config.MaxTrackNameLength = 24 -- Max track name length to submit
 
 Config.JoinDistance = 200 -- Distance (in meters) of how close you need to be to join a race
 
+Config.Gps = {
+    color = 12,
+}
 Config.Blips = {
     Generic = { Size = 1.0, Color = 55 },
     Next = { Size = 1.3, Color = 47 },
@@ -262,8 +266,8 @@ Config.Laptop = {
 
 Config.Ghosting = {
     Enabled = true,          --adding ability to toggle per started race soon
-    Timer = 0,               -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
-    DistanceLoopTime = 1000, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly.
+    Timer = 60000,               -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
+    DistanceLoopTime = 500, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly.
     Options = {
         { value = -1,       text = 'Off' },
         { value = 0,        text = 'Always' },
