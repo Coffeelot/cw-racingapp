@@ -241,19 +241,47 @@ local function getAmountOfRacers(RaceId)
     return AmountOfRacers, PlayersFinished
 end
 
-local function racerHasPreviousRecordInClassAndDirection(Records, RacerName, CarClass, Reversed)
-    if Records then
-        for i, Record in pairs(Records) do
-            local isReversed = Record.Reversed
+local function racerHasPreviousRecordInClassAndDirection(records, racerName, carClass, vehicleModel, reversed )
+    if UseDebug then
+        print('Checking previous records for', racerName)
+        print('class', carClass)
+        print('model', vehicleModel)
+        print('reversed', reversed)
+    end
+    if records then
+        for i, record in pairs(records) do
+            local isReversed = record.Reversed
             if UseDebug then
-                print('Checking previous records:', Record.Holder, Record.Class)
-                print('check', Record.Holder == RacerName, Record.Class == CarClass)
-                print('Race was reversed', Reversed, 'previous record was reversed', isReversed)
+                print('Checking previous records:', record.Holder, record.Class)
+                print('Matches name', record.Holder == racerName)
+                print('Matches class', record.Class == carClass)
+                print('Race was reversed', reversed, 'previous record was reversed', isReversed)
+                print('Used model', vehicleModel, 'record has model', record.Vehicle)
             end
+
+            local typeOrModelIsSame = false
+            if Config.UseVehicleModelInsteadOfClassForRecords then
+                if vehicleModel == record.Vehicle then
+                    if UseDebug then print('Player has record with same vehicle model') end
+                    typeOrModelIsSame = true
+                end
+            else
+                if record.Class == carClass then
+                    if UseDebug then print('Player has record in same class') end
+                    typeOrModelIsSame = true
+                end
+            end
+
+            local directionIsSame = false
+            
             if isReversed == nil then isReversed = false end
-            if Reversed == nil then Reversed = false end
-            if Record.Holder == RacerName and Record.Class == CarClass and (isReversed == Reversed) then
-                return Record, i
+            if reversed == nil then reversed = false end
+            if isReversed == reversed then
+                if UseDebug then print('Player direction was same') end
+                directionIsSame = true
+            end
+            if record.Holder == racerName and directionIsSame and typeOrModelIsSame then
+                return record, i
             end
         end
     else
@@ -274,7 +302,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             print('no records have been set yet')
         end
     else
-        PersonalBest, index = racerHasPreviousRecordInClassAndDirection(records, RacerName, CarClass)
+        PersonalBest, index = racerHasPreviousRecordInClassAndDirection(records, RacerName, CarClass, VehicleModel, Reversed)
     end
 
     if PersonalBest and PersonalBest.Time > PlayerTime and index then -- if player had a record already

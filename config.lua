@@ -21,6 +21,7 @@ Config.AllowCreateFromShare = true      -- toggle this to allow using the share 
 Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
 Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
+Config.UseVehicleModelInsteadOfClassForRecords = false -- if this is true then players can have multiple records per class, but only once per vehicle model
 
 Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
 Config.UseOxTarget = true              -- Require ox target. Obviously
@@ -29,6 +30,7 @@ Config.OxLibNotify = true              -- If you want Oxlib notify Same as above
 
 Config.LimitTopListTo = 10              -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
+Config.UseVehicleModelInsteadOfClassForRecords = false -- if this is true then players can have multiple records per class, but only once per vehicle model
 
 Config.AllowAnyoneToCreateUserInApp = true -- If True then anyone can create their own user in the app. If there are no users in the DB the user will automatically be a GOD type
 Config.BasePermission = 'racer' -- this is the base user type your racingapp users can create if you allow creation in app. Should match the user you want from Config.Permissions
