@@ -18,7 +18,7 @@ function addMoney(src, moneyType, amount)
     else
         local account = player.getAccount()
         return account.addBalance({ amount, 'Racing' })
-    end    
+    end
 end
 
 -- Removes money from user
@@ -30,7 +30,7 @@ function removeMoney(src, moneyType, amount, reason)
     else
         local account = player.getAccount()
         return account.removeBalance({ amount, reason or 'Racing', true })
-    end   
+    end
 end
 
 -- Checks that user can pay
@@ -38,19 +38,19 @@ function canPay(src, moneyType, cost)
     local player = Ox.GetPlayer(tonumber(src))
     if not player then return false end
     if moneyType == 'cash' or moneyType == 'money' then
-        print(src,moneyType,cost)
+        print(src, moneyType, cost)
         return exports.ox_inventory:Search(src, 'count', 'money') >= cost
     else
         local account = player.getAccount()
         return account.balance >= tonumber(cost)
-    end  
+    end
 end
 
 -- Updates Crew
 function updateCrew(src, crewName)
     local player = Ox.GetPlayer(tonumber(src))
     if not player then return end
-    
+
     player.setMetadata('selectedCrew', crewName)
 end
 
@@ -58,14 +58,14 @@ end
 function getCitizenId(src)
     local player = Ox.GetPlayer(tonumber(src))
     if not player then return nil end
-    
+
     return player.stateId
 end
 
 -- Fetches the Source of an online player by citizenid
 function getSrcOfPlayerByCitizenId(citizenId)
-    local player = Ox.GetPlayerFromFilter({stateId = tonumber(citizenId)})
+    local player = Ox.GetPlayerFromFilter({ stateId = tonumber(citizenId) })
     if not player then return nil end
-    
+
     return player.source
 end
