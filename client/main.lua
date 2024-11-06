@@ -1719,7 +1719,7 @@ local function isPositionCheating()
 
     local distanceBetween = #(vector3(next.coords.x, next.coords.y, next.coords.z) - vector3(current.coords.x, current.coords.y, current.coords.z))
 
-    return distanceBetween > distanceToNext
+    return distanceBetween > distanceToNext + (Config.PositionCheatBuffer or 0)
 end
 
 local function forceFirstPerson()
