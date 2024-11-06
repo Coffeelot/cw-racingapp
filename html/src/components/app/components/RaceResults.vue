@@ -44,7 +44,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="(item, index) in selectedRace.Result"
+            v-for="(item, index) in sortedResults"
             :key="item.RacerName"
           >
             <td> {{ index +1 }}. {{ item.RacerName }} {{ item.RacingCrew ? '[' + item.RacingCrew + ']' : '' }}</td>
@@ -65,9 +65,8 @@
 </template>
 
 <script setup lang="ts">
-import { useGlobalStore } from "@/store/global";
 import { ResultData } from "@/store/types";
-import { Ref, ref } from "vue";
+import { computed, Ref, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import { secondsToHMS } from "@/helpers/secondsToHMS";
 import { translate } from "@/helpers/translate";
@@ -76,8 +75,13 @@ const props = defineProps<{
   allResults: ResultData[];
 }>();
 
-const globalStore = useGlobalStore();
+
 const selectedRace: Ref<ResultData | undefined> = ref(undefined)
+const sortedResults = computed(() => {
+  if (!selectedRace.value) return undefined
+  const result = selectedRace.value.Result
+  return result.sort((res1, res2) => res1.TotalTime > res2.TotalChange ? -1 : 1 )
+})
 </script>
 
 <style scoped lang="scss">
