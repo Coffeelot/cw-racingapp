@@ -37,12 +37,6 @@ function canPay(src, moneyType, cost)
     end
 end
 
--- Updates Crew
-function updateCrew(src, crewName)
-    local xPlayer = ESX.GetPlayerFromId(src)
-    xPlayer.set("selectedCrew", crewName)
-end
-
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local xPlayer = ESX.GetPlayerFromId(src)

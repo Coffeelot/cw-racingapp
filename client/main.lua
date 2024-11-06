@@ -154,7 +154,7 @@ local ghostLoopStart = 0
 
 local function actuallyValidateTime(timer)
     local time = timer or CurrentRaceData.GhostingTime
-    
+
     if time == 0 then
         debugLog('Timer is off')
         return true
@@ -356,7 +356,7 @@ local function updateGpsForRace(started)
 
     for i = currentCheckpoint, lastCheckpoint do
         local checkpointIndex = isCircuit and ((i - 1) % totalCheckpoints) + 1 or i
-        if checkpointIndex > totalCheckpoints then break end  -- Stop if beyond the last checkpoint in a sprint
+        if checkpointIndex > totalCheckpoints then break end -- Stop if beyond the last checkpoint in a sprint
 
         print('current checkpoint', currentCheckpoint)
         print('checkpoint index', checkpointIndex)
@@ -365,7 +365,7 @@ local function updateGpsForRace(started)
             local checkpointData = CurrentRaceData.Checkpoints[checkpointIndex]
 
             addPointToGpsRoute(checkpointData.coords.x, checkpointData.coords.y, checkpointData.offset)
-    
+
             if isFinishOrStart(checkpointIndex) then
                 checkpointData.pileleft = createPile(checkpointData.offset.left, StartAndFinishModel)
                 checkpointData.pileright = createPile(checkpointData.offset.right, StartAndFinishModel)
@@ -385,7 +385,6 @@ end
 
 
 local function setupBlipsForRace(started)
-
     clearBlips()
     if started and CurrentRaceData.TotalLaps > 0 then
         for k = 1, #CurrentRaceData.Checkpoints, 1 do
@@ -865,7 +864,7 @@ local function placements()
                 elseif a.Checkpoint == b.Checkpoint then
                     if CheckDistance and bothOpponentsHaveDefinedPositions(a.RacerSource, b.RacerSource) then
                         return distanceToCheckpoint(a.RacerSource, a.Checkpoint) <
-                        distanceToCheckpoint(b.RacerSource, b.Checkpoint)
+                            distanceToCheckpoint(b.RacerSource, b.Checkpoint)
                     else
                         if a.RaceTime ~= nil and b.RaceTime ~= nil and a.RaceTime < b.RaceTime then
                             return true
@@ -899,7 +898,7 @@ end
 local MarkerType = Config.DrawTextSetup.markerType or 1 -- Vertical cylinder
 local MinHeight = Config.DrawTextSetup.minHeight or 1.0
 local MaxHeight = Config.DrawTextSetup.maxHeight or 100.0
-local BaseSize = Config.DrawTextSetup.baseSize or 0.1                                        -- Thin pillar
+local BaseSize = Config.DrawTextSetup.baseSize or 0.1                                          -- Thin pillar
 local MarkerColor = Config.DrawTextSetup.markerColor or { r = 255, g = 255, b = 255, a = 200 } -- White, semi-transparent
 local DistanceColor = Config.DrawTextSetup.distanceColor or { r = 0, g = 255, b = 0, a = 255 } -- Cyan
 local PrimaryColor = Config.DrawTextSetup.primaryColor or { r = 255, g = 0, b = 250, a = 255 } -- White
@@ -1359,11 +1358,11 @@ CreateThread(function()
                     cp = CurrentRaceData.CurrentCheckpoint + 1
                 end
                 local data = CurrentRaceData.Checkpoints[cp]
-                local currentCheckpointCenterCoords =vector3(data.coords.x, data.coords.y, data.coords.z)
+                local currentCheckpointCenterCoords = vector3(data.coords.x, data.coords.y, data.coords.z)
                 local CheckpointDistance = #(pos - currentCheckpointCenterCoords)
                 local MaxDistance = getMaxDistance(currentCheckpointCenterCoords, CurrentRaceData.Checkpoints[cp].offset)
                 if CheckpointDistance < MaxDistance then
-                    if CurrentRaceData.TotalLaps == 0 then -- Sprint
+                    if CurrentRaceData.TotalLaps == 0 then                                           -- Sprint
                         if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then -- passed checkpoint
                             CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
                             TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
@@ -1422,7 +1421,7 @@ CreateThread(function()
                                 TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
                                     CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
                                     CurrentRaceData.TotalTime)
-                                
+
                                 passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
                                 nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
                                 markWithUglyWaypoint()
@@ -1844,9 +1843,9 @@ local function verifyTrackAccess(track, type)
         if track.Access[type][1] == nil then
             print('no values', track.RaceName)
             return true
-        end                                                                                     -- if list is added but emptied
+        end                                                -- if list is added but emptied
         local playerCid = getCitizenId()
-        if track.Creator == playerCid then return true end                                      -- if creator default to true
+        if track.Creator == playerCid then return true end -- if creator default to true
         if UseDebug then
             print('track', track.RaceName, 'has access limitations for', type)
             print('player cid', playerCid)
@@ -1936,7 +1935,7 @@ end
 local function createOxInput(fobType, purchaseType)
     if not lib then
         print(
-        '^1OxInput is enabled but no lib was found. Might be missing from fxmanifest or the dev is not able to read the config')
+            '^1OxInput is enabled but no lib was found. Might be missing from fxmanifest or the dev is not able to read the config')
     else
         local options = { { type = 'input', label = 'Racer Name', required = true, min = 1, max = 100 } }
 
@@ -1976,8 +1975,8 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
     if UseDebug then
         print('Racername', racerName)
         print('RacerId', racerId)
-        print('fobType', json.encode(fobType, {indent=true}))
-        print('purchaseType', json.encode(purchaseType, {indent=true}))
+        print('fobType', json.encode(fobType, { indent = true }))
+        print('purchaseType', json.encode(purchaseType, { indent = true }))
     end
     if racerId == nil or racerId == '' then
         racerId = GetPlayerServerId(PlayerId())
@@ -1991,7 +1990,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
             maxRacerNames = Config.CustomAmounts[playerNames[1].citizenid]
         end
 
-        debugLog('Racer names allowed for id '..racerId, maxRacerNames)
+        debugLog('Racer names allowed for id ' .. racerId, maxRacerNames)
         if playerNames == nil or racerNameExists(playerNames, strictSanitize(racerName)) or #playerNames < maxRacerNames then
             local nameIsNotTaken = cwCallback.await('cw-racingapp:server:nameIsAvailable', racerName, racerId)
 
@@ -2476,7 +2475,7 @@ RegisterNUICallback('UiCloseUi', function(_, cb)
 end)
 
 local function getActiveRacerName()
-    for index, user in pairs(MyRacerNames) do
+    for _, user in pairs(MyRacerNames) do
         if user.active == 1 then return user end
     end
 end
@@ -2487,7 +2486,7 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
     local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
     MyRacerNames = playerNames
     local currentRacer = getActiveRacerName()
-    debugLog('Current racer after change', json.encode(currentRacer, {indent=true}))
+    debugLog('Current racer after change', json.encode(currentRacer, { indent = true }))
 
     if currentRacer then
         CurrentName = currentRacer.racername
@@ -2755,8 +2754,14 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
 end)
 
 RegisterNUICallback('UiGetSettings', function(_, cb)
-    cb({ IgnoreRoadsForGps = IgnoreRoadsForGps, ShowGpsRoute = ShowGpsRoute, UseUglyWaypoint = UseUglyWaypoint, CheckDistance =
-    CheckDistance, UseDrawTextWaypoint = UseDrawTextWaypoint })
+    cb({
+        IgnoreRoadsForGps = IgnoreRoadsForGps,
+        ShowGpsRoute = ShowGpsRoute,
+        UseUglyWaypoint = UseUglyWaypoint,
+        CheckDistance =
+            CheckDistance,
+        UseDrawTextWaypoint = UseDrawTextWaypoint
+    })
 end)
 
 local function getAvailableTracks()
@@ -2874,7 +2879,7 @@ local function verifyCheckpoints(checkpoints)
     for _, data in pairs(checkpoints) do
         local coordsExist = data.coords.x and data.coords.y and data.coords.z
         local offsetExists = data.offset.left.x and data.offset.left.y and data.offset.left.z and data.offset.right.x and
-        data.offset.right.y and data.offset.right.z
+            data.offset.right.y and data.offset.right.z
         if coordsExist and offsetExists then return true end
     end
     return false
@@ -3083,7 +3088,7 @@ RegisterNUICallback('UiGetAllRacers', function(data, cb)
 end)
 
 RegisterNUICallback('UiConfirmSettings', function(data, cb)
-    debugLog('Settings data for track '.. data.RaceId, json.encode(data.Metadata, {indent=true}))
+    debugLog('Settings data for track ' .. data.RaceId, json.encode(data.Metadata, { indent = true }))
     local result = cwCallback.await('cw-racingapp:server:updateTrackMetadata', data.RaceId, data.Metadata)
     cb(result)
 end)
@@ -3249,7 +3254,6 @@ function initialSetup()
             CurrentCrew = nil
         end
     end
-
 end
 
 AddEventHandler('onResourceStart', function(resource)

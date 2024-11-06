@@ -22,12 +22,6 @@ function canPay(src, moneyType, cost)
     return player.PlayerData.money[moneyType] >= cost
 end
 
--- Updates Crew
-function updateCrew(src, crewName)
-    local player = exports.qbx_core:GetPlayer(tonumber(src))
-    player.Functions.SetMetaData("selectedCrew", crewName)
-end
-
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local player = exports.qbx_core:GetPlayer(tonumber(src))

@@ -46,14 +46,6 @@ function canPay(src, moneyType, cost)
     end
 end
 
--- Updates Crew
-function updateCrew(src, crewName)
-    local player = Ox.GetPlayer(tonumber(src))
-    if not player then return end
-
-    player.setMetadata('selectedCrew', crewName)
-end
-
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local player = Ox.GetPlayer(tonumber(src))
