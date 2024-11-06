@@ -28,7 +28,8 @@
       <InfoText :title="translate('select_track_to_view')"></InfoText>
     </div>
     <div v-else class="scrollable">
-      <v-table v-if="filteredRecords && filteredRecords.length>0" >
+      {{ sortedResults }}
+      <v-table v-if="sortedResults && sortedResults.length>0" >
         <thead>
           <tr>
             <th class="text-left">
@@ -49,7 +50,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="(item, index) in filteredRecords"
+            v-for="(item, index) in sortedResults"
             :key="`${item.Holder}-${item.Class}`"
           >
             <td>{{ index +1 }}. {{ item.Holder }}</td>
@@ -85,6 +86,12 @@ const filteredRecords = computed(() => selectedRace.value?.Records.filter((recor
 
   return record.Reversed === reversed.value
 }))
+
+const sortedResults = computed(() => {
+  if (!filteredRecords.value) return undefined
+  const result = filteredRecords.value
+  return result.sort((res1, res2) => res1.Time < res2.Time ? -1 : 1 )
+})
 
 </script>
 

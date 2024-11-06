@@ -80,7 +80,7 @@ const selectedRace: Ref<ResultData | undefined> = ref(undefined)
 const sortedResults = computed(() => {
   if (!selectedRace.value) return undefined
   const result = selectedRace.value.Result
-  return result.sort((res1, res2) => res1.TotalTime > res2.TotalChange ? -1 : 1 )
+  return result.sort((res1, res2) => res1.TotalTime < res2.TotalTime ? -1 : 1 )
 })
 </script>
 
