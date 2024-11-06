@@ -34,7 +34,7 @@ end
 
 function getCitizenId()
     local player = Ox.GetPlayer()
-    return player.charId
+    return player.stateId
 end
 
 function getVehicleModel(vehicle)

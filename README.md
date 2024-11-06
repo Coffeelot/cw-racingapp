@@ -338,6 +338,17 @@ SET rn.crew = JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew'))
 WHERE JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew')) IS NOT NULL;
 ```
 
+## Ox changes 6th Nov, 2024
+I messed some stuff up initial and used charId instead of stateId cause I'm 🥔 fix by running this:
+```sql
+UPDATE racer_names
+SET citizenid = (
+    SELECT stateId 
+    FROM characters 
+    WHERE characters.charId = racer_names.citizenid
+);
+```
+
 # Dependencies
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
 
@@ -346,10 +357,15 @@ WHERE JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew')) IS NOT NULL;
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
 
 # Sponsored Features
+
 ## Real Time Racing Positions
 @JELLYHITAM | [Quantum Roleplay Indonesia](https://discord.gg/XyP9tPDHX4)
+
 ## Participation Rewards in UI | Extended auth types | Reverse Tracks | Elimination Races
 @Rithvikk05 | [HTRP](discord.gg/htrp)
+
+## Option to use model instead of class for unique record match
+@MisterCookie1234 | 
 
 # Credits 
 - ItsANoBrainer for [QB-Racing](https://github.com/ItsANoBrainer/qb-racing), which this is was once upton a time based on

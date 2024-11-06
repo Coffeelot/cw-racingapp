@@ -49,7 +49,9 @@ end
 -- Updates Crew
 function updateCrew(src, crewName)
     local player = Ox.GetPlayer(tonumber(src))
-    if not player then return end    
+    if not player then return end
+    
+    player.setMetadata('selectedCrew', crewName)
 end
 
 -- Fetches the CitizenId by Source
@@ -57,12 +59,12 @@ function getCitizenId(src)
     local player = Ox.GetPlayer(tonumber(src))
     if not player then return nil end
     
-    return player.charId
+    return player.stateId
 end
 
 -- Fetches the Source of an online player by citizenid
 function getSrcOfPlayerByCitizenId(citizenId)
-    local player = Ox.GetPlayerFromUserId(citizenId)
+    local player = Ox.GetPlayerFromFilter({stateId = tonumber(citizenId)})
     if not player then return nil end
     
     return player.source

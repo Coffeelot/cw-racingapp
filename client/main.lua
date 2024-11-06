@@ -3030,7 +3030,7 @@ RegisterNUICallback('UiSendInvite', function(data, cb)
     end
     local myServerID = GetPlayerServerId(PlayerId())
 
-    local result = cwCallback.await('cw-racingapp:server:sendInviteClosest', myServerID, data.citizenId, CurrentCrew)
+    local result = cwCallback.await('cw-racingapp:server:sendInvite', myServerID, data.citizenId, CurrentCrew)
 
     debugLog('Success: ', result)
     cb(result)
@@ -3090,7 +3090,7 @@ end)
 
 RegisterNUICallback('UiGetCrewData', function(data, cb)
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentName)
+    local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentCrew)
 
     debugLog('crew data: ', json.encode(result))
     cb(result)
@@ -3201,6 +3201,7 @@ local function getCurrentRankingFromRacer(racerNames)
 end
 
 function initialSetup()
+    Wait(1000)
     IsFirstUser = cwCallback.await('cw-racingapp:server:isFirstUser')
 
     LocalPlayer.state:set('inRace', false, true)
@@ -3237,22 +3238,15 @@ function initialSetup()
         end
     end
     if racerCrew then
-        debugLog('Has a crew set in metadata')
+        debugLog('Has a crew set in metadata', racerCrew)
         CurrentCrew = racerCrew
-        local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
-        if myCrew == racerCrew then
-            debugLog('Is in a crew', myCrew)
-            CurrentCrew = myCrew
+        local crewExists = cwCallback.await('cw-racingapp:server:crewStillExists', racerCrew)
+        if crewExists then
+            debugLog('crew still exists', crewExists)
         else
-            debugLog('Crew does not exist anymore', myCrew)
+            debugLog('Crew does not exist anymore', CurrentCrew)
             TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentName, nil)
             CurrentCrew = nil
-        end
-    else
-        local myCrew = cwCallback.await('cw-racingapp:server:getMyCrew', CurrentName)
-        debugLog('Did not have crew set but found one in DB. Setting to', myCrew)
-        if myCrew then
-            TriggerServerEvent('cw-racingapp:server:changeCrew', myCrew)
         end
     end
 

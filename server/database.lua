@@ -82,7 +82,7 @@ local function getActiveRacerCrew(racerName)
 end
 
 local function setActiveRacerCrew(racerName, crewName)
-    return MySQL.Sync.execute('UPDATE racer_names SET crew = 1 WHERE racername = ?', { crewName, racerName })
+    return MySQL.Sync.execute('UPDATE racer_names SET crew = ? WHERE racername = ?', { crewName, racerName })
 end
 
 local function getUserAuth(racerName)
