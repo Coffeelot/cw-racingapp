@@ -28,7 +28,6 @@
       <InfoText :title="translate('select_track_to_view')"></InfoText>
     </div>
     <div v-else class="scrollable">
-      {{ sortedResults }}
       <v-table v-if="sortedResults && sortedResults.length>0" >
         <thead>
           <tr>
