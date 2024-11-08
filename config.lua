@@ -21,7 +21,6 @@ Config.AllowCreateFromShare = true      -- toggle this to allow using the share 
 Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
 Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
-Config.UseVehicleModelInsteadOfClassForRecords = false -- if this is true then players can have multiple records per class, but only once per vehicle model
 
 Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
 Config.UseOxTarget = true              -- Require ox target. Obviously
