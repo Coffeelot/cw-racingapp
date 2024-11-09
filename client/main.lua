@@ -358,9 +358,6 @@ local function updateGpsForRace(started)
         local checkpointIndex = isCircuit and ((i - 1) % totalCheckpoints) + 1 or i
         if checkpointIndex > totalCheckpoints then break end -- Stop if beyond the last checkpoint in a sprint
 
-        print('current checkpoint', currentCheckpoint)
-        print('checkpoint index', checkpointIndex)
-        print('last checkpoint', lastCheckpoint)
         if not isCircuit or (isCircuit and ((checkpointIndex >= currentCheckpoint and checkpointIndex <= lastCheckpoint) or checkpointIndex == 1)) then
             local checkpointData = CurrentRaceData.Checkpoints[checkpointIndex]
 
@@ -614,7 +611,6 @@ local function addCheckpoint(checkpointId)
     end
     redrawBlips()
 end
-
 
 local function moveCheckpoint()
     local dialog
@@ -1645,13 +1641,14 @@ RegisterNetEvent('cw-racingapp:client:updateOrganizer', function(RaceId, organiz
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:leaveRace', function(data)
+RegisterNetEvent('cw-racingapp:client:leaveRace', function()
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
     else
         ClearGpsMultiRoute()
     end
     Countdown = 10
+    hideTrack()
     updateCountdown(-1)
     unGhostPlayer()
     deleteCurrentRaceCheckpoints()
