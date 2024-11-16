@@ -12,7 +12,7 @@
     </v-card-title>
     <v-card-text class="text">
       <v-chip v-if="track.Curated" color="green" prepend-icon="mdi-star">{{translate('curated')}}</v-chip>
-      <v-chip color="primary">{{ translate('track_id') }}: {{ track.RaceId }} </v-chip>
+      <v-chip color="primary" class="allow-select">{{ translate('track_id') }}: {{ track.RaceId }} </v-chip>
       <v-chip color="primary">{{ translate('length') }}: {{ track.Distance }}m </v-chip>
       <v-chip color="primary">{{ translate('checkpoints') }}: {{ track.Checkpoints.length }}</v-chip>
       <v-chip color="primary">{{ translate('created_by') }}: {{ track.CreatorName }}</v-chip>

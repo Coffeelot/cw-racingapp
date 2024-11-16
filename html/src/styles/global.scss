@@ -1,4 +1,10 @@
+body {
+  user-select: none;
+}
 
+.allow-select {
+  user-select: text;
+}
 .inline {
   display: flex;
   flex-wrap: wrap;

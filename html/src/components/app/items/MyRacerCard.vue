@@ -2,7 +2,7 @@
   <v-card  rounded="xl" class="big-card">
     <v-card-title class="title">{{ racer.racername }}</v-card-title>
     <v-card-text class="text">
-      <v-chip color="primary">{{ translate('citizen_id') }} : {{ racer.citizenid }} </v-chip>
+      <v-chip color="primary" class="allow-select">{{ translate('citizen_id') }} : {{ racer.citizenid }} </v-chip>
       <v-chip color="primary">{{ translate('tracks') }} : {{ racer.tracks }} </v-chip>
       <v-chip color="primary">{{ translate('races') }} : {{ racer.races }} </v-chip>
       <v-chip color="primary">{{ translate('wins') }} : {{ racer.wins }} </v-chip>
