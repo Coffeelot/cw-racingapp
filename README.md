@@ -101,7 +101,7 @@ As of 16th November 2024 the script has cuztomizeable time trial bounties that p
         rankRequired = 2,                -- Rank required to claim
     },
 ```
-These are randomized upon server start (~5 seconds after script start/restart). You can modify how many of these are added in the Bounties Options.
+These are randomized upon server start (~5 seconds after script start/restart). You can modify how many of these are added in the Bounties Options. If your auth type has the `handleBounties` auth you should be able to re-roll the bounties from the bounties menu.
 
 ### User Management
 The script offers user management now. We've moved away from the basic/master fob and instead users are saved in the database.
