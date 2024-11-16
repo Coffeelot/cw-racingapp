@@ -53,7 +53,7 @@
             :key="`${item.Holder}-${item.Class}`"
           >
             <td>{{ index +1 }}. {{ item.Holder }}</td>
-            <td>{{ msToHMS(item.Time) }}</td>
+            <td>{{ msToHMS(item.Time) }} </td>
             <td>{{ item.Vehicle }}</td>
             <td>{{ item.Class }}</td>
             <td>{{ item.RaceType }}</td>

@@ -24,14 +24,14 @@ client_scripts {
 }
 
 server_scripts {
-    '@ox_core/imports/server.lua',
     '@oxmysql/lib/MySQL.lua',
     'server/database.lua',
     'bridge/server/*.lua',
     'server/functions.lua',
     'server/main.lua',
     'server/crews.lua',
-    'server/elo.lua'
+    'server/elo.lua',
+    'server/bounties.lua'
 }
 
 files {

@@ -143,11 +143,11 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn rounded="lg" variant="text" @click="handleClose()">
+          <v-btn rounded="xl" variant="text" @click="handleClose()">
             {{ translate('close') }} 
           </v-btn>
           <v-btn
-            rounded="lg"
+            rounded="xl"
             color="success"
             variant="flat"
             @click="handleConfirm()"

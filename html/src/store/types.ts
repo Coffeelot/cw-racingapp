@@ -2,6 +2,26 @@ export type Racer = {
     RacerName: string
 }
 
+export type BountyClaim = {
+    racerName: string,
+    vehicleModel: string,
+    time: number,
+}
+
+export type Bounty = {
+    id: string,
+    trackId: string,
+    maxClass: string,
+    reversed: boolean,
+    timeToBeat: number,
+    extraTime: number,
+    price: string,
+    rankRequired: number,
+    sprint: boolean,
+    trackName: string,
+    claimed: Record<string,BountyClaim>
+}
+
 export type TrackMetadata = {
     description?: string,
     raceType?: string,
@@ -26,6 +46,7 @@ export type Auth = {
     startReversed: boolean,
     setupParticipation: boolean,
     curateTracks: boolean,
+    handleBounties: boolean,
 }
 
 export type Settings = {

@@ -1,6 +1,6 @@
 // Utilities
 import { defineStore } from 'pinia'
-import { ActiveHudData, ActiveRace, BaseData, Buttons, CreatorData, Crew, Track, Notification} from './types'
+import { ActiveHudData, ActiveRace, BaseData, Bounty, Buttons, CreatorData, Crew, Track, Notification} from './types'
 
 export const useGlobalStore = defineStore('global', {
   state: () => ({
@@ -22,5 +22,6 @@ export const useGlobalStore = defineStore('global', {
     results: {} as Record<string, any>,
     myCrew: {} as Crew,
     notification: undefined as Notification | undefined,
+    bounties: [] as Bounty[],
   })
 })

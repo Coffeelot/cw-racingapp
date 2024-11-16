@@ -1,32 +1,33 @@
 <template>
-  <v-card class="big-card" rounded="lg">
+  <v-card class="big-card" rounded="xl">
     <v-card-title class="title">
-      <span>{{ track.RaceName }} {{ track.Curated ? " | " + "⭐" : "" }}</span>
+      <span class="d-inline-flex ga-1 align-xl-center ">{{ track.RaceName }}</span>
       <div>
-        <v-btn rounded="lg" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
-        <v-btn rounded="lg" small variant="text" @click="copyToClipboard()"
+        <v-btn rounded="xl" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
+        <v-btn rounded="xl" small variant="text" @click="copyToClipboard()"
           >{{ translate('copy_checkpoints') }} </v-btn
         >
         
       </div>
     </v-card-title>
     <v-card-text class="text">
-      <v-chip>{{ translate('track_id') }}: {{ track.RaceId }} </v-chip>
-      <v-chip>{{ translate('length') }}: {{ track.Distance }}m </v-chip>
-      <v-chip>{{ translate('checkpoints') }}: {{ track.Checkpoints.length }}</v-chip>
-      <v-chip>{{ translate('created_by') }}: {{ track.CreatorName }}</v-chip>
-      <v-chip v-if="track.Access?.race && track.Access.race.length > 0">{{ translate('shared_with') }}: {{ track.Access.race.length }} {{ translate('racers') }} </v-chip>
+      <v-chip v-if="track.Curated" color="green" prepend-icon="mdi-star">{{translate('curated')}}</v-chip>
+      <v-chip color="primary">{{ translate('track_id') }}: {{ track.RaceId }} </v-chip>
+      <v-chip color="primary">{{ translate('length') }}: {{ track.Distance }}m </v-chip>
+      <v-chip color="primary">{{ translate('checkpoints') }}: {{ track.Checkpoints.length }}</v-chip>
+      <v-chip color="primary">{{ translate('created_by') }}: {{ track.CreatorName }}</v-chip>
+      <v-chip color="primary" v-if="track.Access?.race && track.Access.race.length > 0">{{ translate('shared_with') }}: {{ track.Access.race.length }} {{ translate('racers') }} </v-chip>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn rounded="lg" v-if="globalStore.baseData.data.auth.curateTracks" @click="curateDialog = true">{{ translate('curation') }} </v-btn>
-      <v-btn rounded="lg" @click="lbDialog = true">{{ translate('clear_lead') }} </v-btn>
-      <v-btn rounded="lg" v-if="!track.Curated" @click="editDialog = true"
+      <v-btn rounded="xl" v-if="globalStore.baseData.data.auth.curateTracks" @click="curateDialog = true">{{ translate('curation') }} </v-btn>
+      <v-btn rounded="xl" @click="lbDialog = true">{{ translate('clear_lead') }} </v-btn>
+      <v-btn rounded="xl" v-if="!track.Curated" @click="editDialog = true"
         >{{ translate('edit_track') }} </v-btn
       >
-      <v-btn rounded="lg" @click="openEditMetadata()">{{ translate('edit_settings') }} </v-btn>
-      <v-btn rounded="lg" @click="openEditAccess()">{{ translate('edit_access') }} </v-btn>
-      <v-btn rounded="lg" @click="deleteDialog = true">{{ translate('delete_track') }} </v-btn>
+      <v-btn rounded="xl" @click="openEditMetadata()">{{ translate('edit_settings') }} </v-btn>
+      <v-btn rounded="xl" @click="openEditAccess()">{{ translate('edit_access') }} </v-btn>
+      <v-btn rounded="xl" @click="deleteDialog = true">{{ translate('delete_track') }} </v-btn>
     </v-card-actions>
   </v-card>
   <v-dialog attach=".app-container" contained v-model="curateDialog" width="auto">
@@ -34,13 +35,13 @@
       <v-card-title>{{ translate('handle_curation_for') }}  {{ track.RaceName }}?</v-card-title>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn rounded="lg" @click="lbDialog = false">
+        <v-btn rounded="xl" @click="lbDialog = false">
             {{ translate('close') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="red" @click="setCuration(0)">
+        <v-btn rounded="xl" variant="flat" color="red" @click="setCuration(0)">
             {{ translate('set_uncurated') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="success" @click="setCuration(1)">
+        <v-btn rounded="xl" variant="flat" color="success" @click="setCuration(1)">
             {{ translate('set_curated') }} 
         </v-btn>
       </v-card-actions>
@@ -52,41 +53,41 @@
       <v-card-text> {{ translate('cant_be_reverted') }}  </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn rounded="lg" @click="lbDialog = false">
+        <v-btn rounded="xl" @click="lbDialog = false">
             {{ translate('close') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="red" @click="clearLB()">
+        <v-btn rounded="xl" variant="flat" color="red" @click="clearLB()">
             {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <v-dialog attach=".app-container" contained v-model="editDialog" width="auto">
-    <v-card rounded="lg">
+    <v-card rounded="xl">
       <v-card-title>{{ translate('open_track_editor_for') }}  {{ track.RaceName }}?</v-card-title>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn rounded="lg" @click="editDialog = false">
+        <v-btn rounded="xl" @click="editDialog = false">
             {{ translate('close') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="success"  @click="editTrack()">
+        <v-btn rounded="xl" variant="flat" color="success"  @click="editTrack()">
             {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <v-dialog attach=".app-container" contained v-model="accessDialog" width="auto">
-    <v-card rounded="lg">
+    <v-card rounded="xl">
         <v-card-title>{{ translate('editing_access_for') }} {{ track.RaceName }}</v-card-title>
         <v-card-text> 
             <v-text-field :label="translate('access_list')" v-model="access.race" :hint="translate('editing_access_info')"></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-        <v-btn rounded="lg" @click="accessDialog = false">
+        <v-btn rounded="xl" @click="accessDialog = false">
             {{ translate('close') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="success" @click="editAccess()">
+        <v-btn rounded="xl" variant="flat" color="success" @click="editAccess()">
           {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
@@ -119,10 +120,10 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn rounded="lg" @click="settingsDialog = false">
+        <v-btn rounded="xl" @click="settingsDialog = false">
             {{ translate('close') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="success" @click="confirmSettings()">
+        <v-btn rounded="xl" variant="flat" color="success" @click="confirmSettings()">
             {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>
@@ -134,10 +135,10 @@
       <v-card-text> {{ translate('cant_be_reverted') }}  </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn rounded="lg" @click="deleteDialog = false">
+        <v-btn rounded="xl" @click="deleteDialog = false">
             {{ translate('close') }} 
         </v-btn>
-        <v-btn rounded="lg" variant="flat" color="red" @click="deleteTrack()">
+        <v-btn rounded="xl" variant="flat" color="red" @click="deleteTrack()">
             {{ translate('confirm') }} 
         </v-btn>
       </v-card-actions>

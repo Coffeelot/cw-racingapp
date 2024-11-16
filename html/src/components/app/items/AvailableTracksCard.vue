@@ -1,18 +1,21 @@
 <template>
-    <v-card rounded="lg" class="available-card">
-        <v-card-title>{{ track.RaceName}} {{ track.Curated? '⭐':'' }}</v-card-title>
+    <v-card rounded="xl" class="available-card">
+        
+        <v-card-title>{{ track.RaceName}}</v-card-title>
         <v-card-subtitle class="subtitle-text" v-if="track.Metadata?.description">{{ track.Metadata.description }}</v-card-subtitle>
         <v-card-text>
             <div class="inline standardGap">
-                <v-chip prepend-icon="mdi-account-star">{{ translate('creator') }} : {{ track.CreatorName }} </v-chip>
-                <v-chip>{{ translate('length') }} : {{ track.Distance }}</v-chip>
-                <v-chip v-if="track.Metadata?.raceType && track.Metadata.raceType !== 'any_type' " prepend-icon="mdi-go-kart-track">{{ translate(track.Metadata.raceType) }}</v-chip>
+                <v-chip v-if="track.Curated" color="green" prepend-icon="mdi-star">{{translate('curated')}}</v-chip>
+                <v-chip color="primary" prepend-icon="mdi-account-star">{{ translate('creator') }} : {{ track.CreatorName }} </v-chip>
+                <v-chip color="primary">{{ translate('length') }} : {{ track.Distance }}</v-chip>
+                <v-chip color="primary" v-if="track.Metadata?.raceType && track.Metadata.raceType !== 'any_type' " prepend-icon="mdi-go-kart-track">{{ translate(track.Metadata.raceType) }}</v-chip>
             </div>
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn rounded="lg" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
-            <v-btn rounded="lg" variant="flat" color="primary" @click='startRace()'>{{ translate('setup_race') }} </v-btn>
+            <v-btn rounded="xl" variant="text" @click='showRace()'>{{ translate('show_track') }} </v-btn>
+            <v-btn rounded="xl" variant="outlined" color="primary" @click='startRace()'>{{ translate('setup_race') }} </v-btn>
+            <v-btn rounded="xl" variant="flat" color="primary" @click='quickHost()'>{{ translate('quick_host') }} </v-btn>
         </v-card-actions>
         
     </v-card>
@@ -31,6 +34,11 @@ const emits = defineEmits(['select'])
 
 const showRace = async () => {
     const res = await api.post("UiShowTrack", JSON.stringify(props.track.RaceId));
+    if (res.data) closeApp()
+}
+
+const quickHost = async () => {
+    const res = await api.post("UiQuickHost", JSON.stringify(props.track));
     if (res.data) closeApp()
 }
 

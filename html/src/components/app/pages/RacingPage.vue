@@ -7,6 +7,7 @@
       v-on:update:model-value="fetchRelevantData()"
     >
       <v-tab value="current">{{ translate('available_races') }} </v-tab>
+      <v-tab value="bounties">{{ translate('bounties') }} </v-tab>
       <v-tab value="setup" v-if="globalStore.baseData.data.auth.setup">{{ translate('setup') }} </v-tab>
     </v-tabs>
     <v-window v-model="tab" class="page-container">
@@ -46,6 +47,9 @@
           :title="translate('no_races')"
         ></InfoText>
       </v-window-item>
+      <v-window-item  value="bounties" class="tabcontent">
+        <BountiesTab></BountiesTab>
+      </v-window-item>
       <v-window-item value="setup" class="tabcontent">
         <div class="subheader">
           <h3 class="header-text">{{ translate('pick_track') }} </h3>
@@ -54,6 +58,7 @@
             v-model="globalStore.showOnlyCurated"
             hide-details
             density="compact"
+            class="mr-1"
           >
             <template #label>
               {{
@@ -112,6 +117,7 @@ import { closeApp } from "@/helpers/closeApp";
 import { computed } from "vue";
 import InfoText from "../components/InfoText.vue";
 import { translate } from "@/helpers/translate";
+import BountiesTab from "../components/BountiesTab.vue";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);

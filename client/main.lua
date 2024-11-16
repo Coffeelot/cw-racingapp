@@ -50,7 +50,10 @@ local CurrentRaceData = {
 }
 
 RegisterNetEvent('cw-racingapp:client:notify', function(message, type)
-    notify(message, type)
+    if hasGps() then
+        notify(message, type)
+    end
+
 end)
 
 local Classes = exports['cw-performance']:getPerformanceClasses()
@@ -88,6 +91,22 @@ local function getSizeOfTable(table)
     end
     return count
 end
+
+local function updateUiData(dataType, data)
+    SendNUIMessage({
+        action = "update",
+        type = "dataUpdate",
+        dataType = dataType,
+        data = data,
+    })
+end
+
+RegisterNetEvent('cw-racingapp:client:updateUiData', function(dataType, data)
+    if hasGps() then
+        updateUiData(dataType, data)
+    end
+end)
+
 -----------------------
 ----   Functions   ----
 -----------------------
@@ -1215,12 +1234,8 @@ local function FinishRace()
     debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
     TriggerServerEvent('cw-racingapp:server:finishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
         CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, CurrentRanking, CurrentCrew)
-    notify(Lang("race_finished") .. milliToTime(CurrentRaceData.TotalTime), 'success')
-    if CurrentRaceData.BestLap ~= 0 then
-        notify(Lang("race_best_lap") .. milliToTime(CurrentRaceData.BestLap), 'success')
-    end
+
     unGhostPlayer()
-    Players = {}
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
     else
@@ -1720,7 +1735,7 @@ end
 
 local function forceFirstPerson()
     debugLog('Race has forced first person:', CurrentRaceData.FirstPerson)
-    local originalCam = GetFollowPedCamViewMode()
+    local originalCam = GetFollowVehicleCamViewMode()
     CreateThread(function()
         while CurrentRaceData and CurrentRaceData.RaceId and CurrentRaceData.FirstPerson do
             local inVeh = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -1735,23 +1750,10 @@ local function forceFirstPerson()
     end)
 end
 
-local function getPlayers()
-    local players = {}
-
-    for i = 0, 255 do
-        if NetworkIsPlayerActive(i) then
-            table.insert(players, i)
-        end
-    end
-    return players
-end
-
-
 RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
     hideTrack()
     setupBlipsForRace(true)
     updateGpsForRace(true)
-    Players = {}
     Kicked = false
     TriggerServerEvent('cw-racingapp:server:updateRaceState', CurrentRaceData.RaceId, true, false)
     CurrentRaceData.TotalRacers = TotalRacers
@@ -1768,12 +1770,12 @@ RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
                     updateCountdown(10)
                     PlaySoundFrontend(-1, Config.Sounds.Countdown.start.lib, Config.Sounds.Countdown.start.sound)
                 elseif Countdown <= 5 then
+                    FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), true)
                     if Countdown == 5 then forceFirstPerson() end
                     updateCountdown(Countdown)
                     PlaySoundFrontend(-1, Config.Sounds.Countdown.number.lib, Config.Sounds.Countdown.number.sound)
                 end
                 Countdown = Countdown - 1
-                FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), true)
             else
                 break
             end
@@ -1801,7 +1803,6 @@ RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             doPilePfx()
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
-                Players = getPlayers()
                 ghostPlayers()
             end
             lapStartTime = GetGameTimer()
@@ -2611,6 +2612,16 @@ RegisterNuiCallback('UiGetPermissionedUserTypeFirstUser', function(_, cb)
     cb(data)
 end)
 
+RegisterNuiCallback('UiGetBounties', function(_, cb)
+    local bounties = cwCallback.await('cw-racingapp:server:getBounties')
+    cb(bounties)
+end)
+
+RegisterNuiCallback('UIRerollBounties', function(_, cb)
+    TriggerServerEvent('cw-racingapp:server:rerollBounties')
+    cb(true)
+end)
+
 local function getRaceByRaceId(Races, raceId)
     for _, race in pairs(Races) do
         if race.RaceId == raceId then
@@ -2869,6 +2880,42 @@ end
 exports('attemptSetupRace', attemptSetupRace)
 
 RegisterNUICallback('UiSetupRace', function(setupData, cb)
+    cb(attemptSetupRace(setupData))
+end)
+
+RegisterNUICallback('UiQuickSetupBounty', function(bounty, cb)
+    local setupData = {}
+    for field, value in pairs(Config.QuickSetupDefaults) do
+        print('field', field, value)
+        setupData[field] = value
+    end
+    setupData.track = bounty.trackId
+    setupData.maxClass = bounty.maxClass
+    setupData.reversed = bounty.reversed
+
+    if bounty.sprint then
+        setupData.laps = 0
+    end
+
+    cb(attemptSetupRace(setupData))
+end)
+
+RegisterNUICallback('UiQuickHost', function(track, cb)
+    local setupData = {}
+    for field, value in pairs(Config.QuickSetupDefaults) do
+        setupData[field] = value
+    end
+    setupData.track = track.RaceId
+    if track.Metadata then
+        if track.Metadata.raceType == 'sprint' then
+            setupData.laps = 0
+        end
+    end
+
+    if track.sprint then
+        setupData.laps = 0
+    end
+
     cb(attemptSetupRace(setupData))
 end)
 

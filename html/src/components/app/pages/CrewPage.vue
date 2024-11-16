@@ -11,9 +11,9 @@
         <v-card v-if="myCrew">
           <v-card-title>{{ translate("crew_stats") }} </v-card-title>
           <v-card-text class="text">
-            <v-chip>{{ translate("rank") }}: {{ myCrew.rank }} </v-chip>
-            <v-chip>{{ translate("races") }}: {{ myCrew.races }} </v-chip>
-            <v-chip>{{ translate("wins") }}: {{ myCrew.wins }} </v-chip>
+            <v-chip color="primary">{{ translate("rank") }}: {{ myCrew.rank }} </v-chip>
+            <v-chip color="primary">{{ translate("races") }}: {{ myCrew.races }} </v-chip>
+            <v-chip color="primary">{{ translate("wins") }}: {{ myCrew.wins }} </v-chip>
           </v-card-text>
         </v-card>
         <div class="subheader inline mt-1">
@@ -24,11 +24,12 @@
           v-if="myCrew && myCrew?.members?.length > 0"
         >
           <MyCrewMemberCard
+            v-for="member in myCrew.members"
             :isFounder="isFounder"
             :memberIsFounder="member.racername === myCrew.founderName"
             @triggerReload="getMyCrew()"
-            v-for="member in myCrew.members"
             :member="member"
+            :key="member.citizenID"
           ></MyCrewMemberCard>
         </div>
         <InfoText

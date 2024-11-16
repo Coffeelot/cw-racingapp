@@ -51,7 +51,17 @@ const handleCreator = (itemData:any) => {
     globalStore.$state.activeHudData.InCreator = itemData.active
 
   }
-} 
+}
+
+const handleDataUpdate = (itemData: any) => {
+  switch (itemData.dataType) {
+    case 'bounties':
+      globalStore.bounties = itemData.data
+      break;
+    default:
+      break;
+  }
+}
 
 const handleMessageListener = (event: MessageEvent) => {
   const itemData: any = event?.data;
@@ -71,6 +81,9 @@ const handleMessageListener = (event: MessageEvent) => {
         break;
       case 'updateBaseData':
         getBaseData()
+        break;
+      case 'dataUpdate':
+        handleDataUpdate(itemData);
         break;
       default:
         break;

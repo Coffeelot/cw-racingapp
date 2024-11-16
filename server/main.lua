@@ -1,7 +1,7 @@
 -----------------------
 ----   Variables   ----
 -----------------------
-local Tracks = {}
+Tracks = {}
 local AvailableRaces = {}
 local LastRaces = {}
 local NotFinished = {}
@@ -450,6 +450,8 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             RacerSource = src,
             RacingCrew = racingCrew
         }
+        
+
         for _, v in pairs(Tracks[raceData.RaceId].Racers) do
             if v.Finished then
                 playersFinished = playersFinished + 1
@@ -546,6 +548,12 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             BLap = bestLap
         end
 
+        local bountyResult = BountyHandler.checkBountyCompletion(racerName, vehicleModel, ranking, raceData.RaceId, carClass, BLap, totalLaps == 0, reversed)
+        if bountyResult then
+            addMoney(src, Config.Options.MoneyType, bountyResult)
+            TriggerClientEvent('cw-racingapp:client:notify', src, Lang("bounty_claimed").. tostring(bountyResult), 'success')
+        end
+
         if LastRaces[raceData.RaceId] ~= nil then
             LastRaces[raceData.RaceId][#LastRaces[raceData.RaceId] + 1] = {
                 TotalTime = totalTime,
@@ -597,7 +605,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
         end
         if playersFinished == amountOfRacers then
             if amountOfRacers == 1 then
-                if UseDebug then print('^3Only one racer. No ELO change') end
+                if UseDebug then print('^3Only one racer. No ELO change^0') end
             elseif amountOfRacers > 0 then
                 if AvailableRaces[availableKey].Ranked then
                     if UseDebug then print('Is ranked. Doing Elo check') end

@@ -13,7 +13,8 @@
 - [Create tracks](#track-creation)
 - Host races
 - Buy-Ins
-- [Automated Races](#Automated-Races)pse
+- [Automated Races](#Automated-Races)
+- [Time Trial Bounties](#Time-Trial-Bounties)
 - Phasing/Ghosting
 - Reversed tracks
 - Participation payouts
@@ -85,6 +86,22 @@ Hop into the [CW Discord](https://discord.gg/FJY4mtjaKr) and share some tracks i
 The script offers automated races. You can set these up in the config (`Config.AutomatedRaces`, `Config.AutomatedOptions`). If any of these are commented out/removed the automation will not start.
 
 The Automation will, at random, try to grab one of the tracks from the `Config.AutomatedRaces` table at the interval of what you set in `Config.AutomatedOptions.timeBetweenRaces`, by default this is 20 minutes. The races start after 5 minutes of popping up.
+
+### Time Trial Bounties
+As of 16th November 2024 the script has cuztomizeable time trial bounties that players can collect. These are defined in the config in `Config.Bounties` and `Config.BountiesOptiones`. The config has most things explained in comments, but a bounty is defined like this example:
+```lua
+    {
+        trackId = 'CW-4267',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'B',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 130000,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 500,                    -- Price money
+        sprint = true,                  -- require race to be a sprint to claim bounty
+        rankRequired = 2,                -- Rank required to claim
+    },
+```
+These are randomized upon server start (~5 seconds after script start/restart). You can modify how many of these are added in the Bounties Options.
 
 ### User Management
 The script offers user management now. We've moved away from the basic/master fob and instead users are saved in the database.

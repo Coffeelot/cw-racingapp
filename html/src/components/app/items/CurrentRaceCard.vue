@@ -1,5 +1,5 @@
 <template>
-    <v-card  rounded="lg">
+    <v-card  rounded="xl">
         <v-card-title>{{ props.race.trackName}}</v-card-title>
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race.ranked" :text="translate('ranked')"></v-chip>
@@ -11,8 +11,8 @@
         </v-card-text>
         <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn rounded="lg" variant="flat" color="red" @click='leaveRace()'>{{ translate('leave_race') }} </v-btn>
-            <v-btn rounded="lg" variant="flat" color="success" @click='startRace()' v-if="props.race.canStart">{{ translate('start_race') }} </v-btn>
+            <v-btn rounded="xl" variant="flat" color="red" @click='leaveRace()'>{{ translate('leave_race') }} </v-btn>
+            <v-btn rounded="xl" variant="flat" color="success" @click='startRace()' v-if="props.race.canStart">{{ translate('start_race') }} </v-btn>
         </v-card-actions>
         
     </v-card>

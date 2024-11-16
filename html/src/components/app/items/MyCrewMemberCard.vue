@@ -1,8 +1,8 @@
 <template>
-  <v-card  rounded="lg" class="big-card">
+  <v-card  rounded="xl" class="big-card">
     <v-card-title class="title">{{ member.racername }} {{ memberIsFounder ? '⭐' :'' }}</v-card-title>
     <v-card-text class="text">
-      <v-chip>{{ translate('citizen_id') }}: {{ member.citizenID }} </v-chip>
+      <v-chip color="primary">{{ translate('citizen_id') }}: {{ member.citizenID }} </v-chip>
     </v-card-text>
   </v-card>
 </template>

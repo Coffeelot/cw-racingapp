@@ -70,7 +70,6 @@ const getMyPermissionedTypes = async () => {
   const typeResults = await api.post('UiGetPermissionedUserTypeFirstUser')
   if (typeResults.data) {
     creationType.value = typeResults.data
-    console.log('TYPE', JSON.stringify(creationType.value))
   }
 }
 

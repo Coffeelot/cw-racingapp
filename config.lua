@@ -53,7 +53,7 @@ Config.EloPunishments = {                                                       
 }
 
 
-Config.PrimaryUiColor = '#e36a00' -- Primary color in UI, default is orange
+Config.PrimaryUiColor = '#f07800' -- Primary color in UI, default is orange
 
 -- GPS stuff
 Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
@@ -110,7 +110,8 @@ Config.Permissions = {
         startElimination = false,   -- can start elimination races
         startReversed = true,       -- can start races with reversed track (It makes NO sense that this is even needed as an auth, but it was paid for so here it is. Leave it as true)
         setupParticipation = false, -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
-        curateTracks = false,
+        curateTracks = false,       -- Can set track curated status
+        handleBounties = false,     -- Can manage bounties
     },
     creator = {
         join = true,
@@ -125,6 +126,7 @@ Config.Permissions = {
         startReversed = true,
         setupParticipation = false,
         curateTracks = false,
+        handleBounties = false,
     },
     master = {
         join = true,
@@ -139,6 +141,7 @@ Config.Permissions = {
         startReversed = true,
         setupParticipation = false,
         curateTracks = true,
+        handleBounties = true,
     },
     god = {
         join = true,
@@ -153,6 +156,7 @@ Config.Permissions = {
         startReversed = true,
         setupParticipation = true,
         curateTracks = true,
+        handleBounties = true,
     }
 }
 
@@ -280,6 +284,19 @@ Config.Ghosting = {
     }
 }
 
+Config.QuickSetupDefaults = {
+    ghostingOn = true,
+    ghostingTime = 0,
+    buyIn = 0,
+    ranked = false,
+    reversed = false,
+    laps = 2,
+    maxClass = nil,
+    participationMoney = 0,
+    participationCurrency = 'cash',
+    firstPerson = false,
+}
+
 -- Splits work as follows: [x] = y means position x gets y % of the profit
 Config.Splits = {
     three = { [1] = 0.7, [2] = 0.3 },          -- If three racers
@@ -347,4 +364,94 @@ Config.AutomatedOptions = {
         winner = 1000,
         perRacer = 50, -- Extra payment per racer, so if it's 50 then if 10 racers show you everyone gets 500 extra for finishing
     }
+}
+
+Config.Bounties = {
+    {
+        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'A',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 31787,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 200,                    -- Price money
+        sprint = false,                  -- require race to be a sprint to claim bounty
+    },
+    {
+        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'D',                 -- Max Class
+        reversed = true,               -- reversed track or not
+        timeToBeat = 49000,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 100,                    -- Price money
+        sprint = false,                  -- require race to be a sprint to claim bounty
+    },
+    {
+        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'B',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 91787,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 300,                    -- Price money
+        sprint = false,                  -- require race to be a sprint to claim bounty
+    },
+    {
+        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'D',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 240000,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 400,                    -- Price money
+        sprint = false,                  -- require race to be a sprint to claim bounty
+    },
+    {
+        trackId = 'CW-4267',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'X',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 801787,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 1000,                    -- Price money
+        sprint = true,                  -- require race to be a sprint to claim bounty
+        rankRequired = 15,                -- Rank required to claim
+    },
+    {
+        trackId = 'CW-9030',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'A',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 130000,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 500,                    -- Price money
+        sprint = false,                  -- require race to be a sprint to claim bounty
+        rankRequired = 2,                -- Rank required to claim
+
+    },
+    {
+        trackId = 'CW-4267',            -- TrackId. Found in your tracks in racingapp or in DB
+        maxClass = 'B',                 -- Max Class
+        reversed = false,               -- reversed track or not
+        timeToBeat = 130000,             -- time you have to beat in milliseconds
+        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+        price = 500,                    -- Price money
+        sprint = true,                  -- require race to be a sprint to claim bounty
+        rankRequired = 2,                -- Rank required to claim
+
+    },
+    -- {
+    --     trackId = 'LR-9238',            -- TrackId. Found in your tracks in racingapp or in DB
+    --     maxClass = 'S',                 -- Max Class
+    --     reversed = false,               -- reversed track or not
+    --     timeToBeat = 801787,             -- time you have to beat in milliseconds
+    --     extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
+    --     price = 500,                    -- Price money
+    --     sprint = true,                  -- require race to be a sprint to claim bounty
+    --     rankRequired = 5,                -- Rank required to claim
+    -- },
+}
+
+Config.BountiesOptions = {
+    defaultRankRequirement = 0, -- Default rank requirement to see and claim bounties. Can be overrided by assigning a rankRequired in the bounty.
+    maxAmount = 6, -- Max amount of bounties that can be generated
+    minAmount = 2, -- min amount of bounties that can be generated
+    allowMultipleOnSameTrack = true, -- if set to false, only allow one bounty per track
+    allowMultipleInSameClass = true, -- if set to false, only allow one per class
+    consecutiveMultiplier = 0.5, -- this times the price for how much players get when they beat their own time for a bounty, so if this is 0.5 you get 50% of the original bounty after the first one
 }
