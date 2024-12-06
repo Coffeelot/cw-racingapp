@@ -235,6 +235,8 @@ end
 local function unGhostPlayer()
     debugLog('DE GHOSTED')
     CurrentRaceData.Ghosted = false
+    SetLocalPlayerAsGhost(false)
+    SetGhostedEntityAlpha(255)
 end
 
 local function CreateGhostLoop()
@@ -243,6 +245,8 @@ local function CreateGhostLoop()
         print('^3 Starting ghost loop. All player:', json.encode(CurrentRaceData.Racers, { indent = true }))
     end
     CurrentRaceData.Ghosted = true
+    SetLocalPlayerAsGhost(true)
+    SetGhostedEntityAlpha(255)
     ghostThread()
     CreateThread(function()
         while CurrentRaceData.Started do
