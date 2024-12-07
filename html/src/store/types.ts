@@ -47,6 +47,8 @@ export type Auth = {
     setupParticipation: boolean,
     curateTracks: boolean,
     handleBounties: boolean,
+    cancelAll: boolean,
+    startAll: boolean,
 }
 
 export type Settings = {
@@ -129,6 +131,7 @@ export type CurrentRace = {
     ghosting: boolean,
     ranked: boolean,
     reversed: boolean,
+    hostName: string,
 }
 
 export type CheckpointTimes = {

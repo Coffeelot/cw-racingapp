@@ -21,6 +21,7 @@
               :race="currentRace"
               @leave="leaveRace()"
               @start="startRace()"
+              @cancel="cancelRace()"
             ></CurrentRaceCard>
           </div>
         </div>
@@ -172,7 +173,11 @@ const getTracks = async () => {
 
 const getCurrent = async () => {
   const res = await api.post("UiFetchCurrentRace");
-  if (res.data.raceId) currentRace.value = res.data;
+  if (res.data.raceId) {
+    currentRace.value = res.data;
+  } else {
+    currentRace.value = undefined
+  }
 };
 
 const leaveRace = async () => {
@@ -198,11 +203,16 @@ const startRace = async () => {
 
 const fetchRelevantData = () => {
   if (tab.value === "current"){ 
-    getCurrent();
     getListedRaces();
+    getCurrent();
   }
   else if (tab.value === "setup") getTracks();
 };
+
+const cancelRace = ()  => {
+  getCurrent();
+  getListedRaces();
+}
 
 onMounted(() => {
   fetchRelevantData();

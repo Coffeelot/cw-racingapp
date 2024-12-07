@@ -170,6 +170,10 @@ local function createPile(offset, model)
     end
 end
 
+local function isDriver(vehicle)
+    return GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()
+end
+
 local function isPlayerNearby(playerCoords, otherPlayerCoords, maxDistance)
     return #(playerCoords - otherPlayerCoords) <= maxDistance
 end
@@ -189,7 +193,14 @@ end
 local function checkAndDisableGhosting()
     local playerPed = PlayerPedId()
     local playerCoords = GetEntityCoords(playerPed)
+    local playerVehicle = GetVehiclePedIsIn(playerPed, false)
     
+
+    if not isDriver() then
+        unGhostPlayer()
+        return
+    end
+
     -- Check for nearby non-race players
     local nearbyPlayersFound = false
     for _, playerId in ipairs(GetActivePlayers()) do
@@ -1189,10 +1200,6 @@ local function deleteCurrentRaceCheckpoints()
     CurrentRaceData.FirstPerson = false
     CurrentRaceData.RacerName = nil
     RaceData.InRace = false
-end
-
-local function isDriver(vehicle)
-    return GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()
 end
 
 local function FinishRace()
