@@ -1082,6 +1082,7 @@ local function setupRace(raceData, Laps)
         RaceId = raceData.RaceId,
         Creator = raceData.Creator,
         SetupCitizenId = raceData.SetupCitizenId,
+        SetupRacerName = raceData.SetupRacerName,
         RacerName = raceData.RacerName,
         RaceName = raceData.RaceName,
         Checkpoints = checkpoints,
@@ -2738,7 +2739,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             raceId = CurrentRaceData.RaceId,
             ghosting = CurrentRaceData.Ghosting,
             ranked = CurrentRaceData.Ranked,
-            reversed = CurrentRaceData.Reversed
+            reversed = CurrentRaceData.Reversed,
+            hostName = CurrentRaceData.SetupRacerName
         }
         debugLog('Current race', json.encode(data, { indent = true }))
         cb(data)
