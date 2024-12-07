@@ -217,6 +217,7 @@ TranslationsEN = {
         prox_error = "No one close enough",
         quick_host = 'Quick host',
         race_already_started = "The race has already started!",
+        race_canceled = "The race was canceled",
         race_created = "The race was created!",
         race_doesnt_exist = "This race does not exist :(",
         race_go = "GO!",

@@ -169,95 +169,68 @@ local function createPile(offset, model)
     end
 end
 
-local ghostLoopStart = 0
-
-local function actuallyValidateTime(timer)
-    local time = timer or CurrentRaceData.GhostingTime
-
-    if time == 0 then
-        debugLog('Timer is off')
-        return true
-    else
-        if GetTimeDifference(GetGameTimer(), ghostLoopStart) < time then
-            if UseDebug then
-                print('Timer has NOT been reached', GetTimeDifference(GetGameTimer(), ghostLoopStart))
-            end
-            return true
-        end
-        debugLog('Timer has been reached')
-        return false
-    end
-end
-
-local function validateTime()
-    if CurrentRaceData.Ghosting and CurrentRaceData.GhostingTime then
-        return actuallyValidateTime()
-    else
-        debugLog('Ghosting | Defaulting time validation. Ghosting:', CurrentRaceData.Ghosting, 'Ghosting Time:',
-            CurrentRaceData.GhostingTime)
-        return actuallyValidateTime(0)
-    end
-end
-
-local function ghostThread()
-    CreateThread(function()
-        while CurrentRaceData.Ghosted do
-            Wait(0)
-            if CurrentRaceData.Started then
-                local playerPed = PlayerPedId()
-                local playerVehicle = GetVehiclePedIsIn(playerPed, false)
-                local playerId = PlayerId()
-                local playerServerId = GetPlayerServerId(playerId)
-
-                for _, otherPlayer in pairs(CurrentRaceData.Racers) do
-                    if playerServerId ~= otherPlayer.RacerSource then
-                        local otherPed = GetPlayerPed(GetPlayerFromServerId(otherPlayer.RacerSource))
-                        local otherVehicle = GetVehiclePedIsIn(otherPed, false)
-
-                        if DoesEntityExist(otherVehicle) then
-                            if playerVehicle and otherVehicle then
-                                SetEntityNoCollisionEntity(playerVehicle, otherVehicle, true)
-                                SetEntityNoCollisionEntity(otherVehicle, playerVehicle, true)
-                                DisableCamCollisionForObject(otherVehicle)
-                                DisableCamCollisionForEntity(otherVehicle)
-                            end
-                        end
-                    end
-                end
-            else
-                debugLog('Race wasnt started, skipping ghosting')
-            end
-        end
-        debugLog('Player is not ghosted anymore')
-    end)
+local function isPlayerNearby(playerCoords, otherPlayerCoords, maxDistance)
+    return #(playerCoords - otherPlayerCoords) <= maxDistance
 end
 
 local function unGhostPlayer()
-    debugLog('DE GHOSTED')
+    SetLocalPlayerAsGhost(false)
+    SetGhostedEntityAlpha(254)
     CurrentRaceData.Ghosted = false
 end
 
-local function CreateGhostLoop()
-    ghostLoopStart = GetGameTimer()
-    if UseDebug then
-        print('^3 Starting ghost loop. All player:', json.encode(CurrentRaceData.Racers, { indent = true }))
-    end
+local function ghostPlayer()
+    SetLocalPlayerAsGhost(true)
+    SetGhostedEntityAlpha(Config.Ghosting.Alpha)
     CurrentRaceData.Ghosted = true
-    ghostThread()
-    CreateThread(function()
-        while CurrentRaceData.Started do
-            if not validateTime() then
-                debugLog('Breaking due to time')
-                unGhostPlayer()
+end
+
+local function checkAndDisableGhosting()
+    local playerPed = PlayerPedId()
+    local playerCoords = GetEntityCoords(playerPed)
+    
+    -- Check for nearby non-race players
+    local nearbyPlayersFound = false
+    for _, playerId in ipairs(GetActivePlayers()) do
+        -- Skip players in the current race
+        local isRacer = false
+        for _, racerData in pairs(CurrentRaceData.Racers) do
+            if GetPlayerServerId(playerId) == racerData.RacerSource then
+                isRacer = true
                 break
             end
+        end
+        
+        if not isRacer then
+            local otherPed = GetPlayerPed(playerId)
+            local otherPlayerCoords = GetEntityCoords(otherPed)
+            
+            if isPlayerNearby(playerCoords, otherPlayerCoords, Config.Ghosting.DeGhostDistance) then
+                nearbyPlayersFound = true
+                break
+            end
+        end
+    end
+    
+    -- Toggle ghosting based on nearby players
+    if nearbyPlayersFound then
+        unGhostPlayer()
+    else
+        ghostPlayer()
+    end
+end
+
+local function initGhosting()
+    -- Initial ghosting setup
+    ghostPlayer()
+    
+    -- Create a thread to continuously check for nearby players
+    CreateThread(function()
+        while CurrentRaceData.Started do
+            checkAndDisableGhosting()
             Wait(Config.Ghosting.DistanceLoopTime)
         end
     end)
-end
-
-local function ghostPlayers()
-    CreateGhostLoop()
 end
 
 local function isFinishOrStart(checkpoint)
@@ -1802,12 +1775,12 @@ RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
                 Config.Blips.Generic.Size)
             FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
             doPilePfx()
+            CurrentRaceData.Started = true
             if Config.Ghosting.Enabled and CurrentRaceData.Ghosting then
-                ghostPlayers()
+                initGhosting()
             end
             lapStartTime = GetGameTimer()
             startTime = GetGameTimer()
-            CurrentRaceData.Started = true
             timeWhenLastCheckpointWasPassed = GetGameTimer()
             Countdown = 10
         else
@@ -2994,7 +2967,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             cb(false)
         end
 
-        TriggerServerEvent('cw-racingapp:server:createLapRace', createData.name, CurrentName, decodedCheckpoints)
+        TriggerServerEvent('cw-racingapp:server:createTrack', createData.name, CurrentName, decodedCheckpoints)
         cb(true)
     end
 end)

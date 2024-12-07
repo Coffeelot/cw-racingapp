@@ -28,7 +28,7 @@
             <th class="text-left">
               {{ translate('time') }}
             </th>
-            <th class="text-left">
+            <th class="text-left" v-if="selectedRace.Data.Laps > 0">
               {{  translate('best_lap') }}
             </th>
             <th class="text-left">
@@ -50,7 +50,7 @@
             <td> {{ index +1 }}. {{ item.RacerName }} {{ item.RacingCrew ? '[' + item.RacingCrew + ']' : '' }}</td>
             <td>{{ item.Ranking }}</td>
             <td>{{ msToHMS(item.TotalTime) }}</td>
-            <td>{{ msToHMS(item.BestLap) }}</td>
+            <td v-if="selectedRace.Data.Laps > 0">{{ msToHMS(item.BestLap) }}</td>
             <td>{{ item.VehicleModel }}</td>
             <td>{{ item.CarClass }}</td>
             <td  v-if="selectedRace.Data.RaceData.Ranked">{{ item.TotalChange}}</td>

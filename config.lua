@@ -274,6 +274,8 @@ Config.Ghosting = {
     Enabled = true,          --adding ability to toggle per started race soon
     Timer = 60000,               -- Default timer, in milliseconds. SET TO 0 TO HAVE ON FOR ENTIRE RACE. This is what's used if you leave the field blank when setting up a race
     DistanceLoopTime = 500, -- in ms. Time until the ghosting script rechecks positions. Higher will be less accurate but will be more performance friendly.
+    DeGhostDistance = 100,
+    Alpha = 254, -- see https://docs.fivem.net/natives/?_0x658500AE6D723A7E for info
     Options = {
         { value = -1,       text = 'Off' },
         { value = 0,        text = 'Always' },
