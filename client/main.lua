@@ -69,7 +69,8 @@ local CheckDistance = Config.CheckDistance or false
 
 local function debugLog(message, message2, message3, message4)
     if UseDebug then
-        print('^2CW-RACINGAPP DEBUG:^0', message)
+        print('^2CW-RACINGAPP DEBUG:^0')
+        print(message)
         if message2 then
             print(message2)
         end
@@ -204,10 +205,15 @@ local function checkAndDisableGhosting()
         if not isRacer then
             local otherPed = GetPlayerPed(playerId)
             local otherPlayerCoords = GetEntityCoords(otherPed)
-            
-            if isPlayerNearby(playerCoords, otherPlayerCoords, Config.Ghosting.DeGhostDistance) then
-                nearbyPlayersFound = true
-                break
+            local otherPlayerVehicle = GetVehiclePedIsIn(otherPed, false)
+            local isPassenger = otherPlayerVehicle ~= 0 and otherPlayerVehicle ~= nil and 
+                                GetPedInVehicleSeat(otherPlayerVehicle, -1) ~= otherPed
+
+            if not isPassenger then
+                if isPlayerNearby(playerCoords, otherPlayerCoords, Config.Ghosting.DeGhostDistance) then
+                    nearbyPlayersFound = true
+                    break
+                end
             end
         end
     end
@@ -3115,6 +3121,14 @@ RegisterNUICallback('UiGetCrewData', function(data, cb)
     local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentCrew)
 
     debugLog('crew data: ', json.encode(result))
+    cb(result)
+end)
+
+RegisterNUICallback('UiCancelRace', function(trackId, cb)
+    debugLog('Cancelling', trackId)
+    local result = cwCallback.await('cw-racingapp:server:cancelRace', trackId)
+    Wait(1000)
+    CurrentRaceData.RaceId = nil
     cb(result)
 end)
 
