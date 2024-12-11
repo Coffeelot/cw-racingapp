@@ -193,10 +193,10 @@ end
 local function checkAndDisableGhosting()
     local playerPed = PlayerPedId()
     local playerCoords = GetEntityCoords(playerPed)
-    local playerVehicle = GetVehiclePedIsIn(playerPed, false)
-    
+    local vehicle = GetVehiclePedIsIn(playerPed, false)
 
-    if not isDriver() then
+    if not isDriver(vehicle) then
+        debugLog('Racer was not the driver')
         unGhostPlayer()
         return
     end
