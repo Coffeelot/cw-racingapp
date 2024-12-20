@@ -21,6 +21,7 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn rounded="xl" v-if="globalStore.baseData.data.auth.curateTracks" @click="curateDialog = true">{{ translate('curation') }} </v-btn>
+      <v-btn rounded="xl" @click="editRecords = true">{{ translate('view_records') }} </v-btn>
       <v-btn rounded="xl" @click="lbDialog = true">{{ translate('clear_lead') }} </v-btn>
       <v-btn rounded="xl" v-if="!track.Curated" @click="editDialog = true"
         >{{ translate('edit_track') }} </v-btn
@@ -144,15 +145,60 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog attach=".app-container" contained v-model="editRecords" width="auto">
+    <v-card  rounded="lg">
+      <v-card-title>{{ translate('view_records') }} {{ track.RaceName }}?</v-card-title>
+      <v-card-subtitle> {{ translate('view_records_modal_desc') }} </v-card-subtitle>
+      
+      <v-card-text>
+        <v-alert type="warning" >  {{ translate('changes_are_permanent') }}</v-alert>
+        <v-list>
+          <v-list-item 
+            v-for="(record, i) in track.Records" 
+            :key="i" 
+            :title="record.Holder + ' | ' + msToHMS(record.Time)" 
+            :subtitle="record.Vehicle + ' | ' + record.Class"
+          >
+          <template v-slot:append>
+            <v-btn variant="text" color="red" :text="translate('remove_record')" @click="openConfirmRecordModal(record)"></v-btn>
+          </template>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn rounded="xl" @click="editRecords = false">
+            {{ translate('close') }} 
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+    <v-dialog  attach=".app-container" contained width="auto" v-model="confirmRecordRemovalDialog">
+      <v-card rounded="lg" :title="translate('confirm_record_removal')">
+        <v-card-text v-if="selectedRecord">
+          <p> {{ translate('racer_name') }}: {{ selectedRecord.Holder }} </p>
+          <p> {{ translate('best_lap') }}: {{ selectedRecord.Time }} </p>
+          <p> {{ translate('vehicle') }}: {{ selectedRecord.Vehicle }} </p>
+          <p> {{ translate('class') }}: {{ selectedRecord.Class }} </p>
+          <p> {{ translate('race_type') }}: {{ selectedRecord.RaceType }} </p>
+          <p> {{ translate('reversed') }}: {{ selectedRecord.Reversed }} </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn  variant="text" :text="translate('close')" @click="resetRecordRemoval"></v-btn>
+          <v-btn :loading="loadingRecordRemoval" variant="text" color="red" @click="handleRemoveRecord" :text="translate('confirm')"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import api from "@/api/axios";
 import { closeApp } from "@/helpers/closeApp";
-import { Track, TrackMetadata } from "@/store/types";
+import { Track, TrackMetadata, TrackRecord } from "@/store/types";
 import { Ref, ref } from "vue";
 import { translate } from "@/helpers/translate";
 import { useGlobalStore } from "@/store/global";
+import { msToHMS } from "@/helpers/msToHMS";
 
 const trackTypes = [
   { value: 'any', label: translate('any') },
@@ -172,6 +218,36 @@ const lbDialog = ref(false);
 const editDialog = ref(false);
 const accessDialog = ref(false);
 const settingsDialog = ref(false);
+const editRecords = ref(false);
+
+const confirmRecordRemovalDialog = ref(false);
+const selectedRecord: Ref<TrackRecord | undefined> = ref(undefined)
+const loadingRecordRemoval = ref(false)
+
+const openConfirmRecordModal = (record: TrackRecord) => {
+  selectedRecord.value = record
+  confirmRecordRemovalDialog.value = true
+}
+
+const resetRecordRemoval = () => {
+  selectedRecord.value = undefined
+  confirmRecordRemovalDialog.value = false
+
+}
+const handleRemoveRecord = async () => {
+  loadingRecordRemoval.value = true  
+  if (selectedRecord.value) {
+    const response = await api.post('UiRemoveRecord',  JSON.stringify({ trackId: props.track.RaceId, record: selectedRecord.value }))
+    if (response) {
+      emit('update')      
+      resetRecordRemoval()
+      loadingRecordRemoval.value = false
+    }
+  }
+  
+  
+}
+
 const settings: Ref<TrackMetadata> = ref({
   description: undefined,
   raceType: undefined,
