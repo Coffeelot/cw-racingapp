@@ -1,5 +1,5 @@
 Config = Config or {}
-Config.Debug = true
+Config.Debug = false
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
 Lang = function(phrase)
@@ -17,7 +17,7 @@ Config.MaxRacerNames = 2                -- Maximum allowed amount of unique name
 Config.MaxCheckpoints = 60              -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
 Config.AllowCreateFromShare = true      -- toggle this to allow using the share track creation
 Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
-Config.TimeOutTimerInMinutes = 1        -- Default = 5 minutes
+Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
 Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
@@ -51,7 +51,7 @@ Config.EloPunishments = {                                                       
 }
 
 
-Config.PrimaryUiColor = '#01bcd9' -- Primary color in UI, default is orange
+Config.PrimaryUiColor = '#f07800' -- Primary color in UI, default is orange
 
 -- GPS stuff
 Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
@@ -166,7 +166,7 @@ Config.Permissions = {
     }
 }
 
-Config.MarkAmountOfCheckpointsAhead = 5
+Config.MarkAmountOfCheckpointsAhead = 3
 Config.FlareTime = 10000                                 -- How long the flares are lit
 Config.KickTime = 10 * 60 * 1000                         -- How long (in ms) until you get kicked if not being at race
 Config.StartAndFinishModel = 'prop_beachflag_le'         -- comment this line out if you dont want props for start/finish line
@@ -256,8 +256,8 @@ Config.Payments = {
     automationPayout = 'racingcrypto', -- what money is used  to payouts in automation races
     participationPayout = 'racingcrypto', -- what money the participation rewards give out
     bountyPayout = 'racingcrypto', -- what money bounties pay out
-    createRacingUser = 'bank', -- what money is used to create racing users
-    crypto = 'bank', -- what money type is used to buy Racing App Crypto
+    createRacingUser = 'cash', -- what money is used to create racing users
+    crypto = 'cash', -- what money type is used to buy Racing App Crypto
 }
 
 Config.Trader = {
@@ -314,7 +314,7 @@ Config.QuickSetupDefaults = {
     buyIn = 0,
     ranked = false,
     reversed = false,
-    laps = 1,
+    laps = 2,
     maxClass = nil,
     participationMoney = 0,
     participationCurrency = Config.Payments.participationPayout,
