@@ -58,6 +58,9 @@ const handleDataUpdate = (itemData: any) => {
     case 'bounties':
       globalStore.bounties = itemData.data
       break;
+    case 'crypto':
+      globalStore.baseData.data.currentCrypto = itemData.data
+      break;
     default:
       break;
   }

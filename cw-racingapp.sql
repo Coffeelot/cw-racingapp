@@ -36,6 +36,7 @@ CREATE TABLE `racer_names` (
 	`revoked` TINYINT(4) NULL DEFAULT '0',
 	`ranking` INT(11) NULL DEFAULT '0',
 	`active` INT(11) NOT NULL DEFAULT '0',
+	`crypto` INT NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `id` (`id`) USING BTREE
 )

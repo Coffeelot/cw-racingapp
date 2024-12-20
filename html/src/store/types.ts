@@ -200,6 +200,17 @@ export type VehicleClass = {
     number: number
 }
 
+export type Payments = {
+    useRacingCrypto: string,
+    cryptoType: string,
+    racing: string,
+    automationPayout: string,
+    participationPayout: string,
+    bountyPayout: string,
+    createRacingUser: string,
+    crypto: string,
+}
+
 export type BaseData = {
     data: {
         classes: VehicleClass[],
@@ -214,12 +225,20 @@ export type BaseData = {
         currentRacerName: string,
         currentRacerAuth: string,
         currentCrewName: string,
+        currentCrypto: number,
         currentRanking: number,
+        cryptoConversionRate: number,
+        allowBuyingCrypto: boolean,
+        allowSellingCrypto: boolean,
+        allowTransferCrypto: boolean,
+        sellCharge: number,
         auth: Auth
         hudSettings: { location: string, maxPositions: number },
         translations: Record<string,string>,
         anyoneCanCreate: boolean,
         isFirstUser: boolean,
+        isUsingRacingCrypto: boolean,
+        payments: Payments
     }
 }
 

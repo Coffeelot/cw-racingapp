@@ -137,7 +137,8 @@ const filteredTracks = computed(() => {
     tracks = tracks.filter(
       (track) =>
         track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
-        track.RaceId.toLowerCase().includes(search.value.toLowerCase())
+        track.RaceId.toLowerCase().includes(search.value.toLowerCase()) ||
+        track.CreatorName.toLocaleLowerCase().includes(search.value.toLowerCase())
     );
 
   return tracks.sort((a: Track, b: Track) =>

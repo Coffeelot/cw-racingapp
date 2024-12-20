@@ -227,6 +227,30 @@ local function getAllCrews()
     return MySQL.Sync.fetchAll(query, {})
 end
 
+-- Fetch crypto balance for a specific racer
+local function getCryptoForRacer(racerName)
+    local result = MySQL.Sync.fetchScalar('SELECT crypto FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
+    return result or 0
+end
+
+-- Add crypto to a racer's balance
+local function addCryptoToRacer(racerName, amount)
+    return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto + ? WHERE racername = ?', 
+        { amount, strictSanitize(racerName) })
+end
+
+-- Remove crypto from a racer's balance
+local function removeCryptoFromRacer(racerName, amount)
+    return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto - ? WHERE racername = ?', 
+        { amount, strictSanitize(racerName) })
+end
+
+-- Get racing users belonging to a specific citizenid
+local function getRacingUsersByCitizenId(citizenId)
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { citizenId })
+end
+
+
 RADB = {
     changeCrewRank = changeCrewRank,
     clearLeaderboardForTrack = clearLeaderboardForTrack,
@@ -265,4 +289,8 @@ RADB = {
     updateRacerElo = updateRacerElo,
     wipeTracksTable = wipeTracksTable,
     updateTrackMetadata = updateTrackMetadata,
+    getCryptoForRacer = getCryptoForRacer,
+    addCryptoToRacer = addCryptoToRacer,
+    removeCryptoFromRacer = removeCryptoFromRacer,
+    getRacingUsersByCitizenId = getRacingUsersByCitizenId,
 }

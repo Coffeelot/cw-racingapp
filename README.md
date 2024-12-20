@@ -12,9 +12,10 @@
 **Features:**
 - [Create tracks](#track-creation)
 - Host races
-- Buy-Ins
 - [Automated Races](#Automated-Races)
 - [Time Trial Bounties](#Time-Trial-Bounties)
+- Built in Crypto system
+- Buy-Ins and automated splits
 - Phasing/Ghosting
 - Reversed tracks
 - Participation payouts
@@ -33,7 +34,6 @@
 - Optional default tracks
 - Forced first person mode
 - Vehicle Performance Class limits
-- Support for Renewed Crypto
 
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
 
@@ -103,6 +103,15 @@ As of 16th November 2024 the script has cuztomizeable time trial bounties that p
 ```
 These are randomized upon server start (~5 seconds after script start/restart). You can modify how many of these are added in the Bounties Options. If your auth type has the `handleBounties` auth you should be able to re-roll the bounties from the bounties menu.
 
+### RacingApp Crypto [RAC]
+RacingApp has a built in crypto system tied to the racing user. To use this you can set your payment methods to `'racingcrypto'` and it will use the custom Racing Crypto System instead of your core payment system. The crypto is tied to a racinguser, so make sure you have a way to buy one of those with normal money if you don't want to have racing masters handle your users. 
+
+The system allows for buying, selling and transfering. There's a fee for selling (can be customized).
+
+Want to use the Racing Crypto from other script? Check out [Adding Racing Crypto To Other Scripts](#Adding-Racing-Crypto-To-Other-Scripts)
+
+
+
 ### User Management
 The script offers user management now. We've moved away from the basic/master fob and instead users are saved in the database.
 To swap your user, open the racingapp and press the cog-icon to open the settings.
@@ -145,6 +154,60 @@ Server side:
     exports['cw-racingapp']:openRacingApp(source)
 ```
 
+## Adding Racing Crypto To Other Scripts
+> ALL EXPORTS ARE SERVER SIDE ONLY!
+### Get Crypto
+
+You'll need to know the name of the race user you want to check for here. Swap out 'RacerName' for whatever name you want to use
+```lua
+    local racerName = 'This Is Just An Example String You Have To Change This'
+
+    local cryptoAmount = exports['cw-racingapp']:getRacerCrypto(racerName)
+    print(racerName, 'has ', cryptoAmount)
+```
+
+### Check if user has enough
+```lua
+    local racerName = 'This Is Just An Example String You Have To Change This'
+
+    local hasEnough = exports['cw-racingapp']:hasEnoughCrypto(racerName, 20)
+    print(racerName, 'has 20 or more crypto:', hasEnough )
+```
+
+### Add crypto
+```lua
+    local racerName = 'This Is Just An Example String You Have To Change This'
+
+    local success = exports['cw-racingapp']:addRacerCrypto(racerName, 20)
+    print('successfully gave', racerName, ' 20 crypto: ', success)
+```
+
+### Remove crypto
+```lua
+    local racerName = 'This Is Just An Example String You Have To Change This'
+
+    local success = exports['cw-racingapp']:removeCrypto(racerName, 20)
+    print('successfully charged', racerName, ' 20 crypto: ', success)
+```
+
+### Get all racing users for a player by citizenId
+This one is usefull if you want to get all users for a player so you can list them in other scripts
+
+```lua
+    -- With CitizenID
+    local citizenId = 'ThisIsJustAnExampleStringYouHaveToChangeThis123'
+
+    local result = exports['cw-racingapp']:getRacingUsersByCitizenId(citizenId)
+    print('All racing users belonging to citizenid', citizenId, json.encode(result, {indent=true}) )
+```
+
+```lua
+    -- with Source
+    -- OBVIOUSLY YOU NEED TO HAVE A DEFINED SOURCE IN THIS ONE!!
+
+    local result = exports['cw-racingapp']:getRacingUsersBySrc(source)
+    print('All racing users belonging to source', source, json.encode(result, {indent=true}) )
+```
 
 # Preview
 
@@ -364,6 +427,13 @@ SET citizenid = (
     FROM characters 
     WHERE characters.charId = racer_names.citizenid
 );
+```
+
+## Crypto addition, 20th Dec, 2024
+Added a built in crypto system (Sorry Renewed Users)
+```sql
+ALTER TABLE racer_names
+ADD COLUMN crypto INT DEFAULT 0 NOT NULL;
 ```
 
 # Dependencies

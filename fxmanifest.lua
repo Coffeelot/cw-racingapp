@@ -4,17 +4,16 @@ games { 'gta5' }
 
 author 'Coffeelot & Wuggie'
 description 'CW Racing App'
-version '3.8.2'
+version '3.5.4'
 
 ui_page {
     "html/dist/index.html"
 }
 
 shared_scripts {
+    '@ox_lib/init.lua',
     'locales/en.lua',
     'config.lua',
-    '@ox_lib/init.lua',
-    '@qbx_core/modules/playerdata.lua'
 }
 
 client_scripts {
@@ -29,6 +28,7 @@ server_scripts {
     'bridge/server/*.lua',
     'server/functions.lua',
     'server/main.lua',
+    'server/crypto.lua',
     'server/crews.lua',
     'server/elo.lua',
     'server/bounties.lua'

@@ -12,6 +12,7 @@ local IsFirstUser
 local CurrentName
 local CurrentAuth
 local CurrentCrew
+local CurrentCrypto
 local CurrentRanking
 
 local CheckpointPileModel = joaat(Config.CheckpointPileModel)
@@ -103,6 +104,7 @@ local function updateUiData(dataType, data)
 end
 
 RegisterNetEvent('cw-racingapp:client:updateUiData', function(dataType, data)
+    if dataType == 'crypto' then CurrentCrypto = data end
     if hasGps() then
         updateUiData(dataType, data)
     end
@@ -1980,7 +1982,7 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
             local nameIsNotTaken = cwCallback.await('cw-racingapp:server:nameIsAvailable', racerName, racerId)
 
             if nameIsNotTaken then
-                TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType)
+                TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType, CurrentName)
             else
                 notify(Lang("name_is_used") .. racerName, 'error')
             end
@@ -2034,7 +2036,7 @@ if Config.Trader.active then
         if trader.moneyType == 'cash' or trader.moneyType == 'bank' then
             currency = '$'
         else
-            currency = Config.Options.cryptoType
+            currency = Config.Payments.cryptoType
         end
 
         local options = {}
@@ -2073,10 +2075,6 @@ if Config.Trader.active then
         SetEntityProofs(TraderPed, true, true, true, true, true, true, 1, true)
         FreezeEntityPosition(TraderPed, true)
 
-        if Config.Sundown then
-            exports['sundown-utils']:addPedToBanlist(TraderPed)
-        end
-
         if Config.UseOxTarget then
             exports.ox_target:addLocalEntity(TraderPed, options)
         else
@@ -2098,7 +2096,7 @@ if Config.Laptop.active then
         if laptop.moneyType == 'cash' or laptop.moneyType == 'bank' then
             currency = '$'
         else
-            currency = Config.Options.cryptoType
+            currency = Config.Payments.cryptoType
         end
 
         local options = {}
@@ -2119,7 +2117,6 @@ if Config.Laptop.active then
         laptopEntity = CreateObject(laptop.model, laptop.location.x, laptop.location.y, laptop.location.z, false, false,
             true)
         SetEntityHeading(laptopEntity, laptop.location.w)
-        CreateObject(laptopEntity)
         FreezeEntityPosition(laptopEntity, true)
         Entities[#Entities + 1] = laptopEntity
 
@@ -2328,8 +2325,8 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         classes = classes,
         laps = Config.Options.Laps,
         buyIns = Config.Options.BuyIns,
-        moneyType = Config.Options.MoneyType,
-        cryptoType = Config.Options.cryptoType,
+        moneyType = Config.Payments.racing,
+        cryptoType = Config.Payments.cryptoType,
         ghostingEnabled = Config.Ghosting.Enabled,
         ghostingTimes = Config.Ghosting.Options,
         allowShare = Config.AllowCreateFromShare,
@@ -2338,12 +2335,20 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         currentRacerAuth = CurrentAuth,
         currentCrewName = CurrentCrew,
         currentRanking = CurrentRanking,
+        currentCrypto = CurrentCrypto,
+        isUsingRacingCrypto = Config.Payments.useRacingCrypto,
+        cryptoConversionRate = Config.Options.conversionRate,
+        allowBuyingCrypto = Config.Options.allowBuyingCrypto,
+        allowSellingCrypto = Config.Options.allowSellingCrypto,
+        allowTransferCrypto = Config.Options.allowTransferCrypto,
+        sellCharge = Config.Options.sellCharge,
         auth = Config.Permissions[CurrentAuth],
         hudSettings = Config.HUDSettings,
         translations = Config.Locale,
         primaryColor = Config.PrimaryUiColor,
         anyoneCanCreate = Config.AllowAnyoneToCreateUserInApp,
-        isFirstUser = IsFirstUser
+        isFirstUser = IsFirstUser,
+        payments = Config.Payments
     }
     cb(setup)
 end)
@@ -2472,11 +2477,16 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
     MyRacerNames = playerNames
     local currentRacer = getActiveRacerName()
     debugLog('Current racer after change', json.encode(currentRacer, { indent = true }))
+    debugLog('All player names', json.encode(MyRacerNames, { indent = true }))
 
+    if  #MyRacerNames == 1 then
+        currentRacer = MyRacerNames[1]
+    end
     if currentRacer then
         CurrentName = currentRacer.racername
         CurrentAuth = currentRacer.auth
         CurrentRanking = currentRacer.ranking
+        CurrentCrypto = currentRacer.crypto
         CurrentCrew = currentRacer.crew
     end
 
@@ -2538,11 +2548,41 @@ RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
     if currentRacer and currentRacer.revoked == 1 then
         notify(Lang("revoked_access"), 'error')
     end
-    if currentRacer and currentRacer.ranking then
-        CurrentRanking = currentRacer.ranking
-        debugLog('Ranking is', CurrentRanking)
+    if currentRacer then
+        if currentRacer.ranking then
+            CurrentRanking = currentRacer.ranking
+            debugLog('Ranking is', CurrentRanking)
+        end
+        if currentRacer.crypto then
+            CurrentCrypto = currentRacer.crypto
+            debugLog('Crypto is', CurrentCrypto)
+        end
     end
     cb(playerNames)
+end)
+
+RegisterNUICallback('UiPurchaseCrypto', function(data, cb)
+    debugLog('purchasing crypto', data.cryptoAmount)
+    local result = cwCallback.await('cw-racingapp:server:purchaseCrypto', CurrentName, data.cryptoAmount)
+    debugLog('purchasing crypto result', result)
+    Wait(1000)
+    cb(result)
+end)
+
+RegisterNUICallback('UiSellCrypto', function(data, cb)
+    debugLog('selling crypto', data.cryptoAmount)
+    local result = cwCallback.await('cw-racingapp:server:sellCrypto', CurrentName, data.cryptoAmount)
+    debugLog('selling crypto result', result)
+    Wait(1000)
+    cb(result)
+end)
+
+RegisterNUICallback('UiTransferCrypto', function(data, cb)
+    debugLog('selling crypto', data.cryptoAmount, 'to', data.recipient)
+    local result = cwCallback.await('cw-racingapp:server:transferCrypto', CurrentName, data.cryptoAmount, data.recipient)
+    debugLog('selling crypto result', result)
+    Wait(1000)
+    cb(result)
 end)
 
 RegisterNUICallback('UiRevokeRacer', function(data, cb)
@@ -2550,11 +2590,20 @@ RegisterNUICallback('UiRevokeRacer', function(data, cb)
     local newStatus = 0
     if data.status == 0 then newStatus = 1 end
     TriggerServerEvent("cw-racingapp:server:setRevokedRacenameStatus", data.racername, newStatus)
+    cb(true)
+end)
+
+RegisterNUICallback('UiRemoveRecord', function(data, cb)
+    debugLog('permanently removing record', json.encode(data, {indent=true}))
+    TriggerServerEvent("cw-racingapp:server:removeRecord", data.trackId,  data.record)
+    cb(true)
 end)
 
 RegisterNUICallback('UiRemoveRacer', function(data, cb)
     debugLog('permanently removing racename', data.racername)
     TriggerServerEvent("cw-racingapp:server:removeRacerName", data.racername)
+    Wait(500)
+    cb(true)
 end)
 
 RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
@@ -2572,7 +2621,7 @@ RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
     if Config.Laptop.moneyType == 'cash' or Config.Laptop.moneyType == 'money' or Config.Laptop.moneyType == 'bank' then
         currency = '$'
     else
-        currency = Config.Options.cryptoType
+        currency = Config.Payments.cryptoType
     end
 
     for authName, _ in pairs(Config.Permissions) do
@@ -2852,7 +2901,8 @@ local function attemptSetupRace(setupData)
                 reversed = setupData.reversed,
                 participationMoney = setupData.participationMoney,
                 participationCurrency = setupData.participationCurrency,
-                firstPerson = setupData.firstPerson
+                firstPerson = setupData.firstPerson,
+                silent = setupData.silent,
             }
             local res = cwCallback.await('cw-racingapp:server:setupRace', data)
             return res
@@ -3245,6 +3295,14 @@ local function getCurrentRankingFromRacer(racerNames)
     end
 end
 
+local function getCurrentCryptoFromRacer(racerNames)
+    for _, racer in pairs(racerNames) do
+        if racer.racername == CurrentName then
+            return racer.crypto
+        end
+    end
+end
+
 function initialSetup()
     Wait(1000)
     IsFirstUser = cwCallback.await('cw-racingapp:server:isFirstUser')
@@ -3266,10 +3324,12 @@ function initialSetup()
         CurrentName = racerName
         CurrentAuth = racerAuth
         CurrentRanking = getCurrentRankingFromRacer(playerNames)
+        CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
         if UseDebug then
-            print('^3Racer name in metadata: ', racerName)
-            print('^3Racer auth in metadata: ', racerAuth)
-            print('^3Ranking', CurrentRanking)
+            print('^3Racer name in metadata: ^0', racerName)
+            print('^3Racer auth in metadata: ^0', racerAuth)
+            print('^3Ranking^0', CurrentRanking)
+            print('^3Crypto^0', CurrentCrypto)
         end
     else
         if getSizeOfTable(playerNames) == 1 then
@@ -3279,6 +3339,7 @@ function initialSetup()
                 CurrentName = result.name
                 CurrentAuth = result.auth
                 CurrentRanking = getCurrentRankingFromRacer(playerNames)
+                CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
             end
         end
     end
@@ -3303,8 +3364,7 @@ AddEventHandler('onResourceStart', function(resource)
 
         print('^2Inventory is set to ', Config.Inventory)
         print('^2Using Oxlib for keybinds ', Config.UseOxLibForKeybind)
-        print('^2Using Renewed Crypto ', Config.UseRenewedCrypto)
-        print('^2Using Renewed Banking ', Config.UseRenewedBanking)
+        print('^2Using Racing App Crypto ', Config.Payments.useRacingCrypto)
 
         print('^2Permissions:', json.encode(Config.Permissions))
         print('^2Classes: ', json.encode(Classes))

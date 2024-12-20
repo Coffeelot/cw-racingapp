@@ -271,7 +271,7 @@ local function getLatestRecordsById(RaceId)
     return Tracks[RaceId].Records or {}
 end
 
-local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType, Reversed)
+local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType, Reversed, VehicleLabel)
     local records = getLatestRecordsById(RaceData.RaceId)
     local PersonalBest, index = nil, nil
 
@@ -282,6 +282,9 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
     else
         PersonalBest, index = racerHasPreviousRecordInClassAndDirection(records, RacerName, CarClass, VehicleModel,
             Reversed)
+        if UseDebug then
+            print('Old PB', PersonalBest.Time, 'Index', index)
+        end
     end
 
     if PersonalBest and PersonalBest.Time > PlayerTime and index then -- if player had a record already
@@ -295,6 +298,7 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
             Holder = RacerName,
             Class = CarClass,
             Vehicle = VehicleModel,
+            VehicleLabel = VehicleLabel,
             RaceType = RaceType,
             Reversed = Reversed
         }
@@ -307,10 +311,10 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
         TriggerClientEvent('cw-racingapp:client:notify', src,
             string.format(Lang("time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
         if UseDebug then
-            print('no pb')
+            print('racer did not have a previous pb', RacerName)
         end
         if UseDebug then
-            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
+            print('adding new pb', PlayerTime, RacerName, CarClass, VehicleModel)
         end
         local playerPlacement = {
             Time = PlayerTime,
@@ -330,7 +334,53 @@ local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, Vehicle
     return false
 end
 
-local function giveSplit(src, racers, position, pot)
+local function handleAddMoney(src, moneyType, amount, racerName, textKey)
+    if UseDebug then print('Attempting to give', racerName, amount, moneyType) end
+
+    if moneyType == 'racingcrypto' then
+        RacingCrypto.addRacerCrypto(racerName, math.floor(tonumber(amount)))
+        TriggerClientEvent('cw-racingapp:client:updateUiData', src, 'crypto', RacingCrypto.getRacerCrypto(racerName))
+
+        TriggerClientEvent('cw-racingapp:client:notify', src,
+            Lang(textKey or "participation_trophy_crypto") .. math.floor(amount) .. ' ' .. Config.Payments.cryptoType, 'success')
+    else
+        addMoney(src, moneyType, math.floor(tonumber(amount)))
+    end
+end
+
+local function handleRemoveMoney(src, moneyType, amount, racerName)
+    if UseDebug then print('Attempting to charge', racerName, amount, moneyType) end
+    if moneyType == 'racingcrypto' then
+        if RacingCrypto.removeCrypto(racerName, amount) then
+            TriggerClientEvent('cw-racingapp:client:notify', src,
+            Lang("remove_crypto") .. math.floor(amount) .. ' ' .. Config.Payments.cryptoType, 'success')
+            TriggerClientEvent('cw-racingapp:client:updateUiData', src, 'crypto', RacingCrypto.getRacerCrypto(racerName))
+            
+            return true
+        end
+        TriggerClientEvent('cw-racingapp:client:notify', src, Lang("can_not_afford") .. math.floor(amount).. ' '..Config.Payments.cryptoType,
+        'error')
+    else
+        if removeMoney(src, moneyType, math.floor(amount)) then
+            if UseDebug then print('^2Payment successful^0') end
+            return true
+        end
+        if UseDebug then print('^1Payment Not successful^0') end
+        TriggerClientEvent('cw-racingapp:client:notify', src, Lang("can_not_afford") .. ' $' .. math.floor(amount),
+            'error')
+    end
+    return false
+end
+
+local function hasEnoughMoney(src, moneyType, amount, racerName)
+    if moneyType == 'racingcrypto' then
+        return RacingCrypto.hasEnoughCrypto(racerName, amount)
+    else
+        return canPay(src, moneyType, amount)
+    end
+end
+
+local function giveSplit(src, racers, position, pot, racerName)
     local total = 0
     if (racers == 2 or racers == 1) and position == 1 then
         total = pot
@@ -344,43 +394,19 @@ local function giveSplit(src, racers, position, pot)
         if UseDebug then print('No one got a payout') end
     end
     if total > 0 then
-        if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, math.floor(total))
-            TriggerClientEvent('cw-racingapp:client:notify', src,
-                Lang("participation_trophy_crypto") .. math.floor(total) .. ' ' .. Config.Options.cryptoType, 'success')
-        else
-            addMoney(src, Config.Options.MoneyType, math.floor(total))
-        end
+        handleAddMoney(src, Config.Payments.racing, total, racerName)
     end
 end
 
-local function handOutParticipationTrophy(src, position)
-    if Config.ParticipationTrophies.amount[position] then
-        if Config.ParticipationTrophies.type == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.ParticipationTrophies.cryptoType,
-                Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('cw-racingapp:client:notify', src,
-                Lang("participation_trophy_crypto") ..
-                Config.ParticipationTrophies.amount[position] .. ' ' .. Config.ParticipationTrophies.cryptoType,
-                'success')
-        else
-            addMoney(src, Config.ParticipationTrophies.type, Config.ParticipationTrophies.amount[position])
-            TriggerClientEvent('cw-racingapp:client:notify', src,
-                Lang("participation_trophy") .. Config.ParticipationTrophies.amount[position], 'success')
-        end
+local function handOutParticipationTrophy(src, position, racerName)
+    if Config.Payments.amount[position] then
+        handleAddMoney(src, Config.Payments.participationPayout, Config.ParticipationTrophies.amount[position], racerName)
     end
 end
 
-local function handOutAutomationPayout(src, amount)
-    if Config.Options.MoneyType then
-        if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
-            exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amount)
-            TriggerClientEvent('cw-racingapp:client:notify', src,
-                Lang("extra_payout") .. ' ' .. amount .. ' ' .. Config.Options.cryptoType, 'success')
-        else
-            addMoney(src, Config.Options.MoneyType, amount)
-            TriggerClientEvent('cw-racingapp:client:notify', src, Lang("extra_payout") .. ' ' .. amount, 'success')
-        end
+local function handOutAutomationPayout(src, amount, racerName)
+    if Config.Payments.automationPayout then
+        handleAddMoney(src, Config.Payments.automationPayout, amount, racerName, 'extra_payout')
     end
 end
 
@@ -473,9 +499,10 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             print('Place:', playersFinished, Tracks[raceData.RaceId].BuyIn)
         end
         if Tracks[raceData.RaceId].BuyIn > 0 then
-            giveSplit(src, amountOfRacers, playersFinished, Tracks[raceData.RaceId].BuyIn)
+            giveSplit(src, amountOfRacers, playersFinished, Tracks[raceData.RaceId].BuyIn, racerName)
         end
 
+        -- Participation amount (global)
         if Config.ParticipationTrophies.enabled and Config.ParticipationTrophies.minimumOfRacers <= amountOfRacers then
             if UseDebug then print('Participation Trophies are enabled') end
             local distance = Tracks[raceData.RaceId].Distance
@@ -487,7 +514,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                     if UseDebug then print('Participation Trophies buy in check passed', src) end
                     if not Config.ParticipationTrophies.requireRanked or (Config.ParticipationTrophies.requireRanked and AvailableRaces[availableKey].Ranked) then
                         if UseDebug then print('Participation Trophies Rank check passed, handing out to', src) end
-                        handOutParticipationTrophy(src, playersFinished)
+                        handOutParticipationTrophy(src, playersFinished, racerName)
                     end
                 end
             else
@@ -502,6 +529,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                 Tracks[raceData.RaceId].ParticipationCurrency)
         end
 
+        -- Participation amount (on this specific race)
         if Tracks[raceData.RaceId].ParticipationAmount and Tracks[raceData.RaceId].ParticipationAmount > 0 then
             local amountToGive = math.floor(Tracks[raceData.RaceId].ParticipationAmount)
             if Config.ParticipationAmounts.positionBonuses[playersFinished] then
@@ -512,16 +540,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                 print('Race has participation price set', Tracks[raceData.RaceId].ParticipationAmount,
                     amountToGive, Tracks[raceData.RaceId].ParticipationCurrency)
             end
-            if Tracks[raceData.RaceId].ParticipationCurrency == 'crypto' and Config.UseRenewedCrypto then
-                exports['qb-phone']:AddCrypto(src, Config.Options.cryptoType, amountToGive)
-                TriggerClientEvent('cw-racingapp:client:notify', src,
-                    Lang("participation_trophy_crypto") ..
-                    amountToGive .. ' ' .. Tracks[raceData.RaceId].ParticipationCurrency, 'success')
-            else
-                addMoney(src, Tracks[raceData.RaceId].ParticipationCurrency, amountToGive)
-                TriggerClientEvent('cw-racingapp:client:notify', src, Lang("participation_trophy") .. amountToGive,
-                    'success')
-            end
+            handleAddMoney(src, Tracks[raceData.RaceId].ParticipationCurrency, amountToGive, racerName 'participation_trophy_crypto')
         end
 
         if Tracks[raceData.RaceId].Automated then
@@ -537,13 +556,13 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                 if playersFinished == 1 and payoutData.winner then
                     total = total + payoutData.winner
                 end
-                handOutAutomationPayout(src, total)
+                handOutAutomationPayout(src, total, racerName)
             end
         end
 
         local bountyResult = BountyHandler.checkBountyCompletion(racerName, vehicleModel, ranking, raceData.RaceId, carClass, bestLapDef, totalLaps == 0, reversed)
         if bountyResult then
-            addMoney(src, Config.Options.MoneyType, bountyResult)
+            addMoney(src, Config.Payments.bountyPayout, bountyResult)
             TriggerClientEvent('cw-racingapp:client:notify', src, Lang("bounty_claimed").. tostring(bountyResult), 'success')
         end
 
@@ -631,21 +650,6 @@ local function isToFarAway(src, RaceId, Reversed)
     end
 end
 
-local function hasEnoughMoney(source, cost)
-    if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
-        if UseDebug then print('Is using crypto and renewed crypto') end
-        if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
-            return true
-        else
-            TriggerClientEvent('cw-racingapp:client:notify', source,
-                Lang("can_not_afford") .. math.floor(cost) .. ' ' .. Config.Options.cryptoType, 'error')
-            return false
-        end
-    else
-        return canPay(source, Config.Options.MoneyType, cost)
-    end
-end
-
 RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local src = source
     local playerVehicleEntity = RaceData.PlayerVehicleEntity
@@ -681,7 +685,7 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
             print('Join: BUY IN', RaceData.BuyIn)
         end
 
-        if RaceData.BuyIn > 0 and not hasEnoughMoney(src, RaceData.BuyIn) then
+        if RaceData.BuyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, RaceData.BuyIn, racerName) then
             TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_enough_money"))
         else
             if currentRace ~= nil then
@@ -715,13 +719,8 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
                 Tracks[raceId].SetupCitizenId = citizenId
             end
             if RaceData.BuyIn > 0 then
-                if Config.Options.MoneyType == 'crypto' and Config.UseRenewedCrypto then
-                    exports['qb-phone']:RemoveCrypto(src, Config.Options.cryptoType, math.floor(RaceData.BuyIn))
-                    TriggerClientEvent('cw-racingapp:client:notify', source,
-                        Lang("remove_crypto") .. math.floor(RaceData.BuyIn) .. ' ' .. Config.Options.cryptoType,
-                        'success')
-                else
-                    removeMoney(src, Config.Options.MoneyType, RaceData.BuyIn)
+                if not handleRemoveMoney(src, Config.Payments.racing, RaceData.BuyIn, racerName) then
+                    return
                 end
             end
 
@@ -887,8 +886,8 @@ local function createTimeoutThread(trackId)
     end)
 end
 
-local function setupRace(raceId, laps, racerName, maxClass, ghostingEnabled, ghostingTime, nuyIn, ranked, reversed,
-                         participationAmount, participationCurrency, firstPerson, automated, src)
+local function setupRace(raceId, laps, racerName, maxClass, ghostingEnabled, ghostingTime, buyIn, ranked, reversed,
+                         participationAmount, participationCurrency, firstPerson, automated, silent, src)
     if UseDebug then
         print('Setting up race', json.encode({
             RaceId = raceId,
@@ -898,13 +897,14 @@ local function setupRace(raceId, laps, racerName, maxClass, ghostingEnabled, gho
             GhostingEnabled = ghostingEnabled,
             GhostingTime =
                 ghostingTime,
-            BuyIn = nuyIn,
+            BuyIn = buyIn,
             Automated = automated,
             Ranked = ranked,
             ParticipationAmount = participationAmount,
             ParticipationCurrency =
                 participationCurrency,
-            FirstPerson = firstPerson
+            FirstPerson = firstPerson,
+            Silent = silent
         }))
     end
     if Tracks[raceId] ~= nil then
@@ -921,7 +921,7 @@ local function setupRace(raceId, laps, racerName, maxClass, ghostingEnabled, gho
                 Tracks[raceId].Ghosting = ghostingEnabled
                 Tracks[raceId].SetupRacerName = racerName
                 Tracks[raceId].GhostingTime = ghostingTime
-                Tracks[raceId].BuyIn = nuyIn
+                Tracks[raceId].BuyIn = buyIn
                 Tracks[raceId].Ranked = ranked
                 Tracks[raceId].Reversed = reversed
                 Tracks[raceId].FirstPerson = firstPerson
@@ -937,7 +937,7 @@ local function setupRace(raceId, laps, racerName, maxClass, ghostingEnabled, gho
                     MaxClass = maxClass,
                     Ghosting = ghostingEnabled,
                     GhostingTime = ghostingTime,
-                    BuyIn = nuyIn,
+                    BuyIn = buyIn,
                     Ranked = ranked,
                     Reversed = reversed,
                     ParticipationAmount = participationAmount,
@@ -951,7 +951,7 @@ local function setupRace(raceId, laps, racerName, maxClass, ghostingEnabled, gho
                     TriggerClientEvent('cw-racingapp:client:readyJoinRace', src, allRaceData)
                 end
                 RaceResults[raceId] = { Data = allRaceData, Result = {} }
-                if Config.NotifyRacers then
+                if Config.NotifyRacers and not silent then
                     TriggerClientEvent('cw-racingapp:client:notifyRacers', -1,
                         'New Race Available')
                 end
@@ -984,12 +984,20 @@ RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupDa
         end
         return false
     end
-    if (setupData.buyIn > 0 and not hasEnoughMoney(src, setupData.buyIn)) then
+    if (setupData.buyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, setupData.buyIn, setupData.hostName)) then
         TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_enough_money"))
     else
         return setupRace(setupData.trackId, setupData.laps, setupData.hostName, setupData.maxClass, setupData.ghostingOn,
             setupData.ghostingTime, setupData.buyIn, setupData.ranked, setupData.reversed, setupData.participationMoney,
-            setupData.participationCurrency, setupData.firstPerson, false, src)
+            setupData.participationCurrency, setupData.firstPerson, false, setupData.silent, src)
+    end
+end)
+
+RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, cryptoAmount, racerName)
+    local src = source
+    local moneyAmount = math.floor(cryptoAmount / Config.Options.conversionRate)
+    if handleRemoveMoney(src, Config.Payments.crypto, moneyAmount, racerName) then
+        handleAddMoney(src, 'racingcrypto', cryptoAmount, racerName, 'purchased_crypto')
     end
 end)
 
@@ -1020,7 +1028,7 @@ local function GenerateAutomatedRace()
         reversed = false
     end
     setupRace(race.trackId, race.laps, race.racerName, race.maxClass, race.ghostingEnabled, race.ghostingTime, race
-        .buyIn, ranked, reversed, race.participationMoney, race.participationCurrency, race.firstPerson, true, nil)
+        .buyIn, ranked, reversed, race.participationMoney, race.participationCurrency, race.firstPerson, true, false, nil)
 end
 
 if Config.AutomatedOptions and Config.AutomatedRaces then
@@ -1206,9 +1214,46 @@ RegisterNetEvent('cw-racingapp:server:deleteTrack', function(raceId)
     Tracks[raceId] = nil
 end)
 
-RegisterNetEvent('cw-racingapp:server:clearLeaderboard', function(raceId)
-    Tracks[raceId].Records = nil
-    RADB.clearLeaderboardForTrack(raceId)
+local function getIndexOfRecord(trackId, record)
+    for i, recordData in ipairs(Tracks[trackId].Records) do
+        print('checking', i, recordData.Holder)
+        if recordData.Holder == record.Holder and recordData.Time == record.Time and recordData.Vehicle == record.Vehicle then
+            return i
+        end
+    end
+end
+
+local function removeRecordFromTrack(trackId, record)
+    if UseDebug then
+       print('All records on this track', json.encode(Tracks[trackId].Records, {indent=true}))
+    end
+    if Tracks[trackId] and Tracks[trackId].Records then
+        local index = getIndexOfRecord(trackId, record)
+        if index then
+            if UseDebug then
+               print('^2Found a match.^0 Removing record at index', index)
+            end
+            table.remove(Tracks[trackId].Records, index)
+            return true
+        end
+    end
+    
+    if UseDebug then
+        print('^1Did not find a match for record^0')
+     end
+    return false
+end
+
+RegisterNetEvent('cw-racingapp:server:removeRecord', function(trackId, record)
+    if UseDebug then print('Removing record', trackId, json.encode(record, {indent=true})) end
+    if removeRecordFromTrack(trackId, record) then
+        RADB.setTrackRecords(Tracks[trackId].Records, trackId)
+    end
+end)
+
+RegisterNetEvent('cw-racingapp:server:clearLeaderboard', function(trackId)
+    Tracks[trackId].Records = nil
+    RADB.clearLeaderboardForTrack(trackId)
 end)
 
 RegisterServerCallback('cw-racingapp:server:getRaceResults', function(source)
@@ -1315,6 +1360,7 @@ function openRacingApp(source)
     if UseDebug then print('opening ui') end
 
     TriggerClientEvent('cw-racingapp:client:openUi', source)
+
 end
 
 exports('openRacingApp', openRacingApp)
@@ -1394,6 +1440,7 @@ local function addRacerName(citizenId, racerName, targetSource, auth, creatorCit
     if not RADB.getRaceUserByName(racerName) then
         IsFirstUser = false
         RADB.createRaceUser(citizenId, racerName, auth, creatorCitizenId)
+        Wait(500)
         TriggerClientEvent('cw-racingapp:client:updateRacerNames', tonumber(targetSource))
     end
 end
@@ -1463,7 +1510,7 @@ RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, track
     end
 end)
 
-local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource)
+local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
     if UseDebug then
         print('Creating a racing user. Input:')
         print('citizenid', citizenid)
@@ -1480,32 +1527,13 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
             'The user type you entered does not exist, defaulting to $1000', 'error')
     end
 
-    if purchaseType.moneyType == 'crypto' and Config.UseRenewedCrypto then
-        if exports['qb-phone']:hasEnough(source, Config.Options.cryptoType, math.floor(cost)) then
-            exports['qb-phone']:RemoveCrypto(source, Config.Options.cryptoType, math.floor(cost))
-            TriggerClientEvent('cw-racingapp:client:notify', source,
-                Lang("remove_crypto") .. math.floor(cost) .. ' ' .. Config.Options.cryptoType, 'success')
-        else
-            TriggerClientEvent('cw-racingapp:client:notify', source,
-                Lang("can_not_afford") .. math.floor(cost) .. ' ' .. Config.Options.cryptoType, 'error')
-            return
-        end
-    else
-        if not removeMoney(source, purchaseType.moneyType, cost) then
-            TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford") .. ' $' .. math.floor(cost),
-                'error')
-            return
-        end
-    end
-    if Config.UseRenewedBanking and purchaseType.profiteer and cost > 0 then
-        local profit = math.floor(cost * purchaseType.profiteer.cut)
-        exports['Renewed-Banking']:addAccountMoney(purchaseType.profiteer.job, profit)
-        exports['Renewed-Banking']:handleTransaction(purchaseType.profiteer.job, "Racing GPS", profit, "Type: " .. type,
-            "Unknown", 'RacingApp', "deposit")
-    end
+    if not handleRemoveMoney(source, purchaseType.moneyType, cost, creatorName) then return false end
+
+
     local creatorCitizenId = 'unknown'
     if getCitizenId(source) then creatorCitizenId = getCitizenId(source) end
     addRacerName(citizenid, racerName, targetSource, type, creatorCitizenId)
+    return true
 end
 
 local function getRacersCreatedByUser(src, citizenId, type)
@@ -1587,7 +1615,7 @@ RegisterNetEvent('cw-racingapp:server:setRevokedRacenameStatus', function(racern
     setRevokedRacerName(source, racername, revoked)
 end)
 
-RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racerName, type, purchaseType)
+RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racerName, type, purchaseType, creatorName)
     if UseDebug then
         print(
             'Creating a user',
@@ -1596,10 +1624,48 @@ RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racer
     end
     local citizenId = getCitizenId(tonumber(playerId))
     if citizenId then
-        createRacingName(source, citizenId, racerName, type, purchaseType, playerId)
+        createRacingName(source, citizenId, racerName, type, purchaseType, playerId, creatorName)
     else
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("could_not_find_person"), "error")
     end
+end)
+
+RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, racerName, cryptoAmount)
+    local src = source
+    if handleRemoveMoney(src, Config.Payments.crypto, cryptoAmount/Config.Options.conversionRate, racerName) then
+        handleAddMoney(src, 'racingcrypto', cryptoAmount, racerName, 'purchased_crypto')
+        return 'SUCCESS'
+    end
+    return 'NOT_ENOUGH'
+end)
+
+RegisterServerCallback('cw-racingapp:server:sellCrypto', function(source, racerName, cryptoAmount)
+    local src = source
+    if handleRemoveMoney(src, 'racingcrypto', cryptoAmount, racerName) then
+        handleAddMoney(src, Config.Payments.crypto, cryptoAmount/Config.Options.conversionRate, racerName, 'sold_crypto')
+        return 'SUCCESS'
+    end
+    return 'NOT_ENOUGH'
+end)
+
+RegisterServerCallback('cw-racingapp:server:transferCrypto', function(source, racerName, cryptoAmount, recipientName)
+    local src = source
+    local recipient = RADB.getRaceUserByName(recipientName)
+    if UseDebug then print('Recipient data', json.encode(recipient, {indent=true})) end
+    if not recipient then return 'USER_DOES_NOT_EXIST' end
+    local recipientSrc = getSrcOfPlayerByCitizenId(recipient.citizenid)
+    if UseDebug then print('Recipient src:', recipientSrc) end
+    if RacingCrypto.removeCrypto(racerName,cryptoAmount) then
+        TriggerClientEvent('cw-racingapp:client:updateUiData', src, 'crypto', RacingCrypto.getRacerCrypto(racerName))
+        RacingCrypto.addRacerCrypto(recipientName, math.floor(cryptoAmount))
+        TriggerClientEvent('cw-racingapp:client:notify', src, Lang("transfer_succ").. recipientName, 'success')
+        if recipientSrc then
+            TriggerClientEvent('cw-racingapp:client:updateUiData', tonumber(recipientSrc), 'crypto', RacingCrypto.getRacerCrypto(recipientName))
+            TriggerClientEvent('cw-racingapp:client:notify',  tonumber(recipientSrc), Lang("transfer_succ_rec").. racerName, 'success')
+        end
+        return 'SUCCESS'
+    end
+    return 'NOT_ENOUGH'
 end)
 
 if UseDebug then
@@ -1651,7 +1717,7 @@ if UseDebug then
         end
 
         local tradeType = {
-            moneyType = Config.Options.MoneyType,
+            moneyType = Config.Payments.createRacingUser,
             racingUserCosts = {
                 racer = 0,
                 creator = 0,

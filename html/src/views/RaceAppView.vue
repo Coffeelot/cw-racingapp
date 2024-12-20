@@ -63,6 +63,7 @@
             </div>
           </div>
         </v-layout>
+        <CryptoModal></CryptoModal>
       </div>
     </div>
   </div>
@@ -84,6 +85,7 @@ import { getBaseData } from "@/helpers/getBaseData";
 import { computed } from "vue";
 import { translate } from "@/helpers/translate";
 import UserCreation from "@/components/app/components/UserCreation.vue";
+import CryptoModal from "@/components/app/components/CryptoModal.vue";
 
 const globalStore = useGlobalStore();
 

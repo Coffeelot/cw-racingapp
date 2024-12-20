@@ -44,8 +44,8 @@ const joinRace = async () => {
 }
 
 const participationText = computed(() => {
-    if(props.race.ParticipationCurrency === 'crypto') {
-        return  props.race.ParticipationAmount + ' ' + globalStore.baseData.data.cryptoType
+    if(props.race.ParticipationCurrency === 'racingcrypto') {
+        return  props.race.ParticipationAmount + ' ' + globalStore.baseData.data.payments.cryptoType
     }
 
     return '$' + props.race.ParticipationAmount
@@ -66,7 +66,11 @@ const lapsText = computed(() => {
 const buyInText = computed(() => {
     let text = undefined
     if (props.race.BuyIn > 0 ) {
-        text = '$' + props.race.BuyIn + " " + translate('buy_in')
+        if (globalStore.baseData.data.payments.racing === 'racingcrypto') {
+            text = props.race.BuyIn + " " + globalStore.baseData.data.payments.cryptoType + " " + translate('buy_in')
+        } else {
+            text = '$' + props.race.BuyIn + " " + translate('buy_in')
+        }
     }
     return text
 })

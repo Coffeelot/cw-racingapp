@@ -23,5 +23,6 @@ export const useGlobalStore = defineStore('global', {
     myCrew: {} as Crew,
     notification: undefined as Notification | undefined,
     bounties: [] as Bounty[],
+    showCryptoModal: false,
   })
 })

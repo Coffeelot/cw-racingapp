@@ -1,5 +1,5 @@
 Config = Config or {}
-Config.Debug = false
+Config.Debug = true
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
 Lang = function(phrase)
@@ -12,14 +12,12 @@ Config.RaceResetTimer = 300000
 Config.DoOffsetGps = true               -- Set to true if you want the gps to slighlty offset the point (helps with route)
 
 Config.Inventory = 'ox'                 -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
-Config.UseRenewedCrypto = false         -- set to true if you use Renewed crypto
-Config.UseRenewedBanking = false        -- set this to true if you use Renewed Banking
 Config.UseNameValidation = true         -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
 Config.MaxRacerNames = 2                -- Maximum allowed amount of unique names per character
 Config.MaxCheckpoints = 60              -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
 Config.AllowCreateFromShare = true      -- toggle this to allow using the share track creation
 Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
-Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
+Config.TimeOutTimerInMinutes = 1        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
 Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
@@ -30,7 +28,7 @@ Config.OxLibNotify = true              -- If you want Oxlib notify Same as above
 Config.LimitTopListTo = 10              -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 Config.UseVehicleModelInsteadOfClassForRecords = false -- if this is true then players can have multiple records per class, but only once per vehicle model
-Config.PositionCheatBuffer = 0 -- add meters to the position cheat check. Usefull if you like placing checkpoints weirdly
+Config.PositionCheatBuffer = 10.0 -- add meters to the position cheat check. This means there's some leeway before it kicks you
 
 Config.AllowAnyoneToCreateUserInApp = true -- If True then anyone can create their own user in the app. If there are no users in the DB the user will automatically be a GOD type
 Config.BasePermission = 'racer' -- this is the base user type your racingapp users can create if you allow creation in app. Should match the user you want from Config.Permissions
@@ -53,7 +51,7 @@ Config.EloPunishments = {                                                       
 }
 
 
-Config.PrimaryUiColor = '#f07800' -- Primary color in UI, default is orange
+Config.PrimaryUiColor = '#01bcd9' -- Primary color in UI, default is orange
 
 -- GPS stuff
 Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
@@ -112,6 +110,8 @@ Config.Permissions = {
         setupParticipation = false, -- will see an option to hand out free cash to all participants. Crypto type is same as Config.Options
         curateTracks = false,       -- Can set track curated status
         handleBounties = false,     -- Can manage bounties
+        cancelAll = false,          -- Can cancel any race (that they've joined)
+        startAll = false,           -- Can start any race (that they've joined)
     },
     creator = {
         join = true,
@@ -127,6 +127,8 @@ Config.Permissions = {
         setupParticipation = false,
         curateTracks = false,
         handleBounties = false,
+        cancelAll = false,
+        startAll = false,
     },
     master = {
         join = true,
@@ -142,6 +144,8 @@ Config.Permissions = {
         setupParticipation = false,
         curateTracks = true,
         handleBounties = true,
+        cancelAll = true,
+        startAll = false,
     },
     god = {
         join = true,
@@ -157,16 +161,18 @@ Config.Permissions = {
         setupParticipation = true,
         curateTracks = true,
         handleBounties = true,
+        cancelAll = true,
+        startAll = true,
     }
 }
 
-Config.MarkAmountOfCheckpointsAhead = 3
+Config.MarkAmountOfCheckpointsAhead = 5
 Config.FlareTime = 10000                                 -- How long the flares are lit
 Config.KickTime = 10 * 60 * 1000                         -- How long (in ms) until you get kicked if not being at race
 Config.StartAndFinishModel = 'prop_beachflag_le'         -- comment this line out if you dont want props for start/finish line
 Config.CheckpointPileModel =
 'xm_prop_base_tripod_lampa'                              --good alternative: 'prop_flare_01b' - comment this line out if you dont want entities for checkpoints
-Config.CheckpointBuffer = 3.0                            -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
+Config.CheckpointBuffer = 1.0                            -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
 
 Config.Classes = {
     ['C'] = true,
@@ -231,8 +237,27 @@ Config.Options = {
         { value = 500,  text = 500 },
         { value = 1000, text = 1000 }
     },
-    MoneyType = 'cash', --Determines buyins and payouts. cash/bank/crypto
-    cryptoType = 'cdc'  -- rname of your crypto
+    conversionRate = 0.1, -- money * conversionRate = crypto amount, so if this is 0.1 and you pay $10 you get 1 Racing App Crypto.
+
+    -- NOTE: IF ALL THE FOLLOWING 3 ARE SET TO FALSE THEN THERES NO WAY TO OPEN THE CRYPTO MENU
+    allowBuyingCrypto = true, -- if false the buying option wont appear
+    allowSellingCrypto = true, -- if false the selling option wont appear
+    allowTransferCrypto = true, -- if false the transfering option wont appear
+
+    sellCharge = 0.05, -- How much is lost upon selling. If 0.05 then you will lose 5% when the crypto is converted to cash
+}
+
+-- You can use any payment systems your core support (cash/money/bank). Use 'racingcrypto' to use the built in racing crypto
+Config.Payments = {
+    useRacingCrypto = true, -- set to false if you dont want to use the built in Racing Crypto
+    cryptoType = 'RAC',  -- name of your crypto
+
+    racing = 'racingcrypto', -- what money is used for buyins and payots in racing
+    automationPayout = 'racingcrypto', -- what money is used  to payouts in automation races
+    participationPayout = 'racingcrypto', -- what money the participation rewards give out
+    bountyPayout = 'racingcrypto', -- what money bounties pay out
+    createRacingUser = 'bank', -- what money is used to create racing users
+    crypto = 'bank', -- what money type is used to buy Racing App Crypto
 }
 
 Config.Trader = {
@@ -242,15 +267,13 @@ Config.Trader = {
     model = 'csb_paige',
     animation = 'WORLD_HUMAN_SEAT_WALL_TABLET',
     location = vector4(852.58, -1543.87, 29.12, 230.19),
-    moneyType = 'cash', -- cash/bank/crypto
-    -- cryptoType = 'cdc', -- name of your crypto
+    moneyType = Config.Payments.createRacingUser, -- cash/bank/crypto
     racingUserCosts = {
         racer = 1000,
         creator = 5000,
         master = 10000,
         god = 1000000
     },
-    -- profiteer = { job = 'tuner', cut = 0.01 }, -- if you use Renewed Banking you can set this to allow money to go to businesses, wont work with crypto (yet), UseRenewedBanking in top of this file NEEDS TO BE TRUE
     useSlimmed = true -- set to true if you want menu to cut out cid input
 }
 
@@ -260,8 +283,7 @@ Config.Laptop = {
     requireToken = false,                                                         -- using cw tokens?
     model = 'xm_prop_x17_laptop_mrsr',                                            -- entity model
     location = vector4(938.56, -1549.8, 34.37, 163.59),                           -- world location
-    moneyType = 'cash',                                                           -- cash/bank/crypto
-    cryptoType = 'cdc',                                                           -- name of your crypto
+    moneyType = Config.Payments.createRacingUser,                                                           -- cash/bank/crypto
     racingUserCosts = {                                                           -- cost of creating an account
         racer = 1000,
         creator = 5000,
@@ -292,10 +314,10 @@ Config.QuickSetupDefaults = {
     buyIn = 0,
     ranked = false,
     reversed = false,
-    laps = 2,
+    laps = 1,
     maxClass = nil,
     participationMoney = 0,
-    participationCurrency = 'cash',
+    participationCurrency = Config.Payments.participationPayout,
     firstPerson = false,
 }
 
@@ -312,9 +334,7 @@ Config.ParticipationTrophies = {                                                
     buyInMinimum = 200,                                                                                             -- If the above is true, this will be the minimum limit of when participation money is handed out
     enabled = true,                                                                                                 -- false if you dont want players getting Participation trophies
     minimumOfRacers = 6,                                                                                            -- minimum of racers to hand out Participation trophies
-    type = 'cash',                                                                                                  -- cash, bank or crypto
     amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10, [5] = 10, [6] = 10, [7] = 10, [8] = 10, [9] = 10, [10] = 10 }, -- [<position>] = <amount>
-    cryptoType = 'cdc',                                                                                             -- name of your crypto
     minumumRaceLength = 3000
 }
 
@@ -340,11 +360,11 @@ Config.AutomatedRaces = {
         maxClass = 'A',                 -- Max Class
         ghostingEnabled = false,        -- Use Ghosting
         ghostingTime = 0,               -- Ghosting Time
-        buyIn = 20,                   -- amount to participate
+        buyIn = 1,                   -- amount to participate
         ranked = true,                  -- ranked or not
         reversed = false,               -- reversed track or not
         participationMoney = 100,       -- how much players get for participating
-        participationCurrency = 'cash', -- currency
+        participationCurrency = Config.Payments.participationPayout, -- currency
         firstPerson = false             -- forced first person
     },
     -- {
