@@ -237,6 +237,11 @@ Config.Options = {
         { value = 500,  text = 500 },
         { value = 1000, text = 1000 }
     },
+    participationCurrencyOptions = {
+        { title= 'RAC', value= 'racingcrypto' },
+        { title= 'Cash', value = 'cash' },
+        { title= 'Bank', value= 'bank'}, 
+    },
     conversionRate = 0.1, -- money * conversionRate = crypto amount, so if this is 0.1 and you pay $10 you get 1 Racing App Crypto.
 
     -- NOTE: IF ALL THE FOLLOWING 3 ARE SET TO FALSE THEN THERES NO WAY TO OPEN THE CRYPTO MENU

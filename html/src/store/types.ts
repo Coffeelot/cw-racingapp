@@ -216,6 +216,7 @@ export type BaseData = {
         classes: VehicleClass[],
         laps: InputField[],
         buyIns: InputField[],
+        participationCurrencyOptions: InputField[],
         moneyType: string,
         cryptoType: string,
         ghostingEnabled: boolean,

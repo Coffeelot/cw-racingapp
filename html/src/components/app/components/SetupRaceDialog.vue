@@ -132,8 +132,10 @@
                 <v-select
                   :label="translate('currency')"
                   density="compact"
-                  :items="[{ text: 'Cash', value : 'cash' }, { text: 'Bank', value: 'bank'}, { text: 'Crypto', value: 'racingcrypto' }]"
+                  :items="globalStore.baseData.data.participationCurrencyOptions"
                   v-model="setupData.participationCurrency"
+                  item-title="title"
+                  item-value="value"
                 ></v-select>
               </v-col>
               <v-col
@@ -219,7 +221,7 @@ const setupData = ref({
   reversed: false,
   firstPerson: false,
   participationMoney: 0,
-  participationCurrency: "cash",
+  participationCurrency: globalStore.baseData.data.participationCurrencyOptions[0].value,
   silent: false,
 });
 

@@ -2325,6 +2325,7 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         classes = classes,
         laps = Config.Options.Laps,
         buyIns = Config.Options.BuyIns,
+        participationCurrencyOptions = Config.Options.participationCurrencyOptions,
         moneyType = Config.Payments.racing,
         cryptoType = Config.Payments.cryptoType,
         ghostingEnabled = Config.Ghosting.Enabled,
