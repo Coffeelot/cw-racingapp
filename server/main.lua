@@ -1624,7 +1624,7 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, racerName, cryptoAmount)
     local src = source
-    local moneyToPay = math.floor(cryptoAmount/Config.Options.conversionRate)
+    local moneyToPay = math.floor((1.0*cryptoAmount)/Config.Options.conversionRate)
     if UseDebug then 
         print('Buying Crypto')
         print('Crypto Amount:', cryptoAmount)
@@ -1639,12 +1639,12 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:sellCrypto', function(source, racerName, cryptoAmount)
     local src = source
-    local rounded = cryptoAmount/Config.Options.conversionRate
-    local afterFee = math.floor(rounded - rounded*Config.Options.sellCharge)
+    local money = (1.0*cryptoAmount)/Config.Options.conversionRate
+    local afterFee = math.floor(money - money*Config.Options.sellCharge)
     if UseDebug then 
         print('Selling Crypto')
         print('Crypto Amount:', cryptoAmount)
-        print('In money:',rounded)
+        print('In money:',money)
         print('After fee:',afterFee)
     end
     if handleRemoveMoney(src, 'racingcrypto', cryptoAmount, racerName) then
