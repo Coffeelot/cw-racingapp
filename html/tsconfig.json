@@ -5,6 +5,7 @@
     "useDefineForClassFields": true,
     "allowSyntheticDefaultImports": true,
     "composite": true,
+    "skipLibCheck": true,
     "module": "esnext",
     "moduleResolution": "node",
     "strict": true,
@@ -13,7 +14,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
-    "types": ["node", "vuetify"],
+    "types": ["node", "vuetify", "vite/client"],
     "paths": {
       "@/*": ["src/*"]
     }
