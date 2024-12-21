@@ -993,14 +993,6 @@ RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupDa
     end
 end)
 
-RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, cryptoAmount, racerName)
-    local src = source
-    local moneyAmount = math.floor(cryptoAmount / Config.Options.conversionRate)
-    if handleRemoveMoney(src, Config.Payments.crypto, moneyAmount, racerName) then
-        handleAddMoney(src, 'racingcrypto', cryptoAmount, racerName, 'purchased_crypto')
-    end
-end)
-
 -- AUTOMATED RACES SETUP
 local function GenerateAutomatedRace()
     local race = Config.AutomatedRaces[math.random(1, #Config.AutomatedRaces)]
@@ -1632,7 +1624,13 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, racerName, cryptoAmount)
     local src = source
-    if handleRemoveMoney(src, Config.Payments.crypto, cryptoAmount/Config.Options.conversionRate, racerName) then
+    local moneyToPay = math.floor(cryptoAmount/Config.Options.conversionRate)
+    if UseDebug then 
+        print('Buying Crypto')
+        print('Crypto Amount:', cryptoAmount)
+        print('In money:',moneyToPay)
+    end
+    if handleRemoveMoney(src, Config.Payments.crypto, moneyToPay, racerName) then
         handleAddMoney(src, 'racingcrypto', cryptoAmount, racerName, 'purchased_crypto')
         return 'SUCCESS'
     end
@@ -1641,8 +1639,16 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:sellCrypto', function(source, racerName, cryptoAmount)
     local src = source
+    local rounded = cryptoAmount/Config.Options.conversionRate
+    local afterFee = math.floor(rounded - rounded*Config.Options.sellCharge)
+    if UseDebug then 
+        print('Selling Crypto')
+        print('Crypto Amount:', cryptoAmount)
+        print('In money:',rounded)
+        print('After fee:',afterFee)
+    end
     if handleRemoveMoney(src, 'racingcrypto', cryptoAmount, racerName) then
-        handleAddMoney(src, Config.Payments.crypto, cryptoAmount/Config.Options.conversionRate, racerName, 'sold_crypto')
+        handleAddMoney(src, Config.Payments.crypto,afterFee, racerName, 'sold_crypto')
         return 'SUCCESS'
     end
     return 'NOT_ENOUGH'
