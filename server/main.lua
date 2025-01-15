@@ -399,7 +399,7 @@ local function giveSplit(src, racers, position, pot, racerName)
 end
 
 local function handOutParticipationTrophy(src, position, racerName)
-    if Config.Payments.amount[position] then
+    if Config.ParticipationTrophies.amount[position] then
         handleAddMoney(src, Config.Payments.participationPayout, Config.ParticipationTrophies.amount[position], racerName)
     end
 end
