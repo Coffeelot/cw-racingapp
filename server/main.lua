@@ -540,7 +540,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                 print('Race has participation price set', Tracks[raceData.RaceId].ParticipationAmount,
                     amountToGive, Tracks[raceData.RaceId].ParticipationCurrency)
             end
-            handleAddMoney(src, Tracks[raceData.RaceId].ParticipationCurrency, amountToGive, racerName 'participation_trophy_crypto')
+            handleAddMoney(src, Tracks[raceData.RaceId].ParticipationCurrency, amountToGive, racerName, 'participation_trophy_crypto')
         end
 
         if Tracks[raceData.RaceId].Automated then
