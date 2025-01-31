@@ -293,20 +293,24 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 # Setup and Installation
 
 ### Installation
-1. Download ZIP
-2. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
+1. Get [cw-performance](https://github.com/Coffeelot/cw-performance) and install
+2. Download Racingapp
+3. Add the cw-racingapp folder to you resources (if it has a "-main" in the name: remove the "-main")
+4. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
     - Optionally also run `default_tracks.sql` if you want to add the default tracks
-3. Adjust values in the `config.lua` file to your liking **(Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)**
-4. Add the item to your `qb-core/shared/items.lua` (If you use another inventory/core you obviously might need to change this part)
+5. Adjust values in the `config.lua` file to your liking **(Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)**
+6. Add the item to your `qb-core/shared/items.lua` (If you use another inventory/core you obviously might need to change this part)
 ```lua
 ['racing_gps'] = {['name'] = 'racing_gps', ['label'] = 'Racing GPS', ['weight'] = 500, ['type'] = 'item', ['image'] = 'racing_gps.png', ['unique'] = true, ['useable'] = true, ['shouldClose'] = true, ['description'] = 'Wroom wroom.'},
 ```
-4. Add the item image to your inventory image folder
-5. If you're not using QBOX then comment out `'@qbx_core/modules/playerdata.lua'` in fxmanifest 
-6. Open the game and give yourself the item. When you open the app for the first time you'll be prompted to create a user. The first user to be created will be a `god` user, after that the rest will be `racer` type of whatever you set it to in the config. Optionally you can create a god user with the command (see below)
+7. Add the item image to your inventory image folder
+8. If you're not using QBOX then comment out `'@qbx_core/modules/playerdata.lua'` in fxmanifest 
+9. Open the game and give yourself the item. When you open the app for the first time you'll be prompted to create a user. The first user to be created will be a `god` user, after that the rest will be `racer` type of whatever you set it to in the config. Optionally you can create a god user with the command (see below)
+
+
 
 ### Setup Notes
-> You only need both this resource and [cw-performance](https://github.com/Coffeelot/cw-performance).
+> [cw-performance](https://github.com/Coffeelot/cw-performance) is required.
 
 
 ### Use in game
