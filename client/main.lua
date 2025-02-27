@@ -57,7 +57,7 @@ RegisterNetEvent('cw-racingapp:client:notify', function(message, type)
 
 end)
 
-local Classes = exports['cw-performance']:getPerformanceClasses()
+local Classes = getVehicleClasses()
 local Entities = {}
 local Kicked = false
 local TraderPed
@@ -128,9 +128,11 @@ local function myCarClassIsAllowed(maxClass, myClass)
     if maxClass == nil or maxClass == '' then
         return true
     end
+    debugLog('My class:', myClass)
+    debugLog('All classes', json.encode(Classes, {indent=true}))
     local myClassIndex = Classes[myClass]
     local maxClassIndex = Classes[maxClass]
-    debugLog('My class index', myClassIndex, 'maxClassIndex', maxClassIndex)
+    debugLog('My class index: '..tostring(myClassIndex), 'maxClassIndex: '..tostring(maxClassIndex))
     if myClassIndex > maxClassIndex then
         return false
     end
@@ -1155,23 +1157,6 @@ local function doPilePfx()
     end
 end
 
-local function milliToTime(milli)
-    local milliseconds = milli % 1000;
-    milliseconds = tostring(milliseconds)
-    local seconds = math.floor((milli / 1000) % 60);
-    local minutes = math.floor((milli / (60 * 1000)) % 60);
-    if minutes < 10 then
-        minutes = "0" .. tostring(minutes);
-    else
-        minutes = tostring(minutes)
-    end
-    if seconds < 10 then
-        seconds = "0" .. tostring(seconds);
-    else
-        seconds = tostring(seconds)
-    end
-    return minutes .. ":" .. seconds .. "." .. milliseconds;
-end
 
 local function deleteCurrentRaceCheckpoints()
     for _, checkpointData in pairs(CurrentRaceData.Checkpoints) do
@@ -1217,7 +1202,7 @@ local function FinishRace()
         return
     end
 
-    local _, class, _ = exports['cw-performance']:getVehicleInfo(vehicle)
+    local class = getVehicleClass(vehicle)
     local vehicleModel = getVehicleModel(vehicle)
     -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
     debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
@@ -1523,7 +1508,7 @@ RegisterNetEvent('cw-racingapp:client:readyJoinRace', function(raceData)
     local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
     local class
     if PlayerIsInVehicle then
-        _, class, _ = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
+        class = getVehicleClass(GetVehiclePedIsIn(PlayerPed, false))
     else
         notify(Lang('not_in_a_vehicle'), 'error')
         return
@@ -1609,10 +1594,10 @@ local function checkElimination()
     end
 end
 
-RegisterNetEvent('cw-racingapp:client:updateRaceRacerData', function(raceId, raceData)
+RegisterNetEvent('cw-racingapp:client:updateRaceRacerData', function(raceId, racerData)
     if (CurrentRaceData.RaceId ~= nil) and CurrentRaceData.RaceId == raceId then
         debugLog('Race is Elimination:', CurrentRaceData.IsElimination)
-        CurrentRaceData.Racers = raceData.Racers
+        CurrentRaceData.Racers = racerData
         if CurrentRaceData.IsElimination then
             checkElimination()
         end
@@ -2680,7 +2665,7 @@ local function joinRace(raceId)
     local class
     local vehicle = GetVehiclePedIsIn(PlayerPed, false)
     if PlayerIsInVehicle and isDriver(vehicle) then
-        _, class, _ = exports['cw-performance']:getVehicleInfo(vehicle)
+        class = getVehicleClass(vehicle)
     else
         notify(Lang('not_in_a_vehicle'), 'error')
         return false
@@ -2708,6 +2693,16 @@ exports('joinRace', joinRace)
 
 RegisterNUICallback('UiJoinRace', function(raceId, cb)
     cb(joinRace(raceId))
+end)
+
+RegisterNUICallback('UiSetWaypoint', function(track, cb)
+    if track and track.Checkpoints then
+        SetNewWaypoint(
+            track.Checkpoints[1].coords.x --[[ number ]], 
+            track.Checkpoints[1].coords.y --[[ number ]]
+        )
+    end
+    cb(true)
 end)
 
 RegisterNUICallback('UiClearLeaderboard', function(track, cb)
@@ -2814,7 +2809,7 @@ local function getAvailableTracks()
     local result = cwCallback.await('cw-racingapp:server:getTracks')
     local tracks = {}
     for _, track in pairs(result) do
-        if not track.Waiting and verifyTrackAccess(track, 'race') then
+        if verifyTrackAccess(track, 'race') then
             tracks[#tracks + 1] = track
         end
     end
@@ -2888,7 +2883,7 @@ local function attemptSetupRace(setupData)
     local vehicle = GetVehiclePedIsIn(PlayerPed, false)
 
     if PlayerIsInVehicle and isDriver(vehicle) then
-        local _, class, _ = exports['cw-performance']:getVehicleInfo(GetVehiclePedIsIn(PlayerPed, false))
+        local class = getVehicleClass(GetVehiclePedIsIn(PlayerPed, false))
         if myCarClassIsAllowed(setupData.maxClass, class) then
             local data = {
                 trackId = setupData.track,

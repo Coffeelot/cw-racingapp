@@ -293,7 +293,7 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 # Setup and Installation
 
 ### Installation
-1. Get [cw-performance](https://github.com/Coffeelot/cw-performance) and install
+1. Get [cw-performance](https://github.com/Coffeelot/cw-performance) and install (if you plan to code your own class system see [Custom Vehicle Classes](#custom-vehicle-classes))
 2. Download Racingapp
 3. Add the cw-racingapp folder to you resources (if it has a "-main" in the name: remove the "-main")
 4. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
@@ -310,8 +310,19 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 
 
 ### Setup Notes
-> [cw-performance](https://github.com/Coffeelot/cw-performance) is required.
+> [cw-performance](https://github.com/Coffeelot/cw-performance) is required unless you know how to code your own class system.
 
+### Custom Vehicle Classes
+So, you want to make your own class system? Well, good luck. 
+
+1. You can find the functions in `client/classes.lua`. You will need to code the functionality yourself.
+2. To use these, set `Config.UseCustomClassSystem` to `true` in the Config. 
+3. Remove `'cw-performance'` from the dependancies in `fxmanifest.lua`
+
+The file should be left fairly untouched in the future so for any future updates it will be easy for you to check if the file had any changes.
+
+
+>  Support on this feature will be limited - if you require help to set your system up then expect to do so via a comission
 
 ### Use in game
 Use the command `createracinguser` to do this. For example:

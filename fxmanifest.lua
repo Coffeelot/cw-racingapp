@@ -19,6 +19,7 @@ shared_scripts {
 
 client_scripts {
     'bridge/client/*.lua',
+    'client/classes.lua',
     'client/functions.lua',
     'client/main.lua',
 }

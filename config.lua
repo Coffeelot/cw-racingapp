@@ -33,6 +33,8 @@ Config.PositionCheatBuffer = 10.0 -- add meters to the position cheat check. Thi
 Config.AllowAnyoneToCreateUserInApp = true -- If True then anyone can create their own user in the app. If there are no users in the DB the user will automatically be a GOD type
 Config.BasePermission = 'racer' -- this is the base user type your racingapp users can create if you allow creation in app. Should match the user you want from Config.Permissions
 
+Config.UseCustomClassSystem = false -- If this is true then you opt in to make your own custom class system. There will be no support for this.
+
 Config.Sounds = {
     Countdown = {
         start = { lib = "10_SEC_WARNING", sound = "HUD_MINI_GAME_SOUNDSET" },         -- sound that plays when race is readied
