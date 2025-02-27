@@ -1091,24 +1091,24 @@ local function updateTimer(raceId)
     Timers[raceId] = GetGameTimer()
 end
 
-RegisterNetEvent('cw-racingapp:server:updateRacerData', function(RaceId, Checkpoint, Lap, Finished, RaceTime)
+RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpoint, lap, finished, raceTime)
     local src = source
     local citizenId = getCitizenId(src)
-    if Tracks[RaceId].Racers[citizenId] then
-        Tracks[RaceId].Racers[citizenId].Checkpoint = Checkpoint
-        Tracks[RaceId].Racers[citizenId].Lap = Lap
-        Tracks[RaceId].Racers[citizenId].Finished = Finished
-        Tracks[RaceId].Racers[citizenId].RaceTime = RaceTime
+    if Tracks[raceId].Racers[citizenId] then
+        Tracks[raceId].Racers[citizenId].Checkpoint = checkpoint
+        Tracks[raceId].Racers[citizenId].Lap = lap
+        Tracks[raceId].Racers[citizenId].Finished = finished
+        Tracks[raceId].Racers[citizenId].RaceTime = raceTime
 
-        Tracks[RaceId].Racers[citizenId].CheckpointTimes[#Tracks[RaceId].Racers[citizenId].CheckpointTimes + 1] = {
+        Tracks[raceId].Racers[citizenId].CheckpointTimes[#Tracks[raceId].Racers[citizenId].CheckpointTimes + 1] = {
             lap =
-                Lap,
-            checkpoint = Checkpoint,
-            time = RaceTime
+                lap,
+            checkpoint = checkpoint,
+            time = raceTime
         }
 
-        for _, racer in pairs(Tracks[RaceId].Racers) do
-            TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, RaceId, Tracks[RaceId])
+        for _, racer in pairs(Tracks[raceId].Racers) do
+            TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, Tracks[raceId].Racers)
         end
     else
         -- Attemt to make sure script dont break if something goes wrong
@@ -1116,7 +1116,7 @@ RegisterNetEvent('cw-racingapp:server:updateRacerData', function(RaceId, Checkpo
         TriggerClientEvent('cw-racingapp:client:leaveRace', -1, nil)
         leftRace(src)
     end
-    if Config.UseResetTimer then updateTimer(RaceId) end
+    if Config.UseResetTimer then updateTimer(raceId) end
 end)
 
 RegisterNetEvent('cw-racingapp:server:startRace', function(RaceId)
