@@ -1157,7 +1157,6 @@ local function doPilePfx()
     end
 end
 
-
 local function deleteCurrentRaceCheckpoints()
     for _, checkpointData in pairs(CurrentRaceData.Checkpoints) do
         local blip = checkpointData.blip
