@@ -9,7 +9,7 @@ end exports('getRacerCrypto', getRacerCrypto)
 -- Function to check if user has enought
 local function hasEnoughCrypto(racerName, amount)
     local cryptoBalance = RADB.getCryptoForRacer(racerName)
-    return (cryptoBalance or 0) > amount
+    return (cryptoBalance or 0) >= amount
 end exports('hasEnoughCrypto', hasEnoughCrypto)
 
 -- Function to add crypto to a racer's balance
