@@ -499,7 +499,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             print('Place:', playersFinished, Tracks[raceData.RaceId].BuyIn)
         end
         if Tracks[raceData.RaceId].BuyIn > 0 then
-            giveSplit(src, amountOfRacers, playersFinished, Tracks[raceData.RaceId].BuyIn, racerName)
+            giveSplit(src, amountOfRacers, playersFinished, Tracks[raceData.RaceId].BuyIn*Tracks[raceData.RaceId].AmountOfRacers, racerName)
         end
 
         -- Participation amount (global)
@@ -689,13 +689,13 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
             TriggerClientEvent('cw-racingapp:client:notify', src, Lang("not_enough_money"))
         else
             if currentRace ~= nil then
-                local AmountOfRacers = 0
+                local amountOfRacers = 0
                 local PreviousRaceKey = GetOpenedRaceKey(currentRace)
                 for _, _ in pairs(Tracks[currentRace].Racers) do
-                    AmountOfRacers = AmountOfRacers + 1
+                    amountOfRacers = amountOfRacers + 1
                 end
                 Tracks[currentRace].Racers[citizenId] = nil
-                if (AmountOfRacers - 1) == 0 then
+                if (amountOfRacers - 1) == 0 then
                     Tracks[currentRace].Racers = {}
                     Tracks[currentRace].Started = false
                     Tracks[currentRace].Waiting = false
@@ -710,14 +710,16 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
                 end
             end
 
-            local AmountOfRacers = 0
+            local amountOfRacers = 0
             for _, _ in pairs(Tracks[raceId].Racers) do
-                AmountOfRacers = AmountOfRacers + 1
+                amountOfRacers = amountOfRacers + 1
             end
-            if AmountOfRacers == 0 and not Tracks[raceId].Automated then
+            if amountOfRacers == 0 and not Tracks[raceId].Automated then
                 if UseDebug then print('setting creator') end
                 Tracks[raceId].SetupCitizenId = citizenId
             end
+            Tracks[raceId].AmountOfRacers = amountOfRacers + 1
+            if UseDebug then print('Current amount of racers in this race:', amountOfRacers) end
             if RaceData.BuyIn > 0 then
                 if not handleRemoveMoney(src, Config.Payments.racing, RaceData.BuyIn, racerName) then
                     return
@@ -733,7 +735,7 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
                 Placement = 0,
                 PlayerVehicleEntity = playerVehicleEntity,
                 RacerSource = src,
-                CheckpointTimes = {}
+                CheckpointTimes = {},
             }
             AvailableRaces[availableKey].RaceData = Tracks[raceId]
             TriggerClientEvent('cw-racingapp:client:joinRace', src, Tracks[raceId], RaceData.Laps, racerName)
