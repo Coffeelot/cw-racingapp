@@ -387,11 +387,11 @@ local function giveSplit(src, racers, position, pot, racerName)
     elseif racers == 3 and (position == 1 or position == 2) then
         total = Config.Splits['three'][position] * pot
         if UseDebug then print('Payout for ', position, total) end
-    elseif racers > 3 then
+    elseif racers > 3 and Config.Splits['more'][position] then
         total = Config.Splits['more'][position] * pot
         if UseDebug then print('Payout for ', position, total) end
     else
-        if UseDebug then print('No one got a payout') end
+        if UseDebug then print('Racer finishing at postion', position ,' will not recieve a payout') end
     end
     if total > 0 then
         handleAddMoney(src, Config.Payments.racing, total, racerName)
