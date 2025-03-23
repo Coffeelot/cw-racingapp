@@ -2333,8 +2333,12 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         primaryColor = Config.PrimaryUiColor,
         anyoneCanCreate = Config.AllowAnyoneToCreateUserInApp,
         isFirstUser = IsFirstUser,
-        payments = Config.Payments
+        payments = Config.Payments,
+        hideMap = Config.HideMapInTablet
     }
+    if UseDebug then
+        print('^3Tablet Setup Data:^0', json.encode(setup, {indent=true}))
+    end
     cb(setup)
 end)
 
@@ -2350,7 +2354,7 @@ local function clearProp()
     if UseDebug then
         print('REMOVING PROP', attachedProp)
     end
-    if DoesEntityExist(attachedProp) then
+    if attachedProp and DoesEntityExist(attachedProp) then
         DeleteEntity(attachedProp)
         attachedProp = 0
     end
@@ -2360,7 +2364,7 @@ local function attachProp()
     clearProp()
     local model = 'prop_cs_tablet'
     local boneNumber = 28422
-    SetCurrentPedWeapon(GetPlayerPed(-1), 0xA2719263)
+    SetCurrentPedWeapon(cache.ped, 0xA2719263, false)
     local bone = GetPedBoneIndex(GetPlayerPed(-1), boneNumber)
 
     RequestModel(model)
@@ -3350,6 +3354,10 @@ function initialSetup()
             CurrentCrew = nil
         end
     end
+    if UseDebug then
+        notify('RacingaApp setup is done!', 'success')
+    end
+        
 end
 
 AddEventHandler('onResourceStart', function(resource)

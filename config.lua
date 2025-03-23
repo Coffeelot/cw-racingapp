@@ -11,6 +11,8 @@ Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.DoOffsetGps = true               -- Set to true if you want the gps to slighlty offset the point (helps with route)
 
+Config.FirstBountiesGenerateStartTime = 5 * 1000 -- This is the time until the script creates bounties. Increase if you have problem with bounties being problematic.
+
 Config.Inventory = 'ox'                 -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
 Config.UseNameValidation = true         -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
 Config.MaxRacerNames = 2                -- Maximum allowed amount of unique names per character
@@ -34,6 +36,7 @@ Config.AllowAnyoneToCreateUserInApp = true -- If True then anyone can create the
 Config.BasePermission = 'racer' -- this is the base user type your racingapp users can create if you allow creation in app. Should match the user you want from Config.Permissions
 
 Config.UseCustomClassSystem = false -- If this is true then you opt in to make your own custom class system. There will be no support for this.
+Config.HideMapInTablet = false -- if true then no map for players :(
 
 Config.Sounds = {
     Countdown = {
@@ -72,7 +75,7 @@ Config.DrawTextSetup = {
 }
 
 Config.CustomAmounts = { -- custom max amout of racer names
-    ['QBQ16539'] = 100,
+    ['PX6944'] = 100,
     ['FMN22732'] = 100,
     ['SYY99260'] = 100,
 }
@@ -80,7 +83,7 @@ Config.CustomAmounts = { -- custom max amout of racer names
 Config.LimitTracks = true        -- set to true to limit tracks per citizenid. Below two fields are irrelevent if this is false
 Config.MaxCharacterTracks = 2    -- Amount of tracks allowed per citizenid
 Config.CustomAmountsOfTracks = { -- custom max amout of tracks per citizenid
-    ['QBQ16539'] = 100,
+    ['PX6944'] = 100,
     ['FMN22732'] = 100,
     ['SYY99260'] = 100,
 }

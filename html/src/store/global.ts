@@ -18,7 +18,7 @@ export const useGlobalStore = defineStore('global', {
     baseData: {} as BaseData,
     isLoadingBaseData: true,
     settings: {},
-    tracks: {} as Track[],
+    tracks: [] as Track[],
     results: {} as Record<string, any>,
     myCrew: {} as Crew,
     notification: undefined as Notification | undefined,

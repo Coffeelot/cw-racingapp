@@ -1,5 +1,5 @@
 <template>
-  <div class="results-container page-container">
+  <div class="results-container">
     <v-card class="mb-3">
       <v-card-title>{{ translate("bounties") }} </v-card-title>
       <v-card-text class="text">
@@ -32,6 +32,10 @@ import { useGlobalStore } from "@/store/global";
 const globalStore = useGlobalStore();
 
 const getBounties = async () => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    console.log('MOCK DATA ACTIVE. SKIPPING FETCH')
+    return
+  }
   const response = await api.post('UiGetBounties')
   if (response.data) {
     globalStore.bounties = response.data

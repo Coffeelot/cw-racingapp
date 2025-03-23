@@ -118,5 +118,5 @@ RegisterServerCallback('cw-racingapp:server:getBounties', function(source)
 end)
 
 -- Generate the initial bounties on first run
-Wait(3000)
+Wait(Config.FirstBountiesGenerateStartTime or 10000)
 generateBounties()

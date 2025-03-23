@@ -1,5 +1,5 @@
 <template>
-  <v-card  rounded="xl" class="big-card">
+  <v-card border rounded="xl" class="big-card">
     <v-card-title class="title">{{ racer.racername }}</v-card-title>
     <v-card-text class="text">
       <v-chip color="primary" class="allow-select">{{ translate('citizen_id') }} : {{ racer.citizenid }} </v-chip>

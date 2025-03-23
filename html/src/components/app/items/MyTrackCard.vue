@@ -1,5 +1,5 @@
 <template>
-  <v-card class="big-card" rounded="xl">
+  <v-card border class="big-card" rounded="xl">
     <v-card-title class="title">
       <span class="d-inline-flex ga-1 align-xl-center ">{{ track.RaceName }}</span>
       <div>
@@ -306,7 +306,8 @@ const deleteTrack = () => {
 const setCuration = async (curated: number) => {
     const response = await api.post('UiSetCurated', JSON.stringify({ curated, trackId: props.track.RaceId }))
     if (response.data) {
-      props.track.Curated = curated
+      // eslint-disable-next-line vue/no-mutating-props
+      props.track.Curated = curated;
       curateDialog.value = false;
     }
 };

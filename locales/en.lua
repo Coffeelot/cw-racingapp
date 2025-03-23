@@ -1,4 +1,6 @@
 TranslationsEN = {
+        racing_map = 'Map',
+        set_waypoint = 'Set Waypoint',
         view_records = 'View Records',
         fee = "Selling fee",
         you_get = "You get",

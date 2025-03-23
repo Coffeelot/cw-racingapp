@@ -7,6 +7,7 @@
       v-on:update:model-value="fetchRelevantData()"
     >
       <v-tab value="current">{{ translate('available_races') }} </v-tab>
+      <v-tab value="map" v-if="!globalStore.baseData.data.hideMap">{{ translate('racing_map') }}</v-tab>
       <v-tab value="bounties">{{ translate('bounties') }} </v-tab>
       <v-tab value="setup" v-if="globalStore.baseData.data.auth.setup">{{ translate('setup') }} </v-tab>
     </v-tabs>
@@ -47,6 +48,9 @@
           v-if="races.length === 0"
           :title="translate('no_races')"
         ></InfoText>
+      </v-window-item>
+      <v-window-item  value="map" class="tabcontent">
+        <RacingMapTab></RacingMapTab>
       </v-window-item>
       <v-window-item  value="bounties" class="tabcontent">
         <BountiesTab></BountiesTab>
@@ -119,6 +123,7 @@ import { computed } from "vue";
 import InfoText from "../components/InfoText.vue";
 import { translate } from "@/helpers/translate";
 import BountiesTab from "../components/BountiesTab.vue";
+import RacingMapTab from "../components/RacingMapTab.vue";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);
@@ -154,6 +159,10 @@ const resetTrackSetup = () => {
 const racesNotStarted = computed(() => races.value.filter((race:any) => !race.RaceData.Started))
 
 const getListedRaces = async () => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    console.log('MOCK DATA ACTIVE. SKIPPING FETCH')
+    return
+  }
   isLoading.value = true;
   const res = await api.post("UiGetListedRaces");
   races.value = res.data ;
@@ -166,6 +175,10 @@ const selectTrack = (track: Track) => {
 };
 
 const getTracks = async () => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    console.log('MOCK DATA ACTIVE. SKIPPING FETCH')
+    return
+  }
   isLoading.value = true;
   const res = await api.post("UiGetAvailableTracks");
   globalStore.$state.tracks = res.data;
@@ -173,6 +186,10 @@ const getTracks = async () => {
 };
 
 const getCurrent = async () => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    console.log('MOCK DATA ACTIVE. SKIPPING FETCH')
+    return
+  }
   const res = await api.post("UiFetchCurrentRace");
   if (res.data.raceId) {
     currentRace.value = res.data;
@@ -182,6 +199,10 @@ const getCurrent = async () => {
 };
 
 const leaveRace = async () => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    console.log('MOCK DATA ACTIVE. SKIPPING POST')
+    return
+  }
   if (currentRace?.value?.raceId) {
     await api.post(
       "UiLeaveCurrentRace",
@@ -192,6 +213,10 @@ const leaveRace = async () => {
 };
 
 const startRace = async () => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    console.log('MOCK DATA ACTIVE. SKIPPING FETCH')
+    return
+  }
   if (currentRace?.value?.raceId) {
     await api.post(
       "UiStartCurrentRace",

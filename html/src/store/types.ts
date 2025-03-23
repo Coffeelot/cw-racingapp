@@ -239,7 +239,8 @@ export type BaseData = {
         anyoneCanCreate: boolean,
         isFirstUser: boolean,
         isUsingRacingCrypto: boolean,
-        payments: Payments
+        payments: Payments,
+        hideMap: boolean,
     }
 }
 
@@ -267,9 +268,19 @@ export type Result = {
     CarClass: string
 }
 
+export type Coordinate = { x: number, y: number, z: number }
+
+export type Checkpoint = {
+    coords: Coordinate,
+    offset: {
+        left: Coordinate,
+        right: Coordinate
+    }
+}
+
 export type Track = {
     Access: Access,
-    Checkpoints: [],
+    Checkpoints: Checkpoint[],
     Creator: string,
     CreatorName: string,
     Curated: number,

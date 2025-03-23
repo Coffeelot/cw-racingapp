@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded="xl">
+  <v-card rounded="xl" border>
     <v-card-title>
       {{ bounty.trackName }} <v-chip variant="outlined" :color="hasBeenCompleted ? 'green' : 'primary'">{{  msToHMS(bounty.timeToBeat) }}</v-chip>
     </v-card-title>

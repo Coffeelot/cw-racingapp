@@ -1,5 +1,5 @@
 <template>
-    <v-card rounded="xl" class="available-card">
+    <v-card rounded="xl" class="available-card" border>
         
         <v-card-title>{{ track.RaceName}}</v-card-title>
         <v-card-subtitle class="subtitle-text" v-if="track.Metadata?.description">{{ track.Metadata.description }}</v-card-subtitle>

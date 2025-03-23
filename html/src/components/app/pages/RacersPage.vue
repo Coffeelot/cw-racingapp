@@ -18,7 +18,7 @@
           ></v-text-field>
         </div>
         <div class="myRacers-items-container scrollable" v-if="myRacers && myRacers.length>0">
-          <MyRacerCard @triggerReload="getMyRacers()" v-for="racer in filteredRacers" :racer="racer"></MyRacerCard>
+          <MyRacerCard v-for="racer in filteredRacers" :key="racer.id" @triggerReload="getMyRacers()"  :racer="racer"></MyRacerCard>
         </div>
       </v-window-item>
       <v-window-item value="create" class="tabcontent">

@@ -17,10 +17,10 @@ import {
 import { useGlobalStore } from "./store/global";
 import api from "@/api/axios";
 import { useTheme } from "vuetify/lib/framework.mjs";
+import { testState } from "./store/testState";
 const theme = useTheme()
 
 const globalStore = useGlobalStore();
-
 
 const toggleApp = (show: boolean): void => {
   if (show) {
@@ -98,13 +98,18 @@ const handleMessageListener = (event: MessageEvent) => {
 
 const getBaseData = async () => {
   const res = await api.post("GetBaseData");
-  globalStore.$state.baseData = res
+  if (res) {
+    globalStore.$state.baseData = res
+  }
   if (res.data.primaryColor) {
       theme.themes.value.dark.colors.primary = res.data.primaryColor;
   }
 }
 
 onMounted(() => {
+  if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+    globalStore.$state = testState;
+  }
   window.addEventListener("message", handleMessageListener);
 });
 
