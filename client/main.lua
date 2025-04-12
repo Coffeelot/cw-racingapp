@@ -442,6 +442,38 @@ local function markWithUglyWaypoint()
     end
 end
 
+local function deleteCurrentRaceCheckpoints()
+    for _, checkpointData in pairs(CurrentRaceData.Checkpoints) do
+        local blip = checkpointData.blip
+        if blip then
+            RemoveBlip(blip)
+        end
+
+        if checkpointData.pileleft then
+            deleteClosestObject(checkpointData.offset.left, StartAndFinishModel)
+            deleteClosestObject(checkpointData.offset.left, CheckpointPileModel)
+        end
+
+        if checkpointData.pileright then
+            deleteClosestObject(checkpointData.offset.right, StartAndFinishModel)
+            deleteClosestObject(checkpointData.offset.right, CheckpointPileModel)
+        end
+    end
+
+    CurrentRaceData.RaceName = nil
+    CurrentRaceData.Checkpoints = {}
+    CurrentRaceData.Started = false
+    CurrentRaceData.CurrentCheckpoint = 0
+    CurrentRaceData.TotalLaps = 0
+    CurrentRaceData.Lap = 0
+    CurrentRaceData.RaceTime = 0
+    CurrentRaceData.TotalTime = 0
+    CurrentRaceData.BestLap = 0
+    CurrentRaceData.FirstPerson = false
+    CurrentRaceData.RacerName = nil
+    RaceData.InRace = false
+end
+
 local function finishRace()
     if CurrentRaceData.RaceId == nil then
         return
@@ -827,6 +859,7 @@ local function addCheckpoint(checkpointId)
     redrawBlips()
 end
 
+
 local function moveCheckpoint()
     local dialog
 
@@ -1028,15 +1061,15 @@ end
 
 local function bothOpponentsHaveDefinedPositions(aSrc, bSrc)
     local currentPlayer = GetPlayerPed(-1)
-    local currentPlayerCoords = GetEntityCoords(currentPlayer, 0)
+    local currentPlayerCoords = GetEntityCoords(currentPlayer)
 
     local aPly = GetPlayerFromServerId(aSrc)
     local aTarget = GetPlayerPed(aPly)
-    local aCoords = GetEntityCoords(aTarget, 0)
+    local aCoords = GetEntityCoords(aTarget)
 
     local bPly = GetPlayerFromServerId(bSrc)
     local bTarget = GetPlayerPed(bPly)
-    local bCoords = GetEntityCoords(bTarget, 0)
+    local bCoords = GetEntityCoords(bTarget)
 
     if currentPlayer == aTarget then
         return #(currentPlayerCoords - bCoords) > 0 -- not defined if 0
@@ -1056,7 +1089,7 @@ end
 local function distanceToCheckpoint(src, checkpoint)
     local ped = GetPlayerFromServerId(src)
     local target = GetPlayerPed(ped)
-    local pos = GetEntityCoords(target, 0)
+    local pos = GetEntityCoords(target)
     local next
     if checkpoint + 1 > #CurrentRaceData.Checkpoints then
         next = CurrentRaceData.Checkpoints[1]
@@ -1441,38 +1474,6 @@ local function setupRace(raceData, Laps)
     debugLog('Race Was setup:', json.encode(CurrentRaceData))
     startRaceUi()
     markWithDrawTextWaypoint()
-end
-
-local function deleteCurrentRaceCheckpoints()
-    for _, checkpointData in pairs(CurrentRaceData.Checkpoints) do
-        local blip = checkpointData.blip
-        if blip then
-            RemoveBlip(blip)
-        end
-
-        if checkpointData.pileleft then
-            deleteClosestObject(checkpointData.offset.left, StartAndFinishModel)
-            deleteClosestObject(checkpointData.offset.left, CheckpointPileModel)
-        end
-
-        if checkpointData.pileright then
-            deleteClosestObject(checkpointData.offset.right, StartAndFinishModel)
-            deleteClosestObject(checkpointData.offset.right, CheckpointPileModel)
-        end
-    end
-
-    CurrentRaceData.RaceName = nil
-    CurrentRaceData.Checkpoints = {}
-    CurrentRaceData.Started = false
-    CurrentRaceData.CurrentCheckpoint = 0
-    CurrentRaceData.TotalLaps = 0
-    CurrentRaceData.Lap = 0
-    CurrentRaceData.RaceTime = 0
-    CurrentRaceData.TotalTime = 0
-    CurrentRaceData.BestLap = 0
-    CurrentRaceData.FirstPerson = false
-    CurrentRaceData.RacerName = nil
-    RaceData.InRace = false
 end
 
 -----------------------
