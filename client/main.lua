@@ -18,6 +18,9 @@ local CurrentRanking
 local CheckpointPileModel = joaat(Config.CheckpointPileModel)
 local StartAndFinishModel = joaat(Config.StartAndFinishModel)
 
+local startTime = 0
+local lapStartTime = 0
+
 local RaceData = {
     InCreator = false,
     InRace = false,
@@ -54,7 +57,6 @@ RegisterNetEvent('cw-racingapp:client:notify', function(message, type)
     if hasGps() then
         notify(message, type)
     end
-
 end)
 
 local Classes = getVehicleClasses()
@@ -82,6 +84,30 @@ local function debugLog(message, message2, message3, message4)
             print(message4)
         end
     end
+end
+
+local function updateRaceUi()
+    SendNUIMessage({
+        action = "update",
+        type = "race",
+        data = {
+            currentCheckpoint = CurrentRaceData.CurrentCheckpoint,
+            totalCheckpoints = #CurrentRaceData.Checkpoints,
+            totalLaps = CurrentRaceData.TotalLaps,
+            currentLap = CurrentRaceData.Lap,
+            raceStarted = CurrentRaceData.Started,
+            raceName = CurrentRaceData.RaceName,
+            time = CurrentRaceData.RaceTime,
+            totalTime = CurrentRaceData.TotalTime,
+            bestLap = CurrentRaceData.BestLap,
+            position = CurrentRaceData.Position,
+            positions = CurrentRaceData.Positions,
+            totalRacers = CurrentRaceData.TotalRacers,
+            ghosted = CurrentRaceData.Ghosted,
+        },
+        racedata = RaceData,
+        active = true
+    })
 end
 
 local function getSizeOfTable(table)
@@ -124,15 +150,103 @@ local function reverseTable(tbl)
     return tbl
 end
 
+local timeWhenLastCheckpointWasPassed = 0
+-- Racing
+
+local function checkCheckPointTime()
+    if GetTimeDifference(GetGameTimer(), timeWhenLastCheckpointWasPassed) > Config.KickTime then
+        debugLog('Getting kicked for idling')
+        if not Kicked then
+            Kicked = true
+            notify(Lang('kicked_idling'), 'error')
+            TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'idling')
+        end
+    end
+end
+
+local function getMaxDistance(center, offsetCoords)
+    local Distance = #(vector3(center.x, center.y, center.z) -
+        vector3(offsetCoords.left.x, offsetCoords.left.y, offsetCoords.left.z))
+
+    return Distance + (Config.CheckpointBuffer or 0)
+end
+
+local function genericBlip(blip)
+    SetBlipScale(blip, Config.Blips.Generic.Size)
+    SetBlipColour(blip, Config.Blips.Generic.Color)
+end
+
+local function nextBlip(blip)
+    SetBlipScale(blip, Config.Blips.Next.Size)
+    SetBlipColour(blip, Config.Blips.Next.Color)
+end
+
+local function passedBlip(blip)
+    SetBlipScale(blip, Config.Blips.Passed.Size)
+    SetBlipColour(blip, Config.Blips.Passed.Color)
+end
+
+local function resetBlips()
+    for _, checkpoint in pairs(CurrentRaceData.Checkpoints) do
+        genericBlip(checkpoint.blip)
+    end
+end
+
+
+local function showNonLoopParticle(dict, particleName, coords, scale, time)
+    while not HasNamedPtfxAssetLoaded(dict) do
+        RequestNamedPtfxAsset(dict)
+        Wait(0)
+    end
+
+    UseParticleFxAssetNextCall(dict)
+
+    local particleHandle = StartParticleFxLoopedAtCoord(particleName, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0,
+        scale, false, false, false)
+    SetParticleFxLoopedColour(particleHandle, 0.0, 0.0, 1.0)
+    return particleHandle
+end
+
+local function handleFlare(checkpoint)
+    local Size = 1.0
+    local left = showNonLoopParticle('core', 'exp_grd_flare',
+        CurrentRaceData.Checkpoints[checkpoint].offset.left, Size)
+    local right = showNonLoopParticle('core', 'exp_grd_flare',
+        CurrentRaceData.Checkpoints[checkpoint].offset.right, Size)
+
+    SetTimeout(Config.FlareTime, function()
+        StopParticleFxLooped(left, false)
+        StopParticleFxLooped(right, false)
+    end)
+end
+
+local function doPilePfx()
+    if CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1] ~= nil then
+        handleFlare(CurrentRaceData.CurrentCheckpoint + 1)
+    end
+    if CurrentRaceData.CurrentCheckpoint == 1 then -- start
+        debugLog('start')
+        handleFlare(CurrentRaceData.CurrentCheckpoint)
+    end
+    if CurrentRaceData.TotalLaps > 0 and CurrentRaceData.CurrentCheckpoint == #CurrentRaceData.Checkpoints then -- finish
+        debugLog('finish')
+        handleFlare(1)
+        if CurrentRaceData.Lap ~= CurrentRaceData.TotalLaps then
+            debugLog('not last lap')
+            handleFlare(2)
+        end
+    end
+end
+
 local function myCarClassIsAllowed(maxClass, myClass)
     if maxClass == nil or maxClass == '' then
         return true
     end
     debugLog('My class:', myClass)
-    debugLog('All classes', json.encode(Classes, {indent=true}))
+    debugLog('All classes', json.encode(Classes, { indent = true }))
     local myClassIndex = Classes[myClass]
     local maxClassIndex = Classes[maxClass]
-    debugLog('My class index: '..tostring(myClassIndex), 'maxClassIndex: '..tostring(maxClassIndex))
+    debugLog('My class index: ' .. tostring(myClassIndex), 'maxClassIndex: ' .. tostring(maxClassIndex))
     if myClassIndex > maxClassIndex then
         return false
     end
@@ -198,7 +312,6 @@ local function checkAndDisableGhosting()
     local playerPed = PlayerPedId()
     local playerCoords = GetEntityCoords(playerPed)
     local vehicle = GetVehiclePedIsIn(playerPed, false)
-
     if not isDriver(vehicle) then
         debugLog('Racer was not the driver')
         unGhostPlayer()
@@ -216,13 +329,13 @@ local function checkAndDisableGhosting()
                 break
             end
         end
-        
+
         if not isRacer then
             local otherPed = GetPlayerPed(playerId)
             local otherPlayerCoords = GetEntityCoords(otherPed)
             local otherPlayerVehicle = GetVehiclePedIsIn(otherPed, false)
-            local isPassenger = otherPlayerVehicle ~= 0 and otherPlayerVehicle ~= nil and 
-                                GetPedInVehicleSeat(otherPlayerVehicle, -1) ~= otherPed
+            local isPassenger = otherPlayerVehicle ~= 0 and otherPlayerVehicle ~= nil and
+                GetPedInVehicleSeat(otherPlayerVehicle, -1) ~= otherPed
 
             if not isPassenger then
                 if isPlayerNearby(playerCoords, otherPlayerCoords, Config.Ghosting.DeGhostDistance) then
@@ -232,7 +345,7 @@ local function checkAndDisableGhosting()
             end
         end
     end
-    
+
     -- Toggle ghosting based on nearby players
     if nearbyPlayersFound then
         unGhostPlayer()
@@ -244,10 +357,11 @@ end
 local function initGhosting()
     -- Initial ghosting setup
     ghostPlayer()
-    
+
     -- Create a thread to continuously check for nearby players
     CreateThread(function()
         while CurrentRaceData.Started do
+
             checkAndDisableGhosting()
             Wait(Config.Ghosting.DistanceLoopTime)
         end
@@ -268,6 +382,92 @@ local function isFinishOrStart(checkpoint)
             return false
         end
     end
+end
+
+
+
+function IsInRace()
+    local retval = false
+    if RaceData.InRace then
+        retval = true
+    end
+    return retval
+end
+
+exports('IsInRace', IsInRace)
+
+
+function IsInEditor()
+    local retval = false
+    if RaceData.InCreator then
+        retval = true
+    end
+    return retval
+end
+
+exports('IsInEditor', IsInEditor)
+
+
+function DrawText3Ds(x, y, z, text)
+    SetTextScale(0.35, 0.35)
+    SetTextFont(4)
+    SetTextProportional(1)
+    SetTextColour(255, 255, 255, 215)
+    SetTextEntry("STRING")
+    SetTextCentre(true)
+    AddTextComponentString(text)
+    SetDrawOrigin(x, y, z, 0)
+    DrawText(0.0, 0.0)
+    local factor = (string.len(text)) / 370
+    DrawRect(0.0, 0.0 + 0.0125, 0.017 + factor, 0.03, 0, 0, 0, 75)
+    ClearDrawOrigin()
+end
+
+local function markWithUglyWaypoint()
+    if UseUglyWaypoint then
+        if #CurrentRaceData.Checkpoints == CurrentRaceData.CurrentCheckpoint then
+            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.x,
+                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.y)
+        elseif #CurrentRaceData.Checkpoints > CurrentRaceData.CurrentCheckpoint + 1 then
+            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 2].coords.x,
+                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 2].coords.y)
+        else
+            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
+                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
+        end
+    end
+end
+
+local function finishRace()
+    if CurrentRaceData.RaceId == nil then
+        return
+    end
+    local PlayerPed = PlayerPedId()
+    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
+    if not isDriver(vehicle) then
+        notify(Lang('kicked_cheese'), 'error')
+        TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'cheeseing')
+        return
+    end
+
+    local class = getVehicleClass(vehicle)
+    local vehicleModel = getVehicleModel(vehicle)
+    -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
+    debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
+    TriggerServerEvent('cw-racingapp:server:finishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
+        CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, CurrentRanking, CurrentCrew)
+
+    unGhostPlayer()
+    if IgnoreRoadsForGps then
+        ClearGpsCustomRoute()
+    else
+        ClearGpsMultiRoute()
+    end
+    updateRaceUi()
+    deleteCurrentRaceCheckpoints()
+    SetTimeout(2000, function()
+        CurrentRaceData.RaceId = nil
+    end)
 end
 
 local function addPointToGpsRoute(cx, cy, offset)
@@ -391,8 +591,6 @@ local function updateGpsForRace(started)
         SetGpsMultiRouteRender(ShowGpsRoute, 16, 16)
     end
 end
-
-
 
 local function setupBlipsForRace(started)
     clearBlips()
@@ -720,6 +918,17 @@ local function clickExit()
     end
 end
 
+local function updateCountdown(value)
+    AnimpostfxPlay('CrossLineOut', 0, false)
+    SendNUIMessage({
+        type = 'race',
+        action = "countdown",
+        data = {
+            value = value
+        },
+        active = true
+    })
+end
 
 local function startCreatorLoopThread()
     CreateThread(function()
@@ -734,48 +943,46 @@ local function startCreatorLoopThread()
             Wait(10)
         end
     end)
+    CreateThread(function()
+        while RaceData.InCreator do
+            getClosestCheckpoint()
+            setupPiles()
+            Wait(1000)
+        end
+        debugLog('Exiting Closest Checkpoint check and pile setup thread')
+    end)
+    -- Creator
+    CreateThread(function()
+        while RaceData.InCreator do
+            local PlayerPed = PlayerPedId()
+            local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
+            if CreatorObjectLeft and CreatorObjectRight ~= nil then
+                cleanupObjects()
+            end
+            CreatorCheckpointObject = CheckpointPileModel
+
+            if PlayerVeh ~= 0 then
+                local Offset = {
+                    left = {
+                        x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
+                        y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).y,
+                        z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).z
+                    },
+                    right = {
+                        x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).x,
+                        y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).y,
+                        z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
+                    }
+                }
+                DrawMarker(22, Offset.left.x, Offset.left.y, Offset.left.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5,
+                    255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
+                DrawMarker(22, Offset.right.x, Offset.right.y, Offset.right.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5,
+                    1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
+            end
+            Wait(0)
+        end
+    end)
 end
-
-local startTime = 0
-local lapStartTime = 0
-
-local function updateCountdown(value)
-    AnimpostfxPlay('CrossLineOut', 0, false)
-    SendNUIMessage({
-        type = 'race',
-        action = "countdown",
-        data = {
-            value = value
-        },
-        active = true
-    })
-end
-
-
-local function updateRaceUi()
-    SendNUIMessage({
-        action = "update",
-        type = "race",
-        data = {
-            currentCheckpoint = CurrentRaceData.CurrentCheckpoint,
-            totalCheckpoints = #CurrentRaceData.Checkpoints,
-            totalLaps = CurrentRaceData.TotalLaps,
-            currentLap = CurrentRaceData.Lap,
-            raceStarted = CurrentRaceData.Started,
-            raceName = CurrentRaceData.RaceName,
-            time = CurrentRaceData.RaceTime,
-            totalTime = CurrentRaceData.TotalTime,
-            bestLap = CurrentRaceData.BestLap,
-            position = CurrentRaceData.Position,
-            positions = CurrentRaceData.Positions,
-            totalRacers = CurrentRaceData.TotalRacers,
-            ghosted = CurrentRaceData.Ghosted,
-        },
-        racedata = RaceData,
-        active = true
-    })
-end
-
 
 local function startRaceUi()
     CreateThread(function()
@@ -1077,7 +1284,126 @@ local function displayTrack(track)
     end
 end
 
+local function initRacingHudThread()
+    CreateThread(function()
+        while not Kicked and CurrentRaceData.RaceName ~= nil do
+            if CurrentRaceData.Started then
+                local ped = PlayerPedId()
+                local pos = GetEntityCoords(ped)
+                local cp
+                if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then
+                    cp = 1
+                else
+                    cp = CurrentRaceData.CurrentCheckpoint + 1
+                end
+                local data = CurrentRaceData.Checkpoints[cp]
+                local currentCheckpointCenterCoords = vector3(data.coords.x, data.coords.y, data.coords.z)
+                local CheckpointDistance = #(pos - currentCheckpointCenterCoords)
+                local MaxDistance = getMaxDistance(currentCheckpointCenterCoords, CurrentRaceData.Checkpoints[cp].offset)
+                if CheckpointDistance < MaxDistance then
+                    if CurrentRaceData.TotalLaps == 0 then                                               -- Sprint
+                        if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then     -- passed checkpoint
+                            CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
+                            TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
+                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
+                            doPilePfx()
+                            PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
+                            passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                            nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+                            updateGpsForRace(true)
+                            markWithUglyWaypoint()
+                        else     -- finished
+                            doPilePfx()
+                            CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
+                            TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
+                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
+                            PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
+                            finishRace()
+                        end
+                        timeWhenLastCheckpointWasPassed = GetGameTimer()
+                    else                                                                                 -- Circuit
+                        if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then     -- If new lap
+                            if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then                  -- if finish
+                                doPilePfx()
+                                PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
+                                if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
+                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
+                                    debugLog('racetime less than bestlap',
+                                        CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime,
+                                        CurrentRaceData.BestLap)
+                                elseif CurrentRaceData.BestLap == 0 then
+                                    debugLog('bestlap == 0', CurrentRaceData.BestLap)
+                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
+                                end
+                                CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true,
+                                    CurrentRaceData.TotalTime)
+                                finishRace()
+                                PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
+                            else     -- if next lap
+                                doPilePfx()
+                                resetBlips()
+                                PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
+                                if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
+                                    debugLog('racetime less than bestlap',
+                                        CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime,
+                                        CurrentRaceData.BestLap)
+                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
+                                elseif CurrentRaceData.BestLap == 0 then
+                                    debugLog('bestlap == 0', CurrentRaceData.BestLap)
+                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
+                                end
+                                lapStartTime = GetGameTimer()
+                                CurrentRaceData.Lap = CurrentRaceData.Lap + 1
+                                CurrentRaceData.CurrentCheckpoint = 1
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
+                                    CurrentRaceData.TotalTime)
 
+                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+                                markWithUglyWaypoint()
+                                updateGpsForRace(true)
+                            end
+                            timeWhenLastCheckpointWasPassed = GetGameTimer()
+                        else     -- if next checkpoint
+                            CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
+                            if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
+                                    CurrentRaceData.TotalTime)
+                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+                                markWithUglyWaypoint()
+                            else
+                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
+                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
+                                    CurrentRaceData.TotalTime)
+                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
+                                nextBlip(CurrentRaceData.Checkpoints[1].blip)
+                                markWithUglyWaypoint()
+                            end
+                            timeWhenLastCheckpointWasPassed = GetGameTimer()
+                            doPilePfx()
+                            updateGpsForRace(true)
+                            PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
+                        end
+                    end
+                else
+                    checkCheckPointTime()
+                end
+            else
+                local data = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
+                DrawMarker(4, data.coords.x, data.coords.y, data.coords.z + 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
+                    1.5, 255, 255, 255, 255, 0, 1, 0, 0, 0, 0, 0)
+                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
+            end
+            Wait(0)
+        end
+        debugLog('Breaking racing hud thread')
+    end)
+end
 
 local function setupRace(raceData, Laps)
     local checkpoints = raceData.Checkpoints
@@ -1106,55 +1432,11 @@ local function setupRace(raceData, Laps)
         Racers = {},
         Position = 0
     }
+    initRacingHudThread()
     displayTrack(CurrentRaceData)
     debugLog('Race Was setup:', json.encode(CurrentRaceData))
     startRaceUi()
     markWithDrawTextWaypoint()
-end
-
-local function showNonLoopParticle(dict, particleName, coords, scale, time)
-    while not HasNamedPtfxAssetLoaded(dict) do
-        RequestNamedPtfxAsset(dict)
-        Wait(0)
-    end
-
-    UseParticleFxAssetNextCall(dict)
-
-    local particleHandle = StartParticleFxLoopedAtCoord(particleName, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0,
-        scale, false, false, false)
-    SetParticleFxLoopedColour(particleHandle, 0.0, 0.0, 1.0)
-    return particleHandle
-end
-
-local function handleFlare(checkpoint)
-    local Size = 1.0
-    local left = showNonLoopParticle('core', 'exp_grd_flare',
-        CurrentRaceData.Checkpoints[checkpoint].offset.left, Size)
-    local right = showNonLoopParticle('core', 'exp_grd_flare',
-        CurrentRaceData.Checkpoints[checkpoint].offset.right, Size)
-
-    SetTimeout(Config.FlareTime, function()
-        StopParticleFxLooped(left, false)
-        StopParticleFxLooped(right, false)
-    end)
-end
-
-local function doPilePfx()
-    if CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1] ~= nil then
-        handleFlare(CurrentRaceData.CurrentCheckpoint + 1)
-    end
-    if CurrentRaceData.CurrentCheckpoint == 1 then -- start
-        debugLog('start')
-        handleFlare(CurrentRaceData.CurrentCheckpoint)
-    end
-    if CurrentRaceData.TotalLaps > 0 and CurrentRaceData.CurrentCheckpoint == #CurrentRaceData.Checkpoints then -- finish
-        debugLog('finish')
-        handleFlare(1)
-        if CurrentRaceData.Lap ~= CurrentRaceData.TotalLaps then
-            debugLog('not last lap')
-            handleFlare(2)
-        end
-    end
 end
 
 local function deleteCurrentRaceCheckpoints()
@@ -1188,303 +1470,6 @@ local function deleteCurrentRaceCheckpoints()
     CurrentRaceData.RacerName = nil
     RaceData.InRace = false
 end
-
-local function FinishRace()
-    if CurrentRaceData.RaceId == nil then
-        return
-    end
-    local PlayerPed = PlayerPedId()
-    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
-    if not isDriver(vehicle) then
-        notify(Lang('kicked_cheese'), 'error')
-        TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'cheeseing')
-        return
-    end
-
-    local class = getVehicleClass(vehicle)
-    local vehicleModel = getVehicleModel(vehicle)
-    -- print('NEW TIME TEST', currentTotalTime, SecondsToClock(currentTotalTime))
-    debugLog('Best lap:', CurrentRaceData.BestLap, 'Total:', CurrentRaceData.TotalTime)
-    TriggerServerEvent('cw-racingapp:server:finishPlayer', CurrentRaceData, CurrentRaceData.TotalTime,
-        CurrentRaceData.TotalLaps, CurrentRaceData.BestLap, class, vehicleModel, CurrentRanking, CurrentCrew)
-
-    unGhostPlayer()
-    if IgnoreRoadsForGps then
-        ClearGpsCustomRoute()
-    else
-        ClearGpsMultiRoute()
-    end
-    updateRaceUi()
-    deleteCurrentRaceCheckpoints()
-    SetTimeout(2000, function()
-        CurrentRaceData.RaceId = nil
-    end)
-end
-
-function IsInRace()
-    local retval = false
-    if RaceData.InRace then
-        retval = true
-    end
-    return retval
-end
-
-exports('IsInRace', IsInRace)
-
-
-function IsInEditor()
-    local retval = false
-    if RaceData.InCreator then
-        retval = true
-    end
-    return retval
-end
-
-exports('IsInEditor', IsInEditor)
-
-
-function DrawText3Ds(x, y, z, text)
-    SetTextScale(0.35, 0.35)
-    SetTextFont(4)
-    SetTextProportional(1)
-    SetTextColour(255, 255, 255, 215)
-    SetTextEntry("STRING")
-    SetTextCentre(true)
-    AddTextComponentString(text)
-    SetDrawOrigin(x, y, z, 0)
-    DrawText(0.0, 0.0)
-    local factor = (string.len(text)) / 370
-    DrawRect(0.0, 0.0 + 0.0125, 0.017 + factor, 0.03, 0, 0, 0, 75)
-    ClearDrawOrigin()
-end
-
------------------------
-----   Threads     ----
------------------------
-
-CreateThread(function()
-    while true do
-        if RaceData.InCreator then
-            getClosestCheckpoint()
-            setupPiles()
-        end
-        Wait(1000)
-    end
-end)
-
-local function genericBlip(blip)
-    SetBlipScale(blip, Config.Blips.Generic.Size)
-    SetBlipColour(blip, Config.Blips.Generic.Color)
-end
-
-local function nextBlip(blip)
-    SetBlipScale(blip, Config.Blips.Next.Size)
-    SetBlipColour(blip, Config.Blips.Next.Color)
-end
-
-local function passedBlip(blip)
-    SetBlipScale(blip, Config.Blips.Passed.Size)
-    SetBlipColour(blip, Config.Blips.Passed.Color)
-end
-
-local function resetBlips()
-    for _, checkpoint in pairs(CurrentRaceData.Checkpoints) do
-        genericBlip(checkpoint.blip)
-    end
-end
-
-local function markWithUglyWaypoint()
-    if UseUglyWaypoint then
-        if #CurrentRaceData.Checkpoints == CurrentRaceData.CurrentCheckpoint then
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.x,
-                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].coords.y)
-        elseif #CurrentRaceData.Checkpoints > CurrentRaceData.CurrentCheckpoint + 1 then
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 2].coords.x,
-                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 2].coords.y)
-        else
-            SetNewWaypoint(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.x,
-                CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].coords.y)
-        end
-    end
-end
-
-local timeWhenLastCheckpointWasPassed = 0
--- Racing
-
-local function checkCheckPointTime()
-    if GetTimeDifference(GetGameTimer(), timeWhenLastCheckpointWasPassed) > Config.KickTime then
-        debugLog('Getting kicked for idling')
-        if not Kicked then
-            Kicked = true
-            notify(Lang('kicked_idling'), 'error')
-            TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'idling')
-        end
-    end
-end
-
-local function getMaxDistance(center, offsetCoords)
-    local Distance = #(vector3(center.x, center.y, center.z) -
-        vector3(offsetCoords.left.x, offsetCoords.left.y, offsetCoords.left.z))
-
-    return Distance + (Config.CheckpointBuffer or 0)
-end
-
-CreateThread(function()
-    while true do
-        if not Kicked and CurrentRaceData.RaceName ~= nil then
-            if CurrentRaceData.Started then
-                local ped = PlayerPedId()
-                local pos = GetEntityCoords(ped)
-                local cp
-                if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then
-                    cp = 1
-                else
-                    cp = CurrentRaceData.CurrentCheckpoint + 1
-                end
-                local data = CurrentRaceData.Checkpoints[cp]
-                local currentCheckpointCenterCoords = vector3(data.coords.x, data.coords.y, data.coords.z)
-                local CheckpointDistance = #(pos - currentCheckpointCenterCoords)
-                local MaxDistance = getMaxDistance(currentCheckpointCenterCoords, CurrentRaceData.Checkpoints[cp].offset)
-                if CheckpointDistance < MaxDistance then
-                    if CurrentRaceData.TotalLaps == 0 then                                           -- Sprint
-                        if CurrentRaceData.CurrentCheckpoint + 1 < #CurrentRaceData.Checkpoints then -- passed checkpoint
-                            CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                            TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
-                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false, CurrentRaceData.TotalTime)
-                            doPilePfx()
-                            PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
-                            passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
-                            nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
-                            updateGpsForRace(true)
-                            markWithUglyWaypoint()
-                        else -- finished
-                            doPilePfx()
-                            CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                            TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
-                                CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true, CurrentRaceData.TotalTime)
-                            PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
-                            FinishRace()
-                        end
-                        timeWhenLastCheckpointWasPassed = GetGameTimer()
-                    else                                                                             -- Circuit
-                        if CurrentRaceData.CurrentCheckpoint + 1 > #CurrentRaceData.Checkpoints then -- If new lap
-                            if CurrentRaceData.Lap + 1 > CurrentRaceData.TotalLaps then              -- if finish
-                                doPilePfx()
-                                PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
-                                if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
-                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
-                                    debugLog('racetime less than bestlap',
-                                        CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime,
-                                        CurrentRaceData.BestLap)
-                                elseif CurrentRaceData.BestLap == 0 then
-                                    debugLog('bestlap == 0', CurrentRaceData.BestLap)
-                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
-                                end
-                                CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, true,
-                                    CurrentRaceData.TotalTime)
-                                FinishRace()
-                                PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
-                            else -- if next lap
-                                doPilePfx()
-                                resetBlips()
-                                PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
-                                if CurrentRaceData.RaceTime < CurrentRaceData.BestLap then
-                                    debugLog('racetime less than bestlap',
-                                        CurrentRaceData.RaceTime < CurrentRaceData.BestLap, CurrentRaceData.RaceTime,
-                                        CurrentRaceData.BestLap)
-                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
-                                elseif CurrentRaceData.BestLap == 0 then
-                                    debugLog('bestlap == 0', CurrentRaceData.BestLap)
-                                    CurrentRaceData.BestLap = CurrentRaceData.RaceTime
-                                end
-                                lapStartTime = GetGameTimer()
-                                CurrentRaceData.Lap = CurrentRaceData.Lap + 1
-                                CurrentRaceData.CurrentCheckpoint = 1
-                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
-                                    CurrentRaceData.TotalTime)
-
-                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
-                                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
-                                markWithUglyWaypoint()
-                                updateGpsForRace(true)
-                            end
-                            timeWhenLastCheckpointWasPassed = GetGameTimer()
-                        else -- if next checkpoint
-                            CurrentRaceData.CurrentCheckpoint = CurrentRaceData.CurrentCheckpoint + 1
-                            if CurrentRaceData.CurrentCheckpoint ~= #CurrentRaceData.Checkpoints then
-                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
-                                    CurrentRaceData.TotalTime)
-                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
-                                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
-                                markWithUglyWaypoint()
-                            else
-                                TriggerServerEvent('cw-racingapp:server:updateRacerData', CurrentRaceData.RaceId,
-                                    CurrentRaceData.CurrentCheckpoint, CurrentRaceData.Lap, false,
-                                    CurrentRaceData.TotalTime)
-                                passedBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint].blip)
-                                nextBlip(CurrentRaceData.Checkpoints[1].blip)
-                                markWithUglyWaypoint()
-                            end
-                            timeWhenLastCheckpointWasPassed = GetGameTimer()
-                            doPilePfx()
-                            updateGpsForRace(true)
-                            PlaySoundFrontend(-1, Config.Sounds.Checkpoint.lib, Config.Sounds.Checkpoint.sound)
-                        end
-                    end
-                else
-                    checkCheckPointTime()
-                end
-            else
-                local data = CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint]
-                DrawMarker(4, data.coords.x, data.coords.y, data.coords.z + 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.9, 1.5,
-                    1.5, 255, 255, 255, 255, 0, 1, 0, 0, 0, 0, 0)
-                nextBlip(CurrentRaceData.Checkpoints[CurrentRaceData.CurrentCheckpoint + 1].blip)
-            end
-        else
-            Wait(1000)
-        end
-
-        Wait(0)
-    end
-end)
-
--- Creator
-CreateThread(function()
-    while true do
-        if RaceData.InCreator then
-            local PlayerPed = PlayerPedId()
-            local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
-            if CreatorObjectLeft and CreatorObjectRight ~= nil then
-                cleanupObjects()
-            end
-            CreatorCheckpointObject = CheckpointPileModel
-
-            if PlayerVeh ~= 0 then
-                local Offset = {
-                    left = {
-                        x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
-                        y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).y,
-                        z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).z
-                    },
-                    right = {
-                        x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).x,
-                        y = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).y,
-                        z = (GetOffsetFromEntityInWorldCoords(PlayerVeh, CreatorData.TireDistance, 0.0, 0.0)).z
-                    }
-                }
-                DrawMarker(22, Offset.left.x, Offset.left.y, Offset.left.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5, 1.5,
-                    255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
-                DrawMarker(22, Offset.right.x, Offset.right.y, Offset.right.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.5,
-                    1.5, 255, 150, 0, 255, 0, 1, 0, 0, 0, 0, 0)
-            end
-        end
-        Wait(0)
-    end
-end)
 
 -----------------------
 ---- Client Events ----
@@ -1966,7 +1951,8 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
             local nameIsNotTaken = cwCallback.await('cw-racingapp:server:nameIsAvailable', racerName, racerId)
 
             if nameIsNotTaken then
-                TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType, CurrentName)
+                TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType,
+                    CurrentName)
             else
                 notify(Lang("name_is_used") .. racerName, 'error')
             end
@@ -2337,7 +2323,7 @@ RegisterNUICallback('GetBaseData', function(_, cb)
         hideMap = Config.HideMapInTablet
     }
     if UseDebug then
-        print('^3Tablet Setup Data:^0', json.encode(setup, {indent=true}))
+        print('^3Tablet Setup Data:^0', json.encode(setup, { indent = true }))
     end
     cb(setup)
 end)
@@ -2468,7 +2454,7 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
     debugLog('Current racer after change', json.encode(currentRacer, { indent = true }))
     debugLog('All player names', json.encode(MyRacerNames, { indent = true }))
 
-    if  #MyRacerNames == 1 then
+    if #MyRacerNames == 1 then
         currentRacer = MyRacerNames[1]
     end
     if currentRacer then
@@ -2583,8 +2569,8 @@ RegisterNUICallback('UiRevokeRacer', function(data, cb)
 end)
 
 RegisterNUICallback('UiRemoveRecord', function(data, cb)
-    debugLog('permanently removing record', json.encode(data, {indent=true}))
-    TriggerServerEvent("cw-racingapp:server:removeRecord", data.trackId,  data.record)
+    debugLog('permanently removing record', json.encode(data, { indent = true }))
+    TriggerServerEvent("cw-racingapp:server:removeRecord", data.trackId, data.record)
     cb(true)
 end)
 
@@ -2701,7 +2687,7 @@ end)
 RegisterNUICallback('UiSetWaypoint', function(track, cb)
     if track and track.Checkpoints then
         SetNewWaypoint(
-            track.Checkpoints[1].coords.x --[[ number ]], 
+            track.Checkpoints[1].coords.x --[[ number ]],
             track.Checkpoints[1].coords.y --[[ number ]]
         )
     end
@@ -3357,7 +3343,6 @@ function initialSetup()
     if UseDebug then
         notify('RacingaApp setup is done!', 'success')
     end
-        
 end
 
 AddEventHandler('onResourceStart', function(resource)
