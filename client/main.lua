@@ -361,7 +361,11 @@ local function initGhosting()
     -- Create a thread to continuously check for nearby players
     CreateThread(function()
         while CurrentRaceData.Started do
-
+            if CurrentRaceData.GhostingTime > 0 and CurrentRaceData.GhostingTime < CurrentRaceData.RaceTime then
+                debugLog('Breaking Ghosting Due to timer')
+                unGhostPlayer()
+                break;
+            end
             checkAndDisableGhosting()
             Wait(Config.Ghosting.DistanceLoopTime)
         end
