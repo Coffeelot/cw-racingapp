@@ -4,7 +4,7 @@ games { 'gta5' }
 
 author 'Coffeelot & Wuggie'
 description 'CW Racing App'
-version '4.2.1'
+version '3.5.4'
 
 ui_page {
     "html/dist/index.html"
@@ -13,8 +13,8 @@ ui_page {
 shared_scripts {
     '@ox_lib/init.lua',
     'locales/en.lua',
-    'config.lua',
-    '@qbx_core/modules/playerdata.lua'
+    'shared/config.lua',
+    'shared/head2head.lua',
 }
 
 client_scripts {
@@ -22,10 +22,12 @@ client_scripts {
     'client/classes.lua',
     'client/functions.lua',
     'client/main.lua',
+    'client/head2head.lua',
 }
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
+    'server/debug.lua',
     'server/database.lua',
     'bridge/server/*.lua',
     'server/functions.lua',
@@ -33,7 +35,8 @@ server_scripts {
     'server/crypto.lua',
     'server/crews.lua',
     'server/elo.lua',
-    'server/bounties.lua'
+    'server/bounties.lua',
+    'server/head2head.lua'
 }
 
 files {
