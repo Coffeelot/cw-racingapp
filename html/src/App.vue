@@ -66,6 +66,10 @@ const handleDataUpdate = (itemData: any) => {
   }
 }
 
+const handleHead2HeadUpdate = (data: any) => {
+  globalStore.head2headData = data
+}
+
 const handleMessageListener = (event: MessageEvent) => {
   const itemData: any = event?.data;
   if (itemData?.type) {
@@ -88,6 +92,8 @@ const handleMessageListener = (event: MessageEvent) => {
       case 'dataUpdate':
         handleDataUpdate(itemData);
         break;
+      case 'head2head':
+        handleHead2HeadUpdate(itemData.data)
       default:
         break;
     }

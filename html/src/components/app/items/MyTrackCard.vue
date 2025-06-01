@@ -12,7 +12,7 @@
     </v-card-title>
     <v-card-text class="text">
       <v-chip v-if="track.Curated" color="green" prepend-icon="mdi-star">{{translate('curated')}}</v-chip>
-      <v-chip color="primary" class="allow-select">{{ translate('track_id') }}: {{ track.RaceId }} </v-chip>
+      <v-chip color="primary" class="allow-select">{{ translate('track_id') }}: {{ track.TrackId }} </v-chip>
       <v-chip color="primary">{{ translate('length') }}: {{ track.Distance }}m </v-chip>
       <v-chip color="primary">{{ translate('checkpoints') }}: {{ track.Checkpoints.length }}</v-chip>
       <v-chip color="primary">{{ translate('created_by') }}: {{ track.CreatorName }}</v-chip>
@@ -237,7 +237,7 @@ const resetRecordRemoval = () => {
 const handleRemoveRecord = async () => {
   loadingRecordRemoval.value = true  
   if (selectedRecord.value) {
-    const response = await api.post('UiRemoveRecord',  JSON.stringify({ trackId: props.track.RaceId, record: selectedRecord.value }))
+    const response = await api.post('UiRemoveRecord',  JSON.stringify({ trackId: props.track.TrackId, record: selectedRecord.value }))
     if (response) {
       emit('update')      
       resetRecordRemoval()
@@ -265,16 +265,16 @@ const copyToClipboard = () => {
 };
 
 const clearLB = () => {
-    api.post('UiClearLeaderboard', JSON.stringify({ RaceName: props.track.RaceName, RaceId: props.track.RaceId }))
+    api.post('UiClearLeaderboard', JSON.stringify({ RaceName: props.track.RaceName, TrackId: props.track.TrackId }))
     lbDialog.value = false;
 };
 const editTrack = () => {
-    api.post('UiEditTrack', JSON.stringify({ RaceName: props.track.RaceName, RaceId: props.track.RaceId }))
+    api.post('UiEditTrack', JSON.stringify({ RaceName: props.track.RaceName, TrackId: props.track.TrackId }))
     editDialog.value = false;
     closeApp()
 };
 const openEditAccess = async () => {
-    const response = await api.post('UiGetAccess',  JSON.stringify({ RaceName: props.track.RaceName, RaceId: props.track.RaceId }))
+    const response = await api.post('UiGetAccess',  JSON.stringify({ RaceName: props.track.RaceName, TrackId: props.track.TrackId }))
     access.value = response.data
     accessDialog.value = true;
 };
@@ -287,24 +287,24 @@ const openEditMetadata = async () => {
 };
 
 const editAccess = () => {
-    api.post('UiEditAccess', JSON.stringify({RaceName: props.track.RaceName, RaceId: props.track.RaceId, NewAccess: access.value}))
+    api.post('UiEditAccess', JSON.stringify({RaceName: props.track.RaceName, TrackId: props.track.TrackId, NewAccess: access.value}))
     accessDialog.value = false;
 }
 
 const confirmSettings = async () => {
     if (settings.value.raceType === 'any') settings.value.raceType = undefined
-    await api.post('UiConfirmSettings', JSON.stringify({ RaceId: props.track.RaceId, Metadata: settings.value }))
+    await api.post('UiConfirmSettings', JSON.stringify({ TrackId: props.track.TrackId, Metadata: settings.value }))
     settingsDialog.value = false;
     emit('update')
 };
 
 const deleteTrack = () => {
-    api.post('UiDeleteTrack', JSON.stringify({ RaceName: props.track.RaceName, RaceId: props.track.RaceId }))
+    api.post('UiDeleteTrack', JSON.stringify({ RaceName: props.track.RaceName, TrackId: props.track.TrackId }))
     deleteDialog.value = false;
 };
 
 const setCuration = async (curated: number) => {
-    const response = await api.post('UiSetCurated', JSON.stringify({ curated, trackId: props.track.RaceId }))
+    const response = await api.post('UiSetCurated', JSON.stringify({ curated, trackId: props.track.TrackId }))
     if (response.data) {
       // eslint-disable-next-line vue/no-mutating-props
       props.track.Curated = curated;
@@ -313,7 +313,7 @@ const setCuration = async (curated: number) => {
 };
 
 const showRace = async () => {
-    const res = await api.post("UiShowTrack", JSON.stringify(props.track.RaceId));
+    const res = await api.post("UiShowTrack", JSON.stringify(props.track.TrackId));
     if (res.data) closeApp()
 }
 

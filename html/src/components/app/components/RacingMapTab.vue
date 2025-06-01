@@ -154,7 +154,7 @@ const showTrackCheckpoints = (track: Track) => {
       if (!map.value) return;
       
       const marker = new maplibregl.Marker({
-        element: createCheckpointElement(index + 1, `${track.RaceId}-${index}`),
+        element: createCheckpointElement(index + 1, `${track.TrackId}-${index}`),
       })
         .setLngLat(gameToMap(checkpoint.coords.x, checkpoint.coords.y))
         .addTo(map.value);
@@ -167,7 +167,7 @@ const showTrackCheckpoints = (track: Track) => {
       gameToMap(checkpoint.coords.x, checkpoint.coords.y)
     );
 
-    const polylineId = `polyline-${track.RaceId}`;
+    const polylineId = `polyline-${track.TrackId}`;
     currentTrackPolylineId.value = polylineId;
   
     // Add a GeoJSON source for the polyline
@@ -206,14 +206,14 @@ const showTrackCheckpoints = (track: Track) => {
             <button 
               class="popup-button"
               ${track.Waiting || track.Started ? 'disabled' : ''}
-              onclick="setWaypoint('${track.RaceId}')"
+              onclick="setWaypoint('${track.TrackId}')"
             >
               ${translate("set_waypoint")}
             </button>
             <button 
               class="popup-button"
               ${track.Waiting || track.Started ? 'disabled' : ''}
-              onclick="selectTrack('${track.RaceId}')"
+              onclick="selectTrack('${track.TrackId}')"
             >
               ${translate("setup_race")}
             </button>
@@ -330,12 +330,12 @@ const getTracks = async () => {
 };
 
 const selectTrack = (trackId: string) => {
-  const track = filteredTracks.value.find(t => t.RaceId === trackId);
+  const track = filteredTracks.value.find(t => t.TrackId === trackId);
   selectedTrack.value = track;
 };
 
 const setWaypoint = (trackId: string) => {
-  const track = filteredTracks.value.find(t => t.RaceId === trackId);
+  const track = filteredTracks.value.find(t => t.TrackId === trackId);
   api.post('UiSetWaypoint', JSON.stringify(track))
   closeApp()
 };

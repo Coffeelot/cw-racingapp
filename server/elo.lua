@@ -261,7 +261,7 @@ function calculateTrueSkillRatings(results)
     return tempTable, crewRes
 end
 
-if Config.Debug then -- Example input for testing
+if Config.Debug and ultraDebug then -- Example input for testing
     local results = {
         { TotalTime = 100, RacerName = 'Winner',  Ranking = 0,   Crew = 'TEST1' },
         { TotalTime = 220, RacerName = 'middle1', Ranking = 0 },

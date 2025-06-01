@@ -1,18 +1,22 @@
 <template>
   <div id="RacingPage" class="pagecontent">
-    <v-tabs
-      color="primary"
-      v-model="tab"
-      v-if="tab !== 'setup2'"
-      v-on:update:model-value="fetchRelevantData()"
-    >
-      <v-tab value="current">{{ translate('available_races') }} </v-tab>
-      <v-tab value="map" v-if="!globalStore.baseData.data.hideMap">{{ translate('racing_map') }}</v-tab>
-      <v-tab value="bounties">{{ translate('bounties') }} </v-tab>
-      <v-tab value="setup" v-if="globalStore.baseData.data.auth.setup">{{ translate('setup') }} </v-tab>
-    </v-tabs>
+   <div class="tab-bar">
+      <v-tabs
+        color="primary"
+        v-model="tab"
+        v-if="tab !== 'setup2'"
+        v-on:update:model-value="fetchRelevantData()"
+      >
+        <v-tab value="current">{{ translate('available_races') }} </v-tab>
+        <v-tab value="map" v-if="!globalStore.baseData.data.hideMap">{{ translate('racing_map') }}</v-tab>
+        <v-tab value="bounties">{{ translate('bounties') }} </v-tab>
+        <v-tab value="setup" v-if="globalStore.baseData.data.auth.setup">{{ translate('setup') }} </v-tab>
+      </v-tabs>
+      <Head2HeadInviteMenu v-if="globalStore.baseData.data.showH2H"></Head2HeadInviteMenu>
+    </div>
     <v-window v-model="tab" class="page-container">
       <v-window-item  value="current" class="tabcontent">
+
         <div class="current-race-container">
           <div id="current-race-selection" v-if="currentRace">
             <div class="mb-1" id="subheader">
@@ -39,7 +43,7 @@
         </div>
         <div v-else class="available-races">
           <AvailableRacesCard
-            v-for="race in racesNotStarted"
+            v-for="race in racesToDisplay"
             :key="race"
             :race="race"
           ></AvailableRacesCard>
@@ -92,7 +96,7 @@
         <div v-else class="page-container available-tracks">
           <AvailableTracksCard
             v-for="track in filteredTracks"
-            :key="track.RaceId"
+            :key="track.TrackId"
             :track="track"
             @select="(track) => selectTrack(track)"
           ></AvailableTracksCard>
@@ -117,13 +121,15 @@ import AvailableTracksCard from "../items/AvailableTracksCard.vue";
 import CurrentRaceCard from "../items/CurrentRaceCard.vue";
 import SetupRaceDialog from "../components/SetupRaceDialog.vue";
 import { onMounted } from "vue";
-import { CurrentRace, Track } from "@/store/types";
+import { CurrentRace, Race, Track } from "@/store/types";
 import { closeApp } from "@/helpers/closeApp";
 import { computed } from "vue";
 import InfoText from "../components/InfoText.vue";
 import { translate } from "@/helpers/translate";
 import BountiesTab from "../components/BountiesTab.vue";
 import RacingMapTab from "../components/RacingMapTab.vue";
+import Head2HeadInvite from "../components/Head2HeadInvite.vue";
+import Head2HeadInviteMenu from "../components/Head2HeadInviteMenu.vue";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentPage);
@@ -142,7 +148,7 @@ const filteredTracks = computed(() => {
     tracks = tracks.filter(
       (track) =>
         track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
-        track.RaceId.toLowerCase().includes(search.value.toLowerCase()) ||
+        track.TrackId.toLowerCase().includes(search.value.toLowerCase()) ||
         track.CreatorName.toLocaleLowerCase().includes(search.value.toLowerCase())
     );
 
@@ -156,7 +162,7 @@ const resetTrackSetup = () => {
   selectedTrack.value = undefined;
 };
 
-const racesNotStarted = computed(() => races.value.filter((race:any) => !race.RaceData.Started))
+const racesToDisplay = computed(() => races.value.filter((race: Race) => !race.Started && !race.Hidden))
 
 const getListedRaces = async () => {
   if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
@@ -248,6 +254,12 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+.tab-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: 0.4em;
+}
 .available-races {
   display: flex;
   flex-direction: column;

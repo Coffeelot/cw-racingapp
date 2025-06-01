@@ -38,17 +38,17 @@ import CrewTable from "../components/CrewTable.vue";
 import RacersTable from "../components/RacersTable.vue";
 import { translate } from "@/helpers/translate";
 
-const allResults: Ref<ResultData[] | undefined> = ref(undefined);
+const allResults: Ref<ResultData | undefined> = ref(undefined);
 const allRecords: Ref<Track[] | undefined> = ref(undefined);
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentTab);
 
 const getResults = async () => {
   const response = await api.post("UiGetRacingResults");
-  if (response.data) allResults.value = response.data;
+  if (response.data) allResults.value = response.data as ResultData;
 };
 const getRecords = async () => {
-  const response = await api.post("UiGetTracks");
+  const response = await api.post("UiGetRaces");
   if (response.data) allRecords.value = response.data;
 };
 

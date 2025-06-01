@@ -4,27 +4,28 @@
       <TopBar></TopBar>
       <div class="app-container">
         <v-snackbar
-        v-model="snackbar"
-        attach=".app-container"
-        transition="slide-y-transition"
-        location="top"
-        contained
-        multi-line
-        vertical
-        :timeout="snackTimeout"
-        :color="globalStore.notification?.type"
+          v-model="snackbar"
+          attach=".app-container"
+          transition="slide-y-transition"
+          location="top"
+          contained
+          multi-line
+          vertical
+          :timeout="snackTimeout"
+          :color="globalStore.notification?.type"
         >
-          <h3 >{{ globalStore.notification?.title }}</h3>
-          <p class="text-subtitle-1 pt-2" v-if=" globalStore.notification?.text">{{ globalStore.notification.text }}</p>
+          <h3>{{ globalStore.notification?.title }}</h3>
+          <p class="text-subtitle-1 pt-2" v-if="globalStore.notification?.text">
+            {{ globalStore.notification.text }}
+          </p>
           <template v-slot:actions>
-          <v-btn
-            variant="text"
-            @click="snackbar = false"
-          >
-              {{ translate('close') }}
+            <v-btn variant="text" @click="snackbar = false">
+              {{ translate("close") }}
             </v-btn>
           </template>
         </v-snackbar>
+        <H2HInvite></H2HInvite>
+        <H2HActive></H2HActive>
         <v-layout>
           <SideBar></SideBar>
           <div
@@ -43,12 +44,11 @@
             <RacersPage
               v-if="globalStore.currentPage === 'racers'"
             ></RacersPage>
-            <CrewPage
-              v-if="globalStore.currentPage === 'crew'"
-            ></CrewPage>
+            <CrewPage v-if="globalStore.currentPage === 'crew'"></CrewPage>
             <SettingsPage
               v-if="globalStore.currentPage === 'settings'"
             ></SettingsPage>
+            <AdminMenu v-if="globalStore.currentPage === 'admin'"></AdminMenu>
           </div>
           <div id="revoked-message-container" v-else>
             <div class="revoked-message-holder">
@@ -59,7 +59,12 @@
                 :icon="hasProblem.icon ? hasProblem.icon : '$error'"
               >
               </v-alert>
-              <UserCreation v-if="globalStore.baseData.data.anyoneCanCreate && globalStore.baseData.data.racerNames.length === 0"></UserCreation>
+              <UserCreation
+                v-if="
+                  globalStore.baseData.data.anyoneCanCreate &&
+                  globalStore.baseData.data.racerNames.length === 0
+                "
+              ></UserCreation>
             </div>
           </div>
         </v-layout>
@@ -86,11 +91,14 @@ import { computed } from "vue";
 import { translate } from "@/helpers/translate";
 import UserCreation from "@/components/app/components/UserCreation.vue";
 import CryptoModal from "@/components/app/components/CryptoModal.vue";
+import H2HInvite from "@/components/app/components/H2HInvite.vue";
+import H2HActive from "@/components/app/components/H2HActive.vue";
+import AdminMenu from "@/components/app/pages/AdminMenu.vue";
 
 const globalStore = useGlobalStore();
 
-const snackbar = ref(false)
-const snackTimeout = ref(3000)
+const snackbar = ref(false);
+const snackTimeout = ref(3000);
 
 const hasProblem = computed(() => {
   if (
@@ -99,11 +107,11 @@ const hasProblem = computed(() => {
     globalStore.baseData.data.racerNames.length === 0
   ) {
     return {
-      title: translate('error_lacking_user'),
-      text: translate('error_lacking_user_desc'),
+      title: translate("error_lacking_user"),
+      text: translate("error_lacking_user_desc"),
       color: "info",
       icon: "$info",
-      type: 'no_user'
+      type: "no_user",
     };
   } else if (globalStore.baseData.data.currentRacerName) {
     const currentRacer = globalStore.baseData.data.racerNames?.find(
@@ -112,25 +120,25 @@ const hasProblem = computed(() => {
     if (currentRacer) {
       if (currentRacer.revoked) {
         return {
-          title: translate('error_revoked'),
-          text: translate('error_revoked_desc'),
-          type: 'revoked'
+          title: translate("error_revoked"),
+          text: translate("error_revoked_desc"),
+          type: "revoked",
         };
       }
     } else {
       return {
-        title: translate('error_permanently_removed'),
-        text: translate('error_permanently_removed_desc'),
-        type: 'removed'
+        title: translate("error_permanently_removed"),
+        text: translate("error_permanently_removed_desc"),
+        type: "removed",
       };
     }
   } else {
     return {
-      title: translate('error_no_user'),
-      text: translate('error_no_user_desc'),
+      title: translate("error_no_user"),
+      text: translate("error_no_user_desc"),
       color: "info",
       icon: "$info",
-      type: 'no_user'
+      type: "no_user",
     };
   }
   return false;
@@ -141,17 +149,15 @@ document.onkeydown = function (evt) {
 
 const handleMessageListener = (event: MessageEvent) => {
   const itemData: any = event?.data;
-  if (itemData.type === 'notify') {
-    globalStore.$state.notification = itemData.data
-    snackbar.value = true
+  if (itemData.type === "notify") {
+    globalStore.$state.notification = itemData.data;
+    snackbar.value = true;
   }
-  
 };
 
 onMounted(() => {
   getBaseData();
   window.addEventListener("message", handleMessageListener);
-
 });
 </script>
 
@@ -210,7 +216,7 @@ h2 {
   overflow-x: hidden;
   position: relative;
   display: flex;
-  height: calc(100% - 2.6em)
+  height: calc(100% - 2.6em);
 }
 
 .tabs-container {

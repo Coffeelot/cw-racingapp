@@ -33,7 +33,7 @@ const props = defineProps<{
 const emits = defineEmits(['select'])
 
 const showRace = async () => {
-    const res = await api.post("UiShowTrack", JSON.stringify(props.track.RaceId));
+    const res = await api.post("UiShowTrack", JSON.stringify(props.track.TrackId));
     if (res.data) closeApp()
 }
 

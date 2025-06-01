@@ -236,7 +236,7 @@ const handleConfirm = async () => {
   if (setupData.value.laps === -1) setupData.value.ranked = false;
 
   let data = {
-    track: props.track.RaceId,
+    trackId: props.track.TrackId,
     laps: setupData.value.laps,
     buyIn: setupData.value.buyIn,
     maxClass: setupData.value.maxClass,

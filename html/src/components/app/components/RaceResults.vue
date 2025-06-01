@@ -5,9 +5,9 @@
         color="primary"
         density="compact"
         hide-details
-        :items="Object.values(props.allResults)"
+        :items="resultsWithTitle"
         return-object
-        item-title="Data.RaceData.RaceName"
+        item-title="title"
         v-model="selectedRace"
         :placeholder="translate('select_track')"
         class="w-50"
@@ -65,18 +65,42 @@
 </template>
 
 <script setup lang="ts">
-import { ResultData } from "@/store/types";
+import { ResultData, TrackResult } from "@/store/types";
 import { computed, Ref, ref } from "vue";
 import InfoText from "./InfoText.vue";
 import { msToHMS } from "@/helpers/msToHMS";
 import { translate } from "@/helpers/translate";
 
+export type TrackResultWithTitle = TrackResult & {
+  title: string;
+};
 const props = defineProps<{
-  allResults: ResultData[];
+  allResults: ResultData;
 }>();
 
+const resultsWithTitle = computed(() => {
+  const results = [] as TrackResultWithTitle[];
+  for (const key in props.allResults) {
+    const trackResult = props.allResults[key];
+    
+    const newTrackResult = trackResult as TrackResultWithTitle;
+    const raceName = newTrackResult.Data.RaceData.RaceName;
+    if (newTrackResult.Data.FinishTime) {
+      const date = new Date(newTrackResult.Data.FinishTime * 1000);
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+      newTrackResult.title = `${raceName} (${timeStr})`;
+  
+      // Clone the track result and add a title
+      results.push(newTrackResult)
+    }
+  }
+  return results
+})
 
-const selectedRace: Ref<ResultData | undefined> = ref(undefined)
+
+const selectedRace: Ref<TrackResultWithTitle | undefined> = ref(undefined)
 const sortedResults = computed(() => {
   if (!selectedRace.value) return undefined
   const result = selectedRace.value.Result

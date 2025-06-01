@@ -114,7 +114,7 @@ const filtereredTracks = computed(() => {
     fTracks = fTracks.filter(
       (track) =>
         track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
-        track.RaceId.toLowerCase().includes(search.value.toLowerCase())
+        track.TrackId.toLowerCase().includes(search.value.toLowerCase())
     );
 
   return fTracks;
@@ -126,7 +126,7 @@ const filteredAllTracks = computed(() => {
     fTracks = fTracks.filter(
       (track) =>
         track.RaceName.toLowerCase().includes(search.value.toLowerCase()) ||
-        track.RaceId.toLowerCase().includes(search.value.toLowerCase())
+        track.TrackId.toLowerCase().includes(search.value.toLowerCase())
     );
 
   return fTracks;

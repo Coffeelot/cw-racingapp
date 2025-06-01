@@ -6,10 +6,6 @@
         <p>{{ translate('bounties_desc') }}</p>
         <p>{{ translate('bounties_desc_2') }}</p>
       </v-card-text>
-      <v-card-actions v-if="globalStore.baseData.data.auth.handleBounties">
-        <v-spacer></v-spacer>
-        <v-btn @click="rerollBounties" variant="flat" color="primary">{{ translate('reroll_bounties') }}</v-btn>
-      </v-card-actions>
     </v-card>
     
     <div v-if="globalStore.bounties.length>0" class="bounty-list">
@@ -40,10 +36,6 @@ const getBounties = async () => {
   if (response.data) {
     globalStore.bounties = response.data
   }
-}
-
-const rerollBounties = () => {
-  api.post('UIRerollBounties')
 }
 
 onMounted(()=> {

@@ -24,6 +24,8 @@ local function generateBounties()
         }
     end
 
+    if UseDebug then print('Bounty set up:', json.encode(availableBounties[#availableBounties], {indent=true})) end
+
     -- Generate the bounties
     for i = 1, numBounties do
         if #availableBounties == 0 then
