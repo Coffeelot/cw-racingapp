@@ -12,6 +12,7 @@
 **Features:**
 - [Create tracks](#track-creation)
 - Host races
+- Buy-Ins
 - [Automated Races](#Automated-Races)
 - [Time Trial Bounties](#Time-Trial-Bounties)
 - Built in Crypto system
@@ -34,6 +35,7 @@
 - Optional default tracks
 - Forced first person mode
 - Vehicle Performance Class limits
+- Support for Renewed Crypto
 
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
 
@@ -52,7 +54,7 @@
 
 ### Support, updates and script previews:
 
-<a href="https://discord.gg/FJY4mtjaKr"> <img src="https://media.discordapp.net/attachments/1202695794537537568/1285652389080334337/discord.png?ex=66eb0c97&is=66e9bb17&hm=b1b2c17715f169f57cf646bb9785b0bf833b2e4037ef47609100ec8e902371df&=&format=webp" width="200"></a>
+### <a href="https://discord.gg/FJY4mtjaKr">CW DISCORD</a>
 
 
 ### If you want to support what we do, you can buy us a coffee here:
@@ -376,9 +378,43 @@ local setupData = {
     participationMoney = 0, -- Money users get for just being there (this is normally an admin setup thing)
     participationCurrency = 'cash', -- Money type of users get for just being there (this is normally an admin setup thing)
     firstPerson = false, -- true or false, if you want to force first person
+    silent = true, -- If true, will not show race in racingapp. This means you need to programatically join the race for the users.
+    hidden = true, -- If true, will not show race in racingapp. This means you need to programatically join the race for the users.
 }
 
-local success = exports['cw-racingapp']:attemptSetupRace(setupData)
+-- Races hosted from server side will be treated as automated
+local success = exports['cw-racingapp']:setupRace(setupData)
+if raceId then
+    -- race setup successful! Use the raceId to track it
+else
+    -- failed to set up the race
+end
+```
+
+## Joining a race
+```lua
+    local success = exports['cw-racingapp']:joinRaceByRaceId(raceId, src)
+```
+Where `raceId` is replaced by the id of a race you want to join (same id as track id). All this does is call the client side joinRace export so you could also use that. Using the client side export also lets you see if it was possible to join or not, while the server side version only verifies the input.
+
+## Leaving a race
+```lua
+    exports['cw-racingapp']:leaveCurrentRace(src)
+```
+Where the `src` is the source of a player. Does not return anything. If you want verification that the racer is in a race do this from client side instead.
+
+## Get tracks
+This will get all the existing tracks for you to display or verify with
+```lua
+    local tracks = exports['cw-racingapp']:getAvailableTracks()
+    print(json.encode(tracks, {indent=true})) -- This will be the data returned. Do what you will with it
+```
+
+## Get posted races
+This will get all the races for you to display
+```lua
+    local races = exports['cw-racingapp']:getRaces()
+    print(json.encode(races, {indent=true})) -- This will be the data returned. Do what you will with it
 ```
 
 # Want to change the look?
