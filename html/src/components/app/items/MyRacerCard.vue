@@ -11,10 +11,37 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
+      <v-btn rounded="xl" v-if="globalStore.baseData.data.auth.controlAll" @click="authDialog = true">{{ translate('auth') }}</v-btn>
       <v-btn rounded="xl" @click="revokeDialog = true">{{ revokedBool? translate('activate'):  translate('revoke') }}</v-btn>
       <v-btn rounded="xl" v-if="globalStore.baseData.data.auth.controlAll" @click="deleteDialog = true">{{ translate('delete_user') }} </v-btn>
     </v-card-actions>
   </v-card>
+  <v-dialog attach=".app-container" contained v-model="authDialog" width="auto">
+    <v-card  rounded="lg">
+      <v-card-title>{{ translate('change_auth') }}?</v-card-title>
+      <v-card-text>
+        <v-select
+          color="primary"
+          density="compact"
+          :items="allAuths"
+          item-value="value"
+          item-title="text"
+          :label="translate('auth')"
+          hideDetails
+          v-model="authority"
+        ></v-select>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn rounded="xl" @click="authDialog = false">
+            {{ translate('close') }} 
+        </v-btn>
+        <v-btn rounded="xl" variant="flat" color="primary" @click="confirmAuth()">
+            {{ translate('confirm') }} 
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <v-dialog attach=".app-container" contained v-model="revokeDialog" width="auto">
     <v-card  rounded="lg">
       <v-card-title>{{ revokedBool ? translate('activate'): translate('revoke') }} {{ translate('access_for') }} {{ racer.racername }}?</v-card-title>
@@ -60,11 +87,29 @@ const props = defineProps<{
 }>();
 const globalStore = useGlobalStore();
 
+const authDialog = ref(false);
 const revokeDialog = ref(false);
 const deleteDialog = ref(false);
 const emits = defineEmits(['triggerReload'])
 const revokedBool = computed(() => props.racer.revoked == 1 ? true : false)
+const authority = ref(props.racer.auth)
 
+const allAuths = computed(() => {
+  const newAuths = globalStore.baseData.data.allAuthorities;
+  const authList: string[] = []
+  Object.entries(newAuths).map(([key, value]) => {
+    authList.push(key)
+  });
+  return authList
+});
+
+const confirmAuth = () => {
+    api.post('UiChangeAuth', JSON.stringify({racername: props.racer.racername, auth: authority.value, citizenId: props.racer.citizenid }))
+    authDialog.value = false;
+    setTimeout(() => {
+      emits('triggerReload')
+    }, 1000);
+};
 const revokeUser = () => {
     api.post('UiRevokeRacer', JSON.stringify({racername: props.racer.racername, status: props.racer.revoked }))
     revokeDialog.value = false;
