@@ -48,6 +48,16 @@
         value="racers"
         @click="openPage('racers')"
       ></v-list-item>
+      <v-list-item
+        color="primary"
+        :active="globalStore.currentPage === 'admin'"
+        rounded="lg"
+        v-if="globalStore.baseData.data?.auth?.adminMenu"
+        prepend-icon="mdi-shield-crown"
+        :title="translate('race_admin')"
+        value="admin"
+        @click="openPage('admin')"
+      ></v-list-item>
     </v-list>
     <template v-slot:append>
       <v-list-item
