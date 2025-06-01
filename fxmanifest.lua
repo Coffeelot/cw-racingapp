@@ -15,6 +15,7 @@ shared_scripts {
     'locales/en.lua',
     'shared/config.lua',
     'shared/head2head.lua',
+    '@qbx_core/modules/playerdata.lua', -- remove this if you don't use qbox
 }
 
 client_scripts {
