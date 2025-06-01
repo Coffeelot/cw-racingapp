@@ -1,20 +1,20 @@
 <template>
-    <v-card rounded="xl" border>
-        <v-card-title>{{ props.race.RaceData.RaceName }}</v-card-title>
+    <v-card rounded="xl" border v-if="!hasExpired">
+        <v-card-title>{{ props.race.TrackData.RaceName }}</v-card-title>
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">{{ translate('ranked') }} </v-chip>
             <v-chip prepend-icon="mdi-hand-coin" color="green" v-if="race.ParticipationAmount"> {{ participationText }} 
                 <v-tooltip location="top" activator="parent" :text="translate('participation_info')">
                 </v-tooltip>
             </v-chip>
-            <v-chip prepend-icon="mdi-go-kart-track">{{ `${lapsText} ${props.race.RaceData.Distance} m`}}</v-chip>
+            <v-chip prepend-icon="mdi-go-kart-track">{{ `${lapsText} ${props.race.TrackData.Distance} m`}}</v-chip>
             <v-chip prepend-icon="mdi-cash" v-if="buyInText">{{ buyInText }}</v-chip>
             <v-chip prepend-icon="mdi-cash-multiple" v-if="potText && props.race.racers > 1">{{ potText }}</v-chip>
             <v-chip prepend-icon="mdi-account-group">{{ `${props.race.racers} ${translate('racers')}` }}</v-chip>
             <v-chip prepend-icon="mdi-car-info" v-if="props.race.MaxClass">{{ `${translate('class')}: ${props.race.MaxClass}` }}</v-chip>
             <v-chip prepend-icon="mdi-ghost" v-if="props.race.Ghosting">{{ ghostingText }}</v-chip>
             <v-chip prepend-icon="mdi-eye-lock" v-if="props.race.FirstPerson">{{ translate('first_person') }}</v-chip>
-            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.RaceData.Automated ? translate('starts_in') : `${translate('expires')}:`} ${minutes}:${seconds}` }}</v-chip>
+            <v-chip prepend-icon="mdi-robot-dead">{{ `${props.race.Automated ? translate('starts_in') : `${translate('expires')}:`} ${minutes}:${seconds}` }}</v-chip>
             <v-chip v-if="props.race.Reversed" prepend-icon="mdi-backup-restore" >{{ translate('reversed') }} </v-chip>
             <v-chip prepend-icon="mdi-account-star">{{ translate('hosted_by') }} {{ props.race.SetupRacerName }}</v-chip>
         </v-card-text>
@@ -39,7 +39,7 @@ const props = defineProps<{
 const globalStore = useGlobalStore();
 
 const joinRace = async () => {
-    const res = await api.post("UiJoinRace", JSON.stringify(props.race.RaceData.RaceId));
+    const res = await api.post("UiJoinRace", JSON.stringify(props.race.RaceId));
     if (res.data) closeApp()
 }
 
@@ -95,7 +95,7 @@ const ghostingText = computed(() => {
 })
 
 const showRace = async () => {
-    const res = await api.post("UiShowTrack", JSON.stringify(props.race.RaceId));
+    const res = await api.post("UiShowTrack", JSON.stringify(props.race.TrackId));
     if (res.data) closeApp()
 }
 
@@ -105,6 +105,8 @@ const remainingTime = ref<number>(futureTimestamp.value ? futureTimestamp.value 
 
 const minutes = computed(() => Math.floor(remainingTime.value / 60).toString().padStart(2, '0'))
 const seconds = computed(() => (remainingTime.value % 60).toString().padStart(2, '0'))
+
+const hasExpired = computed(() => remainingTime.value <= 0 )
 
 const startCountdown = () => {
     if (futureTimestamp.value) {
