@@ -848,7 +848,7 @@ end exports('joinRaceByRaceId', joinRaceByRaceId)
 local function setupRace(setupData, src)
     local trackId = setupData.trackId
     local laps = setupData.laps
-    local racerName = setupData.racerName or Config.AutoMatedRacesHostName
+    local racerName = setupData.hostName or Config.AutoMatedRacesHostName
     local maxClass = setupData.maxClass
     local ghostingEnabled = setupData.ghostingEnabled
     local ghostingTime = setupData.ghostingTime
