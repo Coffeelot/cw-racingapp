@@ -2448,7 +2448,7 @@ end)
 local function sortTracksByName(tracks)
     local temp = tracks
     table.sort(temp, function(a, b)
-        return a.RaceName > b.RaceName
+        return a.RaceName < b.RaceName
     end)
     return temp
 end
@@ -2788,9 +2788,7 @@ RegisterNUICallback('UiGetAccess', function(track, cb)
 
     local result = cwCallback.await('cw-racingapp:server:getAccess', track.TrackId)
     if not result then
-        if UseDebug then
-            print('Access table was empty')
-        end
+        DebugLog('Access table was empty')
         result = { race = '' }
     else
         local raceText = ''
@@ -2914,9 +2912,17 @@ RegisterNUICallback('UiGetListedRaces', function(_, cb)
     cb(getAvailableRaces())
 end)
 
+local function stringKeysToArray(tbl)
+    local result = {}
+    for _, value in pairs(tbl) do
+        table.insert(result, value)
+    end
+    return result
+end
+
 RegisterNUICallback('UiGetRaces', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:getRaces')
-    cb(sortRacesByName(result))
+    local result = cwCallback.await('cw-racingapp:server:getTracks')
+    cb(sortTracksByName(stringKeysToArray(result)))
 end)
 
 RegisterNUICallback('UiGetMyTracks', function(data, cb)
@@ -2932,7 +2938,7 @@ end)
 -- Setup race. See Racingapp readme for info on what setupData needs to include
 local function attemptSetupRace(setupData)
     if not setupData or setupData.track == "none" then
-        print('No data')
+        DebugLog('No setup data or missing track')
         return false
     end
     DebugLog('setup data', json.encode(setupData))
@@ -2979,7 +2985,6 @@ end)
 RegisterNUICallback('UiQuickSetupBounty', function(bounty, cb)
     local setupData = {}
     for field, value in pairs(Config.QuickSetupDefaults) do
-        print('field', field, value)
         setupData[field] = value
     end
     setupData.trackId = bounty.trackId
@@ -3026,7 +3031,6 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
     if not createData.name then return end
     DebugLog('create data', json.encode(createData))
     if not createData or createData.name == "" then
-        print('No data')
         return
     end
 
