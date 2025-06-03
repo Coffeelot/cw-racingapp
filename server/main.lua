@@ -855,7 +855,7 @@ local function setupRace(setupData, src)
     local buyIn = setupData.buyIn
     local ranked = setupData.ranked
     local reversed = setupData.reversed
-    local participationAmount = setupData.participationAmount
+    local participationAmount = setupData.participationMoney
     local participationCurrency = setupData.participationCurrency
     local firstPerson = setupData.firstPerson
     local automated = setupData.automated
