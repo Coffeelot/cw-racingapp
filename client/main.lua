@@ -2954,7 +2954,7 @@ local function attemptSetupRace(setupData)
                 laps = tonumber(setupData.laps),
                 hostName = CurrentName,
                 maxClass = setupData.maxClass,
-                ghostingOn = setupData.ghostingOn,
+                ghostingEnabled = setupData.ghostingOn,
                 ghostingTime = tonumber(setupData.ghostingTime),
                 buyIn = tonumber(setupData.buyIn),
                 ranked = setupData.ranked,
