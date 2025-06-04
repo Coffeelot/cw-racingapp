@@ -318,32 +318,31 @@ local function checkAndDisableGhosting()
     local playerPed = PlayerPedId()
     local playerCoords = GetEntityCoords(playerPed)
     local vehicle = GetVehiclePedIsIn(playerPed, false)
+
     if not isDriver(vehicle) then
         DebugLog('Racer was not the driver')
         unGhostPlayer()
         return
     end
 
-    -- Check for nearby non-race players
+    local racerSources = {}
+    for _, racerData in pairs(CurrentRaceData.Racers) do
+        racerSources[racerData.RacerSource] = true
+    end
+
     local nearbyPlayersFound = false
-    for _, playerId in ipairs(GetActivePlayers()) do
-        -- Skip players in the current race
-        local isRacer = false
-        for _, racerData in pairs(CurrentRaceData.Racers) do
-            if GetPlayerServerId(playerId) == racerData.RacerSource then
-                isRacer = true
-                break
-            end
-        end
+    local activePlayers = GetActivePlayers()
 
-        if not isRacer then
+    for i = 1, #activePlayers do
+        local playerId = activePlayers[i]
+        local serverId = GetPlayerServerId(playerId)
+
+        if not racerSources[serverId] then
             local otherPed = GetPlayerPed(playerId)
-            local otherPlayerCoords = GetEntityCoords(otherPed)
             local otherPlayerVehicle = GetVehiclePedIsIn(otherPed, false)
-            local isPassenger = otherPlayerVehicle ~= 0 and otherPlayerVehicle ~= nil and
-                GetPedInVehicleSeat(otherPlayerVehicle, -1) ~= otherPed
 
-            if not isPassenger then
+            if otherPlayerVehicle ~= 0 and GetPedInVehicleSeat(otherPlayerVehicle, -1) == otherPed then
+                local otherPlayerCoords = GetEntityCoords(otherPed)
                 if isPlayerNearby(playerCoords, otherPlayerCoords, Config.Ghosting.DeGhostDistance) then
                     nearbyPlayersFound = true
                     break
@@ -352,7 +351,6 @@ local function checkAndDisableGhosting()
         end
     end
 
-    -- Toggle ghosting based on nearby players
     if nearbyPlayersFound then
         unGhostPlayer()
     else
@@ -1593,10 +1591,10 @@ local function checkElimination()
     end
 end
 
-RegisterNetEvent('cw-racingapp:client:updateRaceRacerData', function(raceId, racerData)
+RegisterNetEvent('cw-racingapp:client:updateRaceRacerData', function(raceId, citizenid, racerData)
     if (CurrentRaceData.RaceId ~= nil) and CurrentRaceData.RaceId == raceId then
         DebugLog('Race is Elimination:', CurrentRaceData.IsElimination)
-        CurrentRaceData.Racers = racerData
+        CurrentRaceData.Racers[citizenid] = racerData
         if CurrentRaceData.IsElimination then
             checkElimination()
         end
@@ -1616,7 +1614,7 @@ RegisterNetEvent('cw-racingapp:client:joinRace', function(data, checkpoints, lap
     end
 end)
 
-RegisterNetEvent('cw-racingapp:client:updateRaceRacers', function(raceId, racers)
+RegisterNetEvent('cw-racingapp:client:updateActiveRacers', function(raceId, racers)
     if CurrentRaceData.RaceId == raceId then
         CurrentRaceData.Racers = racers
     end
