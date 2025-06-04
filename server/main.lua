@@ -674,7 +674,7 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
             AvailableRaces[availableKey].RaceData = Races[raceId]
             TriggerClientEvent('cw-racingapp:client:joinRace', src, Races[raceId], Tracks[trackId].Checkpoints, RaceData.Laps, racerName)
             for _, racer in pairs(Races[raceId].Racers) do
-                TriggerClientEvent('cw-racingapp:client:updateRaceRacers', racer.RacerSource, raceId,
+                TriggerClientEvent('cw-racingapp:client:updateActiveRacers', racer.RacerSource, raceId,
                     Races[raceId].Racers)
             end
             if not Races[raceId].Automated then
@@ -1114,8 +1114,13 @@ RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpo
         }
 
         for _, racer in pairs(Races[raceId].Racers) do
-            TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId,
-                Races[raceId].Racers)
+            if GetPlayerName(racer.RacerSource) then 
+                TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, citizenId, raceId,
+                    Races[raceId].Racers[citizenId])
+            else
+                print('^1Could not find player with source^0', racer.RacerSource)
+                if UseDebug then print(json.encode(racer, {indent=true})) end
+            end
         end
     else
         -- Attemt to make sure script dont break if something goes wrong
