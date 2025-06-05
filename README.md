@@ -383,7 +383,7 @@ local setupData = {
 }
 
 -- Races hosted from server side will be treated as automated
-local success = exports['cw-racingapp']:setupRace(setupData)
+local raceId = exports['cw-racingapp']:setupRace(setupData)
 if raceId then
     -- race setup successful! Use the raceId to track it
 else
