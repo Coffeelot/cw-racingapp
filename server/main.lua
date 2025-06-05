@@ -1115,7 +1115,7 @@ RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpo
 
         for _, racer in pairs(Races[raceId].Racers) do
             if GetPlayerName(racer.RacerSource) then 
-                TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, citizenId, raceId,
+                TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, citizenId,
                     Races[raceId].Racers[citizenId])
             else
                 print('^1Could not find player with source^0', racer.RacerSource)
