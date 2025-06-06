@@ -301,6 +301,9 @@ const confirmSettings = async () => {
 const deleteTrack = () => {
     api.post('UiDeleteTrack', JSON.stringify({ RaceName: props.track.RaceName, TrackId: props.track.TrackId }))
     deleteDialog.value = false;
+    setTimeout(() => {
+      emit('update')      
+    }, 1500);
 };
 
 const setCuration = async (curated: number) => {
