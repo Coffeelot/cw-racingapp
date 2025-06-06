@@ -1,5 +1,5 @@
 <template>
-    <v-card rounded="xl" border v-if="!hasExpired">
+    <v-card rounded="xl" border v-if="!hasExpired && !props.race.RaceData.Started">
         <v-card-title>{{ props.race.TrackData.RaceName }}</v-card-title>
         <v-card-text class="inline standardGap">
             <v-chip prepend-icon="mdi-podium-gold" color="orange" v-if="props.race?.Ranked">{{ translate('ranked') }} </v-chip>
