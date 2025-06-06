@@ -1198,7 +1198,7 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
             Records = {},
             Creator = citizenId,
             CreatorName = trackData.RacerName,
-            RaceId = trackId,
+            TrackId = trackId,
             Started = false,
             Waiting = false,
             Distance = math.ceil(trackData.RaceDistance),
@@ -1784,7 +1784,7 @@ if Config.EnableCommands then
         { name = 'type',       help = 'racer/creator/master/god' },
         { name = 'identifier', help = 'Server ID' },
         { name = 'Racer Name', help = 'Racer name. Put in quotations if multiple words' }
-    }, true, function(source, args)
+        }, true, function(source, args)
         local type = args[1]
         local id = tonumber(args[2])
         print(
@@ -1851,9 +1851,8 @@ if Config.EnableCommands then
         RADB.wipeTracksTable()
     end, true)
 
-
     registerCommand('racingappcurated', 'Mark/Unmark track as curated',
-        { { name = 'trackid', help = 'Track ID (not name). Use quotation marks!!!' }, { name = 'curated', help = 'true/false' } },
+            { { name = 'trackid', help = 'Track ID (not name). Use quotation marks!!!' }, { name = 'curated', help = 'true/false' } },
         true,
         function(source, args)
             print('Curating track: ', args[1], args[2])
@@ -1874,6 +1873,15 @@ if Config.EnableCommands then
         UseDebug = not UseDebug
         print('debug is now:', UseDebug)
         TriggerClientEvent('cw-racingapp:client:toggleDebug', source, UseDebug)
+    end, true)
+
+    registerCommand('cwlisttracks', 'toggle debug for racing', {}, true, function(source, args)
+        local tracksWithoutCheckpoints = {}
+        for i, track in pairs(Tracks) do
+            tracksWithoutCheckpoints[i] = track
+            tracksWithoutCheckpoints[i].Checkpoints = nil
+        end
+        print(json.encode(tracksWithoutCheckpoints, {indent=true}))        
     end, true)
 
     registerCommand('cwracingapplist', 'list racingapp stuff', {}, true, function(source, args)
