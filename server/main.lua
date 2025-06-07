@@ -1118,8 +1118,10 @@ RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpo
                 TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, citizenId,
                     Races[raceId].Racers[citizenId])
             else
-                print('^1Could not find player with source^0', racer.RacerSource)
-                if UseDebug then print(json.encode(racer, {indent=true})) end
+                if UseDebug then 
+                    print('^1Could not find player with source^0', racer.RacerSource)
+                    print(json.encode(racer, {indent=true})) 
+                end
             end
         end
     else
