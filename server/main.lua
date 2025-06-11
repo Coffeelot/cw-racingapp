@@ -19,7 +19,7 @@ local DefaultTrackMetadata = {
 
 local RaceResults = {}
 if Config.Debug then
-    RaceResults = DebugRaceResults
+    -- RaceResults = DebugRaceResults
 end
 
 local function leftRace(src)
@@ -360,9 +360,9 @@ local function createRaceResultsIfNotExisting(raceId)
         RaceResults[raceId] = {}
         return true
     end
-    if not RaceResults[raceId].Results then
+    if not RaceResults[raceId].Result then
         if UseDebug then print('Initializing result table for', raceId) end
-        RaceResults[raceId].Results = {}
+        RaceResults[raceId].Result = {}
     end
 end
 
@@ -404,7 +404,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             RacerSource = src,
             RacingCrew = racingCrew
         }
-        table.insert(RaceResults[raceId].Results, raceResult)
+        table.insert(RaceResults[raceId].Result, raceResult)
 
         for _, v in pairs(Races[raceId].Racers) do
             if v.Finished then
@@ -547,6 +547,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
             resetTrack(raceData.RaceId, 'Race is over')
             table.remove(AvailableRaces, availableKey)
+            RaceResults[raceData.RaceId].Data.FinishTime = os.time()
             NotFinished[raceData.RaceId] = nil
             Races[raceData.RaceId].MaxClass = nil
         end
@@ -943,7 +944,13 @@ local function setupRace(setupData, src)
                     TriggerClientEvent('cw-racingapp:client:readyJoinRace', src, allRaceData)
                 end
 
-                RaceResults[raceId] = { Data = allRaceData, Result = {} }
+                local cleanedRaceData = {}
+                for i, v in pairs(allRaceData) do
+                    cleanedRaceData[i] = v
+                end
+                cleanedRaceData.TrackData = nil
+
+                RaceResults[raceId] = { Data = cleanedRaceData, Result = {} }
 
                 if Config.NotifyRacers and not silent then
                     TriggerClientEvent('cw-racingapp:client:notifyRacers', -1,
@@ -1895,5 +1902,7 @@ if Config.EnableCommands then
         print(json.encode(NotFinished, { indent = true }))
         print("=========================== ^TIMERS^0 ===========================")
         print(json.encode(Timers, { indent = true }))
+        print("=========================== ^RESULTS^0 ===========================")
+        print(json.encode(RaceResults, { indent = true }))
     end, true)
 end

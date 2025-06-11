@@ -1,5 +1,5 @@
 DebugRaceResults = {
-    ["RI-1231"] = {
+    ["RI-DEBUG"] = {
         Data = {
             FinishTime = os.time(),
             Ghosting = false,
@@ -8,7 +8,7 @@ DebugRaceResults = {
             Laps = 3,
             MaxClass = "",
             GhostingTime = 0,
-            RaceId = "RI-1231",
+            RaceId = "RI-DEBUG",
             TrackId = "LR-7666",
             RaceData = {
                 Ghosting = false,
@@ -53,7 +53,7 @@ DebugRaceResults = {
             }
         }
     },
-    ["RI-2030"] = {
+    ["RI-TEST"] = {
         Data = {
             FinishTime = os.time() - 500,
             Ghosting = false,
@@ -62,7 +62,7 @@ DebugRaceResults = {
             Laps = 0,
             MaxClass = "",
             GhostingTime = 0,
-            RaceId = "RI-1231",
+            RaceId = "RI-TEST",
             TrackId = "LR-1123",
             RaceData = {
                 Ghosting = false,
@@ -121,7 +121,7 @@ DebugRaceResults = {
             },
         }
     },
-    ['RI-8008'] = {
+    ['RI-MADEUP'] = {
         Data = {
             FinishTime = os.time() - 900,
             Ghosting = false,
@@ -130,7 +130,7 @@ DebugRaceResults = {
             Laps = 0,
             MaxClass = "",
             GhostingTime = 0,
-            RaceId = "RI-8008",
+            RaceId = "RI-MADEUP",
             TrackId = "LR-1123",
             RaceData = {
                 Ghosting = false,
