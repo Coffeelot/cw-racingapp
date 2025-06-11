@@ -202,9 +202,27 @@ local function createRacingCrew(crewName, founderName, citizenId)
 end
 
 local function leaveRacingCrew(citizenId, crewName)
-    local query =
-    "UPDATE racing_crews SET members = JSON_REMOVE(members, JSON_UNQUOTE(JSON_SEARCH(members, 'one', ?))) WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { citizenId, strictSanitize(crewName) })
+    local members = MySQL.Sync.fetchScalar(
+        "SELECT members FROM racing_crews WHERE crew_name = ?", 
+        { strictSanitize(crewName) }
+    )
+
+    if not members then return false end
+
+    local parsed = json.decode(members)
+    for i = #parsed, 1, -1 do
+        if parsed[i].citizenID == citizenId then
+            table.remove(parsed, i)
+        end
+    end
+
+    local updated = json.encode(parsed)
+    MySQL.Sync.execute(
+        "UPDATE racing_crews SET members = ? WHERE crew_name = ?", 
+        { updated, strictSanitize(crewName) }
+    )
+
+    return true
 end
 
 local function increaseCrewWins(crewName)

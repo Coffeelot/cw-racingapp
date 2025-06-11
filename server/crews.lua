@@ -333,6 +333,7 @@ RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberN
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
     end
     if canLeaveCrew then
+        changeRacerCrew(source,memberName, nil)
         return leaveRacingCrew(citizenId, crewName)
     else
         if useDebug then print("Error: Member cannot leave the crew") end
