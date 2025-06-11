@@ -1,9 +1,9 @@
 <template>
   <div id="CrewPage" class="pagecontent">
     <v-tabs color="primary" v-model="tab">
-      <v-tab value="myCrew">{{ translate("my_crew") }} </v-tab>
-      <v-tab value="create">{{ translate("manage") }} </v-tab>
-      <v-tab value="invites">{{ translate("invites") }} </v-tab>
+      <v-tab @click="getMyCrew()" value="myCrew">{{ translate("my_crew") }} </v-tab>
+      <v-tab @click="getMyCrew()" value="create">{{ translate("manage") }} </v-tab>
+      <v-tab @click="getMyCrew()" value="invites">{{ translate("invites") }} </v-tab>
     </v-tabs>
 
     <v-window v-model="tab" class="page-container">
