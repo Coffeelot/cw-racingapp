@@ -86,65 +86,70 @@ const globalStore = useGlobalStore();
 </script>
 
 <style scoped lang="scss">
+@use 'vuetify/settings' as *;
+
 .editor {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 1vh;
+  right: 1vw;
+  z-index: 10;
 }
 
 .editor-holder {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-}
-.boxes {
-  display: flex;
-  justify-content: end;
-}
-.blocks-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 20px;
-  margin: 10px;
+  gap: 0.4em;
+  padding: 0.5vh;
 }
 
+.boxes {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.blocks-container,
 .positions-container {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 20px;
-  margin: 10px;
+  gap: 1vh;
+  padding: 0.5vh 1vw;
+  flex-wrap: wrap;
 }
 
 .blocks {
-  width: 31em;
-  flex-grow: 4;
+  flex: 1 1 25em;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 0.4em;
+  min-width: 250px;
 }
 
 .box {
-  background: $hud-background;
+  background: linear-gradient(
+    to right,
+    rgba(var(--v-theme-primary), 0.2),
+    rgba(var(--v-theme-primary), 0.5),
+    rgba(var(--v-theme-primary), 0.8)
+  );
+  backdrop-filter: blur(6px);
   width: 100%;
-  font-size: 1.5em;
+  font-size: 0.95em;
   display: flex;
-  gap: 1em;
   align-items: center;
-  padding-right: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-radius: 18px;
+  gap: 0.6em;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(var(--v-theme-primary), 0.15);
 }
 
 .hud-text {
   text-align: right;
-  padding: 10px;
-  padding-right: 15px;
-  padding-left: 15px;
-  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  font-weight: 500;
   width: 100%;
+  color: var(--font-color, #fff);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
 }
 
 .leftAligned {
@@ -154,13 +159,17 @@ const globalStore = useGlobalStore();
 .split {
   display: flex;
   justify-content: space-between;
+  width: 100%;
 }
 
 .buttons {
-  font-size: 1em;
-  align-items: end;
-  width: fit-content;
+  font-size: 0.9em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
   margin-left: auto;
-  padding-left: 1em;
+  padding-left: 0.5em;
+  gap: 0.4em;
 }
 </style>
+
