@@ -62,7 +62,7 @@ const countdownColor = computed(() => {
 </script>
 
 <style scoped lang="scss">
-@import "@/styles/variables.scss";
+@use '@/styles/variables' as v;
 
 .countdown {
   position: fixed;
@@ -74,7 +74,7 @@ const countdownColor = computed(() => {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  background: rgba($background-color-dark, 0.3);
+  background: rgba(v.$background-color-dark, 0.3);
   backdrop-filter: blur(4px);
 }
 
@@ -93,24 +93,24 @@ const countdownColor = computed(() => {
   font-family: "Rajdhani", sans-serif;
   font-weight: 700;
   text-align: center;
-  color: $text-color;
-  text-shadow: 0 0 20px rgba($primary-color, 0.8);
+  color: v.$text-color;
+  text-shadow: 0 0 20px rgba(v.$primary-color, 0.8);
   z-index: 2;
 }
 
 .countdown__number {
   font-size: 8rem;
-  background: linear-gradient(180deg, $text-color 0%, rgba($text-color, 0.7) 100%);  background-clip: text;
+  background: linear-gradient(180deg, v.$text-color 0%, rgba(v.$text-color, 0.7) 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba($primary-color, 0.5));
+  filter: drop-shadow(0 0 15px rgba(v.$primary-color, 0.5));
 }
 
 .countdown__go {
   font-size: 6rem;
-  color: $positive-color;
-  text-shadow: 0 0 30px rgba($positive-color, 0.8);
+  color: v.$positive-color;
+  text-shadow: 0 0 30px rgba(v.$positive-color, 0.8);
   letter-spacing: 0.1em;
   transform: scale(1.2);
 }
@@ -130,7 +130,7 @@ const countdownColor = computed(() => {
 }
 
 .countdown__progress-bg {
-  stroke: rgba($text-color, 0.1);
+  stroke: rgba(v.$text-color, 0.1);
 }
 
 .countdown__progress-bar {
@@ -146,8 +146,8 @@ const countdownColor = computed(() => {
   background: radial-gradient(
     circle,
     transparent 30%,
-    rgba($primary-color, 0) 31%,
-    rgba($primary-color, 0.1) 32%,
+    rgba(v.$primary-color, 0) 31%,
+    rgba(v.$primary-color, 0.1) 32%,
     transparent 33%
   );
   background-size: 50px 50px;
@@ -158,8 +158,8 @@ const countdownColor = computed(() => {
     background: radial-gradient(
       circle,
       transparent 30%,
-      rgba($positive-color, 0) 31%,
-      rgba($positive-color, 0.1) 32%,
+      rgba(v.$positive-color, 0) 31%,
+      rgba(v.$positive-color, 0.1) 32%,
       transparent 33%
     );
     animation: rotateRaysGo 1s linear infinite;
