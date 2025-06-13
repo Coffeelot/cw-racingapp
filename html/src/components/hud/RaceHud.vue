@@ -89,65 +89,70 @@ const lapText = computed(() => {
 </script>
 
 <style scoped lang="scss">
+@use 'vuetify/settings' as vuetify-settings;
+
 span {
-  text-shadow:1px 1px 18px black;
+  text-shadow: 1px 1px 18px black;
+}
+
+.race {
+  position: absolute;
+  top: 5vh;
+  right: 0.5vw; // Closer to right edge
+  z-index: 100;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1em;
+}
+
+#race-time {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 #race-ghosted-span {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
+  margin-right: 0.5vw;
+  color: rgb(var(--v-theme-secondary));
 }
 
-#race-time {
-  color: #ffffffc7;
-}
-.race {
-  position: absolute;
-  top: 5vh;
-  left: 0;
-  z-index: 100;
-}
 .boxes {
   font-family: "Oswald", sans-serif;
   text-transform: uppercase;
   display: flex;
-  justify-content: v-bind(placement);
-  flex-direction: v-bind(direction);
+  flex-direction: row;
+  justify-content: space-between;
   width: 100vw;
+  padding: 0 0.5vw; // Less horizontal padding
 }
+
 .blocks-container {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 1em;
+  gap: 1.5em;
+  padding: 1em 0.5vw;
 }
 
 .positions-container {
   display: flex;
   flex-direction: column;
   gap: 1em;
-  margin: 2em;
-  transform: rotate(355deg);
-}
-
-.blocks {
-  flex-grow: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: end;
-  gap: 5px;
-  margin-right: 1em;
-  margin-left: 1em;
+  padding: 0 0.5vw;
 }
 
 .hud-text {
   text-align: right;
-  padding: 10px;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding: 0.75em 1.25em;
   font-weight: 600;
   width: 100%;
-  text-transform: uppercase;
+  border-radius: 1em;
+  background: rgba(var(--v-theme-primary), 0.15);
+  backdrop-filter: blur(10px);
+  color: rgb(var(--v-theme-primary));
+  box-shadow: 0 0 6px rgba(var(--v-theme-primary), 0.3);
 }
 
 .leftAligned {
@@ -162,6 +167,7 @@ span {
 #track-name {
   font-size: 1.2em;
   font-weight: 700;
+  color: rgb(var(--v-theme-secondary));
 }
 
 .row {
@@ -187,18 +193,30 @@ span {
 
 .position-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--v-theme-secondary), 0.15);
+  padding: 0.5em 1em;
+  border-radius: 1em;
+  font-weight: bold;
 }
 
 #position {
-  margin-left: 0.1em;
   font-size: 5em;
-  line-height: 85%;
+  line-height: 0.85;
+  margin-left: 0.1em;
+  color: rgb(var(--v-theme-primary));
+  text-shadow: 2px 2px 8px black;
 }
 
 #checkpoint {
   font-size: 2em;
-  line-height: 85%;
-  text-align: end;
+  line-height: 0.85;
+  text-align: right;
+  color: rgb(var(--v-theme-secondary));
+  text-shadow: 1px 1px 5px black;
 }
+
+// ROTATION REMOVED: previously `rotate(355deg)` caused slight tilt.
+// If needed, re-enable with transform: rotate(355deg);
 </style>

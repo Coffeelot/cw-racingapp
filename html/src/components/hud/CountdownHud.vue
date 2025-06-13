@@ -27,46 +27,67 @@ defineProps<{
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 999;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--v-theme-primary), 0.3) 0%,
+    rgba(var(--v-theme-primary), 0.2) 40%,
+    rgba(var(--v-theme-primary), 0) 100%
+  );
+  border-radius: 1vh;
 }
 
 .countdown-holder {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1vh 2vh;
+  width: 100%;
+  box-shadow: 0 0 20px rgba(var(--v-theme-primary), 0.1);
 }
 
 .number-holder {
-  width: 15vh;
-  height: 15vh;
-  text-align: center;
+  width: 20vh;
+  height: 20vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 2vh;
+  background: rgba(var(--v-theme-secondary), 0.25);
 }
 
 #countdown-number {
-  font-size: 20em;
-  font-family: var(--countdown-font);
-  color: var(--font-color);
-  /* font-weight:900; */
-  /* -webkit-text-stroke: 1px #000000; */
+  font-size: 18vh;
+  font-family: var(--countdown-font, 'Oswald');
+  font-weight: 900;
+  color: var(--font-color, white);
   text-transform: uppercase;
+  text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.9);
 }
 
 #countdown-text {
-  font-size: 7vh;
-  font-family: var(--text-font);
-  color: var(--font-color);
-  text-transform: uppercase;
+  font-size: 5vh;
+  font-family: var(--text-font, 'Oswald');
   font-weight: bold;
+  color: var(--font-color, white);
+  text-transform: uppercase;
+  margin-top: 1vh;
+  text-shadow: 1px 1px 15px rgba(0, 0, 0, 0.7);
 }
 
 .scale-enter-active,
 .scale-leave-active {
-  transition: all 0.1s ease;
+  transition: all 0.2s ease;
 }
 
 .scale-enter-from,
 .scale-leave-to {
   opacity: 0;
-  transform: scale(0.9);
+  transform: scale(0.85);
 }
 </style>

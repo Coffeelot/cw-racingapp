@@ -69,41 +69,61 @@ const getTimeDifference = (racer1: ActiveRacer, racer2: ActiveRacer) => {
 
 </script>
 <style scoped lang="scss">
-
 @use 'vuetify/settings' as vuetify-settings;
+
+$name-max-width: 20em;
 
 .name {
   text-overflow: ellipsis;
-  max-width: 20em;
-  max-lines: 1;
   overflow: hidden;
   white-space: nowrap;
-  padding: 0.5em;
-  margin-right: 1em;
+  max-width: $name-max-width;
+  padding: 0.5em 1em;
 }
+
 .racers-holder {
   display: flex;
   flex-direction: column;
-  gap: 0.3em;
+  gap: 0.5em;
+  padding: 0.5em;
 }
+
 .number {
   font-size: 1.1em;
   font-weight: bold;
+  color: rgb(var(--v-theme-primary));
+  width: 2.5em;
+  text-align: center;
+  padding: 0.1em;
+  border-radius: 0.5em;
+  background: rgba(var(--v-theme-secondary), 0.7);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
 }
+
 .box {
-  background: $hud-background;
+  background: linear-gradient(
+    to right,
+    rgba(var(--v-theme-primary), 0.55),
+    rgba(var(--v-theme-primary), 0)
+  );
   width: 100%;
   font-size: 1em;
+  height: 50%;
   font-weight: 600;
   display: flex;
   gap: 1em;
   align-items: center;
-  clip-path: polygon(5% 100%,100% 100%,95% 0%,0% 0%,calc(100% - 88px) 0%,0% 0%);
-  padding-right: 2em;
-  padding-left: 2em;
-}
-.me {
-  background: rgb(var(--v-theme-primary));
+  padding: 0.1em 2em;
+  border-radius: 0.5em;
 }
 
+.me {
+  background: rgb(var(--v-theme-primary));
+  color: rgba(var(--v-theme-secondary), 1);
+  background: linear-gradient(
+    to right,
+    rgba(var(--v-theme-primary), 0.75),
+    rgba(var(--v-theme-primary), 0)
+  );
+}
 </style>
