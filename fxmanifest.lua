@@ -14,6 +14,7 @@ shared_scripts {
     '@ox_lib/init.lua',
     'locales/en.lua',
     'shared/config.lua',
+    'shared/elo.lua',
     'shared/head2head.lua',
     '@qbx_core/modules/playerdata.lua', -- remove this if you don't use qbox
 }

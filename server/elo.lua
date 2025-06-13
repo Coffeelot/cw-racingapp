@@ -15,17 +15,10 @@ local function getRankingForCrew(crewName)
     end
 end
 
-local modifiers = {
-    positionBonusTwo = { 0.2, 0 },
-    positionBonusThree = { 0.5, 0.1, 0 },
-    positionBonusFour = { 1.2, 0.8, 0.4, 0 },
-    positionBonusFive = { 1.5, 1, 0.5, 0.25, 0 },
-    positionBonusOverFive = { 2, 1.5, 1, 0.5, 0.25 },
-    winAgainstLowerRankMod = 0.02,
-    winAgainstHigherRankMod = 0.03,
-    lossAgainstHigherRankMod = 0.006,
-    lossAgainstLowerRankMod = 0.02,
-}
+local modifiers = ConfigELO
+if not modifiers then
+    print('^1!!! SOMETHING IS FUCKED UP WITH YOUR CONFIG SETUP. ELO CONFIG MISSING !!!^0')
+end
 
 -- Function to copy a table deeply
 function deepCopy(original)
