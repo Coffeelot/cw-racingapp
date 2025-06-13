@@ -1,14 +1,17 @@
 local useDebug = Config.Debug
+local debugAlgo = false
 local ultraDebug = false
 
-if ultraDebug then
-    function getCrewRanking(crewName)
+local function getRankingForCrew(crewName)
+    if useDebug and ultraDebug then
         local names = {
-            ['TEST1'] = { rank = 6 },
-            ['Tofu Delivery'] = { rank = 7 },
-            ['Not A real Crew'] = { rank = 1 },
-        }
+        ['TEST1'] = { rank = 6 },
+        ['Tofu Delivery'] = { rank = 7 },
+        ['Not A real Crew'] = { rank = 1 },
+    }
         return names[crewName].rank
+    else 
+        return getCrewRanking(crewName)
     end
 end
 
@@ -40,8 +43,11 @@ function deepCopy(original)
     return copy
 end
 
-function calculateTrueSkillRatingsForCrews(crewRacers)
-    if useDebug then print('= STARTING ELO CALCULATIONS FOR CREWS =') end
+local function calculateTrueSkillRatingsForCrews(crewRacers)
+    if debugAlgo then 
+        print('= STARTING ELO CALCULATIONS FOR CREWS =')
+        print('crews sent for elo check', json.encode(crewRacers, {indent=true}))
+    end
     -- Sort the results based on TotalTime in ascending order
     local tempTable = deepCopy(crewRacers)
     table.sort(tempTable, function(a, b) return a.averageTime < b.averageTime end)
@@ -50,7 +56,7 @@ function calculateTrueSkillRatingsForCrews(crewRacers)
     -- Update ratings for each racer
     for i, crew in ipairs(tempTable) do
         local delta = 0 -- Initialize change in rating
-        if useDebug then print('====', crew.crewName, '====') end
+        if debugAlgo then print('====', crew.crewName, '====') end
 
         for j, opponent in ipairs(tempTable) do
             if i ~= j then
@@ -59,9 +65,9 @@ function calculateTrueSkillRatingsForCrews(crewRacers)
                 local rankDifference = crew.rank - opponent.rank
                 local scoreDifference = math.abs(crew.rank - opponent.rank)
                 local scalingFactor = 1 / (1 + scoreDifference) -- Adjust scaling factor based on score difference
-                if useDebug then print('-- Scaling factor', scalingFactor) end
+                if debugAlgo then print('-- Scaling factor', scalingFactor) end
                 if crew.averageTime < opponent.averageTime then
-                    if useDebug then print('win') end
+                    if debugAlgo then print('win') end
                     if rankDifference > 0 then                                                              -- if your rank is higher than opponent
                         scoreDifference = scoreDifference * modifiers.winAgainstLowerRankMod *
                         scalingFactor                                                                       -- Lesser impact for higher rank
@@ -72,7 +78,7 @@ function calculateTrueSkillRatingsForCrews(crewRacers)
                     -- Player beats opponent
                     change = 0.05 + (scoreDifference) -- Adjust scaling factors
                 elseif crew.averageTime > opponent.averageTime then
-                    if useDebug then print('loss') end
+                    if debugAlgo then print('loss') end
                     -- Player loses
                     if rankDifference > 0 then -- if your rank is higher than opponent
                         scoreDifference = scoreDifference * modifiers.lossAgainstHigherRankMod
@@ -82,10 +88,10 @@ function calculateTrueSkillRatingsForCrews(crewRacers)
                     -- Player is beaten by opponent
                     change = -1 * scoreDifference -- Adjust scaling factors
                 end
-                if useDebug then print('change', change) end
+                if debugAlgo then print('change', change) end
                 -- Update delta
                 delta = delta + change
-                if useDebug then print('New delta:', delta) end
+                if debugAlgo then print('New delta:', delta) end
             end
         end
         -- Apply position bonus --
@@ -105,7 +111,7 @@ function calculateTrueSkillRatingsForCrews(crewRacers)
             local positionBonusIdx = math.min(i, #modifiers.positionBonusOverFive) -- Ensure weight index is within bounds
             delta = delta + modifiers.positionBonusOverFive[positionBonusIdx]
         end
-        if useDebug then print('After position bonus', delta) end
+        if debugAlgo then print('After position bonus', delta) end
         -- Ensure winner's rating doesn't increase excessively
         if i == 1 then
             delta = math.min(delta, 30) -- Cap maximum increase for winner
@@ -124,7 +130,7 @@ function calculateTrueSkillRatingsForCrews(crewRacers)
 end
 
 local function calculateCrewPositions(crewTable)
-    if useDebug then print('= GETTING CREW POSITIONS =') end
+    if debugAlgo then print('= GETTING CREW POSITIONS =') end
     local teams = {}           -- Create a table to store team totals
     local teamPositions = {}   -- Create a table to store team positions
     local teamRacersCount = {} -- Create a table to store the count of racers in each team
@@ -161,16 +167,20 @@ local function calculateCrewPositions(crewTable)
     -- Assign positions based on the sorted order
     for position, data in ipairs(sortedTeams) do
         data.position = position
-        data.rank = getCrewRanking(data.crewName)
+        data.rank = getRankingForCrew(data.crewName)
     end
 
     return calculateTrueSkillRatingsForCrews(sortedTeams)
 end
 
 function calculateTrueSkillRatings(results)
-    if useDebug then print('= STARTING ELO CALCULATIONS =') end
+    if debugAlgo then 
+        print('= STARTING ELO CALCULATIONS =')
+        print('ALL results', json.encode(results, {indent=true}))
+    end
     -- Sort the results based on TotalTime in ascending order
     local tempTable = deepCopy(results)
+
     table.sort(tempTable, function(a, b) return a.TotalTime < b.TotalTime end)
     -- Initialize position-based weight
     local crewTable = {}
@@ -178,10 +188,10 @@ function calculateTrueSkillRatings(results)
     -- Update ratings for each racer
     for i, racer in ipairs(tempTable) do
         local delta = 0 -- Initialize change in rating
-        if useDebug then print('====', racer.RacerName, '====') end
+        if debugAlgo then print('====', racer.RacerName, '====') end
 
         if racer.RacingCrew then
-            if useDebug then print('Racer was in a crew. Adding to crew table') end
+            if debugAlgo then print('Racer was in a crew. Adding to crew table') end
             crewTable[#crewTable + 1] = racer
         end
 
@@ -192,9 +202,9 @@ function calculateTrueSkillRatings(results)
                 local rankDifference = racer.Ranking - opponent.Ranking
                 local scoreDifference = math.abs(racer.Ranking - opponent.Ranking)
                 local scalingFactor = 1 / (1 + scoreDifference) -- Adjust scaling factor based on score difference
-                if useDebug then print('-- Scaling factor', scalingFactor) end
+                if debugAlgo then print('-- Scaling factor', scalingFactor) end
                 if racer.TotalTime < opponent.TotalTime then
-                    if useDebug then print('win') end
+                    if debugAlgo then print('win') end
                     if rankDifference > 0 then                                                              -- if your rank is higher than opponent
                         scoreDifference = scoreDifference * modifiers.winAgainstLowerRankMod *
                         scalingFactor                                                                       -- Lesser impact for higher rank
@@ -205,7 +215,7 @@ function calculateTrueSkillRatings(results)
                     -- Player beats opponent
                     change = 0.05 + (scoreDifference) -- Adjust scaling factors
                 elseif racer.TotalTime > opponent.TotalTime then
-                    if useDebug then print('loss') end
+                    if debugAlgo then print('loss') end
                     -- Player loses
                     if rankDifference > 0 then -- if your rank is higher than opponent
                         scoreDifference = scoreDifference * modifiers.lossAgainstHigherRankMod
@@ -215,10 +225,10 @@ function calculateTrueSkillRatings(results)
                     -- Player is beaten by opponent
                     change = -1 * scoreDifference -- Adjust scaling factors
                 end
-                if useDebug then print('change', change) end
+                if debugAlgo then print('change', change) end
                 -- Update delta
                 delta = delta + change
-                if useDebug then print('New delta:', delta) end
+                if debugAlgo then print('New delta:', delta) end
             end
         end
         -- Apply position bonus --
@@ -238,7 +248,7 @@ function calculateTrueSkillRatings(results)
             local positionBonusIdx = math.min(i, #modifiers.positionBonusOverFive) -- Ensure weight index is within bounds
             delta = delta + modifiers.positionBonusOverFive[positionBonusIdx]
         end
-        if useDebug then print('After position bonus', delta) end
+        if debugAlgo then print('After position bonus', delta) end
         -- Ensure winner's rating doesn't increase excessively
         if i == 1 then
             delta = math.min(delta, 30) -- Cap maximum increase for winner
@@ -247,10 +257,12 @@ function calculateTrueSkillRatings(results)
         if i == #tempTable then
             delta = math.max(delta, -20) -- Cap maximum decrease for loser
         end
-        -- Apply change in rating
-        -- tempTable[i].Ranking = tempTable[i].Ranking + math.ceil(delta)
-        -- Store total change in ranking
-        tempTable[i].TotalChange = math.ceil(delta)
+
+        local totalChange = math.ceil(delta)
+        if debugAlgo then
+            print('Total change:', totalChange)
+        end
+        tempTable[i].TotalChange = totalChange
     end
 
     local crewRes = {}
@@ -261,14 +273,15 @@ function calculateTrueSkillRatings(results)
     return tempTable, crewRes
 end
 
-if Config.Debug and ultraDebug then -- Example input for testing
+if useDebug and ultraDebug then -- Example input for testing
+    print('DEBUGGING RACINGAPP ELO')
     local results = {
-        { TotalTime = 100, RacerName = 'Winner',  Ranking = 0,   Crew = 'TEST1' },
+        { TotalTime = 100, RacerName = 'Winner',  Ranking = 0,   RacingCrew = 'TEST1' },
         { TotalTime = 220, RacerName = 'middle1', Ranking = 0 },
-        { TotalTime = 230, RacerName = 'middle2', Ranking = 30,  Crew = 'Tofu Delivery' },
-        { TotalTime = 240, RacerName = 'middle3', Ranking = 200, Crew = 'Not A real Crew' },
-        { TotalTime = 250, RacerName = 'middle4', Ranking = 0,   Crew = 'Not A real Crew' },
-        { TotalTime = 900, RacerName = 'Loser',   Ranking = 110, Crew = 'TEST1' },
+        { TotalTime = 230, RacerName = 'middle2', Ranking = 30,  RacingCrew = 'Tofu Delivery' },
+        { TotalTime = 240, RacerName = 'middle3', Ranking = 200, RacingCrew = 'Not A real Crew' },
+        { TotalTime = 250, RacerName = 'middle4', Ranking = 0,   RacingCrew = 'Not A real Crew' },
+        { TotalTime = 900, RacerName = 'Loser',   Ranking = 110, RacingCrew = 'TEST1' },
     }
     -- Calculate TrueSkill ratings
     local res, crewRes = calculateTrueSkillRatings(results)
