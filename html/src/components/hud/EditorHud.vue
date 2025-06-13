@@ -1,77 +1,75 @@
 <template>
   <div class="editor">
-    <div class="blocks-container">
-      <div class="blocks">
-        <div class="box editor-holder">
-          <span class="editor-text" id="editor-racename"
-            >{{ translate("track_name") }} :
-            {{ globalStore.creatorData.RaceName }}</span
-          >
-          <span class="editor-text" id="editor-checkpoints"
-            >{{ translate("checkpoints") }} :
-            {{
-              globalStore.creatorData.Checkpoints
-                ? globalStore.creatorData.Checkpoints.length
-                : 0
-            }}</span
-          >
-          <span class="editor-text" id="editor-checkpoints"
-            >{{ translate("closest_checkpoint") }} :
-            {{
-              globalStore.creatorData.ClosestCheckpoint
-                ? globalStore.creatorData.ClosestCheckpoint
-                : "Unknown"
-            }}</span
-          >
+    <div class="editor__container">
+      <!-- Track Info -->
+      <div class="editor__panel">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-label">
+              <v-icon icon="mdi-map-marker" size="small" class="info-icon"></v-icon>
+              <span>{{ translate("track_name") }}</span>
+            </div>
+            <span class="info-value">{{ globalStore.creatorData.RaceName }}</span>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <v-icon icon="mdi-flag-checkered" size="small" class="info-icon"></v-icon>
+              <span>{{ translate("checkpoints") }}</span>
+            </div>
+            <span class="info-value">{{ globalStore.creatorData.Checkpoints?.length || 0 }}</span>
+          </div>
+          <div class="info-item">
+            <div class="info-label">
+              <v-icon icon="mdi-crosshairs-gps" size="small" class="info-icon"></v-icon>
+              <span>{{ translate("closest_checkpoint") }}</span>
+            </div>
+            <span class="info-value">{{ globalStore.creatorData.ClosestCheckpoint || "-" }}</span>
+          </div>
         </div>
-        <div class="box editor-holder buttons">
-          <span class="editor-text" id="editor-keys-add"
-            ><span id="editor-keys-add-button" style="color: rgb(0, 201, 0)">{{
-              globalStore.buttons.AddCheckpoint
-            }}</span>
-            : {{ translate("add_checkpoint") }}
-          </span>
-          <span
-            class="editor-text"
-            id="editor-keys-delete"
-            v-if="globalStore.creatorData.ClosestCheckpoint"
-          >
-            <span style="color: rgb(255, 43, 43)">[{{
-              globalStore.buttons.DeleteCheckpoint
-            }}]</span>
-            : {{ translate("delete_checkpoint") }}
-            {{ globalStore.creatorData.ClosestCheckpoint }}
-          </span>
-          <span class="editor-text" id="editor-keys-edit"
-            ><span id="editor-keys-edit-button" style="color: rgb(0, 201, 0)">[{{
-              globalStore.buttons.MoveCheckpoint
-            }}]</span
-            >: {{ translate("modify_checkpoint") }}
-          </span>
-          <span class="editor-text" id="editor-keys-tiredistance">
-            <span style="margin-right: 0.5em; color: rgb(255, 43, 43)">[{{
-              globalStore.buttons.DecreaseDistance
-            }}]</span>
-            <span style="color: rgb(0, 201, 0)">
-              [{{ globalStore.buttons.IncreaseDistance }}]
-            </span>
-            {{ translate("tire_distance") }} :
-            [{{ globalStore.creatorData.TireDistance }}]
-          </span>
-          <span class="editor-text" id="editor-keys-cancel"
-            ><span
-              id="editor-keys-cancel-button"
-              style="color: rgb(255, 43, 43)"
-              >[{{ globalStore.buttons.Exit }}]</span
-            >
-            : {{ translate("close_editor") }}
-          </span>
-          <span class="editor-text" id="editor-keys-save"
-            ><span id="editor-keys-save-button" style="color: rgb(0, 201, 0)">[{{
-              globalStore.buttons.SaveRace
-            }}]</span>
-            :{{ translate("save_track") }}
-          </span>
+      </div>
+
+      <!-- Controls -->
+      <div class="editor__panel">
+        <div class="controls-list">
+          <!-- Main Controls -->
+          <div class="control-item">
+            <span class="key success-key">{{ globalStore.buttons.AddCheckpoint }}</span>
+            <span class="control-label">{{ translate("add_checkpoint") }}</span>
+          </div>
+          
+          <div class="control-item" v-if="globalStore.creatorData.ClosestCheckpoint">
+            <span class="key danger-key">{{ globalStore.buttons.DeleteCheckpoint }}</span>
+            <span class="control-label">{{ translate("delete_checkpoint") }} {{ globalStore.creatorData.ClosestCheckpoint }}</span>
+          </div>
+          
+          <div class="control-item">
+            <span class="key info-key">{{ globalStore.buttons.MoveCheckpoint }}</span>
+            <span class="control-label">{{ translate("modify_checkpoint") }}</span>
+          </div>
+
+          <!-- Distance Control -->
+          <div class="control-item distance">
+            <div class="distance-group">
+              <span class="key danger-key">{{ globalStore.buttons.DecreaseDistance }}</span>
+              <span class="key info-key">{{ globalStore.buttons.IncreaseDistance }}</span>
+            </div>
+            <div class="control-label">
+              <span>{{ translate("tire_distance") }}</span>
+              <span class="distance-value">[{{ globalStore.creatorData.TireDistance }}]</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="actions-group">
+            <div class="control-item">
+              <span class="key danger-key">{{ globalStore.buttons.Exit }}</span>
+              <span class="control-label">{{ translate("close_editor") }}</span>
+            </div>
+            <div class="control-item">
+              <span class="key success-key">{{ globalStore.buttons.SaveRace }}</span>
+              <span class="control-label">{{ translate("save_track") }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -86,90 +84,148 @@ const globalStore = useGlobalStore();
 </script>
 
 <style scoped lang="scss">
-@use 'vuetify/settings' as *;
+@import '@/styles/variables.scss';
 
 .editor {
-  position: absolute;
+  position: fixed;
   top: 1vh;
   right: 1vw;
   z-index: 10;
 }
 
-.editor-holder {
+.editor__container {
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
-  padding: 0.5vh;
+  gap: 0.5rem;
+  max-width: 350px;
 }
 
-.boxes {
-  display: flex;
-  justify-content: flex-end;
+.editor__panel {
+  background: rgba($background-color-dark, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: $border-radius;
+  padding: 0.6rem;
 }
 
-.blocks-container,
-.positions-container {
+.info-list {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.info-item {
+  display: flex;
   justify-content: space-between;
-  gap: 1vh;
-  padding: 0.5vh 1vw;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.2rem 0;
+
+  .info-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba($text-color, 0.7);
+    font-size: 0.8rem;
+
+    .info-icon {
+      color: $primary-color;
+      opacity: 0.8;
+    }
+  }
+
+  .info-value {
+    color: $text-color;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
 }
 
-.blocks {
-  flex: 1 1 25em;
+.controls-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
-  min-width: 250px;
+  gap: 0.4rem;
 }
 
-.box {
-  background: linear-gradient(
-    to right,
-    rgba(var(--v-theme-primary), 0.2),
-    rgba(var(--v-theme-primary), 0.5),
-    rgba(var(--v-theme-primary), 0.8)
-  );
-  backdrop-filter: blur(6px);
-  width: 100%;
-  font-size: 0.95em;
+.control-item {
   display: flex;
   align-items: center;
-  gap: 0.6em;
-  padding: 0.6rem 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(var(--v-theme-primary), 0.15);
+  gap: 0.6rem;
+  padding: 0.2rem 0;
+
+  &.distance {
+    .distance-group {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .distance-value {
+      color: $primary-color;
+      margin-left: 0.3rem;
+    }
+  }
 }
 
-.hud-text {
-  text-align: right;
-  padding: 0.25rem 0.75rem;
-  font-weight: 500;
-  width: 100%;
-  color: var(--font-color, #fff);
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
-}
-
-.leftAligned {
-  text-align: left;
-}
-
-.split {
+.control-label {
+  color: rgba($text-color, 0.8);
+  font-size: 0.8rem;
   display: flex;
-  justify-content: space-between;
-  width: 100%;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.buttons {
-  font-size: 0.9em;
+.key {
+  background: rgba($background-color-lighter, 0.3);
+  color: $text-color;
+  padding: 0.15rem 0.4rem;
+  border-radius: $border-radius;
+  font-size: 0.75rem;
+  min-width: 1.5rem;
+  text-align: center;
+  border: 1px solid rgba($text-color, 0.1);
+  transition: all 0.2s ease;
+
+  &.success-key {
+    background: rgba($positive-color, 0.15);
+    border-color: rgba($positive-color, 0.3);
+    color: $positive-color;
+  }
+
+  &.danger-key {
+    background: rgba($negative-color, 0.15);
+    border-color: rgba($negative-color, 0.3);
+    color: $negative-color;
+  }
+
+  &.info-key {
+    background: rgba($primary-color, 0.15);
+    border-color: rgba($primary-color, 0.3);
+    color: $primary-color;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+  }
+}
+
+.actions-group {
+  margin-top: 0.4rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba($text-color, 0.1);
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  margin-left: auto;
-  padding-left: 0.5em;
-  gap: 0.4em;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+// Simple fade transition
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
 
