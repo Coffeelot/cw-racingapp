@@ -47,12 +47,11 @@ import api from "@/api/axios";
 
 const crews: Ref<Crew[] | undefined> = ref(undefined)
 
-  const getAllCrews = async () => {
+const getAllCrews = async () => {
   const response = await api.post("UiGetAllCrews");
   if (response.data)  {
     let res: CrewList = response.data ;
-    crews.value = Object.values(res).sort((crewA, crewB) => crewA.rank - crewB.rank);
-    
+    crews.value = Object.values(res).sort((crewA, crewB) => crewB.rank - crewA.rank);
   }
 
 };
