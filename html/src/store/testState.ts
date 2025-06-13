@@ -1,12 +1,58 @@
 /* eslint-disable no-loss-of-precision */
 export const testState = {
-  "appIsOpen": true,
-  "hudIsOpen": false,
+  "appIsOpen": false,
+  "hudIsOpen": true,
   "currentPage": "racing",
   "currentTab": "current",
   "showOnlyCurated": true,
-  "activeRace": {},
-  "activeHudData": {},
+  activeRace: {
+    currentCheckpoint: 3,
+    totalCheckpoints: 12,
+    totalLaps: 3,
+    currentLap: 2,
+    raceStarted: true,
+    raceName: "Downtown Dash",
+    time: 55000,
+    totalTime: 180000,
+    bestLap: 53000,
+    position: 2,
+    totalRacers: 6,
+    ghosted: true,
+    positions: [
+      {
+        Checkpoint: 4,
+        RacerSource: 11,
+        RacerName: "PlayerOne",
+        PlayerVehicleEntity: 1001,
+        Lap: 2,
+        Placement: 1,
+        Finished: false,
+        CheckpointTimes: []
+      },
+      {
+        Checkpoint: 3,
+        RacerSource: 12,
+        RacerName: "You",
+        PlayerVehicleEntity: 1002,
+        Lap: 2,
+        Placement: 2,
+        Finished: false,
+        CheckpointTimes: []
+      }
+    ]
+  },
+  activeHudData: {
+    currentSpeed: 120,
+    gear: 3,
+    lap: 1,
+    position: 2,
+    maxPlayers: 6,
+    checkpoint: 4,
+    totalCheckpoints: 12,
+    raceName: "Test Track",
+    InRace: false,       // ✅ Enables RaceHud
+    InCreator: true     // ❌ Disables EditorHud
+  },
   "countdown": -1,
   "buttons": {},
   "creatorData": {},
