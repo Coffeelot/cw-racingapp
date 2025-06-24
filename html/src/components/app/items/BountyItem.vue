@@ -72,7 +72,7 @@
 import { msToHMS } from "@/helpers/msToHMS";
 import { translate } from "@/helpers/translate";
 import { useGlobalStore } from "@/store/global";
-import { Bounty } from "@/store/types";
+import { Bounty, Record } from "@/store/types";
 import { computed, ref } from "vue";
 import InfoText from "../components/InfoText.vue";
 import api from "@/api/axios";
@@ -85,9 +85,9 @@ const loading = ref(false)
 const recordsDialog = ref(false)
 const globalStore = useGlobalStore()
 const times = computed(() => {
-  const claims = props.bounty.claimed
+  const claims = props.bounty.claimed as Record[]
   const timearray = Object.values(claims).sort((res1, res2) => res1.time < res2.time ? -1 : 1 )
-  return timearray
+  return timearray as Record[]
 })
 
 

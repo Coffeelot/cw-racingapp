@@ -102,6 +102,13 @@ body {
 
 /* LOADING RING */
 
+.circular-loading-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1em;
+}
+
 .loading-container {
   display: none;
   justify-content: center;

@@ -22,8 +22,10 @@ shared_scripts {
 client_scripts {
     'bridge/client/*.lua',
     'client/classes.lua',
+    'client/globals.lua',
     'client/functions.lua',
     'client/main.lua',
+    'client/gui.lua',
     'client/head2head.lua',
 }
 
@@ -31,6 +33,7 @@ server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/debug.lua',
     'server/database.lua',
+    'server/databaseTimes.lua',
     'bridge/server/*.lua',
     'server/functions.lua',
     'server/main.lua',

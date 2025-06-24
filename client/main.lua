@@ -1,34 +1,20 @@
 -----------------------
 ----   Variables   ----
 -----------------------
-UseDebug = Config.Debug
-UiIsOpen = false
+local TraderPed
 
-local Countdown = 10
-local FinishedUITimeout = false
+local ShowGpsRoute = Config.ShowGpsRoute or false
+local IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
+local UseUglyWaypoint = Config.UseUglyWaypoint or false
+local UseDrawTextWaypoint = Config.UseDrawTextWaypoint or false
+local CheckDistance = Config.CheckDistance or false
 local CreatorObjectLeft, CreatorObjectRight
-local IsFirstUser
-local CharacterHasLoaded = false
-
-CurrentName = nil
-CurrentAuth = nil
-CurrentCrew = nil
-CurrentCrypto = nil
-CurrentRanking = nil
-
 local CheckpointPileModel = joaat(Config.CheckpointPileModel)
 local StartAndFinishModel = joaat(Config.StartAndFinishModel)
 
 local startTime = 0
 local lapStartTime = 0
 
-RaceData = {
-    InCreator = false,
-    InRace = false,
-    ClosestCheckpoint = 0
-}
-
-local MyRacerNames = {}
 local CreatorData = {
     RaceName = nil,
     RacerName = nil,
@@ -39,42 +25,9 @@ local CreatorData = {
     RaceId = nil
 }
 
-CurrentRaceData = {
-    RaceId = nil,
-    TrackId = nil,
-    RaceName = nil,
-    RacerName = nil,
-    MaxClass = nil,
-    Checkpoints = {},
-    Started = false,
-    CurrentCheckpoint = nil,
-    TotalLaps = 0,
-    TotalRacers = 0,
-    Lap = 0,
-    Position = 0,
-    Ghosted = false,
-}
-
-local function notifyHandler(message, type)
-    if CharacterHasLoaded and hasGps() then
-        notify(message, type)
-    end
-end
-
 RegisterNetEvent('cw-racingapp:client:notify', function(message, type)
-    notifyHandler(message, type)
+    NotifyHandler(message, type)
 end)
-
-local Classes = getVehicleClasses()
-local Entities = {}
-local Kicked = false
-local TraderPed
-
-local ShowGpsRoute = Config.ShowGpsRoute or false
-local IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
-local UseUglyWaypoint = Config.UseUglyWaypoint or false
-local UseDrawTextWaypoint = Config.UseDrawTextWaypoint or false
-local CheckDistance = Config.CheckDistance or false
 
 function DebugLog(message, message2, message3, message4)
     if UseDebug then
@@ -116,16 +69,6 @@ local function updateRaceUi()
     })
 end
 
-local function getSizeOfTable(table)
-    local count = 0
-    if table then
-        for _, _ in pairs(table) do
-            count = count + 1
-        end
-    end
-    return count
-end
-
 local function updateUiData(dataType, data)
     SendNUIMessage({
         action = "update",
@@ -164,7 +107,7 @@ local function checkCheckPointTime()
         DebugLog('Getting kicked for idling')
         if not Kicked then
             Kicked = true
-            notifyHandler(Lang('kicked_idling'), 'error')
+            NotifyHandler(Lang('kicked_idling'), 'error')
             TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'idling')
         end
     end
@@ -208,7 +151,7 @@ local function showNonLoopParticle(dict, particleName, coords, scale, time)
     UseParticleFxAssetNextCall(dict)
 
     local particleHandle = StartParticleFxLoopedAtCoord(particleName, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0,
-        scale, false, false, false)
+        scale, false, false, false, 0)
     SetParticleFxLoopedColour(particleHandle, 0.0, 0.0, 1.0)
     return particleHandle
 end
@@ -242,22 +185,6 @@ local function doPilePfx()
             handleFlare(2)
         end
     end
-end
-
-local function myCarClassIsAllowed(maxClass, myClass)
-    if maxClass == nil or maxClass == '' then
-        return true
-    end
-    DebugLog('My class:', myClass)
-    DebugLog('All classes', json.encode(Classes, { indent = true }))
-    local myClassIndex = Classes[myClass]
-    local maxClassIndex = Classes[maxClass]
-    DebugLog('My class index: ' .. tostring(myClassIndex), 'maxClassIndex: ' .. tostring(maxClassIndex))
-    if myClassIndex > maxClassIndex then
-        return false
-    end
-
-    return true
 end
 
 local function loadModel(model)
@@ -294,10 +221,6 @@ local function createPile(offset, model)
     end
 end
 
-local function isDriver(vehicle)
-    return GetPedInVehicleSeat(vehicle, -1) == PlayerPedId()
-end
-
 local function isPlayerNearby(playerCoords, otherPlayerCoords, maxDistance)
     return #(playerCoords - otherPlayerCoords) <= maxDistance
 end
@@ -319,7 +242,7 @@ local function checkAndDisableGhosting()
     local playerCoords = GetEntityCoords(playerPed)
     local vehicle = GetVehiclePedIsIn(playerPed, false)
 
-    if not isDriver(vehicle) then
+    if not IsDriver(vehicle) then
         DebugLog('Racer was not the driver')
         unGhostPlayer()
         return
@@ -484,8 +407,8 @@ local function finishRace()
     end
     local PlayerPed = PlayerPedId()
     local vehicle = GetVehiclePedIsIn(PlayerPed, false)
-    if not isDriver(vehicle) then
-        notifyHandler(Lang('kicked_cheese'), 'error')
+    if not IsDriver(vehicle) then
+        NotifyHandler(Lang('kicked_cheese'), 'error')
         TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'cheeseing')
         return
     end
@@ -508,20 +431,6 @@ local function finishRace()
     SetTimeout(2000, function()
         CurrentRaceData.RaceId = nil
     end)
-end
-
-local function addPointToGpsRoute(cx, cy, offset)
-    local x = cx
-    local y = cy
-    if Config.DoOffsetGps then
-        x = (x + offset.right.x) / 2;
-        y = (y + offset.right.y) / 2;
-    end
-    if IgnoreRoadsForGps then
-        AddPointToGpsCustomRoute(x, y)
-    else
-        AddPointToGpsMultiRoute(x, y)
-    end
 end
 
 local function getIndex(Positions)
@@ -574,7 +483,7 @@ local function deleteAllCheckpoints()
     end
 end
 
-local function createCheckpointBlip(coords, id)
+function CreateCheckpointBlip(coords, id)
     local Blip = AddBlipForCoord(coords.x, coords.y, coords.z)
 
     SetBlipSprite(Blip, 1)
@@ -594,12 +503,13 @@ end
 
 local function updateGpsForRace(started)
     deleteAllCheckpoints()
+
     if IgnoreRoadsForGps then
         ClearGpsCustomRoute()
-        StartGpsMultiRoute(Config.Gps.color, started, false)
+        StartGpsCustomRoute(Config.Gps.color, true, true)
     else
         ClearGpsMultiRoute()
-        StartGpsMultiRoute(Config.Gps.color, started, false)
+        StartGpsMultiRoute(Config.Gps.color, true, true)
     end
 
     local currentCheckpoint = CurrentRaceData.CurrentCheckpoint or 1
@@ -609,22 +519,27 @@ local function updateGpsForRace(started)
 
     for i = currentCheckpoint, lastCheckpoint do
         local checkpointIndex = isCircuit and ((i - 1) % totalCheckpoints) + 1 or i
-        if checkpointIndex > totalCheckpoints then break end -- Stop if beyond the last checkpoint in a sprint
+        if checkpointIndex > totalCheckpoints and not isCircuit then break end
 
-        if not isCircuit or (isCircuit and ((checkpointIndex >= currentCheckpoint and checkpointIndex <= lastCheckpoint) or checkpointIndex == 1)) then
-            local checkpointData = CurrentRaceData.Checkpoints[checkpointIndex]
+        local checkpointData = CurrentRaceData.Checkpoints[checkpointIndex]
+        local coords = checkpointData.coords
 
-            addPointToGpsRoute(checkpointData.coords.x, checkpointData.coords.y, checkpointData.offset)
+        if IgnoreRoadsForGps then
+            AddPointToGpsCustomRoute(coords.x, coords.y, coords.z or 0.0)
+        else
+            AddPointToGpsMultiRoute(coords.x, coords.y, coords.z or 0.0)
+        end
 
-            if isFinishOrStart(checkpointIndex) then
-                checkpointData.pileleft = createPile(checkpointData.offset.left, StartAndFinishModel)
-                checkpointData.pileright = createPile(checkpointData.offset.right, StartAndFinishModel)
-            else
-                checkpointData.pileleft = createPile(checkpointData.offset.left, CheckpointPileModel)
-                checkpointData.pileright = createPile(checkpointData.offset.right, CheckpointPileModel)
-            end
+        local pileModel = isFinishOrStart(checkpointIndex) and StartAndFinishModel or CheckpointPileModel
+        checkpointData.pileleft = createPile(checkpointData.offset.left, pileModel)
+        checkpointData.pileright = createPile(checkpointData.offset.right, pileModel)
+
+        if checkpointData.blip then
+            SetBlipDisplay(checkpointData.blip, 2) 
+            ShowHeightOnBlip(checkpointData.blip, true) 
         end
     end
+
     if IgnoreRoadsForGps then
         SetGpsCustomRouteRender(ShowGpsRoute, 16, 16)
     else
@@ -637,15 +552,15 @@ local function setupBlipsForRace(started)
     if started and CurrentRaceData.TotalLaps > 0 then
         for k = 1, #CurrentRaceData.Checkpoints, 1 do
             if k > 1 then
-                CurrentRaceData.Checkpoints[k].blip = createCheckpointBlip(CurrentRaceData.Checkpoints[k].coords, k)
+                CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[k].coords, k)
             end
         end
-        CurrentRaceData.Checkpoints[1].blip = createCheckpointBlip(CurrentRaceData.Checkpoints[1].coords,
+        CurrentRaceData.Checkpoints[1].blip = CreateCheckpointBlip(CurrentRaceData.Checkpoints[1].coords,
             #CurrentRaceData.Checkpoints + 1)
     else
         -- First Lap setup
         for k, v in pairs(CurrentRaceData.Checkpoints) do
-            CurrentRaceData.Checkpoints[k].blip = createCheckpointBlip(v.coords, k)
+            CurrentRaceData.Checkpoints[k].blip = CreateCheckpointBlip(v.coords, k)
         end
     end
 end
@@ -678,10 +593,10 @@ local function deleteClosestCheckpoint()
             end
             CreatorData.Checkpoints = newCheckpoints
         else
-            notifyHandler(Lang("slow_down"), 'error')
+            NotifyHandler(Lang("slow_down"), 'error')
         end
     else
-        notifyHandler(Lang("slow_down"), 'error')
+        NotifyHandler(Lang("slow_down"), 'error')
     end
 end
 
@@ -736,7 +651,7 @@ local function saveTrack()
     CreatorData.RaceDistance = raceDistance
     TriggerServerEvent('cw-racingapp:server:saveTrack', CreatorData)
     Lang("slow_down")
-    notifyHandler(Lang("race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
+    NotifyHandler(Lang("race_saved") .. '(' .. CreatorData.RaceName .. ')', 'success')
 
     deleteCreatorCheckpoints()
     cleanupObjects()
@@ -805,14 +720,14 @@ end
 local function redrawBlips()
     for id, CheckpointData in pairs(CreatorData.Checkpoints) do
         RemoveBlip(CheckpointData.blip)
-        CheckpointData.blip = createCheckpointBlip(CheckpointData.coords, id)
+        CheckpointData.blip = CreateCheckpointBlip(CheckpointData.coords, id)
     end
 end
 
 local function addCheckpoint(checkpointId)
     local PlayerPed = PlayerPedId()
     local PlayerPos = GetEntityCoords(PlayerPed)
-    local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
+    local PlayerVeh = GetVehiclePedIsIn(PlayerPed, false)
     local Offset = {
         left = {
             x = (GetOffsetFromEntityInWorldCoords(PlayerVeh, -CreatorData.TireDistance, 0.0, 0.0)).x,
@@ -858,7 +773,7 @@ local function addCheckpoint(checkpointId)
         }
     end
     if #CreatorData.Checkpoints > Config.MaxCheckpoints then
-        notifyHandler(Lang("max_checkpoints") .. Config.MaxCheckpoints, 'error')
+        NotifyHandler(Lang("max_checkpoints") .. Config.MaxCheckpoints, 'error')
     end
     redrawBlips()
 end
@@ -870,7 +785,7 @@ local function moveCheckpoint()
     if Config.OxInput then
         dialog = lib.inputDialog(Lang("edit_checkpoint_header"), {
             {
-                text = "Checkpoint number", -- text you want to be displayed as a place holder
+                label = "Checkpoint number", -- text you want to be displayed as a place holder
                 name = "number",            -- name of the input should be unique otherwise it might override
                 type = "number",            -- type of the input - number will not allow non-number characters in the field so only accepts 0-9
                 isRequired = true,          -- Optional [accepted values: true | false] but will submit the form if no value is inputted
@@ -907,7 +822,7 @@ local function clickDeleteCheckpoint()
     if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
         deleteClosestCheckpoint()
     else
-        notifyHandler(Lang("no_checkpoints_to_delete"), 'error')
+        NotifyHandler(Lang("no_checkpoints_to_delete"), 'error')
     end
 end
 
@@ -915,7 +830,7 @@ local function clickMoveCheckpoint()
     if CreatorData.Checkpoints and next(CreatorData.Checkpoints) then
         moveCheckpoint()
     else
-        notifyHandler(Lang("no_checkpoints_to_edit"), 'error')
+        NotifyHandler(Lang("no_checkpoints_to_edit"), 'error')
     end
 end
 
@@ -923,7 +838,7 @@ local function clickSaveRace()
     if CreatorData.Checkpoints and #CreatorData.Checkpoints >= Config.MinimumCheckpoints then
         saveTrack()
     else
-        notifyHandler(Lang("not_enough_checkpoints") .. '(' .. Config.MinimumCheckpoints .. ')', 'error')
+        NotifyHandler(Lang("not_enough_checkpoints") .. '(' .. Config.MinimumCheckpoints .. ')', 'error')
     end
 end
 
@@ -931,7 +846,7 @@ local function clickIncreaseDistance()
     if CreatorData.TireDistance < Config.MaxTireDistance then
         CreatorData.TireDistance = CreatorData.TireDistance + 1.0
     else
-        notifyHandler(Lang("max_tire_distance") .. Config.MaxTireDistance)
+        NotifyHandler(Lang("max_tire_distance") .. Config.MaxTireDistance)
     end
 end
 
@@ -939,14 +854,14 @@ local function clickDecreaseDistance()
     if CreatorData.TireDistance > Config.MinTireDistance then
         CreatorData.TireDistance = CreatorData.TireDistance - 1.0
     else
-        notifyHandler(Lang("min_tire_distance") .. Config.MinTireDistance)
+        NotifyHandler(Lang("min_tire_distance") .. Config.MinTireDistance)
     end
 end
 
 local function clickExit()
     if not CreatorData.ConfirmDelete then
         CreatorData.ConfirmDelete = true
-        notifyHandler(Lang("editor_confirm"), 'error')
+        NotifyHandler(Lang("editor_confirm"), 'error')
     else
         deleteCreatorCheckpoints()
 
@@ -954,7 +869,7 @@ local function clickExit()
         RaceData.InCreator = false
         CreatorData.RaceName = nil
         CreatorData.Checkpoints = {}
-        notifyHandler(Lang("editor_canceled"), 'error')
+        NotifyHandler(Lang("editor_canceled"), 'error')
         CreatorData.ConfirmDelete = false
     end
 end
@@ -975,7 +890,7 @@ local function startCreatorLoopThread()
     CreateThread(function()
         while RaceData.InCreator do
             local PlayerPed = PlayerPedId()
-            local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
+            local PlayerVeh = GetVehiclePedIsIn(PlayerPed, false)
 
             if PlayerVeh == 0 then
                 local coords = GetEntityCoords(PlayerPedId())
@@ -996,7 +911,7 @@ local function startCreatorLoopThread()
     CreateThread(function()
         while RaceData.InCreator do
             local PlayerPed = PlayerPedId()
-            local PlayerVeh = GetVehiclePedIsIn(PlayerPed)
+            local PlayerVeh = GetVehiclePedIsIn(PlayerPed, false)
             if CreatorObjectLeft and CreatorObjectRight ~= nil then
                 cleanupObjects()
             end
@@ -1294,40 +1209,6 @@ local function markWithDrawTextWaypoint()
     end
 end
 
-local checkpointsPreview = {}
-
-local function hideTrack()
-    if IgnoreRoadsForGps then
-        ClearGpsCustomRoute()
-    else
-        ClearGpsMultiRoute()
-    end
-    for _, blip in pairs(checkpointsPreview) do
-        RemoveBlip(blip)
-    end
-end
-
-local function displayTrack(track)
-    if #checkpointsPreview > 0 then
-        hideTrack()
-    end
-    if IgnoreRoadsForGps then
-        ClearGpsCustomRoute()
-    else
-        ClearGpsMultiRoute()
-    end
-    StartGpsMultiRoute(Config.Gps.color, false, false)
-    for i, checkpoint in pairs(track.Checkpoints) do
-        addPointToGpsRoute(checkpoint.coords.x, checkpoint.coords.y, checkpoint.offset)
-        checkpointsPreview[#checkpointsPreview + 1] = createCheckpointBlip(checkpoint.coords, i)
-        if IgnoreRoadsForGps then
-            SetGpsCustomRouteRender(true, 16, 16)
-        else
-            SetGpsMultiRouteRender(true, 16, 16)
-        end
-    end
-end
-
 local function initRacingHudThread()
     CreateThread(function()
         while not Kicked and CurrentRaceData.RaceName ~= nil do
@@ -1478,7 +1359,7 @@ local function handleActiveRace(raceData, trackCheckpoints, Laps)
         Position = 0
     }
     initRacingHudThread()
-    displayTrack(CurrentRaceData)
+    DisplayTrack(CurrentRaceData)
     DebugLog('Race Was setup:', json.encode(CurrentRaceData))
     startRaceUi()
     markWithDrawTextWaypoint()
@@ -1507,17 +1388,17 @@ RegisterNetEvent('cw-racingapp:client:readyJoinRace', function(raceData)
     if PlayerIsInVehicle then
         class = getVehicleClass(GetVehiclePedIsIn(PlayerPed, false))
     else
-        notifyHandler(Lang('not_in_a_vehicle'), 'error')
+        NotifyHandler(Lang('not_in_a_vehicle'), 'error')
         return
     end
 
-    if myCarClassIsAllowed(raceData.MaxClass, class) then
+    if MyCarClassIsAllowed(raceData.MaxClass, class) then
         raceData.RacerName = CurrentName
         raceData.RacerCrew = CurrentCrew
         raceData.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
         TriggerServerEvent('cw-racingapp:server:joinRace', raceData)
     else
-        notifyHandler(Lang('incorrect_class'), 'error')
+        NotifyHandler(Lang('incorrect_class'), 'error')
     end
 end)
 
@@ -1563,7 +1444,7 @@ RegisterNetEvent('cw-racingapp:client:startRaceEditor', function(raceName, racer
             openCreatorUi()
         end
     else
-        notifyHandler(Lang("already_making_race"), 'error')
+        NotifyHandler(Lang("already_making_race"), 'error')
     end
 end)
 
@@ -1587,7 +1468,7 @@ local function checkElimination()
     if currentPlayerIsLast and lastCompletedLap >= CurrentRaceData.Lap then
         DebugLog("Eliminating racer: " .. getCitizenId())
         TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'elimination')
-        notifyHandler(Lang("eliminated"), 'error')
+        NotifyHandler(Lang("eliminated"), 'error')
     end
 end
 
@@ -1607,10 +1488,10 @@ RegisterNetEvent('cw-racingapp:client:joinRace', function(data, checkpoints, lap
         data.RacerName = racerName
         RaceData.InRace = true
         handleActiveRace(data, checkpoints, laps)
-        notifyHandler(Lang("race_joined"))
+        NotifyHandler(Lang("race_joined"))
         TriggerServerEvent('cw-racingapp:server:updateRaceState', CurrentRaceData.RaceId, false, true)
     else
-        notifyHandler(Lang("already_in_race"), 'error')
+        NotifyHandler(Lang("already_in_race"), 'error')
     end
 end)
 
@@ -1635,7 +1516,7 @@ RegisterNetEvent('cw-racingapp:client:leaveRace', function()
         ClearGpsMultiRoute()
     end
     Countdown = 10
-    hideTrack()
+    HideTrack()
     updateCountdown(-1)
     unGhostPlayer()
     deleteCurrentRaceCheckpoints()
@@ -1644,53 +1525,18 @@ RegisterNetEvent('cw-racingapp:client:leaveRace', function()
 end)
 
 RegisterNetEvent("cw-racingapp:client:DeletetrackConfirmed", function(data)
-    notifyHandler(data.RaceName .. " " .. Lang("has_been_removed"))
+    NotifyHandler(data.RaceName .. " " .. Lang("has_been_removed"))
     TriggerServerEvent("cw-racingapp:server:deleteTrack", data.RaceId)
 end)
 
 RegisterNetEvent("cw-racingapp:client:clearLeaderboardConfirmed", function(data)
-    notifyHandler(data.RaceName .. " " .. Lang("leaderboard_has_been_cleared"))
+    NotifyHandler(data.RaceName .. " " .. Lang("leaderboard_has_been_cleared"))
     TriggerServerEvent("cw-racingapp:server:clearLeaderboard", data.RaceId)
 end)
 
 RegisterNetEvent("cw-racingapp:client:editTrack", function(data)
     TriggerEvent("cw-racingapp:client:startRaceEditor", data.RaceName, data.name, data.TrackId)
 end)
-
-local function findRacerByName()
-    if #MyRacerNames == 1 and CurrentName == nil then
-        CurrentName = MyRacerNames[1].racername
-        CurrentAuth = MyRacerNames[1].auth
-        cwCallback.await('cw-racingapp:server:changeRacerName', CurrentName)
-        return MyRacerNames[1]
-    end
-    if MyRacerNames then
-        for _, user in pairs(MyRacerNames) do
-            if CurrentName == user.racername then return user end
-        end
-    end
-    return false
-end
-
-local function split(source)
-    local str = source:gsub("%s+", "")
-    str = string.gsub(str, "%s+", "")
-    local result, i = {}, 1
-    while true do
-        local a, b = str:find(',')
-        if not a then break end
-        local candidat = str:sub(1, a - 1)
-        if candidat ~= "" then
-            result[i] = candidat
-        end
-        i = i + 1
-        str = str:sub(b + 1)
-    end
-    if str ~= "" then
-        result[i] = str
-    end
-    return result
-end
 
 local function isPositionCheating()
     local ped = PlayerPedId()
@@ -1723,7 +1569,7 @@ local function forceFirstPerson()
 end
 
 RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
-    hideTrack()
+    HideTrack()
     setupBlipsForRace(true)
     updateGpsForRace(true)
     Kicked = false
@@ -1758,7 +1604,7 @@ RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
             PlaySoundFrontend(-1, Config.Sounds.Countdown.go.lib, Config.Sounds.Countdown.go.sound)
             if isPositionCheating() then
                 TriggerServerEvent("cw-racingapp:server:leaveRace", CurrentRaceData, 'positionCheat')
-                notifyHandler(Lang("kicked_line"), 'error')
+                NotifyHandler(Lang("kicked_line"), 'error')
                 FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), true), false)
                 return
             end
@@ -1787,20 +1633,20 @@ RegisterNetEvent('cw-racingapp:client:raceCountdown', function(TotalRacers)
             Countdown = 10
         end
     else
-        notifyHandler(Lang("already_in_race"), 'error')
+        NotifyHandler(Lang("already_in_race"), 'error')
     end
 end)
 
 RegisterNetEvent('cw-racingapp:client:playerFinish', function(RaceId, Place, RacerName)
     if CurrentRaceData.RaceId ~= nil then
         if CurrentRaceData.RaceId == RaceId then
-            notifyHandler(RacerName .. " " .. Lang("racer_finished_place") .. Place, 'primary', 3500)
+            NotifyHandler(RacerName .. " " .. Lang("racer_finished_place") .. Place, 'primary', 3500)
         end
     end
 end)
 
 local function notCloseEnough(x, y)
-    notifyHandler(Lang('not_close_enough_to_join'), 'error')
+    NotifyHandler(Lang('not_close_enough_to_join'), 'error')
     SetNewWaypoint(x, y)
 end
 
@@ -1808,36 +1654,15 @@ RegisterNetEvent('cw-racingapp:client:notCloseEnough', function(x, y)
     notCloseEnough(x, y)
 end)
 
-local function verifyTrackAccess(track, type)
-    if track.Access and track.Access[type] ~= nil then
-        if track.Access[type][1] == nil then
-            print('no values', track.RaceName)
-            return true
-        end                                                -- if list is added but emptied
-        local playerCid = getCitizenId()
-        if track.Creator == playerCid then return true end -- if creator default to true
-        if UseDebug then
-            print('track', track.RaceName, 'has access limitations for', type)
-            print('player cid', playerCid)
-        end
-        for i, citizenId in pairs(track.Access[type]) do
-            DebugLog(i, citizenId)
-            if citizenId == playerCid then return true end -- if one of the players in the list
-        end
-        return false
-    end
-    return true
-end
-
 local function racerNameIsValid(name)
     if #name > Config.MinRacerNameLength then
         if #name < Config.MaxRacerNameLength then
             return true
         else
-            notifyHandler(Lang('name_too_long'), 'error')
+            NotifyHandler(Lang('name_too_long'), 'error')
         end
     else
-        notifyHandler(Lang('name_too_short'), 'error')
+        NotifyHandler(Lang('name_too_short'), 'error')
     end
     return false
 end
@@ -1853,7 +1678,7 @@ local function hasPermission(userType)
     return false
 end
 
-local function hasAuth(tradeType, userType)
+function HasAuth(tradeType, userType)
     DebugLog('current auth', CurrentAuth)
     if CurrentAuth and Config.Permissions[CurrentAuth] and Config.Permissions[CurrentAuth].controlAll then
         DebugLog('User has controlall auth')
@@ -1941,7 +1766,7 @@ local function createQbInput(fobType, purchaseType)
     return dialog
 end
 
-local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
+function AttemptCreateUser(racerName, racerId, fobType, purchaseType)
     if UseDebug then
         print('Racername', racerName)
         print('RacerId', racerId)
@@ -1961,17 +1786,17 @@ local function attemptCreateUser(racerName, racerId, fobType, purchaseType)
         end
 
         DebugLog('Racer names allowed for id ' .. racerId, maxRacerNames)
-        if playerNames == nil or racerNameExists(playerNames, strictSanitize(racerName)) or #playerNames < maxRacerNames then
+        if playerNames == nil or racerNameExists(playerNames, StrictSanitize(racerName)) or #playerNames < maxRacerNames then
             local nameIsNotTaken = cwCallback.await('cw-racingapp:server:nameIsAvailable', racerName, racerId)
 
             if nameIsNotTaken then
                 TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType,
                     CurrentName)
             else
-                notifyHandler(Lang("name_is_used") .. racerName, 'error')
+                NotifyHandler(Lang("name_is_used") .. racerName, 'error')
             end
         else
-            notifyHandler(Lang("to_many_names"), 'error')
+            NotifyHandler(Lang("to_many_names"), 'error')
         end
     end
 end
@@ -1980,7 +1805,7 @@ RegisterNetEvent("cw-racingapp:client:openFobInput", function(data)
     local purchaseType = data.purchaseType
     local fobType = data.fobType
 
-    notifyHandler(Lang("max_uniques") .. " " .. Config.MaxRacerNames)
+    NotifyHandler(Lang("max_uniques") .. " " .. Config.MaxRacerNames)
 
     local dialog
     local racerName
@@ -2000,7 +1825,7 @@ RegisterNetEvent("cw-racingapp:client:openFobInput", function(data)
     end
 
     if dialog ~= nil then
-        attemptCreateUser(racerName, racerId, fobType, purchaseType)
+        AttemptCreateUser(racerName, racerId, fobType, purchaseType)
     else
         TriggerEvent('animations:client:EmoteCommandStart', { "c" })
     end
@@ -2034,7 +1859,7 @@ if Config.Trader.active then
                 purchaseType = trader,
                 fobType = authName,
                 canInteract = function()
-                    return hasAuth(trader, authName)
+                    return HasAuth(trader, authName)
                 end
             }
             options[#options + 1] = option
@@ -2093,7 +1918,7 @@ if Config.Laptop.active then
                 purchaseType = laptop,
                 fobType = authName,
                 canInteract = function()
-                    return hasAuth(laptop, authName)
+                    return HasAuth(laptop, authName)
                 end
             }
             options[#options + 1] = option
@@ -2349,10 +2174,6 @@ local function getBaseDataObject()
         hideMap = Config.HideMapInTablet,
         allAuthorities = Config.Permissions
     }
-    
-    if UseDebug then
-        -- print('^3Tablet Setup Data:^0', json.encode(setup, { indent = true }))
-    end
     return setup
 end
 
@@ -2362,116 +2183,18 @@ end)
 
 RegisterNetEvent("cw-racingapp:client:notifyRacers", function(text)
     if hasGps() then
-        notifyHandler(text)
+        NotifyHandler(text)
     end
-end)
-
-local attachedProp = nil
-
-local function clearProp()
-    if UseDebug then
-        print('REMOVING PROP', attachedProp)
-    end
-    if attachedProp and DoesEntityExist(attachedProp) then
-        DeleteEntity(attachedProp)
-        attachedProp = 0
-    end
-end
-
-local function attachProp()
-    clearProp()
-    local model = 'prop_cs_tablet'
-    local boneNumber = 28422
-    SetCurrentPedWeapon(cache.ped, 0xA2719263, false)
-    local bone = GetPedBoneIndex(GetPlayerPed(-1), boneNumber)
-
-    RequestModel(model)
-    while not HasModelLoaded(model) do
-        Wait(100)
-    end
-    attachedProp = CreateObject(model, 1.0, 1.0, 1.0, 1, 1, 0)
-    local x, y, z = 0.0, -0.03, 0.0
-    local xR, yR, zR = 20.0, -90.0, 0.0
-    AttachEntityToEntity(attachedProp, GetPlayerPed(-1), bone, x, y, z, xR, yR, zR, 0, true, false, true, 2, true)
-end
-
-local function stopAnimation()
-    ClearPedTasks(PlayerPedId())
-    clearProp()
-end
-
-local function handleAnimation()
-    local animDict = 'amb@code_human_in_bus_passenger_idles@female@tablet@idle_a'
-    if not DoesAnimDictExist(animDict) then
-        print('animation dict does not exist')
-        return false
-    end
-    RequestAnimDict(animDict)
-    while (not HasAnimDictLoaded(animDict)) do Wait(10) end
-    TaskPlayAnim(PlayerPedId(), animDict, "idle_a", 5.0, 5.0, -1, 51, 0, false, false, false)
-    attachProp()
-end
-
-local function openUi()
-    DebugLog('opening ui')
-
-    if not UiIsOpen then
-        notifyHandler(Lang("esc"))
-        SetNuiFocus(true, true)
-        SendNUIMessage({ type = 'toggleApp', open = true })
-        UiIsOpen = true
-        StartScreenEffect('MenuMGIn', 1, true)
-        handleAnimation()
-    end
-end
-
-local function openRacingApp()
-    openUi()
-end
-exports('openRacingApp', openRacingApp)
-
-RegisterNetEvent("cw-racingapp:client:openUi", function()
-    openUi()
 end)
 
 RegisterNetEvent("cw-racingapp:client:updateRanking", function(change, newRank)
     CurrentRanking = newRank
     local type = 'success'
     if change < 0 then type = 'error' end
-    notifyHandler(Lang("rank_update") .. " " .. change .. ". " .. Lang("new_rank") .. newRank, type)
+    NotifyHandler(Lang("rank_update") .. " " .. change .. ". " .. Lang("new_rank") .. newRank, type)
 end)
 
--- UI CALLBACKS
-
-local function sortTracksByName(tracks)
-    local temp = tracks
-    table.sort(temp, function(a, b)
-        return a.RaceName < b.RaceName
-    end)
-    return temp
-end
-
-local function sortRacesByName(tracks)
-    local temp = tracks
-    table.sort(temp, function(a, b)
-        return a.RaceData.RaceName > b.RaceData.RaceName
-    end)
-    return temp
-end
-
-local function closeUi()
-    UiIsOpen = false
-    SetNuiFocus(false, false)
-    StopScreenEffect('MenuMGIn')
-    stopAnimation()
-end
-
-RegisterNUICallback('UiCloseUi', function(_, cb)
-    closeUi()
-    cb(true)
-end)
-
-local function getActiveRacerName()
+function GetActiveRacerName()
     for _, user in pairs(MyRacerNames) do
         if user.active == 1 then return user end
     end
@@ -2481,7 +2204,7 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
     Wait(2000)
     local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
     MyRacerNames = playerNames
-    local currentRacer = getActiveRacerName()
+    local currentRacer = GetActiveRacerName()
     DebugLog('Current racer after change', json.encode(currentRacer, { indent = true }))
     DebugLog('All player names', json.encode(MyRacerNames, { indent = true }))
 
@@ -2496,933 +2219,31 @@ RegisterNetEvent("cw-racingapp:client:updateRacerNames", function()
         CurrentCrew = currentRacer.crew
     end
 
-    notifyHandler(Lang("user_list_updated"))
+    NotifyHandler(Lang("user_list_updated"))
     DebugLog('current user', json.encode(currentRacer, { indent = true }))
     if CurrentName and currentRacer and currentRacer.revoked == 1 then
-        notifyHandler(Lang("revoked_access"), 'error')
+        NotifyHandler(Lang("revoked_access"), 'error')
         Wait(2000)
         if UiIsOpen then
             SendNUIMessage({ type = 'toggleApp', open = false })
-            closeUi()
+            CloseUi()
         end
     elseif CurrentName and not currentRacer then
         DebugLog('Race user was deleted')
-        notifyHandler(Lang('removed_user'), 'error')
+        NotifyHandler(Lang('removed_user'), 'error')
         Wait(2000)
         if UiIsOpen then
             SendNUIMessage({ type = 'toggleApp', open = false })
-            closeUi()
+            CloseUi()
         end
     else
         SendNUIMessage({ type = 'updateBaseData' })
     end
 end)
 
-local function leaveCurrentRace()
-    if CurrentRaceData and CurrentRaceData.RaceId then
-        TriggerServerEvent('cw-racingapp:server:leaveRace', CurrentRaceData, 'leaving')
-        return true
-    end
-    return false
-end exports('leaveCurrentRace', leaveCurrentRace)
-
 RegisterNetEvent('cw-racingapp:client:leaveCurrentRace', function()
-    leaveCurrentRace()
+    LeaveCurrentRace()
 end)
-
-RegisterNUICallback('UiLeaveCurrentRace', function(raceid, cb)
-    DebugLog('Leaving race with race id', raceid)
-    cb(leaveCurrentRace())
-end)
-
-RegisterNUICallback('UiStartCurrentRace', function(raceid, cb)
-    DebugLog('starting race with race id', raceid)
-    TriggerServerEvent('cw-racingapp:server:startRace', raceid)
-    cb(true)
-end)
-
-RegisterNUICallback('UiChangeRacerName', function(racername, cb)
-    local result = cwCallback.await('cw-racingapp:server:changeRacerName', racername)
-    if result then
-        cb(true)
-    else
-        cb(false)
-    end
-end)
-
-RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
-    local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
-
-    MyRacerNames = playerNames
-    DebugLog('player names', #playerNames, json.encode(playerNames))
-    local currentRacer = findRacerByName()
-    if currentRacer and currentRacer.revoked == 1 then
-        notifyHandler(Lang("revoked_access"), 'error')
-    end
-    if currentRacer then
-        if currentRacer.ranking then
-            CurrentRanking = currentRacer.ranking
-            DebugLog('Ranking is', CurrentRanking)
-        end
-        if currentRacer.crypto then
-            CurrentCrypto = currentRacer.crypto
-            DebugLog('Crypto is', CurrentCrypto)
-        end
-    end
-    cb(playerNames)
-end)
-
-RegisterNUICallback('UiPurchaseCrypto', function(data, cb)
-    DebugLog('purchasing crypto', data.cryptoAmount)
-    local result = cwCallback.await('cw-racingapp:server:purchaseCrypto', CurrentName, data.cryptoAmount)
-    DebugLog('purchasing crypto result', result)
-    Wait(1000)
-    cb(result)
-end)
-
-RegisterNUICallback('UiSellCrypto', function(data, cb)
-    DebugLog('selling crypto', data.cryptoAmount)
-    local result = cwCallback.await('cw-racingapp:server:sellCrypto', CurrentName, data.cryptoAmount)
-    DebugLog('selling crypto result', result)
-    Wait(1000)
-    cb(result)
-end)
-
-RegisterNUICallback('UiTransferCrypto', function(data, cb)
-    DebugLog('selling crypto', data.cryptoAmount, 'to', data.recipient)
-    local result = cwCallback.await('cw-racingapp:server:transferCrypto', CurrentName, data.cryptoAmount, data.recipient)
-    DebugLog('selling crypto result', result)
-    Wait(1000)
-    cb(result)
-end)
-
-RegisterNUICallback('UiChangeAuth', function(data, cb)
-    DebugLog('changing auth', json.encode(data, {indent=true}))
-    if not Config.Permissions[data.auth] then debugPrint('User type does not exist') return end
-    local result = cwCallback.await('cw-racingapp:server:setUserAuth', data)
-    cb(result)
-end)
-
-RegisterNUICallback('UiRevokeRacer', function(data, cb)
-    DebugLog('revoking racename', data.racername, data.status)
-    local newStatus = 0
-    if data.status == 0 then newStatus = 1 end
-    TriggerServerEvent("cw-racingapp:server:setRevokedRacenameStatus", data.racername, newStatus)
-    cb(true)
-end)
-
-RegisterNUICallback('UiRemoveRecord', function(data, cb)
-    DebugLog('permanently removing record', json.encode(data, { indent = true }))
-    TriggerServerEvent("cw-racingapp:server:removeRecord", data.trackId, data.record)
-    cb(true)
-end)
-
-RegisterNUICallback('UiRemoveRacer', function(data, cb)
-    DebugLog('permanently removing racename', data.racername)
-    TriggerServerEvent("cw-racingapp:server:removeRacerName", data.racername)
-    Wait(500)
-    cb(true)
-end)
-
-RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
-    local racerId = getCitizenId()
-    local playerNames = cwCallback.await('cw-racingapp:server:getRacersCreatedByUser', racerId, CurrentAuth)
-
-    DebugLog('player names', #playerNames, json.encode(playerNames))
-    cb(playerNames)
-end)
-
-RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
-    local options = {}
-
-    local currency
-    if Config.Laptop.moneyType == 'cash' or Config.Laptop.moneyType == 'money' or Config.Laptop.moneyType == 'bank' then
-        currency = '$'
-    else
-        currency = Config.Payments.cryptoType
-    end
-
-    for authName, _ in pairs(Config.Permissions) do
-        if hasAuth(Config.Laptop, authName) then
-            local option = {
-                label = authName .. ' user (' .. currency .. Config.Laptop.racingUserCosts[authName] .. ')',
-                purchaseType = Config.Laptop,
-                fobType = authName,
-            }
-            options[#options + 1] = option
-        end
-    end
-    cb(options)
-end)
-
-RegisterNuiCallback('UiGetPermissionedUserTypeFirstUser', function(_, cb)
-    local data = {}
-    if IsFirstUser then
-        data.fobType = 'god'
-    else
-        data.fobType = Config.BasePermission
-    end
-    data.purchaseType = Config.Laptop
-    cb(data)
-end)
-
-RegisterNuiCallback('UiGetBounties', function(_, cb)
-    local bounties = cwCallback.await('cw-racingapp:server:getBounties')
-    cb(bounties)
-end)
-
-RegisterNuiCallback('UIRerollBounties', function(_, cb)
-    TriggerServerEvent('cw-racingapp:server:rerollBounties')
-    cb(true)
-end)
-
-RegisterNuiCallback('UiToggleHosting', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:toggleHosting')
-    cb(result)
-end)
-
-RegisterNuiCallback('UiToggleAutoHost', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:toggleAutoHost')
-    cb(result)
-end)
-
-RegisterNuiCallback('UINewAutoHost', function(_, cb)
-    TriggerServerEvent('cw-racingapp:server:newAutoHost')
-    cb(true)
-end)
-
-RegisterNuiCallback('UiGetAdminData', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:getAdminData')
-    cb(result)
-end)
-
-local function getRaceByRaceId(Races, raceId)
-    for _, race in pairs(Races) do
-        if race.RaceId == raceId then
-            return race
-        end
-    end
-end
-
--- Join a race with raceId. Returns false if issue or true if worked
-local function joinRace(raceId)
-    DebugLog('attempt joining race with race id', raceId)
-    if CurrentRaceData.RaceId ~= nil then
-        notifyHandler(Lang("already_in_race"), 'error')
-        return false
-    end
-    local PlayerPed = PlayerPedId()
-    local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
-
-    local class
-    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
-    if PlayerIsInVehicle and isDriver(vehicle) then
-        class = getVehicleClass(vehicle)
-    else
-        notifyHandler(Lang('not_in_a_vehicle'), 'error')
-        return false
-    end
-
-    local result = cwCallback.await('cw-racingapp:server:getRaces')
-    local currentRace = getRaceByRaceId(result, raceId)
-
-    if currentRace == nil then
-        notifyHandler(Lang("race_no_exist"), 'error')
-    else
-        if myCarClassIsAllowed(currentRace.MaxClass, class) then
-            currentRace.RacerName = CurrentName
-            currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
-            DebugLog('^2 joining race with race id', raceId)
-            TriggerServerEvent('cw-racingapp:server:joinRace', currentRace)
-            return true
-        else
-            notifyHandler(Lang('incorrect_class'), 'error')
-        end
-    end
-    return false
-end
-exports('joinRace', joinRace)
-
-RegisterNetEvent("cw-racingapp:client:joinRaceByRaceId", function(raceId)
-    joinRace(raceId)
-end)
-
-RegisterNUICallback('UiJoinRace', function(raceId, cb)
-    cb(joinRace(raceId))
-end)
-
-RegisterNUICallback('UiSetWaypoint', function(track, cb)
-    if track and track.Checkpoints then
-        SetNewWaypoint(
-            track.Checkpoints[1].coords.x --[[ number ]],
-            track.Checkpoints[1].coords.y --[[ number ]]
-        )
-    end
-    cb(true)
-end)
-
-RegisterNUICallback('UiClearLeaderboard', function(track, cb)
-    DebugLog('clearing leaderboard for ', track.RaceName)
-    notifyHandler(track.RaceName .. Lang("leaderboard_has_been_cleared"))
-    TriggerServerEvent("cw-racingapp:server:clearLeaderboard", track.TrackId)
-    cb(true)
-end)
-
-RegisterNUICallback('UiDeleteTrack', function(track, cb)
-    DebugLog('deleting track', track.RaceName)
-    notifyHandler(track.RaceName .. Lang("has_been_removed"))
-    TriggerServerEvent("cw-racingapp:server:deleteTrack", track.TrackId)
-    cb(true)
-end)
-
-RegisterNUICallback('UiEditTrack', function(track, cb)
-    DebugLog('opening track editor for', track.RaceName)
-    TriggerEvent("cw-racingapp:client:startRaceEditor", track.RaceName, CurrentName, track.TrackId)
-    cb(true)
-end)
-
-RegisterNUICallback('UiGetAccess', function(track, cb)
-    DebugLog('gettingAccessFor', track.RaceName)
-
-    local result = cwCallback.await('cw-racingapp:server:getAccess', track.TrackId)
-    if not result then
-        DebugLog('Access table was empty')
-        result = { race = '' }
-    else
-        local raceText = ''
-        if result.race then
-            for i, v in pairs(result.race) do
-                if i == 1 then
-                    raceText = v
-                else
-                    raceText = raceText .. ', ' .. v
-                end
-            end
-            result = { race = raceText }
-        else
-            result.race = ''
-        end
-    end
-    cb(result)
-end)
-
-RegisterNUICallback('UiEditAccess', function(track, cb)
-    DebugLog('editing access for', track.RaceName)
-    local newAccess = {
-        race = split(track.NewAccess.race)
-    }
-    TriggerServerEvent("cw-racingapp:server:setAccess", track.TrackId, newAccess)
-    cb(true)
-end)
-
-RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
-    local racers = 0
-    local maxClass = 'open'
-    if CurrentRaceData.RaceId then
-        for _ in pairs(CurrentRaceData.Racers) do
-            racers = racers + 1
-        end
-        if (CurrentRaceData.MaxClass ~= nil and CurrentRaceData.MaxClass ~= "") then
-            maxClass = CurrentRaceData.MaxClass
-        end
-        local canStart = false
-        if CurrentRaceData.SetupCitizenId then
-            canStart = (CurrentRaceData.SetupCitizenId == getCitizenId()) and not CurrentRaceData.Started
-        end
-        local data = {
-            trackName = CurrentRaceData.RaceName,
-            racers = racers,
-            laps = CurrentRaceData.TotalLaps,
-            class = tostring(maxClass),
-            canStart = canStart,
-            raceId = CurrentRaceData.RaceId,
-            ghosting = CurrentRaceData.Ghosting,
-            ranked = CurrentRaceData.Ranked,
-            reversed = CurrentRaceData.Reversed,
-            hostName = CurrentRaceData.SetupRacerName
-        }
-        DebugLog('Current race', json.encode(data, { indent = true }))
-        cb(data)
-    else
-        cb({})
-    end
-end)
-
-RegisterNUICallback('UiGetSettings', function(_, cb)
-    cb({
-        IgnoreRoadsForGps = IgnoreRoadsForGps,
-        ShowGpsRoute = ShowGpsRoute,
-        UseUglyWaypoint = UseUglyWaypoint,
-        CheckDistance =
-            CheckDistance,
-        UseDrawTextWaypoint = UseDrawTextWaypoint
-    })
-end)
-
-local function getAvailableTracks()
-    local result = cwCallback.await('cw-racingapp:server:getTracks')
-    local tracks = {}
-    for _, track in pairs(result) do
-        if verifyTrackAccess(track, 'race') then
-            tracks[#tracks + 1] = track
-        end
-    end
-    return sortTracksByName(tracks)
-end
-exports('getAvailableTracks', getAvailableTracks)
-
-RegisterNUICallback('UiGetAvailableTracks', function(data, cb)
-    cb(getAvailableTracks())
-end)
-
-local function getAvailableRaces()
-    local result = cwCallback.await('cw-racingapp:server:getAvailableRaces')
-    local availableRaces = {}
-    if #result > 0 then
-        DebugLog('Fetching available races:', json.encode(result))
-        for _, race in pairs(result) do
-            DebugLog('Race:', json.encode(race))
-            local racers = 0
-            local PlayerPed = PlayerPedId()
-            race.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
-            for _ in pairs(race.RaceData.Racers) do
-                racers = racers + 1
-            end
-
-            race.RacerName = CurrentName
-
-            local maxClass = 'open'
-            if (race.RaceData.MaxClass ~= nil and race.RaceData.MaxClass ~= "") then
-                maxClass = race.RaceData.MaxClass
-            end
-            race.maxClass = maxClass
-            race.racers = racers
-            race.disabled = CurrentRaceData.RaceId
-            race.laps = race.Laps
-            availableRaces[#availableRaces + 1] = race
-        end
-    end
-    return sortRacesByName(availableRaces)
-end
-exports('getAvailableRaces', getAvailableRaces)
-
-RegisterNUICallback('UiGetListedRaces', function(_, cb)
-    cb(getAvailableRaces())
-end)
-
-local function stringKeysToArray(tbl)
-    local result = {}
-    for _, value in pairs(tbl) do
-        table.insert(result, value)
-    end
-    return result
-end
-
-RegisterNUICallback('UiGetRaces', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:getTracks')
-    cb(sortTracksByName(stringKeysToArray(result)))
-end)
-
-RegisterNUICallback('UiGetMyTracks', function(data, cb)
-    local result = cwCallback.await('cw-racingapp:server:getTracks')
-    cb(sortRacesByName(result))
-end)
-
-RegisterNUICallback('UiGetRacingResults', function(_, cb)
-    local result = cwCallback.await('cw-racingapp:server:getRaceResults')
-    cb(result)
-end)
-
--- Setup race. See Racingapp readme for info on what setupData needs to include
-local function attemptSetupRace(setupData)
-    if not setupData or setupData.track == "none" then
-        DebugLog('No setup data or missing track')
-        return false
-    end
-    DebugLog('setup data', json.encode(setupData))
-    local PlayerPed = PlayerPedId()
-    local PlayerIsInVehicle = IsPedInAnyVehicle(PlayerPed, false)
-    local vehicle = GetVehiclePedIsIn(PlayerPed, false)
-
-    if PlayerIsInVehicle and isDriver(vehicle) then
-        local class = getVehicleClass(GetVehiclePedIsIn(PlayerPed, false))
-        if myCarClassIsAllowed(setupData.maxClass, class) then
-            local data = {
-                trackId = setupData.trackId,
-                laps = tonumber(setupData.laps),
-                hostName = CurrentName,
-                maxClass = setupData.maxClass,
-                ghostingEnabled = setupData.ghostingOn,
-                ghostingTime = tonumber(setupData.ghostingTime),
-                buyIn = tonumber(setupData.buyIn),
-                ranked = setupData.ranked,
-                reversed = setupData.reversed,
-                participationMoney = setupData.participationMoney,
-                participationCurrency = setupData.participationCurrency,
-                firstPerson = setupData.firstPerson,
-                silent = setupData.silent,
-                hidden = setupData.hidden
-            }
-            local res = cwCallback.await('cw-racingapp:server:setupRace', data)
-            return res
-        else
-            notifyHandler(Lang('incorrect_class'), 'error')
-            return false
-        end
-    else
-        notifyHandler(Lang('not_in_a_vehicle'), 'error')
-        return false
-    end
-end
-exports('attemptSetupRace', attemptSetupRace)
-
-RegisterNUICallback('UiSetupRace', function(setupData, cb)
-    cb(attemptSetupRace(setupData))
-end)
-
-RegisterNUICallback('UiQuickSetupBounty', function(bounty, cb)
-    local setupData = {}
-    for field, value in pairs(Config.QuickSetupDefaults) do
-        setupData[field] = value
-    end
-    setupData.trackId = bounty.trackId
-    setupData.maxClass = bounty.maxClass
-    setupData.reversed = bounty.reversed
-
-    if bounty.sprint then
-        setupData.laps = 0
-    end
-
-    cb(attemptSetupRace(setupData))
-end)
-
-RegisterNUICallback('UiQuickHost', function(track, cb)
-    local setupData = {}
-    for field, value in pairs(Config.QuickSetupDefaults) do
-        setupData[field] = value
-    end
-    setupData.trackId = track.TrackId
-    if track.Metadata then
-        if track.Metadata.raceType == 'sprint' then
-            setupData.laps = 0
-        end
-    end
-
-    if track.sprint then
-        setupData.laps = 0
-    end
-
-    cb(attemptSetupRace(setupData))
-end)
-
-local function verifyCheckpoints(checkpoints)
-    for _, data in pairs(checkpoints) do
-        local coordsExist = data.coords.x and data.coords.y and data.coords.z
-        local offsetExists = data.offset.left.x and data.offset.left.y and data.offset.left.z and data.offset.right.x and
-            data.offset.right.y and data.offset.right.z
-        if coordsExist and offsetExists then return true end
-    end
-    return false
-end
-
-RegisterNUICallback('UiCreateTrack', function(createData, cb)
-    if not createData.name then return end
-    DebugLog('create data', json.encode(createData))
-    if not createData or createData.name == "" then
-        return
-    end
-
-    local checkpoints = createData.checkpoints
-    local decodedCheckpoints = json.decode(checkpoints)
-    if checkpoints ~= nil then
-        if type(decodedCheckpoints) == 'table' then
-            if not verifyCheckpoints(decodedCheckpoints) then
-                notifyHandler(Lang("corrupt_data"))
-                return
-            end
-        else
-            notifyHandler(Lang("cant_decode"))
-            return
-        end
-    end
-
-    local citizenId = getCitizenId()
-    local tracks = cwCallback.await('cw-racingapp:server:getAmountOfTracks', citizenId)
-
-    local maxCharacterTracks = Config.MaxCharacterTracks
-    if Config.CustomAmountsOfTracks[citizenId] then
-        maxCharacterTracks = Config.CustomAmountsOfTracks[citizenId]
-    end
-
-    DebugLog('Max allowed for you:', maxCharacterTracks, "You have this many tracks:", tracks)
-
-    if Config.LimitTracks and tracks >= maxCharacterTracks then
-        notifyHandler(Lang("max_tracks") .. maxCharacterTracks)
-        return
-    else
-        if not #createData.name then
-            notifyHandler(Lang("no_name_track"), 'error')
-            cb(false)
-            return
-        end
-
-        if #createData.name < Config.MinTrackNameLength then
-            notifyHandler(Lang("name_too_short"), 'error')
-            cb(false)
-            return
-        end
-
-        if #createData.name > Config.MaxTrackNameLength then
-            notifyHandler(Lang("name_too_long"), 'error')
-            cb(false)
-            return
-        end
-
-        local result = cwCallback.await('cw-racingapp:server:isAuthorizedToCreateRaces', createData.name, CurrentName)
-
-        if not result.permissioned then
-            notifyHandler(Lang("not_auth"), 'error')
-            cb(false)
-        end
-        if not result.nameAvailable then
-            notifyHandler(Lang("race_name_exists"), 'error')
-            cb(false)
-        end
-
-        TriggerServerEvent('cw-racingapp:server:createTrack', createData.name, CurrentName, decodedCheckpoints)
-        cb(true)
-    end
-end)
-RegisterNUICallback('UiSetCurated', function(data, cb)
-    DebugLog('Setting curation status for', data.trackId, data.curated)
-    local result = cwCallback.await('cw-racingapp:server:curateTrack', data.trackId, data.curated)
-
-    DebugLog('Success: ', result)
-    cb(result)
-end)
-
--- Crew stuff
-RegisterNUICallback('UiJoinCrew', function(data, cb)
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:joinCrew', CurrentName, citizenId, data.crewName)
-
-    DebugLog('Success: ', result)
-    if result then
-        CurrentCrew = result
-        TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentCrew)
-    end
-    cb(result)
-end)
-
-RegisterNUICallback('UiLeaveCrew', function(data, cb)
-    DebugLog('Leaving', data.crewName)
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:leaveCrew', CurrentName, citizenId, data.crewName)
-
-    DebugLog('Success: ', result)
-    if result then
-        CurrentCrew = nil
-        TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
-    end
-    cb(result)
-end)
-
-RegisterNUICallback('UiDisbandCrew', function(data, cb)
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:disbandCrew', citizenId, data.crewName)
-
-    DebugLog('Success: ', result)
-    if result then
-        CurrentCrew = nil
-        TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
-    end
-    cb(result)
-end)
-
-RegisterNUICallback('UiCreateCrew', function(data, cb)
-    local sanitizedName = strictSanitize(data.crewName)
-    if #sanitizedName == 0 then
-        notifyHandler(Lang("name_too_short"), 'error')
-        cb(false)
-        return
-    end
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:createCrew', CurrentName, citizenId, sanitizedName)
-
-    DebugLog('Success: ', result)
-    if result then
-        CurrentCrew = sanitizedName
-        TriggerServerEvent('cw-racingapp:server:changeCrew', sanitizedName)
-    end
-    cb(result)
-end)
-
-RegisterNUICallback('UiCreateUser', function(data, cb)
-    if data.racerName and data.selectedAuth then
-        attemptCreateUser(data.racerName, data.racerId, data.selectedAuth.fobType, data.selectedAuth.purchaseType)
-    else
-        notifyHandler(Lang("bad_input"), 'error')
-    end
-    cb(true)
-end)
-
-RegisterNUICallback('UiSendInvite', function(data, cb)
-    if data.citizenId.length == 0 then
-        notifyHandler(Lang("bad_input"), 'error')
-        cb(false)
-        return
-    end
-    local myServerID = GetPlayerServerId(PlayerId())
-
-    local result = cwCallback.await('cw-racingapp:server:sendInvite', myServerID, data.citizenId, CurrentCrew)
-
-    DebugLog('Success: ', result)
-    cb(result)
-end)
-RegisterNUICallback('UiSendInviteClosest', function(data, cb)
-    local closestP, distance = getClosestPlayer()
-    if closestP == nil or distance > 5 then
-        notifyHandler(Lang("prox_error"), 'error')
-        cb(false)
-        return
-    end
-
-    local closestServerID = GetPlayerServerId(closestP)
-    local myServerID = GetPlayerServerId(PlayerId())
-
-    local result = cwCallback.await('cw-racingapp:server:sendInviteClosest', myServerID, closestServerID, CurrentCrew)
-    DebugLog('Success: ', result)
-    cb(result)
-end)
-
-RegisterNUICallback('UiAcceptInvite', function(data, cb)
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:acceptInvite', CurrentName, citizenId)
-
-    DebugLog('Success: ', result)
-    if result then
-        CurrentCrew = data.crewName
-        TriggerServerEvent('cw-racingapp:server:changeCrew', data.crewName)
-    end
-    cb(result)
-end)
-
-RegisterNUICallback('UiDenyInvite', function(data, cb)
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:denyInvite', citizenId)
-    DebugLog('Success: ', result)
-    cb(result)
-end)
-
-RegisterNUICallback('UiGetAllCrews', function(data, cb)
-    local result = cwCallback.await('cw-racingapp:server:getAllCrews')
-    DebugLog('All crews: ', json.encode(result))
-    cb(result)
-end)
-
-RegisterNUICallback('UiGetAllRacers', function(data, cb)
-    local result = cwCallback.await('cw-racingapp:server:getAllRacers')
-    DebugLog('All racers: ', json.encode(result))
-    cb(result)
-end)
-
-RegisterNUICallback('UiConfirmSettings', function(data, cb)
-    DebugLog('Settings data for track ' .. data.TrackId, json.encode(data.Metadata, { indent = true }))
-    local result = cwCallback.await('cw-racingapp:server:updateTrackMetadata', data.TrackId, data.Metadata)
-    cb(result)
-end)
-
-RegisterNUICallback('UiGetCrewData', function(data, cb)
-    local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentCrew)
-
-    DebugLog('crew data: ', json.encode(result))
-    cb(result)
-end)
-
-RegisterNUICallback('UiCancelRace', function(trackId, cb)
-    DebugLog('Cancelling', trackId)
-    local result = cwCallback.await('cw-racingapp:server:cancelRace', trackId)
-    Wait(1000)
-    CurrentRaceData.RaceId = nil
-    cb(result)
-end)
-
-RegisterNUICallback('UiShowTrack', function(trackId, cb)
-    DebugLog('displaying track', trackId)
-    local result = cwCallback.await('cw-racingapp:server:getTrackData', trackId)
-    if not result then notifyHandler(Lang("no_track_found")..tostring(trackId)) return end
-
-
-    displayTrack(result)
-    SetTimeout(20 * 1000, function()
-        FinishedUITimeout = false
-        hideTrack()
-    end)
-    cb(true)
-    Wait(500)
-    notifyHandler(Lang("display_tracks"))
-end)
-
-local function toggleShowRoute(boolean)
-    if boolean == nil then
-        ShowGpsRoute = not ShowGpsRoute
-    else
-        ShowGpsRoute = boolean
-    end
-    if ShowGpsRoute then
-        notifyHandler(Lang("toggled_gps_route_on"), 'success')
-    else
-        notifyHandler(Lang("toggled_gps_route_off"), 'error')
-    end
-end
-
-RegisterCommand('showroute', function()
-    toggleShowRoute()
-end)
-
-local function toggleIgnoreRoadsForGps(boolean)
-    if boolean == nil then
-        IgnoreRoadsForGps = not IgnoreRoadsForGps
-    else
-        IgnoreRoadsForGps = boolean
-    end
-    if IgnoreRoadsForGps then
-        notifyHandler(Lang("gps_straight_on"), 'error')
-    else
-        notifyHandler(Lang("gps_straight_off"), 'success')
-    end
-end
-
-RegisterCommand('ignoreroads', function()
-    toggleIgnoreRoadsForGps()
-end)
-
-local function toggleUglyWaypoint(boolean)
-    if boolean == nil then
-        UseUglyWaypoint = not UseUglyWaypoint
-    else
-        UseUglyWaypoint = boolean
-    end
-    if UseUglyWaypoint then
-        notifyHandler(Lang("basic_wps_on"), 'success')
-    else
-        notifyHandler(Lang("basic_wps_off"), 'error')
-    end
-end
-
-local function toggleDrawTextWaypoint(boolean)
-    if boolean == nil then
-        UseDrawTextWaypoint = not UseDrawTextWaypoint
-    else
-        UseDrawTextWaypoint = boolean
-    end
-    if UseDrawTextWaypoint then
-        notifyHandler(Lang("draw_text_wps_on"), 'success')
-    else
-        notifyHandler(Lang("draw_text_wps_off"), 'error')
-    end
-end
-
-RegisterCommand('basicwaypoint', function()
-    toggleUglyWaypoint()
-end)
-
-RegisterNUICallback('UiUpdateSettings', function(data, cb)
-    if data.setting == 'IgnoreRoadsForGps' then
-        toggleIgnoreRoadsForGps(data.value)
-    elseif data.setting == 'ShowGpsRoute' then
-        toggleShowRoute(data.value)
-    elseif data.setting == 'UseDrawTextWaypoint' then
-        toggleDrawTextWaypoint(data.value)
-    elseif data.setting == 'UseUglyWaypoint' then
-        toggleUglyWaypoint(data.value)
-    elseif data.setting == 'CheckDistance' then
-        CheckDistance = data.value
-        if CheckDistance then
-            notifyHandler(Lang("distance_on"), 'success')
-        else
-            notifyHandler(Lang("distance_off"), 'error')
-        end
-    end
-end)
-
-local function getCurrentRankingFromRacer(racerNames)
-    for _, racer in pairs(racerNames) do
-        if racer.racername == CurrentName then
-            return racer.ranking
-        end
-    end
-end
-
-local function getCurrentCryptoFromRacer(racerNames)
-    for _, racer in pairs(racerNames) do
-        if racer.racername == CurrentName then
-            return racer.crypto
-        end
-    end
-end
-
-function initialSetup()
-    Wait(1000)
-    CharacterHasLoaded = true
-    IsFirstUser = cwCallback.await('cw-racingapp:server:isFirstUser')
-
-    LocalPlayer.state:set('inRace', false, true)
-    LocalPlayer.state:set('raceId', nil, true)
-    local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
-    MyRacerNames = playerNames
-    DebugLog('player names', json.encode(playerNames))
-
-    local racerData = getActiveRacerName()
-    if not racerData then return end
-
-    local racerName = racerData.racername
-    local racerAuth = racerData.auth
-    local racerCrew = racerData.crew
-
-    if racerName then
-        CurrentName = racerName
-        CurrentAuth = racerAuth
-        CurrentRanking = getCurrentRankingFromRacer(playerNames)
-        CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
-        if UseDebug then
-            print('^3Racer name in metadata: ^0', racerName)
-            print('^3Racer auth in metadata: ^0', racerAuth)
-            print('^3Ranking^0', CurrentRanking)
-            print('^3Crypto^0', CurrentCrypto)
-        end
-    else
-        if getSizeOfTable(playerNames) == 1 then
-            local result = cwCallback.await('cw-racingapp:server:changeRacerName', playerNames[1].racername)
-            if result and result.name then
-                DebugLog('Only one racername available. Setting to ', result.name, result.auth)
-                CurrentName = result.name
-                CurrentAuth = result.auth
-                CurrentRanking = getCurrentRankingFromRacer(playerNames)
-                CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
-            end
-        end
-    end
-    if racerCrew then
-        DebugLog('Has a crew set in metadata', racerCrew)
-        CurrentCrew = racerCrew
-        local crewExists = cwCallback.await('cw-racingapp:server:crewStillExists', racerCrew)
-        if crewExists then
-            DebugLog('crew still exists', crewExists)
-        else
-            DebugLog('Crew does not exist anymore', CurrentCrew)
-            TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentName, nil)
-            CurrentCrew = nil
-        end
-    end
-    SendNUIMessage({
-        type = "updateBaseData",
-    })
-    if UseDebug then
-        notifyHandler('Racing App setup is done!', 'success')
-    end
-end
 
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end

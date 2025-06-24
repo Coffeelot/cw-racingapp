@@ -182,7 +182,7 @@ local function denyInvite(invitedCitizenId)
     return true
 end
 
-function handleCrewEloUpdates(crewRes)
+function HandleCrewEloUpdates(crewRes)
     for i, crew in pairs(crewRes) do
         if useDebug then print('Updating ELO for crew', crew.crewName, 'with', crew.totalChange) end
         updateRanking(crew.crewName, crew.totalChange)
@@ -196,7 +196,7 @@ function handleCrewEloUpdates(crewRes)
     end
 end
 
-function getCrewRanking(crewName)
+function GetCrewRanking(crewName)
     local currentCrew = RacingCrews[crewName]
     if currentCrew then
         if useDebug then print('crew existed with ranking', currentCrew.rank) end

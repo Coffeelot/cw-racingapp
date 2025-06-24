@@ -1,5 +1,5 @@
 Config = Config or {}
-Config.Debug = false
+Config.Debug = GetConvarInt('racingapp_debug', 0) == 1
 Config.EnableCommands = false
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
@@ -12,7 +12,7 @@ Config.UseResetTimer = true
 Config.RaceResetTimer = 300000
 Config.DoOffsetGps = true               -- Set to true if you want the gps to slighlty offset the point (helps with route)
 
-Config.FirstBountiesGenerateStartTime = 5 * 1000 -- This is the time until the script creates bounties. Increase if you have problem with bounties being problematic.
+Config.FirstBountiesGenerateStartTime = 5 * 1000
 
 Config.Inventory = 'ox'                 -- set to 'ox' if you want ox inventory support. Only 'ox' or 'qb' works.
 Config.UseNameValidation = true         -- set to true if you use the name validation - HAVING THIS ON MEANS UNIQUE RACERNAMES
@@ -20,7 +20,7 @@ Config.MaxRacerNames = 2                -- Maximum allowed amount of unique name
 Config.MaxCheckpoints = 60              -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
 Config.AllowCreateFromShare = true      -- toggle this to allow using the share track creation
 Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
-Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
+Config.TimeOutTimerInMinutes = 1        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
 Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
@@ -57,7 +57,7 @@ Config.EloPunishments = {                                                       
     cheeseing = -6                                                                    -- if player tries to cheese
 }
 
-Config.PrimaryUiColor = '#f07800' -- Primary color in UI, default is orange
+Config.PrimaryUiColor = '#01bcd9' -- Primary color in UI, default is orange
 
 -- GPS stuff
 Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
@@ -109,7 +109,7 @@ Config.Permissions = {
         create = false,             -- create races
         control = false,            -- control users
         controlAll = false,         -- control all users
-        createCrew = false,         -- create crews
+        createCrew = true,         -- create crews
         startRanked = false,        -- can start ranked races
         startElimination = false,   -- can start elimination races
         startReversed = true,       -- can start races with reversed track (It makes NO sense that this is even needed as an auth, but it was paid for so here it is. Leave it as true)
@@ -129,7 +129,7 @@ Config.Permissions = {
         create = true,
         control = false,
         controlAll = false,
-        createCrew = false,
+        createCrew = true,
         startRanked = false,
         startElimination = false,
         startReversed = true,
@@ -260,14 +260,14 @@ Config.Options = {
         { title= 'Cash', value = 'cash' },
         { title= 'Bank', value= 'bank'}, 
     },
-    conversionRate = 0.1, -- money * conversionRate = crypto amount, so if this is 0.1 and you pay $10 you get 1 Racing App Crypto.
+    conversionRate = 0.01, -- money * conversionRate = crypto amount, so if this is 0.1 and you pay $10 you get 1 Racing App Crypto.
 
     -- NOTE: IF ALL THE FOLLOWING 3 ARE SET TO FALSE THEN THERES NO WAY TO OPEN THE CRYPTO MENU
     allowBuyingCrypto = true, -- if false the buying option wont appear
     allowSellingCrypto = true, -- if false the selling option wont appear
     allowTransferCrypto = true, -- if false the transfering option wont appear
 
-    sellCharge = 0.05, -- How much is lost upon selling. If 0.05 then you will lose 5% when the crypto is converted to cash
+    sellCharge = 0.2, -- How much is lost upon selling. If 0.05 then you will lose 5% when the crypto is converted to cash
 }
 
 -- You can use any payment systems your core support (cash/money/bank). Use 'racingcrypto' to use the built in racing crypto
@@ -279,7 +279,7 @@ Config.Payments = {
     automationPayout = 'racingcrypto', -- what money is used  to payouts in automation races
     participationPayout = 'racingcrypto', -- what money the participation rewards give out
     bountyPayout = 'racingcrypto', -- what money bounties pay out
-    createRacingUser = 'cash', -- what money is used to create racing users
+    createRacingUser = 'bank', -- what money is used to create racing users
     crypto = 'cash', -- what money type is used to buy Racing App Crypto
 }
 
@@ -302,7 +302,7 @@ Config.Trader = {
 
 Config.Laptop = {
     active = true,                                                                -- If the laptop spawns
-    jobRequirement = { racer = true, creator = true, master = true, god = true }, -- Tied to Config.AllowedJobs
+    jobRequirement = { racer = false, creator = false, master = false, god = false }, -- Tied to Config.AllowedJobs
     requireToken = false,                                                         -- using cw tokens?
     model = 'xm_prop_x17_laptop_mrsr',                                            -- entity model
     location = vector4(938.56, -1549.8, 34.37, 163.59),                           -- world location
@@ -337,7 +337,7 @@ Config.QuickSetupDefaults = {
     buyIn = 0,
     ranked = false,
     reversed = false,
-    laps = 2,
+    laps = 1,
     maxClass = nil,
     participationMoney = 0,
     participationCurrency = Config.Payments.participationPayout,
@@ -381,7 +381,84 @@ Config.AutomatedRaces = {
     {
         trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
         laps = 2,                       -- Laps. 0 for sprint
-        racerName = 'AutoMate',         -- Name on the Automation
+        maxClass = 'A',                 -- Max Class
+        ghostingEnabled = true,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 1,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 1,       -- how much players get for participating
+        participationCurrency = Config.Payments.participationPayout, -- currency
+        firstPerson = false             -- forced first person
+    },
+    {
+        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
+        maxClass = 'B',                 -- Max Class
+        ghostingEnabled = true,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 10,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 10,       -- how much players get for participating
+        participationCurrency = Config.Payments.participationPayout, -- currency
+        firstPerson = true             -- forced first person
+    },
+    {
+        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
+        maxClass = 'S',                 -- Max Class
+        ghostingEnabled = true,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 5,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 5,       -- how much players get for participating
+        participationCurrency = Config.Payments.participationPayout, -- currency
+        firstPerson = false             -- forced first person
+    },
+    {
+        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
+        maxClass = 'B',                 -- Max Class
+        ghostingEnabled = true,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 1,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 1,       -- how much players get for participating
+        participationCurrency = Config.Payments.participationPayout, -- currency
+        firstPerson = false             -- forced first person
+    },
+    {
+        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
+        maxClass = 'S',                 -- Max Class
+        ghostingEnabled = true,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 10,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 10,       -- how much players get for participating
+        participationCurrency = Config.Payments.participationPayout, -- currency
+        firstPerson = false             -- forced first person
+    },
+    {
+        trackId = 'CW-4925',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
+        maxClass = 'A',                 -- Max Class
+        ghostingEnabled = true,        -- Use Ghosting
+        ghostingTime = 0,               -- Ghosting Time
+        buyIn = 1,                   -- amount to participate
+        ranked = true,                  -- ranked or not
+        reversed = false,               -- reversed track or not
+        participationMoney = 1,       -- how much players get for participating
+        participationCurrency = Config.Payments.participationPayout, -- currency
+        firstPerson = false             -- forced first person
+    },
+    {
+        trackId = 'CW-4925',            -- TrackId. Found in your tracks in racingapp or in DB
+        laps = 2,                       -- Laps. 0 for sprint
         maxClass = 'A',                 -- Max Class
         ghostingEnabled = true,        -- Use Ghosting
         ghostingTime = 0,               -- Ghosting Time

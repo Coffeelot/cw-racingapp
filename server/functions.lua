@@ -42,3 +42,21 @@ function registerCommand(command, description, arguments, argsrequired, callback
     -- Register command suggestion for clients
     TriggerClientEvent('chat:addSuggestion', -1, '/' .. command, description, suggestions)
 end
+
+-- Other functions --
+
+-- Function to copy a table deeply
+function DeepCopy(original)
+    local copy
+    if type(original) == 'table' then
+        copy = {}
+        for key, value in next, original, nil do
+            copy[DeepCopy(key)] = DeepCopy(value)
+        end
+        setmetatable(copy, DeepCopy(getmetatable(original)))
+    else
+        -- Base case: non-table values
+        copy = original
+    end
+    return copy
+end

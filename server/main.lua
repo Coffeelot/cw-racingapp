@@ -38,17 +38,6 @@ local function updateRaces()
     local tracks = RADB.getAllRaceTracks()
     if tracks[1] ~= nil then
         for _, v in pairs(tracks) do
-            local records = {}
-            if v.records ~= nil then
-                records = json.decode(v.records)
-                if #records == 0 then
-                    if UseDebug then
-                        print('Only one record')
-                    end
-                    records = { records }
-                    RADB.setTrackRecords(records, v.raceid)
-                end
-            end
             local metadata
 
             if v.metadata ~= nil then
@@ -57,13 +46,12 @@ local function updateRaces()
                 if UseDebug then
                     print('Metadata is undefined for track', v.name)
                 end
-                metadata = deepCopy(DefaultTrackMetadata)
+                metadata = DeepCopy(DefaultTrackMetadata)
             end
 
             Tracks[v.raceid] = {
                 RaceName = v.name,
                 Checkpoints = json.decode(v.checkpoints),
-                Records = records,
                 Creator = v.creatorid,
                 CreatorName = v.creatorname,
                 TrackId = v.raceid,
@@ -87,11 +75,6 @@ MySQL.ready(function()
     updateRaces()
 end)
 
-local function sortRecordsByTime(Records)
-    table.sort(Records, function(a, b) return a.Time < b.Time end)
-    return Records
-end
-
 local function getAmountOfRacers(raceId)
     local AmountOfRacers = 0
     local PlayersFinished = 0
@@ -102,58 +85,6 @@ local function getAmountOfRacers(raceId)
         AmountOfRacers = AmountOfRacers + 1
     end
     return AmountOfRacers, PlayersFinished
-end
-
-local function racerHasPreviousRecordInClassAndDirection(records, racerName, carClass, vehicleModel, reversed)
-    if UseDebug then
-        print('Checking previous records for', racerName)
-        print('class', carClass)
-        print('model', vehicleModel)
-        print('reversed', reversed)
-    end
-    if records then
-        for i, record in pairs(records) do
-            local isReversed = record.Reversed
-            if UseDebug then
-                print('Checking previous records:', record.Holder, record.Class)
-                print('Matches name', record.Holder == racerName)
-                print('Matches class', record.Class == carClass)
-                print('Race was reversed', reversed, 'previous record was reversed', isReversed)
-                print('Used model', vehicleModel, 'record has model', record.Vehicle)
-            end
-
-            local typeOrModelIsSame = false
-            if Config.UseVehicleModelInsteadOfClassForRecords then
-                if vehicleModel == record.Vehicle then
-                    if UseDebug then print('Player has record with same vehicle model') end
-                    typeOrModelIsSame = true
-                end
-            else
-                if record.Class == carClass then
-                    if UseDebug then print('Player has record in same class') end
-                    typeOrModelIsSame = true
-                end
-            end
-
-            local directionIsSame = false
-
-            if isReversed == nil then isReversed = false end
-            if reversed == nil then reversed = false end
-            if isReversed == reversed then
-                if UseDebug then print('Player direction was same') end
-                directionIsSame = true
-            end
-            if record.Holder == racerName and directionIsSame and typeOrModelIsSame then
-                return record, i
-            end
-        end
-    else
-        return false
-    end
-end
-
-local function getLatestRecordsByTrackId(trackId)
-    return Tracks[trackId].Records or {}
 end
 
 local function getTrackIdByRaceId(raceId)
@@ -169,69 +100,6 @@ local function raceWithTrackIdIsActive(trackId)
             end
         end
     end
-end
-
-local function newRecord(src, RacerName, PlayerTime, RaceData, CarClass, VehicleModel, RaceType, Reversed, VehicleLabel)
-    local records = getLatestRecordsByTrackId(RaceData.TrackId)
-    local PersonalBest, index = nil, nil
-
-    if #records == 0 then
-        if UseDebug then
-            print('no records have been set yet')
-        end
-    else
-        PersonalBest, index = racerHasPreviousRecordInClassAndDirection(records, RacerName, CarClass, VehicleModel,
-            Reversed)
-        if UseDebug then
-            print('Old PB', PersonalBest.Time, 'Index', index)
-        end
-    end
-
-    if PersonalBest and PersonalBest.Time > PlayerTime and index then -- if player had a record already
-        if UseDebug then
-            print('new pb', PlayerTime, RacerName, CarClass, VehicleModel)
-        end
-        TriggerClientEvent('cw-racingapp:client:notify', src,
-            string.format(Lang("new_pb"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
-        local playerPlacement = {
-            Time = PlayerTime,
-            Holder = RacerName,
-            Class = CarClass,
-            Vehicle = VehicleModel,
-            VehicleLabel = VehicleLabel,
-            RaceType = RaceType,
-            Reversed = Reversed
-        }
-        records[index] = playerPlacement
-        records = sortRecordsByTime(records)
-        Tracks[RaceData.TrackId].Records = records
-        RADB.setTrackRecords(records, RaceData.TrackId)
-        return true
-    elseif not PersonalBest then
-        TriggerClientEvent('cw-racingapp:client:notify', src,
-            string.format(Lang("time_added"), RaceData.RaceName, MilliToTime(PlayerTime)), 'success')
-        if UseDebug then
-            print('racer did not have a previous pb', RacerName)
-        end
-        if UseDebug then
-            print('adding new pb', PlayerTime, RacerName, CarClass, VehicleModel)
-        end
-        local playerPlacement = {
-            Time = PlayerTime,
-            Holder = RacerName,
-            Class = CarClass,
-            Vehicle = VehicleModel,
-            RaceType = RaceType,
-            Reversed = Reversed
-        }
-        table.insert(records, playerPlacement)
-        records = sortRecordsByTime(records)
-        Tracks[RaceData.TrackId].Records = records
-        RADB.setTrackRecords(records, RaceData.TrackId)
-        return true
-    end
-
-    return false
 end
 
 local function handleAddMoney(src, moneyType, amount, racerName, textKey)
@@ -366,6 +234,55 @@ local function createRaceResultsIfNotExisting(raceId)
     end
 end
 
+local function completeRace(amountOfRacers, raceData, availableKey)
+
+    local totalLaps = raceData.TotalLaps
+    if amountOfRacers == 1 then
+        if UseDebug then print('^3Only one racer. No ELO change^0') end
+    elseif amountOfRacers > 1 then
+
+        if AvailableRaces[availableKey].Ranked then
+            if UseDebug then print('Is ranked. Doing Elo check') end
+            if UseDebug then print('^2 Pre elo', json.encode(RaceResults[raceData.RaceId].Result)) end
+            local crewResult
+            RaceResults[raceData.RaceId].Result, crewResult = calculateTrueSkillRatings(RaceResults
+                [raceData.RaceId].Result)
+
+            if UseDebug then print('^2 Post elo', json.encode(RaceResults[raceData.RaceId].Result)) end
+            handleEloUpdates(RaceResults[raceData.RaceId].Result)
+            if #crewResult > 1 then
+                if UseDebug then print('Enough crews to give ranking') end
+                HandleCrewEloUpdates(crewResult)
+            end
+        end
+        local raceEntryData = {
+            raceId = raceData.RaceId,
+            trackId = raceData.TrackId,
+            results = RaceResults[raceData.RaceId].Result,
+            amountOfRacers = amountOfRacers,
+            laps = totalLaps,
+            hostName = raceData.SetupRacerName,
+            maxClass = raceData.MaxClass,
+            ghosting = raceData.Ghosting,
+            ranked = raceData.Ranked,
+            reversed = Races[raceData.RaceId].Reversed,
+            firstPerson = raceData.FirstPerson,
+            automated = raceData.Automated,
+            hidden = raceData.Hidden,
+            silent = raceData.Silent,
+            buyIn = raceData.BuyIn
+        }
+
+        RESDB.addRaceEntry(raceEntryData)
+    end
+
+    resetTrack(raceData.RaceId, 'Race is over')
+    table.remove(AvailableRaces, availableKey)
+    RaceResults[raceData.RaceId].Data.FinishTime = os.time()
+    NotFinished[raceData.RaceId] = nil
+    Races[raceData.RaceId].MaxClass = nil
+end
+
 RegisterNetEvent('cw-racingapp:server:finishPlayer',
     function(raceData, totalTime, totalLaps, bestLap, carClass, vehicleModel, ranking, racingCrew)
         local src = source
@@ -405,6 +322,12 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             RacingCrew = racingCrew
         }
         table.insert(RaceResults[raceId].Result, raceResult)
+
+        local amountOfRacersThatLeft = 0
+        if NotFinished and NotFinished[raceId] then
+            if UseDebug then print('Race had racers that left before completion') end
+           amountOfRacersThatLeft = #NotFinished[raceId]
+        end
 
         for _, v in pairs(Races[raceId].Racers) do
             if v.Finished then
@@ -494,62 +417,33 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
         local raceType = 'Sprint'
         if totalLaps > 0 then raceType = 'Circuit' end
-        if Tracks[raceData.TrackId].Records ~= nil and next(Tracks[raceData.TrackId].Records) ~= nil then
-            local gotNewRecord = newRecord(src, racerName, bestLapDef, raceData, carClass, vehicleModel, raceType,
-                reversed)
-            if gotNewRecord then
-                if UseDebug then
-                    print('Player got a record', bestLapDef)
-                end
-            else
-                if UseDebug then
-                    print('Player did not get a record')
-                end
-            end
-        else
-            Tracks[raceData.TrackId].Records = { {
-                Time = bestLapDef,
-                Holder = racerName,
-                Class = carClass,
-                Vehicle = vehicleModel,
-                RaceType = raceType,
-                Reversed = reversed
-            } }
-            RADB.setTrackRecords(Tracks[raceData.TrackId].Records, raceData.TrackId)
+
+        -- PB check 
+        local timeData = {
+            trackId = raceData.TrackId,
+            racerName = racerName,
+            carClass = carClass,
+            raceType = raceType,
+            reversed = reversed,
+            vehicleModel = vehicleModel,
+            time = bestLapDef,
+        }
+
+        local newPb = RESDB.addTrackTime(timeData)
+        if newPb then
             TriggerClientEvent('cw-racingapp:client:notify', src,
                 string.format(Lang("race_record"), raceData.RaceName, MilliToTime(bestLapDef)), 'success')
         end
+
         AvailableRaces[availableKey].RaceData = Races[raceData.RaceId]
         for _, racer in pairs(Races[raceData.RaceId].Racers) do
             TriggerClientEvent('cw-racingapp:client:playerFinish', racer.RacerSource, raceData.RaceId, playersFinished,
                 racerName)
             leftRace(racer.RacerSource)
         end
-        if playersFinished == amountOfRacers then
-            if amountOfRacers == 1 then
-                if UseDebug then print('^3Only one racer. No ELO change^0') end
-            elseif amountOfRacers > 0 then
-                if AvailableRaces[availableKey].Ranked then
-                    if UseDebug then print('Is ranked. Doing Elo check') end
-                    if UseDebug then print('^2 Pre elo', json.encode(RaceResults[raceData.RaceId].Result)) end
-                    local crewResult
-                    RaceResults[raceData.RaceId].Result, crewResult = calculateTrueSkillRatings(RaceResults
-                        [raceData.RaceId].Result)
 
-                    if UseDebug then print('^2 Post elo', json.encode(RaceResults[raceData.RaceId].Result)) end
-                    handleEloUpdates(RaceResults[raceData.RaceId].Result)
-                    if #crewResult > 1 then
-                        if UseDebug then print('Enough crews to give ranking') end
-                        handleCrewEloUpdates(crewResult)
-                    end
-                end
-            end
-
-            resetTrack(raceData.RaceId, 'Race is over')
-            table.remove(AvailableRaces, availableKey)
-            RaceResults[raceData.RaceId].Data.FinishTime = os.time()
-            NotFinished[raceData.RaceId] = nil
-            Races[raceData.RaceId].MaxClass = nil
+        if playersFinished + amountOfRacersThatLeft == amountOfRacers then
+            completeRace(amountOfRacers, raceData, availableKey)
         end
 
         if UseDebug then
@@ -736,10 +630,12 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
     end
 
     local amountOfRacers = 0
+    local playersFinished = 0
     for _, v in pairs(Races[raceId].Racers) do
-        if not v.Finished then
-            amountOfRacers = amountOfRacers + 1
+        if v.Finished then
+            playersFinished = playersFinished + 1
         end
+        amountOfRacers = amountOfRacers + 1
     end
     if NotFinished[raceId] ~= nil then
         NotFinished[raceId][#NotFinished[raceId] + 1] = {
@@ -755,11 +651,14 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
             Holder = racerName
         }
     end
-    Races[raceId].Racers[citizenId] = nil
+    -- Races[raceId].Racers[citizenId] = nil
     if Races[raceId].SetupCitizenId == citizenId then
         assignNewOrganizer(raceId, src)
     end
+
+    -- Check if last racer
     if (amountOfRacers - 1) == 0 then
+        -- Complete race if leaving last
         if not Races[raceId].Automated then
             if UseDebug then print(citizenId, ' was the last racer. ^3Cancelling race^0') end
             resetTrack(raceId, 'last racer left')
@@ -772,8 +671,14 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
     else
         AvailableRaces[availableKey].RaceData = Races[raceId]
     end
+    if playersFinished == amountOfRacers - 1 then
+        if UseDebug then print('Last racer to leave') end
+        completeRace(amountOfRacers, RaceData, availableKey)
+    end
+
     TriggerClientEvent('cw-racingapp:client:leaveRace', src)
     leftRace(src)
+
     for _, racer in pairs(Races[raceId].Racers) do
         TriggerClientEvent('cw-racingapp:client:updateRaceRacers', racer.RacerSource, raceId, Races[raceId].Racers)
     end
@@ -1204,7 +1109,6 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
         Tracks[trackId] = {
             RaceName = trackData.RaceName,
             Checkpoints = checkpoints,
-            Records = {},
             Creator = citizenId,
             CreatorName = trackData.RacerName,
             TrackId = trackId,
@@ -1212,7 +1116,7 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
             Waiting = false,
             Distance = math.ceil(trackData.RaceDistance),
             Racers = {},
-            Metadata = deepCopy(DefaultTrackMetadata),
+            Metadata = DeepCopy(DefaultTrackMetadata),
             Access = {},
             LastLeaderboard = {},
             NumStarted = 0,
@@ -1226,50 +1130,22 @@ RegisterNetEvent('cw-racingapp:server:deleteTrack', function(trackId)
     Tracks[trackId] = nil
 end)
 
-local function getIndexOfRecord(trackId, record)
-    for i, recordData in ipairs(Tracks[trackId].Records) do
-        print('checking', i, recordData.Holder)
-        if recordData.Holder == record.Holder and recordData.Time == record.Time and recordData.Vehicle == record.Vehicle then
-            return i
-        end
-    end
-end
-
-local function removeRecordFromTrack(trackId, record)
-    if UseDebug then
-        print('All records on this track', json.encode(Tracks[trackId].Records, { indent = true }))
-    end
-    if Tracks[trackId] and Tracks[trackId].Records then
-        local index = getIndexOfRecord(trackId, record)
-        if index then
-            if UseDebug then
-                print('^2Found a match.^0 Removing record at index', index)
-            end
-            table.remove(Tracks[trackId].Records, index)
-            return true
-        end
-    end
-
-    if UseDebug then
-        print('^1Did not find a match for record^0')
-    end
-    return false
-end
-
-RegisterNetEvent('cw-racingapp:server:removeRecord', function(trackId, record)
-    if UseDebug then print('Removing record', trackId, json.encode(record, { indent = true })) end
-    if removeRecordFromTrack(trackId, record) then
-        RADB.setTrackRecords(Tracks[trackId].Records, trackId)
-    end
+RegisterNetEvent('cw-racingapp:server:removeRecord', function(record)
+    if UseDebug then print('Removing record', json.encode(record, { indent = true })) end
+    RESDB.removeTrackRecord(record.id)
 end)
 
 RegisterNetEvent('cw-racingapp:server:clearLeaderboard', function(trackId)
-    Tracks[trackId].Records = nil
-    RADB.clearLeaderboardForTrack(trackId)
+    RESDB.clearTrackRecords(trackId)
 end)
 
-RegisterServerCallback('cw-racingapp:server:getRaceResults', function(source)
-    return RaceResults
+RegisterServerCallback('cw-racingapp:server:getRaceResults', function(source, amount)
+    local limit = amount or 10
+    local result = RESDB.getRecentRaces(limit)
+    for i, track in ipairs(result) do
+        result[i].raceName = Tracks[track.trackId].RaceName
+    end
+    return result
 end)
 
 RegisterServerCallback('cw-racingapp:server:getAllRacers', function(source)
@@ -1407,8 +1283,21 @@ RegisterServerCallback('cw-racingapp:server:getAvailableRaces', function(source)
     return AvailableRaces
 end)
 
+RegisterServerCallback('cw-racingapp:server:getRaceRecordsForTrack', function(source, trackId)
+    return RESDB.getAllBestTimesForTrack(trackId)
+end)
+
 RegisterServerCallback('cw-racingapp:server:getTracks', function(source)
     return Tracks
+end)
+
+RegisterServerCallback('cw-racingapp:server:getTracksTrimmed', function(source)
+    local tracksWithoutCheckpoints = DeepCopy(Tracks)
+    for i, track in pairs(tracksWithoutCheckpoints) do
+        tracksWithoutCheckpoints[i] = track
+        tracksWithoutCheckpoints[i].Checkpoints = nil
+    end
+    return tracksWithoutCheckpoints
 end)
 
 local function getTracks()
@@ -1770,6 +1659,10 @@ RegisterServerCallback('cw-racingapp:server:setUserAuth', function(source, data)
     if not srcHasUserAccess(source, 'controlAll') then return end
 
     return updateRacingUserAuth(data)
+end)
+
+RegisterServerCallback('cw-racingapp:server:fetchRacerHistory', function(source, racerName)
+    return RESDB.getRacerHistory(racerName)
 end)
 
 if Config.EnableCommands then

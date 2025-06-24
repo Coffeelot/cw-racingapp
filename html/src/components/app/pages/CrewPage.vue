@@ -16,7 +16,7 @@
             <v-chip color="primary">{{ translate("wins") }}: {{ myCrew.wins }} </v-chip>
           </v-card-text>
         </v-card>
-        <div class="subheader inline mt-1">
+        <div class="subheader inline mt-1"> 
           <h3 class="header-text">{{ translate("my_crew") }} {{ myCrew?.crewName }}</h3>
         </div>
         <div

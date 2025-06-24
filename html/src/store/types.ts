@@ -292,6 +292,17 @@ export type Race = {
   Racers: Racer[]
 };
 
+export type Record = {
+  trackId: string,
+  racerName: string,
+  carClass: string,
+  vehicleModel: string,
+  raceType: string,
+  time: number,
+  reversed: number,
+  pbHistory: string,
+}
+
 export type Track = {
   Access: Access;
   Checkpoints: Checkpoint[];
@@ -304,48 +315,32 @@ export type Track = {
   TrackId: string;
   RaceName: string;
   Racers: [];
-  Records: TrackRecord[];
   Started: boolean;
   Waiting: boolean;
   Metadata: TrackMetadata;
 };
 
 export type TrackResult = {
-    Data: {
-        FinishTime: number;
-        BuyIn: number;
-        ExpirationTime: string;
-        Ghosting: false;
-        GhostingTime: number;
-        Laps: number;
-        MaxClass: string;
-        RaceData: {
-          Access: Access;
-          Automated: boolean;
-          Ranked: boolean;
-          Checkpoints: [];
-          Creator: string;
-          CreatorName: string;
-          Curated: number;
-          Distance: number;
-          LastLeaderboard: [];
-          NumStarted: number;
-          RaceId: string;
-          RaceName: string;
-          Racers: [];
-          Records: TrackRecord[];
-          Started: boolean;
-          Waiting: boolean;
-        };
-        RaceId: string;
-        TrackId: string;
-        SetupCitizenId: number;
-        SetupRacerName: string;
-    }
-    Result: Result[];
+  id: number;
+  raceId: string;
+  raceName: string;
+  trackId: string;
+  results: string;
+  amountOfRacers: number;
+  laps: number;
+  hostName: string;
+  maxClass: string | null;
+  ghosting: boolean;
+  ranked: boolean;
+  reversed: boolean;
+  firstPerson: boolean;
+  automated: boolean;
+  hidden: boolean;
+  silent: boolean;
+  buyIn: number;
+  data: string;
+  timestamp: string;
 };
-
-export type ResultData = Record<string, TrackResult>
 
 export type Head2HeadRacer = {
   citizenId: string;

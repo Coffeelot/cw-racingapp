@@ -33,13 +33,11 @@
         <div class="subheader mt-2">
           <h3>{{ translate('available_races') }} </h3>
         </div>
-
-        <div
-          v-if="isLoading"
-          class="loading-container"
-          id="available-races-loader"
-        >
-          <span class="loader"></span>
+        <div v-if="isLoading" class="circular-loading-container">
+          <v-progress-circular
+            color="primary"
+            indeterminate
+          ></v-progress-circular>
         </div>
         <div v-else class="available-races">
           <AvailableRacesCard

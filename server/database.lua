@@ -1,4 +1,4 @@
-function strictSanitize(input)
+function StrictSanitize(input)
     if type(input) ~= "string" then
         return input
     end
@@ -16,10 +16,6 @@ local function getAllRaceTracks()
     return MySQL.Sync.fetchAll('SELECT * FROM race_tracks', {})
 end
 
-local function setTrackRecords(records, raceid)
-    MySQL.Async.execute('UPDATE race_tracks SET records = ? WHERE raceid = ?', { json.encode(records), raceid })
-end
-
 local function setTrackCheckpoints(checkpoints, raceid)
     MySQL.query('UPDATE race_tracks SET checkpoints = ? WHERE raceid = ?', { json.encode(checkpoints), raceid })
 end
@@ -27,7 +23,7 @@ end
 local function createTrack(raceData, checkpoints, citizenId, raceId)
     MySQL.Async.insert(
         'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        { strictSanitize(raceData.RaceName), json.encode(checkpoints), citizenId, strictSanitize(raceData.RacerName),
+        { StrictSanitize(raceData.RaceName), json.encode(checkpoints), citizenId, StrictSanitize(raceData.RacerName),
             raceData.RaceDistance, raceId, 0, '{}' }
     )
 end
@@ -76,11 +72,11 @@ local function changeRaceUser(citizenId, racerName)
 end
 
 local function getActiveRacerName(citizenId)
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { strictSanitize(citizenId) })[1]
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { StrictSanitize(citizenId) })[1]
 end
 
 local function getActiveRacerCrew(racerName)
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })[1].crew
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })[1].crew
 end
 
 local function setActiveRacerCrew(racerName, crewName)
@@ -88,7 +84,7 @@ local function setActiveRacerCrew(racerName, crewName)
 end
 
 local function getUserAuth(racerName)
-    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
+    local result = MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })
     [1]
     if result then
         return result.auth
@@ -96,16 +92,16 @@ local function getUserAuth(racerName)
 end
 
 local function getRaceUserByName(racerName)
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })[1]
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })[1]
 end
 
 local function createRaceUser(citizenId, racerName, auth, creatorCitizenId)
     MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
-        { citizenId, strictSanitize(racerName), auth, creatorCitizenId })
+        { citizenId, StrictSanitize(racerName), auth, creatorCitizenId })
 end
 
 local function getRaceUserRankingByName(racerName)
-    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
+    local res = MySQL.Sync.fetchAll('SELECT ranking FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })
     if res and res[1] then
         return res[1].ranking
     end
@@ -117,12 +113,12 @@ local function increaseRaceCount(racerName, position)
         query = query .. ', wins = wins + 1'
     end
     query = query .. ' WHERE racername = ?'
-    MySQL.Async.execute(query, { strictSanitize(racerName) })
+    MySQL.Async.execute(query, { StrictSanitize(racerName) })
 end
 
 local function updateRacerElo(racerName, eloChange)
     MySQL.Async.execute('UPDATE racer_names SET ranking = ranking + ? WHERE racername = ?',
-        { eloChange, strictSanitize(racerName) })
+        { eloChange, StrictSanitize(racerName) })
 end
 
 local function mapTable(tbl, func)
@@ -172,17 +168,17 @@ local function getAllRaceUsers()
 end
 
 local function removeRaceUserByName(racerName)
-    return MySQL.query('DELETE FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
+    return MySQL.query('DELETE FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })
 end
 
 local function setRaceUserRevoked(racerName, revoked)
     return MySQL.Async.execute('UPDATE racer_names SET revoked = ? WHERE racername = ?',
-        { tonumber(revoked), strictSanitize(racerName) })
+        { tonumber(revoked), StrictSanitize(racerName) })
 end
 
 local function setRaceUserAuth(racerName, auth)
     return MySQL.Sync.execute('UPDATE racer_names SET auth = ? WHERE racername = ?',
-        { auth, strictSanitize(racerName) })
+        { auth, StrictSanitize(racerName) })
 end
 
 local function wipeTracksTable()
@@ -192,19 +188,19 @@ end
 local function joinRacingCrew(citizenId, memberName, crewName)
     local query =
     "UPDATE racing_crews SET members = JSON_ARRAY_APPEND(members, '$', JSON_OBJECT('citizenID', ?, 'racername', ?, 'rank', 0)) WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { citizenId, strictSanitize(memberName), strictSanitize(crewName) })
+    return MySQL.Sync.execute(query, { citizenId, StrictSanitize(memberName), StrictSanitize(crewName) })
 end
 
 local function createRacingCrew(crewName, founderName, citizenId)
     local query =
     "INSERT INTO racing_crews (crew_name, founder_name, founder_citizenid, members, wins, races, rank) VALUES (?, ?, ?, '[]', 0, 0, 0)"
-    return MySQL.Sync.execute(query, { strictSanitize(crewName), strictSanitize(founderName), citizenId })
+    return MySQL.Sync.execute(query, { StrictSanitize(crewName), StrictSanitize(founderName), citizenId })
 end
 
 local function leaveRacingCrew(citizenId, crewName)
     local members = MySQL.Sync.fetchScalar(
         "SELECT members FROM racing_crews WHERE crew_name = ?", 
-        { strictSanitize(crewName) }
+        { StrictSanitize(crewName) }
     )
 
     if not members then return false end
@@ -219,7 +215,7 @@ local function leaveRacingCrew(citizenId, crewName)
     local updated = json.encode(parsed)
     MySQL.Sync.execute(
         "UPDATE racing_crews SET members = ? WHERE crew_name = ?", 
-        { updated, strictSanitize(crewName) }
+        { updated, StrictSanitize(crewName) }
     )
 
     return true
@@ -227,22 +223,22 @@ end
 
 local function increaseCrewWins(crewName)
     local query = "UPDATE racing_crews SET wins = wins + 1, races = races + 1 WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { strictSanitize(crewName) })
+    return MySQL.Sync.execute(query, { StrictSanitize(crewName) })
 end
 
 local function increaseCrewRaces(crewName)
     local query = "UPDATE racing_crews SET races = races + 1 WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { strictSanitize(crewName) })
+    return MySQL.Sync.execute(query, { StrictSanitize(crewName) })
 end
 
 local function changeCrewRank(crewName, amount)
     local query = "UPDATE racing_crews SET rank = rank + ? WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { amount, strictSanitize(crewName) })
+    return MySQL.Sync.execute(query, { amount, StrictSanitize(crewName) })
 end
 
 local function disbandCrew(crewName)
     local query = "DELETE FROM racing_crews WHERE crew_name = ?"
-    return MySQL.Sync.execute(query, { strictSanitize(crewName) })
+    return MySQL.Sync.execute(query, { StrictSanitize(crewName) })
 end
 
 local function getAllCrews()
@@ -252,20 +248,20 @@ end
 
 -- Fetch crypto balance for a specific racer
 local function getCryptoForRacer(racerName)
-    local result = MySQL.Sync.fetchScalar('SELECT crypto FROM racer_names WHERE racername = ?', { strictSanitize(racerName) })
+    local result = MySQL.Sync.fetchScalar('SELECT crypto FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })
     return result or 0
 end
 
 -- Add crypto to a racer's balance
 local function addCryptoToRacer(racerName, amount)
     return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto + ? WHERE racername = ?', 
-        { amount, strictSanitize(racerName) })
+        { amount, StrictSanitize(racerName) })
 end
 
 -- Remove crypto from a racer's balance
 local function removeCryptoFromRacer(racerName, amount)
     return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto - ? WHERE racername = ?', 
-        { amount, strictSanitize(racerName) })
+        { amount, StrictSanitize(racerName) })
 end
 
 -- Get racing users belonging to a specific citizenid
@@ -308,7 +304,6 @@ RADB = {
     setRaceUserRevoked = setRaceUserRevoked,
     setRaceUserAuth = setRaceUserAuth,
     setTrackCheckpoints = setTrackCheckpoints,
-    setTrackRecords = setTrackRecords,
     updateEloForRaceResult = updateEloForRaceResult,
     updateRacerElo = updateRacerElo,
     wipeTracksTable = wipeTracksTable,

@@ -11,7 +11,7 @@ local function getRankingForCrew(crewName)
     }
         return names[crewName].rank
     else 
-        return getCrewRanking(crewName)
+        return GetCrewRanking(crewName)
     end
 end
 
@@ -20,29 +20,13 @@ if not modifiers then
     print('^1!!! SOMETHING IS FUCKED UP WITH YOUR CONFIG SETUP. ELO CONFIG MISSING !!!^0')
 end
 
--- Function to copy a table deeply
-function deepCopy(original)
-    local copy
-    if type(original) == 'table' then
-        copy = {}
-        for key, value in next, original, nil do
-            copy[deepCopy(key)] = deepCopy(value)
-        end
-        setmetatable(copy, deepCopy(getmetatable(original)))
-    else
-        -- Base case: non-table values
-        copy = original
-    end
-    return copy
-end
-
 local function calculateTrueSkillRatingsForCrews(crewRacers)
     if debugAlgo then 
         print('= STARTING ELO CALCULATIONS FOR CREWS =')
         print('crews sent for elo check', json.encode(crewRacers, {indent=true}))
     end
     -- Sort the results based on TotalTime in ascending order
-    local tempTable = deepCopy(crewRacers)
+    local tempTable = DeepCopy(crewRacers)
     table.sort(tempTable, function(a, b) return a.averageTime < b.averageTime end)
     -- Initialize position-based weight
 
@@ -172,7 +156,7 @@ function calculateTrueSkillRatings(results)
         print('ALL results', json.encode(results, {indent=true}))
     end
     -- Sort the results based on TotalTime in ascending order
-    local tempTable = deepCopy(results)
+    local tempTable = DeepCopy(results)
 
     table.sort(tempTable, function(a, b) return a.TotalTime < b.TotalTime end)
     -- Initialize position-based weight

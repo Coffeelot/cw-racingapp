@@ -106,6 +106,7 @@ const trackName: Ref<string | undefined> = ref(undefined);
 const trackNameShare: Ref<string | undefined> = ref(undefined);
 const tracks: Ref<Track[] | undefined> = ref(undefined);
 const checkpoints: Ref<any | undefined> = ref(undefined);
+
 const filtereredTracks = computed(() => {
   let fTracks = tracks?.value?.filter(
     (track) => track.CreatorName === globalStore.baseData.data.currentRacerName
@@ -133,7 +134,7 @@ const filteredAllTracks = computed(() => {
 })
 
 const getMyTracks = async () => {
-  const response = await api.post("UiGetMyTracks");
+  const response = await api.post("UiGetTracks");
   if (response.data) tracks.value = Object.values(response.data);
 };
 
