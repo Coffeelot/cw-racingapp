@@ -3,14 +3,15 @@
 -----------------------
 local TraderPed
 
-local ShowGpsRoute = Config.ShowGpsRoute or false
-local IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
-local UseUglyWaypoint = Config.UseUglyWaypoint or false
-local UseDrawTextWaypoint = Config.UseDrawTextWaypoint or false
-local CheckDistance = Config.CheckDistance or false
+ShowGpsRoute = Config.ShowGpsRoute or false
+IgnoreRoadsForGps = Config.IgnoreRoadsForGps or false
+UseUglyWaypoint = Config.UseUglyWaypoint or false
+UseDrawTextWaypoint = Config.UseDrawTextWaypoint or false
+CheckDistance = Config.CheckDistance or false
+
 local CreatorObjectLeft, CreatorObjectRight
-local CheckpointPileModel = joaat(Config.CheckpointPileModel)
-local StartAndFinishModel = joaat(Config.StartAndFinishModel)
+CheckpointPileModel = joaat(Config.CheckpointPileModel)
+StartAndFinishModel = joaat(Config.StartAndFinishModel)
 
 local startTime = 0
 local lapStartTime = 0

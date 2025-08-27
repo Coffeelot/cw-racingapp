@@ -441,14 +441,15 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
 end)
 
 RegisterNUICallback('UiGetSettings', function(_, cb)
-    cb({
+    local settings = {
         IgnoreRoadsForGps = IgnoreRoadsForGps,
         ShowGpsRoute = ShowGpsRoute,
         UseUglyWaypoint = UseUglyWaypoint,
-        CheckDistance =
-            CheckDistance,
+        CheckDistance = CheckDistance,
         UseDrawTextWaypoint = UseDrawTextWaypoint
-    })
+    }
+    DebugLog('Current settings:', json.encode(settings, { indent = true }))
+    cb(settings)
 end)
 
 local function verifyTrackAccess(track, type)
@@ -984,6 +985,7 @@ RegisterCommand('basicwaypoint', function()
 end)
 
 RegisterNUICallback('UiUpdateSettings', function(data, cb)
+    DebugLog('updating settings', json.encode(data, { indent = true }))
     if data.setting == 'IgnoreRoadsForGps' then
         toggleIgnoreRoadsForGps(data.value)
     elseif data.setting == 'ShowGpsRoute' then
@@ -1000,6 +1002,7 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
             NotifyHandler(Lang("distance_off"), 'error')
         end
     end
+    cb(true)
 end)
 
 

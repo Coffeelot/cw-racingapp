@@ -64,8 +64,6 @@ Config.EloPunishments = {                                                       
     cheeseing = -6                                                                    -- if player tries to cheese
 }
 
-Config.PrimaryUiColor = '#01bcd9' -- Primary color in UI, default is orange
-
 -- GPS stuff
 Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!
 Config.ShowGpsRoute = true        -- Default for showing GPS route

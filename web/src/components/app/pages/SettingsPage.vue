@@ -10,9 +10,9 @@
           <CardContent class="text-muted-foreground flex flex-col gap-3">
             <div class="flex items-center gap-4">
               <Switch
-                v-model:checked="settings.ShowGpsRoute"
+                :model-value="settings.ShowGpsRoute"
                 :id="'show-gps-switch'"
-                @update:checked="() => updateSetting('ShowGpsRoute')"
+                @update:model-value="() => updateSetting('ShowGpsRoute')"
               />
               <label :for="'show-gps-switch'" class="font-medium cursor-pointer">
                 {{ translate('show_gps') }}
@@ -20,9 +20,9 @@
             </div>
             <div class="flex items-center gap-4">
               <Switch
-                v-model:checked="settings.IgnoreRoadsForGps"
+                :model-value="settings.IgnoreRoadsForGps"
                 :id="'ignore-roads-switch'"
-                @update:checked="() => updateSetting('IgnoreRoadsForGps')"
+                @update:model-value="() => updateSetting('IgnoreRoadsForGps')"
               />
               <label :for="'ignore-roads-switch'" class="font-medium cursor-pointer">
                 {{ translate('ignore_roads') }}
@@ -30,9 +30,9 @@
             </div>
             <div class="flex items-center gap-4">
               <Switch
-                v-model:checked="settings.UseUglyWaypoint"
+                :model-value="settings.UseUglyWaypoint"
                 :id="'base-wps-switch'"
-                @update:checked="() => updateSetting('UseUglyWaypoint')"
+                @update:model-value="() => updateSetting('UseUglyWaypoint')"
               />
               <label :for="'base-wps-switch'" class="font-medium cursor-pointer">
                 {{ translate('base_wps') }}
@@ -40,9 +40,9 @@
             </div>
             <div class="flex items-center gap-4">
               <Switch
-                v-model:checked="settings.UseDrawTextWaypoint"
+                :model-value="settings.UseDrawTextWaypoint"
                 :id="'pillar-columns-switch'"
-                @update:checked="() => updateSetting('UseDrawTextWaypoint')"
+                @update:model-value="() => updateSetting('UseDrawTextWaypoint')"
               />
               <label :for="'pillar-columns-switch'" class="font-medium cursor-pointer">
                 {{ translate('pillar_columns') }}
@@ -53,9 +53,9 @@
             </div>
             <div class="flex items-center gap-4">
               <Switch
-                v-model:checked="settings.CheckDistance"
+                :model-value="settings.CheckDistance"
                 :id="'distance-check-switch'"
-                @update:checked="() => updateSetting('CheckDistance')"
+                @update:model-value="() => updateSetting('CheckDistance')"
               />
               <label :for="'distance-check-switch'" class="font-medium">
                 {{ translate('distance_check') }}
@@ -70,7 +70,7 @@
               </label>
               <Select
                 :id="'racer-name-select'"
-                v-model="racerName"
+                :model-value="racerName"
                 :disabled="globalStore.activeHudData.InRace"
                 :loading="loading"
                 class="w-full"
@@ -126,13 +126,6 @@ const settings = ref<Settings>({
 const racerName = ref(globalStore.baseData.data.currentRacerName);
 const loading = ref(false);
 
-const updateSetting = async (setting: string) => {
-  await api.post("UiUpdateSettings", JSON.stringify({
-    setting: setting,
-    value: settings.value[setting as keyof typeof settings.value]
-  }));
-};
-
 const updateRacerName = async () => {
   loading.value = true;
   await api.post("UiChangeRacerName", JSON.stringify(racerName.value));
@@ -145,6 +138,19 @@ const updateRacerName = async () => {
 const getSettings = async () => {
   const res = await api.post("UiGetSettings");
   settings.value = res.data;
+};
+
+const updateSetting = async (setting: string) => {
+  loading.value = true;
+  settings.value[setting as keyof typeof settings.value] = !settings.value[setting as keyof typeof settings.value];
+  await api.post("UiUpdateSettings", JSON.stringify({
+    setting: setting,
+    value: settings.value[setting as keyof typeof settings.value]
+  }));
+  setTimeout(() => {
+    getSettings();
+    loading.value = false;
+  }, 200);
 };
 
 onMounted(() => {
