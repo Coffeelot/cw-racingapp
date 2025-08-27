@@ -27,6 +27,7 @@ end
 function removeMoney(src, moneyType, amount, reason)
     local player = Ox.GetPlayer(tonumber(src))
     if not player then return false end
+    if amount == 0 then return true end
     if moneyType == 'cash' or moneyType == 'money' then
         return exports.ox_inventory:RemoveItem(src, 'money', amount)
     else

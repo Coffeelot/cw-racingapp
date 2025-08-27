@@ -38,12 +38,17 @@ function getCitizenId()
 end
 
 function getVehicleModel(vehicle)
+    -- Paradym shii
     local model = GetEntityModel(vehicle)
-    local vehData = VEHICLEHASHES[model]
-    if vehData then
-        return vehData.name, vehData.make
-    end
-    return GetDisplayNameFromVehicleModel(model)
+
+    local vehData = exports['prdm_vehicledata']:getVehicleDataByHash(model)
+    return vehData.name
+
+    -- local vehData = VEHICLEHASHES[model]
+    -- if vehData then
+    --     return vehData.name, vehData.make
+    -- end
+    -- return GetDisplayNameFromVehicleModel(model)
 end
 
 function getClosestPlayer()

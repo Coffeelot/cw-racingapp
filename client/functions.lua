@@ -178,11 +178,11 @@ function initialSetup()
     
     local racerData = GetActiveRacerName()
     DebugLog('Racer Data', json.encode(racerData))
-    if not racerData then return end
+    if not racerData and not MyRacerNames then return end
 
-    local racerName = racerData.racername
-    local racerAuth = racerData.auth
-    local racerCrew = racerData.crew
+    local racerName = racerData?.racername
+    local racerAuth = racerData?.auth
+    local racerCrew = racerData?.crew
 
     if racerName then
         CurrentName = racerName
@@ -196,12 +196,14 @@ function initialSetup()
             print('^3Crypto^0', CurrentCrypto)
         end
     else
+        DebugLog('No racername was selected, checking if there is only one available')
         if GetSizeOfTable(playerNames) == 1 then
+            DebugLog('Only one racername available, setting it as current racername', playerNames[1].racername)
             local result = cwCallback.await('cw-racingapp:server:changeRacerName', playerNames[1].racername)
-            if result and result.name then
-                DebugLog('Only one racername available. Setting to ', result.name, result.auth)
-                CurrentName = result.name
-                CurrentAuth = result.auth
+            if result == 1 then
+                DebugLog('Only one racername available. Setting to ', playerNames[1].racername, playerNames[1].auth)
+                CurrentName = playerNames[1].racername
+                CurrentAuth = playerNames[1].auth
                 CurrentRanking = getCurrentRankingFromRacer(playerNames)
                 CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
             end
@@ -225,4 +227,10 @@ function initialSetup()
     if UseDebug then
         NotifyHandler('Racing App setup is done!', 'success')
     end
+end
+
+function PlayAudio(lib, sound)
+    local soundId = GetSoundId()
+    PlaySoundFrontend(soundId, lib, sound)
+    ReleaseSoundId(soundId)
 end

@@ -3,9 +3,9 @@
 -----------------------
 Tracks = {}
 Races = {}
+UseDebug = Config.Debug
 local AvailableRaces = {}
 local NotFinished = {}
-local UseDebug = Config.Debug
 local Timers = {}
 local IsFirstUser = false
 
@@ -1474,7 +1474,7 @@ end)
 RegisterServerCallback('cw-racingapp:server:changeRacerName', function(source, racerNameInUse)
     if UseDebug then print('Changing Racer Name for src', source, ' to name', racerNameInUse) end
     local result = changeRacerName(source, racerNameInUse)
-    if UseDebug then print('Race user result:', json.encode(result)) end
+    if UseDebug then print('Race user result:', result) end
     local ranking = getRankingForRacer(racerNameInUse)
     if UseDebug then print('Ranking:', json.encode(ranking)) end
     return result
@@ -1663,6 +1663,13 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:fetchRacerHistory', function(source, racerName)
     return RESDB.getRacerHistory(racerName)
+end)
+
+RegisterServerCallback('cw-racingapp:server:getDashboardData', function(source, racerName, racers, daysBack)
+    local trackStats = RESDB.getTrackRaceStats(daysBack or Config.Dashboard.defaultDaysBack)
+    local racerStats = RESDB.getRacerHistory(racerName)
+    local topRacerStats = RESDB.getTopRacerWinnersAndWinLoss(racers, daysBack or Config.Dashboard.defaultDaysBack)
+    return { trackStats = trackStats, racerStats = racerStats, topRacerStats = topRacerStats }
 end)
 
 if Config.EnableCommands then

@@ -1,5 +1,5 @@
 Config = Config or {}
-Config.Debug = GetConvarInt('racingapp_debug', 0) == 1
+Config.Debug = false
 Config.EnableCommands = false
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
@@ -39,6 +39,13 @@ Config.BasePermission = 'racer' -- this is the base user type your racingapp use
 Config.UseCustomClassSystem = false -- If this is true then you opt in to make your own custom class system. There will be no support for this.
 Config.HideMapInTablet = false -- if true then no map for players :(
 Config.ShowH2H = true -- if false then dont show or allow players do to head 2 head races
+
+Config.Dashboard = {
+    enabled = true, -- set to false if you dont want the dashboard
+    defaultDaysBack = 100, -- default days back the dashboard will show. Keep in mind that more days may impact performance
+    defaultTopRacers = 5, -- default amount of top racers to show in the dashboard. Keep in mind that more racers might cause the UI to go wonky
+    topRacersOnlyIncludeRanked = true, -- if true then only include racers that have raced in ranked will be included in top list
+}
 
 Config.Sounds = {
     Countdown = {
@@ -308,7 +315,7 @@ Config.Laptop = {
     location = vector4(938.56, -1549.8, 34.37, 163.59),                           -- world location
     moneyType = Config.Payments.createRacingUser,                                                           -- cash/bank/crypto
     racingUserCosts = {                                                           -- cost of creating an account
-        racer = 1000,
+        racer = 0,
         creator = 5000,
         master = 10000,
         god = 1000000

@@ -4,10 +4,10 @@ games { 'gta5' }
 
 author 'Coffeelot & Wuggie'
 description 'CW Racing App'
-version '4.3.10'
+version '4.0.0'
 
 ui_page {
-    "html/dist/index.html"
+    "web/dist/index.html"
 }
 
 shared_scripts {
@@ -45,8 +45,8 @@ server_scripts {
 }
 
 files {
-    "html/dist/index.html",
-    "html/dist/assets/*.*",
+    "web/dist/index.html",
+    "web/dist/assets/*.*",
 }
 
 dependencies {

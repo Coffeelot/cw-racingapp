@@ -342,6 +342,28 @@ RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberN
     end
 end)
 
+RegisterServerCallback('cw-racingapp:server:kickMemberFromCrew', function(source, memberName, citizenId, crewName)
+    local userCurrentSource = getSrcOfPlayerByCitizenId(citizenId)
+    if not RacingCrews[crewName] then
+        if useDebug then print('The racing crew did not exist') end
+        changeRacerCrew(userCurrentSource, memberName, nil)
+    end
+    local canLeaveCrew = isMemberInCrew(citizenId, crewName)
+    local isFounder = canFounderDisbandCrew(citizenId, crewName)
+
+    if isFounder then
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
+    end
+    if canLeaveCrew then
+        changeRacerCrew(userCurrentSource, memberName, nil)
+        return leaveRacingCrew(citizenId, crewName)
+    else
+        if useDebug then print("Error: Member cannot leave the crew") end
+        changeRacerCrew(userCurrentSource,memberName, nil)
+        return true
+    end
+end)
+
 RegisterServerCallback('cw-racingapp:server:disbandCrew', function(source, founderCitizenId, crewName)
     if useDebug then print(founderCitizenId, 'is disbanding crew', crewName) end
     local canDisbandCrew = canFounderDisbandCrew(founderCitizenId, crewName)

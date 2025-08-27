@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+body {
+  user-select: none;
+  background: #fff0 !important;
+}
+
+.allow-select {
+  user-select: text;
+}
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.standard-margin-bot {
+  margin-bottom: 10px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.center-text {
+  text-align: center;
+}
+
+.centered {
+  justify-content: center;
+}
+
+.spaced {
+  justify-content: space-between;
+}
+
+.standardGap {
+  gap: 5px;
+}
+
+.subheader {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* 
+.tabcontent {
+  width: 100%;
+  padding: 1em;
+} */
+
+/* LOADING RING */
+
+.circular-loading-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1em;
+}
+
+.loading-container {
+  display: none;
+  justify-content: center;
+}
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+.loader::after {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+}
+
+.header-text {
+  flex-grow: 1;
+}
+
+.scrollable {
+  overflow-y: auto;
+}
+
+.pagecontent {
+  overflow: auto;
+  min-height: 0; /* important for flex children! */
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
+.item-flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin-top: 1em;
+}
+
+.flexy-card {
+  flex: 1 1 45%;
+  max-width: 49%;
+  min-width: 20em;
+  box-sizing: border-box;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+  width: 100%;
+  padding: 1em
+}
+
+.tabs-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+  width: 100%;
+}
+
+.clickable {
+  cursor: pointer;
+}

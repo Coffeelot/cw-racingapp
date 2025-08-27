@@ -60,6 +60,11 @@ function OpenUi()
 end
 
 
+RegisterNUICallback('GetBaseData', function(_, cb)
+    DebugLog('Base data object', json.encode(GetBaseDataObject(), { indent = true }))
+    cb(GetBaseDataObject())
+end)
+
 local function findRacerByName()
     if #MyRacerNames == 1 and CurrentName == nil then
         CurrentName = MyRacerNames[1].racername
@@ -238,6 +243,7 @@ RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
             options[#options + 1] = option
         end
     end
+    print('Available user types:', json.encode(options, { indent = true }))
     cb(options)
 end)
 
@@ -554,6 +560,21 @@ end)
 
 RegisterNUICallback('UiGetRacingResults', function(_, cb)
     local result = cwCallback.await('cw-racingapp:server:getRaceResults')
+    DebugLog('Racing results', json.encode(result, {indent=true}))
+    cb(result)
+end)
+
+RegisterNUICallback('UiGetDashboardData', function(_, cb)
+    local result = cwCallback.await('cw-racingapp:server:getDashboardData')
+    DebugLog('Dashboard Data', json.encode(result, {indent=true}))
+    cb(result)
+end)
+
+RegisterNUICallback('UiKickCrewMember', function(data, cb)
+    local citizenId  = data.citizenId
+    local memberName  = data.citizenId
+    DebugLog('kicking crew member with citizenId', memberName, citizenId)
+    local result = cwCallback.await('cw-racingapp:server:kickMemberFromCrew', memberName, citizenId, CurrentCrew)
     cb(result)
 end)
 
@@ -617,6 +638,7 @@ RegisterNUICallback('UiQuickSetupBounty', function(bounty, cb)
         setupData.laps = 0
     end
 
+    DebugLog('Bounty: Quick setup data', json.encode(setupData, { indent = true }))
     cb(attemptSetupRace(setupData))
 end)
 
@@ -627,15 +649,17 @@ RegisterNUICallback('UiQuickHost', function(track, cb)
     end
     setupData.trackId = track.TrackId
     if track.Metadata then
-        if track.Metadata.raceType == 'sprint' then
+        DebugLog('Track metadata', json.encode(track.Metadata, { indent = true }))
+        if track.Metadata.raceType == 'sprint_only' then
             setupData.laps = 0
         end
     end
-
+    
     if track.sprint then
         setupData.laps = 0
     end
-
+    
+    DebugLog('Track: Quick setup data', json.encode(setupData, { indent = true }))
     cb(attemptSetupRace(setupData))
 end)
 
