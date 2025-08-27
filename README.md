@@ -37,7 +37,7 @@
 - Vehicle Performance Class limits
 - Support for Renewed Crypto
 
-> 4.0 was released on 27th Aug, 2025. It's HIGHLY encouraged to do a clean install for this version.
+> 5.0 was released on 27th Aug, 2025. It's HIGHLY encouraged to do a clean install for this version.
 
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
 
