@@ -33,7 +33,6 @@ local function getTrackRaceStats(datespanDays)
     local result = {}
 
     for _, track in ipairs(tracks) do
-        print('track', track.raceid, track.name)
         -- Fetch all races for this track in the datespan
         local races = MySQL.Sync.fetchAll(
             "SELECT * FROM racing_races WHERE trackId = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? DAY)",
@@ -61,7 +60,6 @@ local function getTrackRaceStats(datespanDays)
         local maxClassCount = {}
 
         for _, race in ipairs(races) do
-            print('RACE', json.encode(race, {indent=true}))
             totalParticipants = totalParticipants + (race.amountOfRacers or 0)
             stats.ghostingCount = stats.ghostingCount + (race.ghosting and 1 or 0)
             stats.rankedCount = stats.rankedCount + (race.ranked  and 1 or 0)
