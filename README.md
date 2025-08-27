@@ -428,6 +428,8 @@ This will get all the races for you to display
 # Want to change the look?
 RacingApp is built in VUE, this means you can't just edit the files directly. This requires some more know-how than just developing with basic html/js. You can find out more information in this [Boilerplate Repo](https://github.com/alenvalek/fivem-vuejs-boilerplate).
 
+## There will be **NO** support for this. Figure out node dev yourself or pay for a reskin comission kthx bye!
+
 # Updating?
 If you're updating from a previous version these might be for you
 
