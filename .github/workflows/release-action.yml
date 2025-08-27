@@ -1,0 +1,57 @@
+name: "Release Action"
+
+on:
+  workflow_run:
+    workflows: [Create New Release]
+    types:
+      - completed
+
+jobs:
+  release-action:
+      name: "Create Release"
+      runs-on: "ubuntu-latest"
+      steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Get the latest tag
+        id: get_tag
+        run: |
+          echo "LATEST_TAG=$(git tag --sort=-creatordate | head -n 1)" >> $GITHUB_ENV
+
+      - name: Install ZIP
+        run: sudo apt install zip
+
+      - name: Bundle files
+        run: |
+          mkdir -p ./temp/cw-racingapp
+          rsync -av --progress ./* ./temp/cw-racingapp \
+            --exclude .git \
+            --exclude .github \
+            --exclude temp \
+            --exclude node_modules
+          cd ./temp && zip -r ../cw-racingapp.zip ./cw-racingapp
+
+      - name: Update CHANGELOG
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.LATEST_TAG }}
+          includeInvalidCommits: true
+          writeToFile: false
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          name: ${{ env.LATEST_TAG }}
+          tag: ${{ env.LATEST_TAG }}
+          body: ${{ steps.changelog.outputs.changes }}
+          artifacts: cw-racingapp.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
