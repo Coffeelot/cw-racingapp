@@ -37,14 +37,9 @@
 - Vehicle Performance Class limits
 - Support for Renewed Crypto
 
+> 4.0 was released on 27th Aug, 2025. It's HIGHLY encouraged to do a clean install for this version.
+
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
-
-> As of update posted on 1st July -23, racer names are unique. The max limit is by default 3 but can be set individually. If you want to remove names from DB without openign it up, an admin can use `/remracename <racerName>`
-
-> As of update posted on 26th August -23 we will no longer support qb-menu usage. 
-
-> As of update posted on 7th August -24 phasing/ghosting no longer has a transperancy, this might make it look different from videos you've seen
-
 
 # Links
 ### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
