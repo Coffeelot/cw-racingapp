@@ -25,12 +25,12 @@
           >
           <template #actions>
             <DropdownMenu  >
-              <DropdownMenuTrigger as-child>
+              <DropdownMenuTrigger as-child class="dark">
                 <Button variant="ghost" class="ml-2"
                   ><EllipsisVertical />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" >
+              <DropdownMenuContent class="dark" align="end" >
                 <DropdownMenuItem
                   v-if="isFounder"
                   @click="disbandDialog = true"
@@ -127,12 +127,6 @@ import MyCrewMemberCard from "../items/CrewMemberCard.vue";
 import InfoText from "../components/InfoText.vue";
 import { getBaseData } from "@/helpers/getBaseData";
 import { translate } from "@/helpers/translate";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CreateCrewDialog from "../components/dialogs/CreateCrewDialog.vue";
