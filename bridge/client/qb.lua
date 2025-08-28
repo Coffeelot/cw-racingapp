@@ -68,7 +68,7 @@ function notify(text, type)
 
     if Config.OxLibNotify then
         lib.notify({
-            title = Config.NotifyTitle,
+            title = Config.NotifyTitle or 'RacingApp',
             description = text,
             type = type,
         })

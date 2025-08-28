@@ -72,7 +72,7 @@ function notify(text, type)
     end
 
     lib.notify({
-        title = Config.NotifyTitle,
+        title = Config.NotifyTitle or 'RacingApp',
         description = text,
         type = type,
     })
