@@ -47,7 +47,7 @@ Config.Dashboard = {
     topRacersOnlyIncludeRanked = true, -- if true then only include racers that have raced in ranked will be included in top list
 }
 
-Config.NotifyTitle = 'RacingApp'
+Config.NotifyTitle = 'RacingApp' -- Title for notifications. Only works for oxlib
 
 Config.Sounds = {
     Countdown = {
