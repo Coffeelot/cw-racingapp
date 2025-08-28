@@ -243,7 +243,6 @@ RegisterNUICallback('UiGetPermissionedUserTypes', function(_, cb)
             options[#options + 1] = option
         end
     end
-    print('Available user types:', json.encode(options, { indent = true }))
     cb(options)
 end)
 
