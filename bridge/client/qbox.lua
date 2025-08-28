@@ -63,7 +63,8 @@ function notify(text, type)
     end
 
     lib.notify({
-        title = text,
+        title = Config.NotifyTitle,
+        description = text,
         type = type,
     })
 end

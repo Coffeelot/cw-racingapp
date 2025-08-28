@@ -47,6 +47,8 @@ Config.Dashboard = {
     topRacersOnlyIncludeRanked = true, -- if true then only include racers that have raced in ranked will be included in top list
 }
 
+Config.NotifyTitle = 'RacingApp'
+
 Config.Sounds = {
     Countdown = {
         start = { lib = "10_SEC_WARNING", sound = "HUD_MINI_GAME_SOUNDSET" },         -- sound that plays when race is readied
