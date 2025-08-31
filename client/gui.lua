@@ -145,7 +145,7 @@ RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
     local playerNames = cwCallback.await('cw-racingapp:server:getRacerNamesByPlayer')
 
     MyRacerNames = playerNames
-    DebugLog('player names', #playerNames, json.encode(playerNames))
+    DebugLog('player names', #playerNames, json.encode(playerNames, {indent=true}))
     local currentRacer = findRacerByName()
     if currentRacer and currentRacer.revoked == 1 then
         NotifyHandler(Lang("revoked_access"), 'error')
@@ -219,7 +219,7 @@ RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
     local racerId = getCitizenId()
     local playerNames = cwCallback.await('cw-racingapp:server:getRacersCreatedByUser', racerId, CurrentAuth)
 
-    DebugLog('player names', #playerNames, json.encode(playerNames))
+    DebugLog('player names created by  user', #playerNames, json.encode(playerNames))
     cb(playerNames)
 end)
 
@@ -885,7 +885,7 @@ RegisterNUICallback('UiGetCrewData', function(data, cb)
     local citizenId = getCitizenId()
     local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentCrew)
 
-    DebugLog('crew data: ', json.encode(result))
+    DebugLog('crew data: ', json.encode(result, {indent=true}))
     cb(result)
 end)
 
