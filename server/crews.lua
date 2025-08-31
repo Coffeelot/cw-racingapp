@@ -250,6 +250,10 @@ end)
 -- Callbacks
 
 RegisterServerCallback('cw-racingapp:server:getCrewData', function(source, citizenId, crewName)
+    if useDebug then
+        print('^5Getting crew data for citizenId^0', citizenId, 'crewName', crewName)
+        print('all crews', json.encode(RacingCrews, {indent=true}))
+    end
     return { invites = ActiveInvites[citizenId], crew = RacingCrews[crewName] }
 end)
 
