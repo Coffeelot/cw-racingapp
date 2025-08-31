@@ -128,7 +128,6 @@ const toastTypeMap: Record<string, keyof typeof toast> = {
   revoked: "error",
   removed: "error",
   no_user: "info",
-  // add more mappings as needed
 };
 
 const handleMessageListener = (event: MessageEvent) => {

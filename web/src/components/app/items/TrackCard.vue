@@ -229,6 +229,8 @@ import { mockRecords } from "@/mocking/testState";
 import { Table, TableBody, TableCell } from "@/components/ui/table";
 import TableRow from "@/components/ui/table/TableRow.vue";
 import TrackIcon from "@/assets/icons/TrackIcon.vue";
+import copy from 'copy-to-clipboard';
+import { toast } from "vue-sonner";
 
 const trackTypes = [
   { value: 'any', label: translate('any') },
@@ -308,13 +310,13 @@ const settings: Ref<TrackMetadata> = ref({
 const deleteDialog = ref(false);
 const access: any = ref(undefined);
 
-const copyToClipboard = () => {
-  const el = document.createElement("textarea");
-  el.value = JSON.stringify(props.track.Checkpoints);
-  document.body.appendChild(el);
-  el.select();
-  document.execCommand("copy");
-  document.body.removeChild(el);
+const copyToClipboard = async () => {
+  const success = copy(JSON.stringify(props.track.Checkpoints));
+  if (success) {
+    toast.success(translate('checkpoints_copied'));
+  } else {
+    toast.error(translate('checkpoints_copy_failed'));
+  }
 };
 
 const clearLB = () => {
