@@ -6,6 +6,7 @@
         {{ translate("create_track") }}
       </Button>
     </DialogTrigger>
+    {{ tab }}
     <DialogContent class="dark text-foreground z-3000 max-w-2xl">
       <DialogHeader>
         <DialogTitle>{{ translate("create_track") }}</DialogTitle>
@@ -35,7 +36,7 @@
             <Input
               density="compact"
               :placeholder="translate('track_name')"
-              v-model="trackNameShare"
+              v-model="trackName"
             />
             <Input
               density="compact"
@@ -79,7 +80,6 @@ import { translate } from "@/helpers/translate";
 const open = ref(false);
 const tab = ref("editor");
 const trackName = ref("");
-const trackNameShare = ref("");
 const checkpoints = ref("");
 
 const openRaceEditor = async () => {

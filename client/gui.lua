@@ -675,14 +675,16 @@ end
 
 RegisterNUICallback('UiCreateTrack', function(createData, cb)
     if not createData.name then return end
-    DebugLog('create data', json.encode(createData))
+    DebugLog('Track Creation Data', json.encode(createData, {indent=true}))
     if not createData or createData.name == "" then
+        NotifyHandler(Lang("name_too_short"), 'error')
         return
     end
 
     local checkpoints = createData.checkpoints
     local decodedCheckpoints = json.decode(checkpoints)
     if checkpoints ~= nil then
+        DebugLog('Create data had checkpoints')
         if type(decodedCheckpoints) == 'table' then
             if not verifyCheckpoints(decodedCheckpoints) then
                 NotifyHandler(Lang("corrupt_data"))
@@ -693,6 +695,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             return
         end
     end
+    DebugLog('Create data did not have checkpoints')
 
     local citizenId = getCitizenId()
     local tracks = cwCallback.await('cw-racingapp:server:getAmountOfTracks', citizenId)
@@ -806,6 +809,7 @@ RegisterNUICallback('UiCreateCrew', function(data, cb)
 end)
 
 RegisterNUICallback('UiCreateUser', function(data, cb)
+    DebugLog('Creating user with data: ', json.encode(data, {indent=true}))
     if data.racerName and data.selectedAuth then
         AttemptCreateUser(data.racerName, data.racerId, data.selectedAuth.fobType, data.selectedAuth.purchaseType)
     else
@@ -1003,5 +1007,3 @@ RegisterNUICallback('UiUpdateSettings', function(data, cb)
     end
     cb(true)
 end)
-
-
