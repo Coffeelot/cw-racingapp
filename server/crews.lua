@@ -158,12 +158,15 @@ end
 
 local function acceptInvite(racerName, invitedCitizenId)
     local crewName = ActiveInvites[invitedCitizenId].crewName
+    local currentSrc = getSrcOfPlayerByCitizenId(invitedCitizenId)
+    if not currentSrc then print('^1COULD NOT FIND SRC') return end
     if crewName then
         joinRacingCrew(racerName, invitedCitizenId, crewName)
         if ActiveInvites[invitedCitizenId].invitedBySource then
             if useDebug then print('notifying inviter ', ActiveInvites[invitedCitizenId].invitedBySource) end
             TriggerClientEvent('cw-racingapp:client:notify', ActiveInvites[invitedCitizenId].invitedBySource,
                 Lang("crew_invite_accepted"), 'success')
+                changeRacerCrew(currentSrc,  racerName, crewName )
         end
         ActiveInvites[invitedCitizenId] = nil -- Remove the invite after accepting
         return true
