@@ -52,6 +52,9 @@ jobs:
           makeLatest: true
           name: ${{ env.LATEST_TAG }}
           tag: ${{ env.LATEST_TAG }}
-          body: ${{ steps.changelog.outputs.changes }}
+          body: |
+            ## Release ${{ env.LATEST_TAG }}
+            
+            ${{ steps.changelog.outputs.changes }}
           artifacts: cw-racingapp.zip
           token: ${{ secrets.GITHUB_TOKEN }}
