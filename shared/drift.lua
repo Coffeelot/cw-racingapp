@@ -1,5 +1,5 @@
 ConfigDrift = {
-    useDrift = true, -- enable/disable drift racing features
+    useDrift = false, -- enable/disable drift racing features
     finishCountdown = 9, -- seconds to countdown for remaining racers after first finisher
     checkpointTimePenalty = {
         usePenalty = true, -- whether to apply point penalties for taking too long between checkpoints
