@@ -70,9 +70,8 @@
               </label>
               <Select
                 :id="'racer-name-select'"
-                :model-value="racerName"
-                :disabled="globalStore.activeHudData.InRace"
-                :loading="loading"
+                v-model="racerName"
+                :disabled="globalStore.activeHudData.InRace || loading"
                 class="w-full"
                 @update:model-value="updateRacerName"
               >
@@ -126,9 +125,10 @@ const settings = ref<Settings>({
 const racerName = ref(globalStore.baseData.data.currentRacerName);
 const loading = ref(false);
 
-const updateRacerName = async () => {
+const updateRacerName = async (selectedName: string) => {
   loading.value = true;
-  await api.post("UiChangeRacerName", JSON.stringify(racerName.value));
+  racerName.value = selectedName;
+  await api.post("UiChangeRacerName", JSON.stringify(selectedName));
   setTimeout(() => {
     getBaseData();
     loading.value = false;

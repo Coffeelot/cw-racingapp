@@ -61,7 +61,7 @@ sidebarContext.setOpen(false);
 
 const isOpen = ref(sidebarContext.open)
 
-const allItems = [
+const allItems = computed(() => [
   { name: 'dashboard', icon: HomeIcon, title: translate('dashboard_page'), visible: globalStore.baseData.data.dashboardSettings?.enabled },
   { name: 'racing', icon: HelmetIcon, title: translate('racing'), visible: true },
   { name: 'results', icon: Trophy, title: translate('results'), visible: true },
@@ -69,9 +69,9 @@ const allItems = [
   { name: 'mytracks', icon: Route, title: translate('my_tracks'), visible: globalStore.baseData.data?.auth?.create },
   { name: 'racers', icon: UserCog, title: translate('racers'), visible: globalStore.baseData.data?.auth?.control },
   { name: 'admin', icon: ShieldUser, title: translate('admin'), visible: globalStore.baseData.data?.auth?.adminMenu },
-];
+]);
 
-const items = computed(() => allItems.filter(item => item.visible))
+const items = computed(() => allItems.value.filter(item => item.visible))
 
 const noUser = computed(() => !globalStore.baseData.data.currentRacerName &&
     globalStore.baseData.data.racerNames &&

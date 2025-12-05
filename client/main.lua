@@ -1828,11 +1828,14 @@ function AttemptCreateUser(racerName, racerId, fobType, purchaseType)
             if nameIsNotTaken then
                 TriggerServerEvent('cw-racingapp:server:createRacerName', racerId, racerName, fobType, purchaseType,
                     CurrentName)
+                return true
             else
                 NotifyHandler(Lang("name_is_used") .. racerName, 'error')
+                return false
             end
         else
             NotifyHandler(Lang("to_many_names"), 'error')
+            return false
         end
     end
 end

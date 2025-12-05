@@ -156,6 +156,7 @@ RegisterNUICallback('UiStartCurrentRace', function(raceid, cb)
 end)
 
 RegisterNUICallback('UiChangeRacerName', function(racername, cb)
+    DebugLog('changing racename to', racername)
     local result = cwCallback.await('cw-racingapp:server:changeRacerName', racername)
     if result then
         cb(true)
@@ -835,11 +836,11 @@ end)
 RegisterNUICallback('UiCreateUser', function(data, cb)
     DebugLog('Creating user with data: ', json.encode(data, {indent=true}))
     if data.racerName and data.selectedAuth then
-        AttemptCreateUser(data.racerName, data.racerId, data.selectedAuth.fobType, data.selectedAuth.purchaseType)
+        cb(AttemptCreateUser(data.racerName, data.racerId, data.selectedAuth.fobType, data.selectedAuth.purchaseType))
     else
         NotifyHandler(Lang("bad_input"), 'error')
+        cb(false)
     end
-    cb(true)
 end)
 
 RegisterNUICallback('UiSendInvite', function(data, cb)
