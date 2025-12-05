@@ -165,6 +165,8 @@ function LeaveCurrentRace()
     return false
 end exports('leaveCurrentRace', LeaveCurrentRace)
 
+exports('leaveRace', LeaveCurrentRace)
+
 function InitialRacingAppSetup()
     Wait(1000)
     CharacterHasLoaded = true
