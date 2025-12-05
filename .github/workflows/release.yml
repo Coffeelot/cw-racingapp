@@ -4,11 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
+        description: 'Version number (e.g., 5.1.0)'
         required: true
+        type: string
 
 jobs:
   create-release:
-    name: Create New Release (${{ inputs.version }})
+    name: Create New Release (${{ github.event.inputs.version }})
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -24,12 +26,12 @@ jobs:
       - name: Bump manifest version
         run: node .github/actions/bump-manifest-version.js
         env:
-          TGT_RELEASE_VERSION: ${{ inputs.version }}
+          TGT_RELEASE_VERSION: ${{ github.event.inputs.version }}
 
       - name: Push manifest change
         uses: EndBug/add-and-commit@v9
         with:
           add: fxmanifest.lua
           push: true
-          message: 'chore: bump manifest version to ${{ inputs.version }}'
-          tag: ${{ inputs.version }}
+          message: 'chore: bump manifest version to ${{ github.event.inputs.version }}'
+          tag: ${{ github.event.inputs.version }}
