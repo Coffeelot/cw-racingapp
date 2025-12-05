@@ -4,15 +4,11 @@
 
 ## If you are updating make sure to check [Updating](#updating) for relevant SQL updates
 
-## NOW SUPPORTS QB, QBOX, OX AND ESX!
-> Note: ESX requires ox_lib and ox_target
-
-> Note: For ESX make sure to change out moneyTypes to corresponding versions in the config (ESX uses "money" instead of "cash" for example)
-
 **Features:**
 - [Create tracks](#track-creation)
 - Host races
 - Buy-Ins
+- [Drift Races](#Drifting)
 - [Automated Races](#Automated-Races)
 - [Time Trial Bounties](#Time-Trial-Bounties)
 - Built in Crypto system
@@ -58,6 +54,62 @@
 
 # Racing App
 
+<details>
+<summary><b>📑 Table of Contents</b></summary>
+
+- [Features](#features)
+- [Links](#links)
+- [Racing App](#racing-app)
+  - [GPS Settings](#gps-settings)
+  - [Track Curation](#track-curation)
+  - [Track Creation](#track-creation)
+  - [Track Sharing](#track-sharing)
+  - [Automated Races](#automated-races)
+  - [Time Trial Bounties](#time-trial-bounties)
+  - [RacingApp Crypto [RAC]](#racingapp-crypto-rac)
+  - [User Management](#user-management)
+- [Opening the Racing App](#opening-the-racing-app)
+  - [Using the Racing GPS](#using-the-racing-gps)
+  - [Exports](#exports)
+- [Adding Racing Crypto To Other Scripts](#adding-racing-crypto-to-other-scripts)
+  - [Get Crypto](#get-crypto)
+  - [Check if user has enough](#check-if-user-has-enough)
+  - [Add crypto](#add-crypto)
+  - [Remove crypto](#remove-crypto)
+  - [Get all racing users for a player by citizenId](#get-all-racing-users-for-a-player-by-citizenid)
+- [Preview](#preview)
+  - [Latest Video](#latest-video)
+  - [Older Videos](#older-videos)
+  - [Images](#images)
+- [Setup and Installation](#setup-and-installation)
+  - [Installation](#installation)
+  - [Setup Notes](#setup-notes)
+  - [Custom Vehicle Classes](#custom-vehicle-classes)
+  - [Use in game](#use-in-game)
+- [Exports](#exports-1)
+  - [Get tracks (Client)](#get-tracks)
+  - [Get posted races (Client)](#get-posted-races)
+  - [Joining a race (Client)](#joining-a-race)
+  - [Leaving a race (Client)](#leaving-a-race)
+  - [Setup a race (Server)](#setup-a-race)
+  - [Joining a race (Server)](#joining-a-race-1)
+  - [Leaving a race (Server)](#leaving-a-race-1)
+  - [Get tracks (Server)](#get-tracks-1)
+  - [Get posted races (Server)](#get-posted-races-1)
+- [Want to change the look?](#want-to-change-the-look)
+- [Updating](#updating)
+  - [New User Management - 30th November 2023](#new-user-management---30th-november-2023)
+  - [VUE update 18th December 2023](#vue-update-18th-december-2023)
+  - [Racing Crews and Racing Rank update 14th February 2024](#racing-crews-and-racing-rank-update-14th-february-2024)
+  - [Track table update](#track-table-update)
+  - [Race User Update - 25th Oct 2024](#race-user-update---25th-oct-2024)
+  - [Ox changes 6th Nov, 2024](#ox-changes-6th-nov-2024)
+  - [Crypto addition, 20th Dec, 2024](#crypto-addition-20th-dec-2024)
+- [Dependencies](#dependencies)
+- [Uninstalling or full reset](#uninstalling-or-full-reset)
+
+</details>
+
 ### GPS settings
 At the bottom left corner there's a cog wheel. Clicking this brings up the options menu (more stuff to come). But here you can toggle using the GPS route and the style of it.
 
@@ -79,13 +131,40 @@ There's an import function (if enabled in config) in the Create Track tab to imp
 
 Hop into the [CW Discord](https://discord.gg/FJY4mtjaKr) and share some tracks in the racingapp-tracks channel! 
 
+### Drifting
+Racingapp has options for:
+- Casual drifting (just scoring by yourself)
+- Drift Races
+
+The Drift races will show the score board just like ususal, and this is so to minimize the amount of score cheeseing - Instead everyone gets to see each others score afterwards. After one player crosses the finish line, the race counts down for everyone.
+
+- A planned free-roam VS mode is plannned.
+- By default, drifting is turned off
+- Drifting configs can be found in `shared/drift.lua`
+
+The script offers UI and a racing system for racing, however it does **NOT** offer the actual drifting calculations.
+
+It's set up in the `client/drift.lua` file to be used with CW Drifting, and this is the recommended and only supported script for drifting. It should, technically, be possible to hook any drifting script into RacingApp, but there will be no support from us on how to do so.
+
+There are two versions of the drifting script to choose from, one is encrypted and one is open source. If you want to see the mechanincs behind the drifting system and/or modify how it works you'll want the Open Source one.
+
+[CW Drifting](https://cw-scripts.tebex.io/package/7143396)
+[CW Drifting Open Source](https://cw-scripts.tebex.io/package/7143394)
+
+To install drifting:
+- Buy one of these
+- Drop it into your scripts
+- Make sure it's running before Racingapp
+- Enable Racingapp in CW Driftings config
+- Enable Drifting in CW Racingapp drift config
+
 ### Automated Races
 The script offers automated races. You can set these up in the config (`Config.AutomatedRaces`, `Config.AutomatedOptions`). If any of these are commented out/removed the automation will not start.
 
 The Automation will, at random, try to grab one of the tracks from the `Config.AutomatedRaces` table at the interval of what you set in `Config.AutomatedOptions.timeBetweenRaces`, by default this is 20 minutes. The races start after 5 minutes of popping up.
 
 ### Time Trial Bounties
-As of 16th November 2024 the script has cuztomizeable time trial bounties that players can collect. These are defined in the config in `Config.Bounties` and `Config.BountiesOptiones`. The config has most things explained in comments, but a bounty is defined like this example:
+As of 16th November 2024 the script has customizable time trial bounties that players can collect. These are defined in the config in `Config.Bounties` and `Config.BountiesOptions`. The config has most things explained in comments, but a bounty is defined like this example:
 ```lua
     {
         trackId = 'CW-4267',            -- TrackId. Found in your tracks in racingapp or in DB
@@ -295,8 +374,10 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 
 **Crypto Menu**
 
-![Settings](hhttps://i.imgur.com/P2uNEwp.png)
+![Settings](https://i.imgur.com/P2uNEwp.png)
 
+**Drift HUD**
+![Drift](https://i.imgur.com/2KFAq2U.jpeg)
 
 </details>
 
@@ -306,7 +387,7 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 1. Get [cw-performance](https://github.com/Coffeelot/cw-performance) and install (if you plan to code your own class system see [Custom Vehicle Classes](#custom-vehicle-classes))
 2. Download Racingapp
 3. Add the cw-racingapp folder to you resources (if it has a "-main" in the name: remove the "-main")
-4. Update or insert the database tables. These are found in the `cw-racingapp.sql` and `cw-racingcrews.sql` files
+4. Update or insert the database tables. These are found in the `cw-racingapp.sql` file
     - Optionally also run `default_tracks.sql` if you want to add the default tracks
 5. Adjust values in the `config.lua` file to your liking **(Hot tip: GO OVER THIS FILE BEFORE REPORTING ISSUES)**
 6. Add the item to your `qb-core/shared/items.lua` (If you use another inventory/core you obviously might need to change this part)
@@ -317,6 +398,10 @@ You can create tracks from both using an in-game editor or copy/paste a set of c
 8. If you're not using QBOX then comment out `'@qbx_core/modules/playerdata.lua'` in fxmanifest 
 9. Open the game and give yourself the item. When you open the app for the first time you'll be prompted to create a user. The first user to be created will be a `god` user, after that the rest will be `racer` type of whatever you set it to in the config. Optionally you can create a god user with the command (see below)
 
+
+> Note: ESX requires ox_lib and ox_target
+
+> Note: For ESX make sure to change out moneyTypes to corresponding versions in the config (ESX uses "money" instead of "cash" for example)
 
 
 ### Setup Notes
@@ -344,34 +429,32 @@ Spawn the item `racing_gps` normally and use it.
 # Exports
 RacingApp does not come with a phone app, but maybe you want to create one! Now, including everything from racingapp would be insanity, but at least you can join, leave and setup race via exports now! So you can create your own Phone App an just use these exports to get some of the basic features out of Racingapp.
 
-## Get tracks
+## Get tracks (client side)
 This will get all the existing tracks for you to display
 ```lua
     local tracks = exports['cw-racingapp']:getAvailableTracks()
     print(json.encode(tracks, {indent=true})) -- This will be the data returned. Do what you will with it
 ```
 
-## Get posted races
+## Get posted races (client side)
 This will get all the posted races for you to display
 ```lua
     local races = exports['cw-racingapp']:getAvailableRaces()
     print(json.encode(races, {indent=true})) -- This will be the data returned. Do what you will with it
 ```
 
-
-## Joining a race
+## Joining a race (client side)
 ```lua
 local success = exports['cw-racingapp']:joinRace(raceId)
 ```
 Where `raceId` is replaced by the id of a race you want to join (same id as track id)
 
-## Leaving a race
+## Leaving a race (client side)
 ```lua
-local success = exports['cw-racingapp']:leaveRace(raceId)
+local success = exports['cw-racingapp']:leaveRace()
 ```
-Where `raceId` is replaced by the id of a race you want to join (same id as track id)
 
-## Setup a race
+## Setup a race (server side)
 ```lua
 
 local setupData = {
@@ -391,7 +474,7 @@ local setupData = {
 }
 
 -- Races hosted from server side will be treated as automated
-local success = exports['cw-racingapp']:setupRace(setupData)
+local raceId = exports['cw-racingapp']:setupRace(setupData)
 if raceId then
     -- race setup successful! Use the raceId to track it
 else
@@ -399,26 +482,19 @@ else
 end
 ```
 
-## Joining a race
+## Joining a race (server side)
 ```lua
     local success = exports['cw-racingapp']:joinRaceByRaceId(raceId, src)
 ```
 Where `raceId` is replaced by the id of a race you want to join (same id as track id). All this does is call the client side joinRace export so you could also use that. Using the client side export also lets you see if it was possible to join or not, while the server side version only verifies the input.
 
-## Leaving a race
+## Leaving a race (server side)
 ```lua
     exports['cw-racingapp']:leaveCurrentRace(src)
 ```
 Where the `src` is the source of a player. Does not return anything. If you want verification that the racer is in a race do this from client side instead.
 
-## Get tracks
-This will get all the existing tracks for you to display or verify with
-```lua
-    local tracks = exports['cw-racingapp']:getAvailableTracks()
-    print(json.encode(tracks, {indent=true})) -- This will be the data returned. Do what you will with it
-```
-
-## Get posted races
+## Get posted races (server side)
 This will get all the races for you to display
 ```lua
     local races = exports['cw-racingapp']:getRaces()
@@ -428,78 +504,12 @@ This will get all the races for you to display
 # Want to change the look?
 RacingApp is built in VUE, this means you can't just edit the files directly. This requires some more know-how than just developing with basic html/js. You can find out more information in this [Boilerplate Repo](https://github.com/alenvalek/fivem-vuejs-boilerplate).
 
-## There will be **NO** support for this. Figure out node dev yourself or pay for a reskin comission kthx bye!
-
-# Updating?
-If you're updating from a previous version these might be for you
-
-## New User Management - 30th November 2023
-You need to update one of your database tables. Run this:
-```sql
-ALTER TABLE racer_names
-ADD COLUMN auth TEXT DEFAULT 'racer',
-ADD COLUMN createdby TEXT,
-ADD COLUMN revoked TINYINT DEFAULT 0;
-```
-You also need to change out the old GPS/fob items to the new one, see setup section. 
-You might also want to read up on the new system, see User Management section.
-
-## VUE update 18th December 2023
-See [setup](#setup) section for instructions on how to build a dist
-
-## Racing Crews and Racing Rank update 14th February 2024
-1) Make sure to run the sql in `cw-racingcrews.sql`
-2) Run this in your Database to update your `racer_names`: 
-```sql
-ALTER TABLE racer_names 
-ADD COLUMN ranking INT(11) NULL DEFAULT '0';
-```
-
-## Track table update 
-A new column was added. If you're updating you can run this script to add it to your database
-```sql
-ALTER TABLE `race_tracks`
-ADD COLUMN `metadata` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `checkpoints`;
-```
-
-## Race User Update - 25th Oct 2024
-Two new columns were added to the race user table. You can run this to update an existing table
-```sql
-ALTER TABLE `racer_names`
-ADD COLUMN `crew` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-ADD COLUMN `active` INT(11) NOT NULL DEFAULT '0';
-```
-
-This **WILL** break your crews, so to fix this, after you've run the above, you can run this:
-> note:  This is for QBOX/QB, not sure if the table names are the same for ESX so make sure to check that
-```sql
-UPDATE racer_names rn
-JOIN players p ON JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedRacerName')) = rn.racername
-SET rn.crew = JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew'))
-WHERE JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.selectedCrew')) IS NOT NULL;
-```
-
-## Ox changes 6th Nov, 2024
-I messed some stuff up initial and used charId instead of stateId cause I'm 🥔 fix by running this:
-```sql
-UPDATE racer_names
-SET citizenid = (
-    SELECT stateId 
-    FROM characters 
-    WHERE characters.charId = racer_names.citizenid
-);
-```
-
-## Crypto addition, 20th Dec, 2024
-Added a built in crypto system (Sorry Renewed Users)
-```sql
-ALTER TABLE racer_names
-ADD COLUMN crypto INT DEFAULT 0 NOT NULL;
-```
+## There will be **NO** support for this. If you want help with this, reach out for a comission to be done. No free help on this.
 
 # Dependencies
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
+* [ox lib](https://github.com/overextended/ox_lib)
 
 # Uninstalling or full reset
-## /removeracetracks
+## /removeallracetracks
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
