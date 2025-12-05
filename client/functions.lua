@@ -165,7 +165,7 @@ function LeaveCurrentRace()
     return false
 end exports('leaveCurrentRace', LeaveCurrentRace)
 
-function initialSetup()
+function InitialRacingAppSetup()
     Wait(1000)
     CharacterHasLoaded = true
     IsFirstUser = cwCallback.await('cw-racingapp:server:isFirstUser')

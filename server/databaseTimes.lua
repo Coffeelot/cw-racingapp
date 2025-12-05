@@ -51,6 +51,7 @@ local function getTrackRaceStats(datespanDays)
             firstPersonCount = 0,
             automatedCount = 0,
             silentCount = 0,
+            driftCount = 0,
             mostUsedMaxClass = nil,
         }
 
@@ -66,7 +67,7 @@ local function getTrackRaceStats(datespanDays)
             stats.firstPersonCount = stats.firstPersonCount + (race.firstPerson  and 1 or 0)
             stats.automatedCount = stats.automatedCount + (race.automated  and 1 or 0)
             stats.silentCount = stats.silentCount + (race.silent and 1 or 0)
-
+            stats.driftCount = stats.driftCount + (race.drift and 1 or 0) 
             if race.maxClass and race.maxClass ~= "" then
                 maxClassCount[race.maxClass] = (maxClassCount[race.maxClass] or 0) + 1
             end
@@ -143,8 +144,8 @@ local function addRaceEntry(raceData)
     local query = [[
         INSERT INTO racing_races (
             raceId, trackId, results, amountOfRacers, laps, hostName, maxClass,
-            ghosting, ranked, reversed, firstPerson, automated, hidden, silent, buyIn, data
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ghosting, ranked, reversed, firstPerson, automated, drift, hidden, silent, buyIn, data
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ]]
     local params = {
         StrictSanitize(raceData.raceId),
@@ -159,6 +160,7 @@ local function addRaceEntry(raceData)
         raceData.reversed or false,
         raceData.firstPerson or false,
         raceData.automated or false,
+        raceData.drift or false,
         raceData.hidden or false,
         raceData.silent or false,
         raceData.buyIn or 0,

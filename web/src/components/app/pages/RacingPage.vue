@@ -23,22 +23,24 @@
           />
         </div>
       </div>
-      <div class="subheader mt-2">
+      <div class="subheader mt-2" v-if="racesToDisplay.length > 0">
         <h2>{{ translate('available_races') }}</h2>
       </div>
       <div v-if="isLoading" class="circular-loading-container flex justify-center items-center">
         <span class="loader"></span>
       </div>
-      <div v-else class="available-races pagecontent">
+      <div v-else-if="racesToDisplay.length > 0" class="available-races pagecontent">
         <AvailableRacesCard
           v-for="race in racesToDisplay"
-          :key="race"
+          :key="race.RaceId"
           :race="race"
         />
       </div>
       <InfoText
         v-if="races.length === 0"
+        class="no-races-text"
         :title="translate('no_races')"
+        :text="translate('no_races_subtitle')"
       />
     </TabsContent>
 
@@ -107,7 +109,7 @@ import { Input } from "@/components/ui/input";
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentTab.racing);
 const isLoading = ref(false);
-const races = ref([]);
+const races = ref<Race[]>([]);
 const dialog = ref(false);
 const search = ref("");
 const selectedTrack: Ref<Track | undefined> = ref(undefined);
@@ -130,11 +132,6 @@ const filteredTracks = computed(() => {
   );
 });
 
-const resetTrackSetup = () => {
-  tab.value = "setup";
-  selectedTrack.value = undefined;
-};
-
 const racesToDisplay = computed(() => races.value.filter((race: Race) => !race.Started && !race.Hidden))
 
 const getListedRaces = async () => {
@@ -142,7 +139,7 @@ const getListedRaces = async () => {
     console.log('MOCK DATA ACTIVE. SKIPPING FETCH')
 
     const mapped = fakeRaces.map((race) => ({...race, ExpirationTime: Date.now()}))
-    races.value = mapped  as any
+    races.value = mapped
     return
   }
   isLoading.value = true;
@@ -264,5 +261,12 @@ onMounted(() => {
   margin-left: 0;
   margin-right: 0;
   width: 100%;
+}
+
+.no-races-text {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
 }
 </style>

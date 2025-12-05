@@ -25,6 +25,7 @@ export type Bounty = {
 export type TrackMetadata = {
   description?: string;
   raceType?: string;
+  noDrift?: boolean;
 };
 
 export type Notification = {
@@ -139,6 +140,7 @@ export type CurrentRace = {
   ghosted: boolean;
   raceId: string;
   ghosting: boolean;
+  drift: boolean;
   ranked: boolean;
   reversed: boolean;
   hostName: string;
@@ -245,6 +247,7 @@ export type BaseData = {
     hideH2h: boolean;
     allAuthorities:Record<string, Auth>;
     dashboardSettings: DashboardSettings,
+    driftingIsEnabled: boolean;
   };
 };
 
@@ -270,6 +273,7 @@ export type Result = {
   TotalChange: number;
   VehicleModel: string;
   CarClass: string;
+  DriftScore?: number;
 };
 
 export type Coordinate = { x: number; y: number; z: number };
@@ -295,10 +299,22 @@ export type Race = {
   Hidden: boolean
   Ranked: boolean
   Reversed: boolean
+  Drift?: boolean
+  Laps: number
   FirstPerson: boolean
   ParticipationAmount: number
-  ParticipationCurrency: number
-  Racers: Racer[]
+  ParticipationCurrency: string
+  ExpirationTime: number
+  Disabled?: boolean
+  Racers: number
+  MaxClass: string
+  RaceData: {
+    Started: boolean
+  }
+  TrackData: {
+    Distance: number,
+    RaceName: string,
+  }
 };
 
 export type RaceRecord = {
@@ -347,6 +363,7 @@ export type TrackResult = {
   automated: boolean;
   hidden: boolean;
   silent: boolean;
+  drift: boolean;
   buyIn: number;
   data: string;
   timestamp: string;
@@ -399,4 +416,14 @@ export type TopRacerStats = {
     losses: number;
     winLoss: number;
   }[];
+}
+
+export type DriftInfo = {
+    latestDriftScore: number,
+    score: number,
+    multiplier: number,
+    isDrifting: boolean,
+    driftAngle: number,
+    multiplierPercent: number,
+    scoringIsPaused: boolean,
 }

@@ -1,7 +1,8 @@
 <template>
-  <div class="flex flex-col h-full w-full hud-view">
+  <div class="hud-view">
     <EditorHud v-if="globalStore.creatorData && globalStore.activeHudData.InCreator" />
     <RaceHud v-if="globalStore.activeRace && globalStore.activeHudData.InRace" />
+    <DriftHud v-if="globalStore.showDriftHud" />
     <CountdownHud v-if="globalStore.countdown > -1" :countdownNumber="globalStore.countdown" />
   </div>
 </template>
@@ -11,6 +12,7 @@ import { useGlobalStore } from "../store/global";
 import EditorHud from "../components/hud/EditorHud.vue";
 import RaceHud from "../components/hud/RaceHud.vue";
 import CountdownHud from "../components/hud/CountdownHud.vue";
+import DriftHud from "@/components/hud/DriftHud.vue";
 
 const globalStore = useGlobalStore();
 </script>

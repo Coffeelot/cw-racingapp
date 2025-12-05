@@ -54,6 +54,7 @@ import { computed, ref } from "vue";
 import HelmetIcon from "@/assets/icons/HelmetIcon.vue";
 import { useSidebar } from "@/components/ui/sidebar";
 import SidebarUser from "./SidebarUser.vue";
+import CrewIcon from "@/assets/icons/CrewIcon.vue";
 const sidebarContext = useSidebar();
 
 sidebarContext.setOpen(false);
@@ -64,7 +65,7 @@ const allItems = [
   { name: 'dashboard', icon: HomeIcon, title: translate('dashboard_page'), visible: globalStore.baseData.data.dashboardSettings?.enabled },
   { name: 'racing', icon: HelmetIcon, title: translate('racing'), visible: true },
   { name: 'results', icon: Trophy, title: translate('results'), visible: true },
-  { name: 'crew', icon: User, title: translate('crew'), visible: true },
+  { name: 'crew', icon: CrewIcon, title: translate('crew'), visible: true },
   { name: 'mytracks', icon: Route, title: translate('my_tracks'), visible: globalStore.baseData.data?.auth?.create },
   { name: 'racers', icon: UserCog, title: translate('racers'), visible: globalStore.baseData.data?.auth?.control },
   { name: 'admin', icon: ShieldUser, title: translate('admin'), visible: globalStore.baseData.data?.auth?.adminMenu },

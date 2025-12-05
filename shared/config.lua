@@ -1,5 +1,5 @@
 Config = Config or {}
-Config.Debug = false
+Config.Debug = GetConvarInt('racingapp_debug', 0) == 1
 Config.EnableCommands = false
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
@@ -47,7 +47,7 @@ Config.Dashboard = {
     topRacersOnlyIncludeRanked = true, -- if true then only include racers that have raced in ranked will be included in top list
 }
 
-Config.NotifyTitle = 'RacingApp' -- Title for notifications. Only works for oxlib
+Config.NotifyTitle = 'RacingApp'
 
 Config.Sounds = {
     Countdown = {
@@ -65,6 +65,8 @@ Config.EloPunishments = {                                                       
     positionCheat = -1,                                                               -- if player tries to start across the starting line
     cheeseing = -6                                                                    -- if player tries to cheese
 }
+
+Config.PrimaryUiColor = '#01bcd9' -- Primary color in UI, default is orange
 
 -- GPS stuff
 Config.IgnoreRoadsForGps = false  -- EXPERIMENTAL. Will make GPS ignore roads. DOES NOT DRAW A LINE BETWEEN LAST CHECKPOINT AND FINISH FOR LAP RACES!!!

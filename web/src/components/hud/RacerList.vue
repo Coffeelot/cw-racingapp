@@ -108,5 +108,6 @@ const getBoxStyle = (index: number) => {
   clip-path: polygon(5% 100%,100% 100%,95% 0%,0% 0%,calc(100% - 88px) 0%,0% 0%);
   padding-right: 2em;
   padding-left: 2em;
+  transform: rotate(355deg);
 }
 </style>

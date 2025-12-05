@@ -25,11 +25,12 @@ defineProps<{
   color: #fff;
   text-shadow:1px 1px 18px black;
   font-family: "Bebas Neue", sans-serif;
-  width: 100%;
+  width: 100vw;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 20%;
 }
 
 .countdown-holder {

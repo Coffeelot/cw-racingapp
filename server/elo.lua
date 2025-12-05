@@ -150,16 +150,42 @@ local function calculateCrewPositions(crewTable)
     return calculateTrueSkillRatingsForCrews(sortedTeams)
 end
 
-function calculateTrueSkillRatings(results)
+-- local function that takes two racers times, and drift scores (if isDrift is true) and calculates which one wins
+local function firstEntryWins(racerA, racerB, isDrift)
+    if isDrift then
+        -- For drift, higher DriftScore wins
+        if (tonumber(racerA.DriftScore) or 0) > (tonumber(racerB.DriftScore) or 0) then
+            return true
+        else
+            return false
+        end
+    else
+        -- For regular races, lower TotalTime wins
+        if racerA.TotalTime < racerB.TotalTime then 
+            return true
+        else
+            return false
+        end 
+    end
+    
+end 
+
+function calculateTrueSkillRatings(results, isDrift)
     if debugAlgo then 
         print('= STARTING ELO CALCULATIONS =')
+        print('IS DRIFT:', isDrift)
         print('ALL results', json.encode(results, {indent=true}))
     end
     -- Sort the results based on TotalTime in ascending order
     local tempTable = DeepCopy(results)
 
-    table.sort(tempTable, function(a, b) return a.TotalTime < b.TotalTime end)
-    -- Initialize position-based weight
+    if isDrift then
+        -- For drift, sort by DriftScore descending (higher is better)
+        table.sort(tempTable, function(a, b) return a.DriftScore > b.DriftScore end)
+    else
+        -- For regular races, sort by TotalTime ascending (lower is better)
+        table.sort(tempTable, function(a, b) return a.TotalTime < b.TotalTime end)
+    end
     local crewTable = {}
 
     -- Update ratings for each racer
@@ -180,7 +206,8 @@ function calculateTrueSkillRatings(results)
                 local scoreDifference = math.abs(racer.Ranking - opponent.Ranking)
                 local scalingFactor = 1 / (1 + scoreDifference) -- Adjust scaling factor based on score difference
                 if debugAlgo then print('-- Scaling factor', scalingFactor) end
-                if racer.TotalTime < opponent.TotalTime then
+                local racerWins = firstEntryWins(racer, opponent, isDrift)
+                if racerWins then
                     if debugAlgo then print('win') end
                     if rankDifference > 0 then                                                              -- if your rank is higher than opponent
                         scoreDifference = scoreDifference * modifiers.winAgainstLowerRankMod *
@@ -191,7 +218,7 @@ function calculateTrueSkillRatings(results)
                     end
                     -- Player beats opponent
                     change = 0.05 + (scoreDifference) -- Adjust scaling factors
-                elseif racer.TotalTime > opponent.TotalTime then
+                elseif not racerWins then
                     if debugAlgo then print('loss') end
                     -- Player loses
                     if rankDifference > 0 then -- if your rank is higher than opponent
@@ -250,21 +277,21 @@ function calculateTrueSkillRatings(results)
     return tempTable, crewRes
 end
 
-if useDebug and ultraDebug then -- Example input for testing
+if ultraDebug then
     print('DEBUGGING RACINGAPP ELO')
     local results = {
-        { TotalTime = 100, RacerName = 'Winner',  Ranking = 0,   RacingCrew = 'TEST1' },
-        { TotalTime = 220, RacerName = 'middle1', Ranking = 0 },
-        { TotalTime = 230, RacerName = 'middle2', Ranking = 30,  RacingCrew = 'Tofu Delivery' },
-        { TotalTime = 240, RacerName = 'middle3', Ranking = 200, RacingCrew = 'Not A real Crew' },
-        { TotalTime = 250, RacerName = 'middle4', Ranking = 0,   RacingCrew = 'Not A real Crew' },
-        { TotalTime = 900, RacerName = 'Loser',   Ranking = 110, RacingCrew = 'TEST1' },
+        { TotalTime = 100, RacerName = 'Winner',  DriftScore = 887, Ranking = 0,   RacingCrew = 'TEST1' },
+        { TotalTime = 220, RacerName = 'middle1', DriftScore = 700, Ranking = 0 },
+        { TotalTime = 230, RacerName = 'middle2', DriftScore = 660, Ranking = 30,  RacingCrew = 'Tofu Delivery' },
+        { TotalTime = 240, RacerName = 'middle3', DriftScore = 555, Ranking = 200, RacingCrew = 'Not A real Crew' },
+        { TotalTime = 250, RacerName = 'middle4', DriftScore = 100, Ranking = 0,   RacingCrew = 'Not A real Crew' },
+        { TotalTime = 900, RacerName = 'Loser',   DriftScore = 12, Ranking = 110, RacingCrew = 'TEST1' },
     }
     -- Calculate TrueSkill ratings
-    local res, crewRes = calculateTrueSkillRatings(results)
+    local res, crewRes = calculateTrueSkillRatings(results, true)
     -- Print results
     for _, result in ipairs(res) do
-        print(result.RacerName, "New Ranking:", result.Ranking, "Total Change:", result.TotalChange)
+        print(result.RacerName, "New Ranking:", result.Ranking + result.TotalChange, "Total Change:", result.TotalChange)
     end
 
     -- Crew

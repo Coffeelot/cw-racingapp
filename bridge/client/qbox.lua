@@ -5,7 +5,7 @@ if Config.Debug then print('Using QBOX bridge') end
 local VEHICLEHASHES = exports.qbx_core:GetVehiclesByHash()
 
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
-    initialSetup()
+    InitialRacingAppSetup()
 end)
 
 function getPlayerJobName()

@@ -1,6 +1,7 @@
 
 
 local attachedProp = nil
+local lastDriftToggle = false
 
 local function clearProp()
     if UseDebug then
@@ -40,9 +41,10 @@ local function handleAnimation()
         print('animation dict does not exist')
         return false
     end
-    RequestAnimDict(animDict)
-    while (not HasAnimDictLoaded(animDict)) do Wait(10) end
-    TaskPlayAnim(PlayerPedId(), animDict, "idle_a", 5.0, 5.0, -1, 51, 0, false, false, false)
+    -- RequestAnimDict(animDict)
+    -- while (not HasAnimDictLoaded(animDict)) do Wait(10) end
+    lib.playAnim(PlayerPedId(), animDict, "idle_a", 5.0, 5.0, -1, 51, 0, false, 0, false)
+    -- TaskPlayAnim(PlayerPedId(), animDict, "idle_a", 5.0, 5.0, -1, 51, 0, false, false, false)
     attachProp()
 end
 
@@ -61,9 +63,30 @@ end
 
 
 RegisterNUICallback('GetBaseData', function(_, cb)
-    DebugLog('Base data object', json.encode(GetBaseDataObject(), { indent = true }))
+    -- DebugLog('Base data object', json.encode(GetBaseDataObject(), { indent = true }))
     cb(GetBaseDataObject())
 end)
+
+local function updateDriftUi(info)
+    if not lastDriftToggle then
+        ToggleDriftHud(true)
+    end
+    SendNUIMessage({
+        action = "update",
+        type = "drift",
+        info = info,
+    })
+end exports('updateDriftUi', updateDriftUi)
+
+function ToggleDriftHud(show)
+    lastDriftToggle = show
+    DebugLog('Toggling Drift Hud: ', show)
+    SendNUIMessage({
+        action = "toggle",
+        type = "drift",
+        showDriftHud = show or false
+    })
+end exports ('ToggleDriftHud', ToggleDriftHud)
 
 local function findRacerByName()
     if #MyRacerNames == 1 and CurrentName == nil then
@@ -430,7 +453,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             ghosting = CurrentRaceData.Ghosting,
             ranked = CurrentRaceData.Ranked,
             reversed = CurrentRaceData.Reversed,
-            hostName = CurrentRaceData.SetupRacerName
+            hostName = CurrentRaceData.SetupRacerName,
+            drift = CurrentRaceData.Drift or false
         }
         DebugLog('Current race', json.encode(data, { indent = true }))
         cb(data)
@@ -513,7 +537,6 @@ local function getAvailableRaces()
     if #result > 0 then
         DebugLog('Fetching available races:', json.encode(result))
         for _, race in pairs(result) do
-            DebugLog('Race:', json.encode(race))
             local racers = 0
             local PlayerPed = PlayerPedId()
             race.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
@@ -527,13 +550,13 @@ local function getAvailableRaces()
             if (race.RaceData.MaxClass ~= nil and race.RaceData.MaxClass ~= "") then
                 maxClass = race.RaceData.MaxClass
             end
-            race.maxClass = maxClass
-            race.racers = racers
-            race.disabled = CurrentRaceData.RaceId
-            race.laps = race.Laps
+            race.MaxClass = maxClass
+            race.Racers = racers
+            race.Disabled = CurrentRaceData.RaceId and (CurrentRaceData.RaceId == race.RaceId)
             availableRaces[#availableRaces + 1] = race
         end
     end
+    DebugLog('Available races:', json.encode(availableRaces))
     return sortRacesByName(availableRaces)
 end
 exports('getAvailableRaces', getAvailableRaces)
@@ -572,7 +595,7 @@ end)
 
 RegisterNUICallback('UiKickCrewMember', function(data, cb)
     local citizenId  = data.citizenId
-    local memberName  = data.citizenId
+    local memberName  = data.memberName
     DebugLog('kicking crew member with citizenId', memberName, citizenId)
     local result = cwCallback.await('cw-racingapp:server:kickMemberFromCrew', memberName, citizenId, CurrentCrew)
     cb(result)
@@ -606,7 +629,8 @@ local function attemptSetupRace(setupData)
                 participationCurrency = setupData.participationCurrency,
                 firstPerson = setupData.firstPerson,
                 silent = setupData.silent,
-                hidden = setupData.hidden
+                hidden = setupData.hidden,
+                drift = setupData.drift
             }
             local res = cwCallback.await('cw-racingapp:server:setupRace', data)
             return res
@@ -888,7 +912,6 @@ end)
 RegisterNUICallback('UiGetCrewData', function(data, cb)
     local citizenId = getCitizenId()
     local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentCrew)
-
     DebugLog('crew data: ', json.encode(result, {indent=true}))
     cb(result)
 end)
@@ -905,6 +928,17 @@ RegisterNUICallback('UiFetchRacerHistory', function(racerName, cb)
     DebugLog('Fetching Racer history for racer',racerName or CurrentName )
     local result = cwCallback.await('cw-racingapp:server:fetchRacerHistory', racerName or CurrentName)
     cb(result)
+end)
+
+RegisterNUICallback('UiToggleCasualDrift', function(_, cb)
+    DebugLog('Toggling Casual Drift mode')
+    local isActive = DriftIsActive()
+    if isActive then
+        StopDriftSystem()
+    else
+        StartDriftSystem()
+    end
+    cb(isActive)
 end)
 
 RegisterNUICallback('UiShowTrack', function(trackId, cb)

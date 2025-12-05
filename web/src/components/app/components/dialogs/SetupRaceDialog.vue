@@ -92,6 +92,16 @@
             </FormField>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <!-- Host Drift -->
+            <FormField v-if="globalStore.baseData.data.driftingIsEnabled && form.values.laps != -1 && !track.Metadata?.noDrift" type="checkbox" v-slot="{ componentField }" name="drift">
+              <FormItem>
+                <FormLabel>{{ translate('host_drift') }}</FormLabel>
+                <FormControl>
+                  <Switch v-bind="componentField" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
             <!-- Host Silent -->
             <FormField  type="checkbox" v-slot="{ componentField }" name="silent">
               <FormItem>
@@ -260,6 +270,8 @@ const setupData = ref({
   participationMoney: 0,
   participationCurrency: globalStore.baseData.data.participationCurrencyOptions[0].value,
   silent: false,
+  drift: false,
+  trackId: props.track.TrackId,
 });
 
 const form = useForm({
@@ -269,7 +281,10 @@ const form = useForm({
 const handleConfirm = async () => {
   if (form.values.participationMoney < 0)
     form.values.participationMoney = 0;
-  if (form.values.laps === -1) form.values.ranked = false;
+  if (form.values.laps === -1) {
+    form.values.ranked = false;
+    form.values.drift = false
+  }
   
   let maxClass;
   if (form.values.maxClass === 'NONE') {
@@ -297,6 +312,7 @@ const handleConfirm = async () => {
     reversed: form.values.reversed,
     firstPerson: form.values.firstPerson,
     silent: form.values.silent,
+    drift: form.values.drift,
   };
 
   const res = await api.post("UiSetupRace", JSON.stringify(data));

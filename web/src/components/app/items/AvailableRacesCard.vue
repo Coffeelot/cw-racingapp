@@ -1,7 +1,6 @@
 <template>
   <Card
     class="available-card rounded-xl border h-fit"
-    v-if="!hasExpired && !props.race.RaceData.Started"
   >
     <CardHeader>
       <CardTitle>
@@ -48,6 +47,10 @@
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+      <Badge v-if="props.race.Drift" variant="outline" class="flex items-center gap-1">
+        <DriftIcon />
+        {{ translate("drift_race") }}
+      </Badge>
       <Badge variant="outline" class="flex items-center gap-1">
         <TrackIcon />
         {{ `${lapsText} ${props.race.TrackData.Distance} m` }}
@@ -58,7 +61,7 @@
       </Badge>
       <Badge
         variant="outline"
-        v-if="potText && props.race.racers > 1"
+        v-if="potText && props.race.Racers > 1"
         class="flex items-center gap-1"
       >
         <TotalIcon />
@@ -66,7 +69,7 @@
       </Badge>
       <Badge variant="outline" class="flex items-center gap-1">
         <UsersIcon />
-        {{ `${props.race.racers} ${translate("racers")}` }}
+        {{ `${props.race.Racers } ${translate("racers")}` }}
       </Badge>
       <Badge
         variant="outline"
@@ -101,11 +104,11 @@
         {{ translate("reversed") }}
       </Badge>
     </CardContent>
-    <CardFooter v-if="!props.race.disabled" class="flex gap-2 justify-end">
+    <CardFooter v-if="!props.race.Disabled" class="flex gap-2 justify-end">
       <Button variant="ghost" @click="showRace()">
         {{ translate("show_track") }}
       </Button>
-      <Button color="primary" @click="joinRace()">
+      <Button :disabled="hasExpired || props.race.RaceData.Started" color="primary" @click="joinRace()">
         {{ translate("join_race") }}
       </Button>
     </CardFooter>
@@ -147,9 +150,11 @@ import {
 import TrackIcon from "@/assets/icons/TrackIcon.vue";
 import TotalIcon from "@/assets/icons/TotalIcon.vue";
 import GhostIcon from "@/assets/icons/GhostIcon.vue";
+import { Race } from "@/store/types";
+import DriftIcon from "@/assets/icons/DriftIcon.vue";
 
 const props = defineProps<{
-  race: any;
+  race: Race;
 }>();
 const globalStore = useGlobalStore();
 
@@ -171,10 +176,11 @@ const participationText = computed(() => {
 });
 
 const lapsText = computed(() => {
-  let lapsText = "Sprint | ";
-  if (props.race.laps == -1) {
-    lapsText = "Elimination | ";
-  } else if (props.race.laps > 0) {
+
+  let lapsText = translate("sprint") + " | ";
+  if (props.race.Laps == -1) {
+    lapsText = translate('elimination') + " | ";
+  } else if (props.race.Laps > 0) {
     lapsText = props.race.Laps + " " + translate("laps") + " | ";
   }
   return lapsText;
@@ -200,7 +206,7 @@ const buyInText = computed(() => {
 const potText = computed(() => {
   let text = undefined;
   if (props.race.BuyIn > 0) {
-    text = translate("pot") + ": " + props.race.racers * props.race.BuyIn;
+    text = translate("pot") + ": " + props.race.Racers * props.race.BuyIn;
   }
   return text;
 });

@@ -8,7 +8,7 @@ local VEHICLEHASHES = Ox.GetVehicleData()
 
 -- Listen for player loaded event
 RegisterNetEvent('ox:playerLoaded', function()
-    initialSetup()
+    InitialRacingAppSetup()
 end)
 
 function getPlayerJobName()

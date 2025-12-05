@@ -77,9 +77,6 @@ const quickHost = async () => {
   }
 }
 
-const startRace = async () => {
-  emits('select', props.track)
-}
 </script>
 
 <style scoped>

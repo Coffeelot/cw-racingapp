@@ -6,9 +6,9 @@
       </div>
       <div class="blocks-container">
         <div class="blocks">
-          <span id="track-name"> {{ globalStore.activeRace.raceName }}</span>
+          <div class="angled" id="track-name"> {{ globalStore.activeRace.raceName }}</div>
           <div
-            class="position-container"
+            class="angled position-container"
             v-if="
               globalStore.activeRace.totalRacers &&
               globalStore.activeRace.totalRacers !== 1
@@ -19,35 +19,35 @@
               `${globalStore.activeRace.position}/${globalStore.activeRace.totalRacers}`
             }}</span>
           </div>
-          <div class="column">
+          <div class="angled column">
             <span id="smaller">{{ translate("checkpoints") }}</span>
             <span id="checkpoint">{{
               `${globalStore.activeRace.currentCheckpoint}/${globalStore.activeRace.totalCheckpoints}`
             }}</span>
           </div>
-          <div class="row">
+          <div class="row angled">
             <span id="race-time">{{ lapText }}</span>
             <FlagIcon />
           </div>
-          <div class="row">
+          <div class="row angled">
             <span id="race-time">{{
               msToHMS(globalStore.activeRace.time)
             }}</span>
             <TimerIcon />
           </div>
-          <div class="row">
+          <div class="row angled">
             <span id="race-time">{{
               msToHMS(globalStore.activeRace.totalTime)
             }}</span>
             <HourglassIcon />
           </div>
-          <div class="row">
+          <div class="row angled">
             <span id="race-time">{{
               msToHMS(globalStore.activeRace.bestLap)
             }}</span>
             <StarIcon />
           </div>
-          <div id="race-ghosted-span" v-if="globalStore.activeRace.ghosted">
+          <div class="angled" id="race-ghosted-span" v-if="globalStore.activeRace.ghosted">
             <GhostIcon />
           </div>
         </div>
@@ -126,6 +126,7 @@ span {
   flex-direction: row;
   justify-content: space-between;
   gap: 1em;
+  margin-right: 2em;
 }
 
 .positions-container {
@@ -133,7 +134,6 @@ span {
   flex-direction: column;
   gap: 1em;
   margin: 2em;
-  transform: rotate(355deg);
 }
 
 .blocks {
@@ -174,6 +174,10 @@ span {
   display: flex;
   align-items: center;
   gap: 0.5em;
+}
+
+.angled {
+  transform: rotate(-355deg);
 }
 
 .row-big {

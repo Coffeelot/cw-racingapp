@@ -4,7 +4,7 @@ if Config.Debug then print('Using ESX bridge') end
 ESX = exports['es_extended']:getSharedObject()
 
 RegisterNetEvent('esx:playerLoaded', function()
-    initialSetup()
+    InitialRacingAppSetup()
 end)
 
 function getPlayerJobName()

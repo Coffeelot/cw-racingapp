@@ -27,7 +27,8 @@
             <TableRow>
               <TableHead class="text-left"></TableHead>
               <TableHead class="text-left">{{ translate('elo_rank') }}</TableHead>
-              <TableHead class="text-left">{{ translate('time') }}</TableHead>
+              <TableHead class="text-left" v-if="selectedRace.drift" >{{ translate('drift_score') }}</TableHead>
+              <TableHead class="text-left" v-else >{{ translate('time') }}</TableHead>
               <TableHead class="text-left" v-if="selectedRace.laps > 0">{{ translate('best_lap') }}</TableHead>
               <TableHead class="text-left">{{ translate('vehicle') }}</TableHead>
               <TableHead class="text-left">{{ translate('class') }}</TableHead>
@@ -40,7 +41,8 @@
                 {{ index + 1 }}. {{ item.RacerName }} {{ item.RacingCrew ? '[' + item.RacingCrew + ']' : '' }}
               </TableCell>
               <TableCell>{{ item.Ranking }}</TableCell>
-              <TableCell>{{ msToHMS(item.TotalTime) }}</TableCell>
+              <TableCell v-if="selectedRace.drift">{{ item.DriftScore }}</TableCell>
+              <TableCell v-else>{{ msToHMS(item.TotalTime) }}</TableCell>
               <TableCell v-if="selectedRace.laps > 0">{{ msToHMS(item.BestLap) }}</TableCell>
               <TableCell>{{ item.VehicleModel }}</TableCell>
               <TableCell>{{ item.CarClass }}</TableCell>
@@ -77,6 +79,8 @@ import TableHead from "@/components/ui/table/TableHead.vue";
 import TableCell from "@/components/ui/table/TableCell.vue";
 import { mockRacingResults } from "@/mocking/testState";
 import InfoHeader from "./InfoHeader.vue";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
 const allResults: Ref<TrackResult[] | undefined> = ref(undefined);
 
@@ -84,13 +88,14 @@ export type TrackResultWithTitle = TrackResult & {
   title: string;
 };
 
+dayjs.extend(relativeTime)
+
 const resultsWithTitle = computed(() => {
   const results = allResults.value?.map((trackResult) => {
     const mappedResult = trackResult as TrackResultWithTitle;
-    const date = new Date(trackResult.timestamp);
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const timeStr = `${hours}:${minutes}`;
+    const date = dayjs(new Date(trackResult.timestamp));
+    const timeStr = date.fromNow();
+
     mappedResult.title = `${trackResult.raceName} (${timeStr})`;
     return mappedResult;
   });
@@ -102,8 +107,13 @@ const selectedRace: Ref<TrackResultWithTitle | undefined> = ref(undefined);
 const racerResultsSorted = computed(() => {
   if (!selectedRace.value) return undefined;
   const raceResults = JSON.parse(selectedRace.value.results) as Result[];
-  return raceResults.sort((res1, res2) =>
-    res1.TotalTime < res2.TotalTime ? -1 : 1
+  return raceResults.sort((res1, res2) => {
+    if (selectedRace.value?.drift) {
+      return (res2.DriftScore ?? 0) - (res1.DriftScore ?? 0);
+    }
+    return res1.TotalTime < res2.TotalTime ? -1 : 1
+  }
+    
   );
 });
 

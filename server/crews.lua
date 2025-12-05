@@ -166,7 +166,7 @@ local function acceptInvite(racerName, invitedCitizenId)
             if useDebug then print('notifying inviter ', ActiveInvites[invitedCitizenId].invitedBySource) end
             TriggerClientEvent('cw-racingapp:client:notify', ActiveInvites[invitedCitizenId].invitedBySource,
                 Lang("crew_invite_accepted"), 'success')
-                changeRacerCrew(currentSrc,  racerName, crewName )
+                changeRacerCrew(currentSrc,  racerName, crewName)
         end
         ActiveInvites[invitedCitizenId] = nil -- Remove the invite after accepting
         return true
@@ -341,6 +341,7 @@ RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberN
     end
     if canLeaveCrew then
         changeRacerCrew(source,memberName, nil)
+        Wait(500)
         return leaveRacingCrew(citizenId, crewName)
     else
         if useDebug then print("Error: Member cannot leave the crew") end
@@ -350,6 +351,7 @@ RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberN
 end)
 
 RegisterServerCallback('cw-racingapp:server:kickMemberFromCrew', function(source, memberName, citizenId, crewName)
+    if useDebug then print('member', memberName, 'is being kicked from', crewName) end
     local userCurrentSource = getSrcOfPlayerByCitizenId(citizenId)
     if not RacingCrews[crewName] then
         if useDebug then print('The racing crew did not exist') end
@@ -360,10 +362,18 @@ RegisterServerCallback('cw-racingapp:server:kickMemberFromCrew', function(source
 
     if isFounder then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
+        return false
     end
     if canLeaveCrew then
+        if useDebug then print('Player can leave crew') end
         changeRacerCrew(userCurrentSource, memberName, nil)
-        return leaveRacingCrew(citizenId, crewName)
+        Wait(500)
+        local leaveRes = leaveRacingCrew(citizenId, crewName)
+        if useDebug then print('Leave Res:', leaveRes) end
+        if leaveRes and userCurrentSource then
+            TriggerClientEvent('cw-racingapp:client:setCurrentRacingCrew', userCurrentSource, nil)
+        end
+        return leaveRes
     else
         if useDebug then print("Error: Member cannot leave the crew") end
         changeRacerCrew(userCurrentSource,memberName, nil)

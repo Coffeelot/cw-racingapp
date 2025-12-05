@@ -43,6 +43,7 @@ export function randomRaceResult(): any {
     BestLap: Math.floor(Math.random() * 30000) + 10000,
     Ranking: Math.floor(Math.random() * 500) + 1,
     VehicleModel: randomVehicle(),
+    DriftScore: Math.floor(Math.random() * 100000),
   };
 }
 export const mockRandomRaceResults = Array.from({ length: 100 }, randomRaceResult);

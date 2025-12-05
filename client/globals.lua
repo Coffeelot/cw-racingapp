@@ -37,4 +37,5 @@ CurrentRaceData = {
     Lap = 0,
     Position = 0,
     Ghosted = false,
+    Drift = false,
 }

@@ -115,6 +115,10 @@
           color="primary"
           v-model="settings.description"
         />
+        <div class="flex items-center gap-4 mb-3">
+          <Switch id="no-drift-switch" v-model="settings.noDrift" class="mt-2" />
+          <label class="font-medium cursor-pointer" for="no-drift-switch">{{ translate('disallow_drift') }}</label>
+        </div>
         <Select v-model="settings.raceType" class="mt-2">
           <SelectTrigger>
             <SelectValue :placeholder="translate('race_type')" />
@@ -231,6 +235,7 @@ import TableRow from "@/components/ui/table/TableRow.vue";
 import TrackIcon from "@/assets/icons/TrackIcon.vue";
 import copy from 'copy-to-clipboard';
 import { toast } from "vue-sonner";
+import Switch from "@/components/ui/switch/Switch.vue";
 
 const trackTypes = [
   { value: 'any', label: translate('any') },
@@ -306,6 +311,7 @@ const handleRemoveRecord = async () => {
 const settings: Ref<TrackMetadata> = ref({
   description: undefined,
   raceType: undefined,
+  noDrift: undefined,
 });
 const deleteDialog = ref(false);
 const access: any = ref(undefined);
@@ -402,5 +408,9 @@ const showRace = async () => {
 }
 .text-area {
   min-width: 30em;
+}
+
+label {
+  margin-top: 8px;
 }
 </style>

@@ -1,11 +1,49 @@
 <template>
   <div id="DashboardPage" class="page-container">
-    <InfoHeader
-      :title="translate('dashboard_page')"
-      :subtitle="translate('dashboard_page_subtitle')"
-    />
+    <div class="flex gap-4 justify-between items-center">
+      <InfoHeader
+        :title="translate('dashboard_page')"
+        :subtitle="translate('welcome', globalStore.baseData?.data?.currentRacerName || '')"
+      >
+      </InfoHeader>
+      <div class="flex flex-col">
+        <Badge variant="secondary" class="w-full mb-2" v-if="globalStore.baseData?.data?.currentCrewName">
+          <CrewIcon />
+          {{ globalStore.baseData?.data?.currentCrewName || translate('no_crew') }}
+        </Badge>
+        <span class="flex items-center gap-1 mb-2">
+          <Badge v-if="globalStore.baseData?.data?.currentRacerAuth" variant="outline">
+            <UserSpecificIcon />
+            {{ translate("auth_type_" + globalStore.baseData?.data?.currentRacerAuth) }}
+          </Badge>
+          <Badge
+            v-if="globalStore.baseData?.data?.currentVehicle?.model && globalStore.baseData?.data?.currentVehicle?.class"
+            variant="outline"
+          >
+            <CarIcon />
+            {{ globalStore.baseData?.data?.currentVehicle?.model }}
+            [{{ globalStore.baseData?.data?.currentVehicle?.class }}]
+          </Badge>
+        </span>
+        <div class="flex flex-col md:flex-row gap-2 mb-4 max-w-40">
+          <CryptoDialog
+            v-if="
+              globalStore.baseData.data.currentRacerName &&
+              !!globalStore.baseData?.data?.isUsingRacingCrypto
+            "
+          ></CryptoDialog>
+        </div>
+      </div>
+    </div>
+
     <h3 class="font-semibold mb-2">{{ translate('quick_actions') }}</h3>
     <div class="mt-4 flex flex-row gap-2 mb-2">
+      <Button
+        class="btn btn-primary"
+        @click="toggleCasualDrifting()"
+      >
+        {{ translate('toggle_casual_drifting') }}
+      </Button>
       <Button
         class="btn btn-primary"
         @click="goToRacing('current')"
@@ -59,6 +97,12 @@ import { Button } from "@/components/ui/button";
 import TopRacerList from "../components/TopRacerList.vue";
 import { mockTopRacerStats, mockTrackRaceStatsForWeek } from "@/mocking/mockHelpers";
 import InfoText from "../components/InfoText.vue";
+import { closeApp } from "@/helpers/closeApp";
+import Badge from "@/components/ui/badge/Badge.vue";
+import UserSpecificIcon from "../components/UserSpecificIcon.vue";
+import { CarIcon } from "lucide-vue-next";
+import CryptoDialog from "../components/dialogs/CryptoDialog.vue";
+import CrewIcon from "@/assets/icons/CrewIcon.vue";
 
 const globalStore = useGlobalStore();
 const trackStats = ref<TrackRaceStats[]>([]);
@@ -81,6 +125,11 @@ const getDashboardData = async () => {
 const goToRacing = (tab: string) => {
   globalStore.currentTab.racing = tab;
   globalStore.$state.currentPage = 'racing';
+}
+
+const toggleCasualDrifting = () => {
+  api.post('UiToggleCasualDrift');
+  closeApp()
 }
 
 onMounted(() => {

@@ -19,6 +19,11 @@ function RegisterServerCallback(name, cb)
     serverCallbacks[name] = cb
 end
 
+function NotifyHandler(src, message, messageType)
+    messageType = messageType or 'primary'
+TriggerClientEvent('cw-racingapp:client:notify', src, message, messageType)
+end
+
 --------------
 -- COMMANDS --
 --------------
@@ -59,4 +64,20 @@ function DeepCopy(original)
         copy = original
     end
     return copy
+end
+
+function DebugLog(message, message2, message3, message4)
+    if Config.Debug then
+        print('^2CW-RACINGAPP DEBUG:^0')
+        print(message)
+        if message2 then
+            print(message2)
+        end
+        if message3 then
+            print(message3)
+        end
+        if message4 then
+            print(message4)
+        end
+    end
 end

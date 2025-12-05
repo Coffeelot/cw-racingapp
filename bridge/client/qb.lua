@@ -5,7 +5,7 @@ if Config.Debug then print('Using QB bridge') end
 local QBCore = exports['qb-core']:GetCoreObject()
 
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
-    initialSetup()
+    InitialRacingAppSetup()
 end)
 
 function getPlayerJobName()

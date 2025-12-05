@@ -16,9 +16,10 @@ import {
   onUnmounted,
 } from "vue";
 import { useGlobalStore } from "./store/global";
-import { activeRaceMock, testState } from "./mocking/testState";
+import { activeRaceMock, driftInfoMocked, testState } from "./mocking/testState";
 import api from "./api/axios";
 import { raceTestState } from "./store/inRaceTest";
+import { DriftInfo } from './store/types';
 const globalStore = useGlobalStore();
 
 const toggleApp = (show: boolean): void => {
@@ -69,6 +70,19 @@ const handleHead2HeadUpdate = (data: any) => {
   globalStore.head2headData = data
 }
 
+const handleDriftUpdate = (data: any) => {
+  if (data.action === 'update') {
+    const driftData = data.info as DriftInfo
+    globalStore.driftData = driftData
+  } else {
+    globalStore.showDriftHud = data.showDriftHud
+  }
+}
+
+const handleDriftCountdown = (data: any) => {
+  globalStore.countdown = data?.seconds || 0
+}
+
 const handleMessageListener = (event: MessageEvent) => {
   const itemData: any = event?.data;
   if (itemData?.type) {
@@ -78,6 +92,9 @@ const handleMessageListener = (event: MessageEvent) => {
         break;
       case 'creator':
         handleCreator(itemData)
+        break;
+      case 'drift':
+        handleDriftUpdate(itemData)
         break;
       case 'toggleApp':
         toggleApp(itemData.open)
@@ -93,6 +110,9 @@ const handleMessageListener = (event: MessageEvent) => {
         break;
       case 'head2head':
         handleHead2HeadUpdate(itemData.data)
+      case 'drift_countdown':
+        handleDriftCountdown(itemData.data)
+        break;
       default:
         break;
     }
@@ -134,6 +154,52 @@ onMounted(() => {
     };
     globalStore.$state.activeHudData.InCreator = true;
   }
+  if (import.meta.env.VITE_MOCK_DRIFT === 'true') {
+    globalStore.driftData = driftInfoMocked
+    globalStore.showDriftHud = true
+    
+     window.setInterval(() => {
+      const cur = (globalStore.driftData ?? {
+        latestDriftScore: 0,
+        score: 0,
+        multiplier: 1,
+        isDrifting: true,
+        driftAngle: 0,
+        scoringIsPaused: false,
+        multiplierPercent: 20,
+      }) as DriftInfo;
+
+      if (cur.scoringIsPaused) return;
+
+      // incremental delta, random for some variation
+      const delta = Math.floor(Math.random() * 200) + 10; // 10..209
+      let newScore = (cur.score || 0) + delta;
+      let latest = delta;
+
+      if (newScore > 9000) {
+        newScore = 0
+        latest = 0
+      }
+
+      // simple multiplier heuristic based on score (1..6)
+      const newMultiplier = Math.min(10, Math.floor(Math.random()*10));
+
+      // small random angle
+      const newAngle = Math.floor(Math.random() * 80) - 40; // -40..39
+      const newPercentage= Math.floor(Math.min(Math.random()*100, 100))
+
+      globalStore.driftData = {
+        ...cur,
+        latestDriftScore: latest,
+        score: newScore,
+        multiplier: newMultiplier,
+        isDrifting: true,
+        driftAngle: newAngle,
+        multiplierPercent: newPercentage
+      };
+    }, 2000);
+  }
+
   window.addEventListener("message", handleMessageListener);
 });
 

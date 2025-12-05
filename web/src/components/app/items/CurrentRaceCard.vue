@@ -2,34 +2,37 @@
   <Card class="rounded-xl border">
     <CardHeader>
       <CardTitle>{{ race.trackName }}</CardTitle>
+      <CardDescription>
+       {{ translate('hosted_by') }} {{ race.hostName }}
+      </CardDescription>
     </CardHeader>
     <CardContent class="inline standardGap flex flex-wrap gap-2">
       <Badge v-if="race.ranked" class="bg-orange-500 text-white flex items-center gap-1">
-        <i class="mdi mdi-podium-gold"></i>
+        <RankedIcon />
         {{ translate('ranked') }}
       </Badge>
       <Badge class="flex items-center gap-1">
-        <i class="mdi mdi-go-kart-track"></i>
+        <TrackIcon />
         {{ lapsText }}
       </Badge>
-      <Badge class="flex items-center gap-1">
-        <i class="mdi mdi-account-group"></i>
-        {{ translate('racers') }} {{ race.racers }}
+      <Badge v-if="props.race.drift" variant="outline" class="flex items-center gap-1">
+        <DriftIcon />
+        {{ translate("drift_race") }}
       </Badge>
-      <Badge class="flex items-center gap-1">
-        <i class="mdi mdi-ghost"></i>
+      <Badge variant="outline" class="flex items-center gap-1">
+        <UsersIcon />
+         {{ race.racers }} {{ translate('racers') }}
+      </Badge>
+      <Badge variant="outline" class="flex items-center gap-1">
+        <GhostIcon />
         {{ translate('ghosting') }} : {{ race.ghosting ? translate('on') : translate('off') }}
       </Badge>
-      <Badge class="flex items-center gap-1">
-        <i class="mdi mdi-car-info"></i>
+      <Badge variant="outline" class="flex items-center gap-1">
+        <InfoIcon />
         {{ translate('max_class') }} : {{ race.class }}
       </Badge>
-      <Badge class="flex items-center gap-1">
-        <i class="mdi mdi-account-star"></i>
-        {{ translate('hosted_by') }} {{ race.hostName }}
-      </Badge>
-      <Badge v-if="race.reversed" class="flex items-center gap-1">
-        <i class="mdi mdi-backup-restore"></i>
+      <Badge v-if="race.reversed" variant="outline" class="flex items-center gap-1">
+        <RotateCcw />
         {{ translate('reversed') }}
       </Badge>
     </CardContent>
@@ -86,6 +89,12 @@ import api from "@/api/axios";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import RankedIcon from "@/assets/icons/RankedIcon.vue";
+import GhostIcon from "@/assets/icons/GhostIcon.vue";
+import { InfoIcon, RotateCcw, Users, UsersIcon } from "lucide-vue-next";
+import DriftIcon from "@/assets/icons/DriftIcon.vue";
+import TrackIcon from "@/assets/icons/TrackIcon.vue";
+import CardDescription from "@/components/ui/card/CardDescription.vue";
 const globalStore = useGlobalStore();
 
 const props = defineProps<{
