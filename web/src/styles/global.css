@@ -144,3 +144,18 @@ body {
 .clickable {
   cursor: pointer;
 }
+
+.quick-slide-enter-active,
+.quick-slide-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.quick-slide-enter-from,
+.quick-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.quick-slide-enter-to,
+.quick-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
