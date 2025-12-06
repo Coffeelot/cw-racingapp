@@ -10,6 +10,7 @@
       />
     </div>
     <div class="pagecontent">
+      <Transition name="quick-slide" mode="out-in">
       <div class="tracks-flex" v-if="filtereredTracks && filtereredTracks.length > 0">
         <MyTrackCard
           v-for="track in filtereredTracks"
@@ -19,15 +20,20 @@
         />
       </div>
       <InfoText :title="translate('no_data')" v-else />
-      <h3 class="header-text mt-3">{{ translate('tracks') }}</h3>
-      <div class="tracks-flex" v-if="globalStore.baseData.data.auth.controlAll">
-        <MyTrackCard
-          v-for="track in filteredAllTracks"
-          :key="track.TrackId"
-          @update="getMyTracks"
-          :track="track"
-        />
+      </Transition>
+      <Transition name="quick-slide" mode="out-in">
+        <div v-if="globalStore.baseData.data.auth.controlAll">
+        <h3 class="header-text mt-3">{{ translate('all_tracks') }}</h3>
+        <div class="tracks-flex">
+          <MyTrackCard
+            v-for="track in filteredAllTracks"
+            :key="track.TrackId"
+            @update="getMyTracks"
+            :track="track"
+          />
+        </div>
       </div>
+      </Transition>
     </div>
   </div>
 </template>

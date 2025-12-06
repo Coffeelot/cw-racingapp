@@ -10,6 +10,7 @@
       />
     </div>
     <div class="flex pagecontent">
+    <Transition name="quick-slide" mode="out-in">
       <div class="item-flex-container" v-if="filteredRacers && filteredRacers.length > 0">
         <MyRacerCard
           v-for="racer in filteredRacers"
@@ -18,7 +19,8 @@
           :racer="racer"
         />
       </div>
-    </div>
+    </Transition>
+  </div>
   </div>
 </template>
 

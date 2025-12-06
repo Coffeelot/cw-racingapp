@@ -9,7 +9,8 @@
         </TabsList>
       <Head2HeadInviteMenu v-if="globalStore.baseData.data.showH2H" />
     </div>
-    <TabsContent value="current">
+    <Transition name="quick-slide" mode="out-in">
+    <TabsContent value="current" v-if="tab === 'current'">
       <div class="current-race-container">
         <div id="current-race-selection" v-if="currentRace">
           <div class="mb-1" id="subheader">
@@ -83,6 +84,7 @@
         />
       </div>
     </TabsContent>
+    </Transition>
     </Tabs>
 </template>
 

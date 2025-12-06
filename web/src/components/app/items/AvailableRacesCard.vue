@@ -8,12 +8,15 @@
           <span>{{ props.race.TrackData.RaceName }}</span>
           <Badge variant="outline" class="flex items-center gap-1">
             <ClockIcon />
-            {{
-              props.race.Automated
-                ? translate("starts_in")
-                : `${translate("expires")}:`
-            }}
-            {{ minutes }}:{{ seconds }}
+            <span v-if="hasExpired">{{ translate("joining_expired") }}</span>
+            <span v-else>
+              {{
+                props.race.Automated
+                  ? translate("starts_in")
+                  : `${translate("expires")}:`
+              }}
+              {{ minutes }}:{{ seconds }}
+            </span>
           </Badge>
         </div>
         <CardDescription>

@@ -17,18 +17,20 @@
           ></Switch>
         </div>
       </div>
-      <TabsContent value="results">
-        <RaceResults />
-      </TabsContent>
-      <TabsContent value="crewRank">
-        <CrewTable />
-      </TabsContent>
-      <TabsContent value="racerRank">
-        <RacersTable />
-      </TabsContent>
-      <TabsContent value="records">
-        <RaceRecords />
-      </TabsContent>
+      <Transition name="quick-slide" mode="out-in">
+        <TabsContent value="results" v-if="globalStore.currentTab.results == 'results'">
+          <RaceResults />
+        </TabsContent>
+        <TabsContent value="crewRank" v-if="globalStore.currentTab.results == 'crewRank'">
+          <CrewTable />
+        </TabsContent>
+        <TabsContent value="racerRank" v-if="globalStore.currentTab.results == 'racerRank'">
+          <RacersTable />
+        </TabsContent>
+        <TabsContent value="records" v-if="globalStore.currentTab.results == 'records'">
+          <RaceRecords />
+        </TabsContent>
+      </Transition>
     </Tabs>
   </div>
 </template>

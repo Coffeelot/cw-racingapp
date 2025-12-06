@@ -1,13 +1,13 @@
 <template>
   <div id="DashboardPage" class="page-container">
-    <div class="flex gap-4 justify-between items-center">
+    <div class="flex gap-4 justify-between">
       <InfoHeader
         :title="translate('dashboard_page')"
         :subtitle="translate('welcome', globalStore.baseData?.data?.currentRacerName || '')"
       >
       </InfoHeader>
       <div class="flex flex-col">
-        <Badge variant="secondary" class="w-full mb-2" v-if="globalStore.baseData?.data?.currentCrewName">
+        <Badge variant="outline" class="w-full mb-2" v-if="globalStore.baseData?.data?.currentCrewName">
           <CrewIcon />
           {{ globalStore.baseData?.data?.currentCrewName || translate('no_crew') }}
         </Badge>
@@ -64,20 +64,22 @@
       </Button>
     </div>
     <div class="pagecontent dashboard-content">
-      <div class="graphs-container" v-if="trackStats && trackStats.length > 0">
-        <div class="item-flex-container graphs-row">
-          <MostUsedTrackGraph :trackStats="trackStats" />
-          <RankedGraph :trackStats="trackStats" />
-          <ClassGraph :trackStats="trackStats" />
+      <Transition name="quick-slide" mode="out-in">
+        <div class="graphs-container" v-if="trackStats && trackStats.length > 0">
+          <div class="item-flex-container graphs-row">
+            <MostUsedTrackGraph :trackStats="trackStats" />
+            <RankedGraph :trackStats="trackStats" />
+            <ClassGraph :trackStats="trackStats" />
+          </div>
+          <div class="item-flex-container">
+            <TimesGraph :trackStats="trackStats" />
+          </div>
         </div>
-        <div class="item-flex-container">
-          <TimesGraph :trackStats="trackStats" />
+        <InfoText v-else :title="translate('no_track_stats')" :text="translate('no_track_stats_description')" />
+      </Transition>
+        <div v-if="topRacerStats" class="top-racer-list flex ml-4">
+          <TopRacerList :topRacerStats="topRacerStats" />
         </div>
-      </div>
-      <InfoText v-else :title="translate('no_track_stats')" :text="translate('no_track_stats_description')" />
-      <div v-if="topRacerStats" class="top-racer-list flex ml-4">
-        <TopRacerList :topRacerStats="topRacerStats" />
-      </div>
     </div>
   </div>
 </template>

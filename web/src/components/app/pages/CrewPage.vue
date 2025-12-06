@@ -12,61 +12,63 @@
       </CrewInvitesPopover>
     </div>
 
-    <div v-if="myCrew" class="pagecontent">
-      <InfoHeader :title="myCrew.crewName">
-        <Badge variant="outline"
-            >{{ translate("rank") }}: {{ myCrew.rank }}</Badge
-          >
+    <Transition name="quick-slide" mode="out-in">
+      <div v-if="myCrew" class="pagecontent">
+        <InfoHeader :title="myCrew.crewName">
           <Badge variant="outline"
-            >{{ translate("races") }}: {{ myCrew.races }}</Badge
-          >
-          <Badge variant="outline"
-            >{{ translate("wins") }}: {{ myCrew.wins }}</Badge
-          >
-          <template #actions>
-            <DropdownMenu  >
-              <DropdownMenuTrigger as-child class="dark">
-                <Button variant="ghost" class="ml-2"
-                  ><EllipsisVertical />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent class="dark" align="end" >
-                <DropdownMenuItem
-                  v-if="isFounder"
-                  @click="disbandDialog = true"
-                >
-                  {{ translate("disband_crew") }}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  v-if="!isFounder"
-                  @click="leaveCrewDialog = true"
-                >
-                  {{ translate("leave_current_crew") }}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </template>
-      </InfoHeader>
+              >{{ translate("rank") }}: {{ myCrew.rank }}</Badge
+            >
+            <Badge variant="outline"
+              >{{ translate("races") }}: {{ myCrew.races }}</Badge
+            >
+            <Badge variant="outline"
+              >{{ translate("wins") }}: {{ myCrew.wins }}</Badge
+            >
+            <template #actions>
+              <DropdownMenu  >
+                <DropdownMenuTrigger as-child class="dark">
+                  <Button variant="ghost" class="ml-2"
+                    ><EllipsisVertical />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent class="dark" align="end" >
+                  <DropdownMenuItem
+                    v-if="isFounder"
+                    @click="disbandDialog = true"
+                  >
+                    {{ translate("disband_crew") }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    v-if="!isFounder"
+                    @click="leaveCrewDialog = true"
+                  >
+                    {{ translate("leave_current_crew") }}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </template>
+        </InfoHeader>
 
-      <div class="subheader inline mt-1">
-        <h3 class="header-text">{{ translate("  ") }}</h3>
+        <div class="subheader inline mt-1">
+          <h3 class="header-text">{{ translate("  ") }}</h3>
+        </div>
+        <div
+          class="item-flex-container"
+          v-if="myCrew?.members && myCrew?.members?.length > 0"
+        >
+          <MyCrewMemberCard
+            v-for="member in myCrew.members"
+            :isFounder="isFounder"
+            :memberIsFounder="member.racername === myCrew.founderName"
+            @triggerReload="refreshCrew"
+            :member="member"
+            :key="member.citizenID"
+          />
+        </div>
+        <InfoText v-else :title="translate('no_members_in_crew')" />
       </div>
-      <div
-        class="item-flex-container"
-        v-if="myCrew?.members && myCrew?.members?.length > 0"
-      >
-        <MyCrewMemberCard
-          v-for="member in myCrew.members"
-          :isFounder="isFounder"
-          :memberIsFounder="member.racername === myCrew.founderName"
-          @triggerReload="refreshCrew"
-          :member="member"
-          :key="member.citizenID"
-        />
-      </div>
-      <InfoText v-else :title="translate('no_members_in_crew')" />
-    </div>
-    <InfoText v-else :title="translate('not_in_crew')" />
+      <InfoText v-else class="mt-10" :title="translate('not_in_crew')" :text="translate('not_in_crew_subtitle')" />
+    </Transition>
     </div>
 
   <!-- Disband Dialog -->
