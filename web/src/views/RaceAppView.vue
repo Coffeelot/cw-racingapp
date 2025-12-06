@@ -12,14 +12,14 @@
                 class="tabs-container"
                 v-if="!hasProblem"
               >
-                <DashboardPage v-if="globalStore.currentPage === 'dashboard'" />
-                <RacingPage v-if="globalStore.currentPage === 'racing'" />
-                <ResultsPage v-if="globalStore.currentPage === 'results'" />
-                <MyTracksPage v-if="globalStore.currentPage === 'mytracks'" />
-                <RacersPage v-if="globalStore.currentPage === 'racers'" />
-                <CrewPage v-if="globalStore.currentPage === 'crew'" />
-                <SettingsPage v-if="globalStore.currentPage === 'settings'" />
-                <AdminMenu v-if="globalStore.currentPage === 'admin'" />
+                <DashboardPage v-if="globalStore.currentPage === 'dashboard'" key="dashboard" />
+                <RacingPage v-if="globalStore.currentPage === 'racing'" key="racing" />
+                <ResultsPage v-if="globalStore.currentPage === 'results'" key="results" />
+                <MyTracksPage v-if="globalStore.currentPage === 'mytracks'" key="mytracks" />
+                <RacersPage v-if="globalStore.currentPage === 'racers'" key="racers" />
+                <CrewPage v-if="globalStore.currentPage === 'crew'" key="crew" />
+                <SettingsPage v-if="globalStore.currentPage === 'settings'" key="settings" />
+                <AdminMenu v-if="globalStore.currentPage === 'admin'" key="admin" />
               </div>
               <div id="revoked-message-container" v-else>
                 <div class="revoked-message-holder">
@@ -285,4 +285,5 @@ h2 {
   height: 0;
   width: 0;
 }
+
 </style>
