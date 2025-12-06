@@ -2,14 +2,13 @@
   <Dialog >
     <DialogTrigger as-child>
       <Button
-        variant="outline"
-        class="w-full flex items-center justify-start sidebar-btn"
+        color="primary"
+        class="w-full flex items-center justify-start"
       >
       <CoinsIcon />
         {{ globalStore.baseData.data.currentCrypto }}
         {{ globalStore.baseData.data.cryptoType }}
       </Button>
-
     </DialogTrigger>
     <DialogContent class="dark text-foreground z-3000">
       <DialogHeader >
