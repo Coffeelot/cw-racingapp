@@ -510,6 +510,16 @@ RacingApp is built in VUE, this means you can't just edit the files directly. Th
 * [cw-performance](https://github.com/Coffeelot/cw-performance)
 * [ox lib](https://github.com/overextended/ox_lib)
 
+# Updating?
+
+## 5.1 Drift update
+New column added, run this in your db to update:
+```sql
+ALTER TABLE racing_races 
+ADD COLUMN IF NOT EXISTS drift BOOLEAN NOT NULL DEFAULT FALSE;
+```
+
+
 # Uninstalling or full reset
 ## /removeallracetracks
 Drops the `race_tracks` table. Use this if you're uninstalling (warning: all tracks and records will be gone)
