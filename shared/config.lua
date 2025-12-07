@@ -2,7 +2,7 @@ Config = Config or {}
 Config.Debug = GetConvarInt('racingapp_debug', 0) == 1
 Config.EnableCommands = false
 
-Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
+Config.Locale = TranslationsES -- This must match one of the variables in your locales/x.lua
 Lang = function(phrase)
     if not Config.Locale then print("^1YOU MESSED UP THE TRANSLATION IMPORT") end
     return Config.Locale[phrase] or phrase
