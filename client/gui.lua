@@ -674,8 +674,8 @@ RegisterNUICallback('UiQuickHost', function(track, cb)
     end
     setupData.trackId = track.TrackId
     if track.Metadata then
-        DebugLog('Track metadata', json.encode(track.Metadata, { indent = true }))
-        if track.Metadata.raceType == 'sprint_only' then
+        DebugLog('Track has metadata', json.encode(track.Metadata, { indent = true }))
+        if track.Metadata.raceType == 'sprint' or track.Metadata.raceType == 'sprint_only' then
             setupData.laps = 0
         end
     end
