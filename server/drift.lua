@@ -71,7 +71,7 @@ RegisterNetEvent('cw-racingapp:server:updateRacerDataDrift', function(raceId, ch
     end
 
     -- keep server reset timer alive if used
-    if Config and ConfigDrift?.useResetTimer and raceId then
+    if Config.UseResetTimer and raceId then
         if Timers then Timers[raceId] = GetGameTimer() end
     end
 end)

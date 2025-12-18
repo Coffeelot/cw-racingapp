@@ -8,5 +8,4 @@ ConfigDrift = {
         penaltyPercentage = 0.5, -- (0.0-1.0 where 1.0 is 100% of current score) Should be used as alternative, or together with the above. Will reduce total score by a percentage instead.
         stackPenalties = true -- whether penalties should stack for multiple intervals exceeded
     },
-    useResetTimer= false -- whether to keep drifting reset timer alive when updating racer data
 }
