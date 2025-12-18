@@ -1,5 +1,6 @@
 TranslationsEN = {
         accept = "Accept",
+        default_controls = "Default Controls",
         all_tracks = "All Tracks",
         access_for = "access for",
         access_list = "Access List",

@@ -1,6 +1,6 @@
 <template>
   <div class="hud-view">
-    <EditorHud v-if="globalStore.creatorData && globalStore.activeHudData.InCreator" />
+    <EditorHud  v-if="!!globalStore.creatorData && globalStore.activeHudData.InCreator" />
     <RaceHud v-if="globalStore.activeRace && globalStore.activeHudData.InRace" />
     <DriftHud v-if="globalStore.showDriftHud" />
     <CountdownHud v-if="globalStore.countdown > -1" :countdownNumber="globalStore.countdown" />
@@ -20,5 +20,6 @@ const globalStore = useGlobalStore();
 <style scoped>
 .hud-view {
   position: absolute;
+  width: 100vw;
 }
 </style>

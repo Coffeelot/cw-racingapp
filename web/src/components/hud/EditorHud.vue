@@ -25,6 +25,7 @@
           >
         </div>
         <div class="box editor-holder buttons">
+          {{ translate("default_controls") }} :
           <span class="editor-text" id="editor-keys-add"
             ><span id="editor-keys-add-button" style="color: rgb(0, 201, 0)">{{
               globalStore.buttons.AddCheckpoint
