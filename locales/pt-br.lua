@@ -1,4 +1,4 @@
-TranslationsPT-BR = {
+TranslationsPTBR = {
         accept = "Aceitar",
         access_for = "acesso para",
         access_list = "Lista de Acesso",
