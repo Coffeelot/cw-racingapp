@@ -12,7 +12,7 @@ ui_page {
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'locales/en.lua',
+    'locales/*.lua',
     'shared/config.lua',
     'shared/drift.lua',
     'shared/elo.lua',
