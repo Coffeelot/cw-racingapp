@@ -35,7 +35,10 @@
 
 > 5.0 was released on 27th Aug, 2025. It's HIGHLY encouraged to do a clean install for this version.
 
+> On translations: Only English is maintaned by devs. Other languages might be included, but not updated.
+
 > Do note, this script has TWO systems for participation money. Make sure to check the readme and read the comments regarding these and how to use them.
+
 
 # Links
 ### ⭐ Check out our [Tebex store](https://cw-scripts.tebex.io/category/2523396) for some cheap scripts ⭐
