@@ -339,7 +339,9 @@ function CompleteRace(amountOfRacers, raceData)
             drift = raceData.Drift
         }
         
-        handleDriftPayouts(raceData.RaceId, raceData)
+        if raceData.Drift then
+            handleDriftPayouts(raceData.RaceId, raceData)
+        end
 
         RESDB.addRaceEntry(raceEntryData)
     end
