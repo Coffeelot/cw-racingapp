@@ -1,7 +1,11 @@
 if GetResourceState('qbx_core') ~= 'started' then return end
 
-exports.qbx_core:CreateUseableItem(Config.ItemName.gps, function(source, item)
-    openRacingApp(source)
+AddEventHandler('ox_inventory:usedItem', function(playerId, name, slotId, metadata)
+    if UseDebug then print('opening ui') end
+
+    if name == Config.ItemName.gps then
+        openRacingApp(playerId)
+    end
 end)
 
 -- Adds money to user
