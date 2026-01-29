@@ -11,6 +11,7 @@ local IsFirstUser = false
 
 local HostingIsAllowed = true
 local AutoHostIsAllowed = true
+local srcHasUserAccess
 
 local DefaultTrackMetadata = {
     description = nil,
@@ -533,11 +534,19 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
 RegisterNetEvent('cw-racingapp:server:createTrack', function(RaceName, RacerName, Checkpoints)
     local src = source
-    if UseDebug then print(src, RacerName, 'is creating a track named', RaceName) end
+    local citizenId = getCitizenId(src)
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    local activeRacerName = raceUser and raceUser.racername
+    if UseDebug then print(src, activeRacerName, 'is creating a track named', RaceName) end
 
-    if IsPermissioned(RacerName, 'create') then
+    if not activeRacerName then
+        NotifyHandler( src, Lang("error_no_user"), 'error')
+        return
+    end
+
+    if IsPermissioned(activeRacerName, 'create') then
         if IsNameAvailable(RaceName) then
-            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, RaceName, RacerName, nil, Checkpoints)
+            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, RaceName, activeRacerName, nil, Checkpoints)
         else
             NotifyHandler( src, Lang("race_name_exists"), 'error')
         end
@@ -1170,6 +1179,13 @@ end)
 RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
     local src = source
     local citizenId = getCitizenId(src)
+    if not srcHasUserAccess(src, 'create') then return end
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    local activeRacerName = raceUser and raceUser.racername
+    if not activeRacerName then
+        NotifyHandler( src, Lang("error_no_user"), 'error')
+        return
+    end
     local trackId
     if trackData.TrackId ~= nil then
         trackId = trackData.TrackId
@@ -1185,6 +1201,11 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
     end
 
     if trackData.IsEdit then
+        if not Tracks[trackId] then
+            NotifyHandler( src, Lang("race_doesnt_exist"), 'error')
+            return
+        end
+        if Tracks[trackId].Creator ~= citizenId and not srcHasUserAccess(src, 'curateTracks') then return end
         print('Saving over previous track', trackData.TrackId)
         RADB.setTrackCheckpoints(checkpoints, trackData.TrackId)
         Tracks[trackId].Checkpoints = checkpoints
@@ -1193,7 +1214,7 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
             RaceName = trackData.RaceName,
             Checkpoints = checkpoints,
             Creator = citizenId,
-            CreatorName = trackData.RacerName,
+            CreatorName = activeRacerName,
             TrackId = trackId,
             Started = false,
             Waiting = false,
@@ -1204,21 +1225,29 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
             LastLeaderboard = {},
             NumStarted = 0,
         }
+        trackData.RacerName = activeRacerName
         RADB.createTrack(trackData, checkpoints, citizenId, trackId)
     end
 end)
 
 RegisterNetEvent('cw-racingapp:server:deleteTrack', function(trackId)
+    local src = source
+    local citizenId = getCitizenId(src)
+    local track = Tracks[trackId]
+    if not track then return end
+    if track.Creator ~= citizenId and not srcHasUserAccess(src, 'curateTracks') then return end
     RADB.deleteTrack(trackId)
     Tracks[trackId] = nil
 end)
 
 RegisterNetEvent('cw-racingapp:server:removeRecord', function(record)
+    if not srcHasUserAccess(source, 'curateTracks') then return end
     if UseDebug then print('Removing record', json.encode(record, { indent = true })) end
     RESDB.removeTrackRecord(record.id)
 end)
 
 RegisterNetEvent('cw-racingapp:server:clearLeaderboard', function(trackId)
+    if not srcHasUserAccess(source, 'curateTracks') then return end
     RESDB.clearTrackRecords(trackId)
 end)
 
@@ -1406,6 +1435,10 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:setAccess', function(trackId, access)
     local src = source
+    local citizenId = getCitizenId(src)
+    local track = Tracks[trackId]
+    if not track then return end
+    if track.Creator ~= citizenId and not srcHasUserAccess(src, 'curateTracks') then return end
     if UseDebug then
         print('source ', src, 'has updated access for', trackId)
         print(json.encode(access))
@@ -1498,6 +1531,8 @@ RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(sou
 end)
 
 RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, trackId, curated)
+    if not srcHasUserAccess(source, 'curateTracks') then return false end
+    if not Tracks[trackId] then return false end
     local res = RADB.setCurationForTrack(curated, trackId)
     local status = 'curated'
     if curated == 0 then status = 'NOT curated' end
@@ -1567,6 +1602,14 @@ RegisterServerCallback('cw-racingapp:server:updateTrackMetadata', function(sourc
     if not trackId then
         return false
     end
+    local track = Tracks[trackId]
+    if not track then
+        return false
+    end
+    local citizenId = getCitizenId(source)
+    if track.Creator ~= citizenId and not srcHasUserAccess(source, 'curateTracks') then
+        return false
+    end
     if UseDebug then print('Updating track', trackId, ' metadata with:', json.encode(metadata, { indent = true })) end
     if RADB.updateTrackMetadata(trackId, metadata) then
         Tracks[trackId].Metadata = metadata
@@ -1576,6 +1619,7 @@ RegisterServerCallback('cw-racingapp:server:updateTrackMetadata', function(sourc
 end)
 
 RegisterNetEvent('cw-racingapp:server:removeRacerName', function(racerName)
+    if not srcHasUserAccess(source, 'controlAll') then return end
     if UseDebug then print('removing racer with name', racerName) end
     if UseDebug then print('removed by source', source, getCitizenId(source)) end
 
@@ -1613,18 +1657,23 @@ local function setRevokedRacerName(src, racerName, revoked)
 end
 
 RegisterNetEvent('cw-racingapp:server:setRevokedRacenameStatus', function(racername, revoked)
+    if not srcHasUserAccess(source, 'controlAll') then return end
     if UseDebug then print('revoking racename', racername, revoked) end
     setRevokedRacerName(source, racername, revoked)
 end)
 
 RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racerName, type, purchaseType, creatorName)
+    local targetSrc = tonumber(playerId)
+    if targetSrc and targetSrc ~= source then
+        if not srcHasUserAccess(source, 'controlAll') then return end
+    end
     if UseDebug then
         print(
             'Creating a user',
             json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType })
         )
     end
-    local citizenId = getCitizenId(tonumber(playerId))
+    local citizenId = getCitizenId(targetSrc)
     if citizenId then
         createRacingName(source, citizenId, racerName, type, purchaseType, playerId, creatorName)
     else
@@ -1686,7 +1735,7 @@ RegisterServerCallback('cw-racingapp:server:transferCrypto', function(source, ra
     return 'NOT_ENOUGH'
 end)
 
-local function srcHasUserAccess(src, access)
+srcHasUserAccess = function(src, access)
     local raceUser = RADB.getActiveRacerName(getCitizenId(src))
     if not raceUser then 
         NotifyHandler( src, Lang("error_no_user"), 'error')
