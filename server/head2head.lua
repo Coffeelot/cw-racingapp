@@ -123,6 +123,7 @@ RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(citizenId, racerNa
     if not activeRaces[raceId] then
         return
     end
+    citizenId = getCitizenId(source)
     if activeRaces[raceId].started then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("error.race_already_started"), "error")
     elseif activeRaces[raceId].amount > 0 then
