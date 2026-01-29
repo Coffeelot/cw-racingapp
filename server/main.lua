@@ -354,14 +354,17 @@ end
 RegisterNetEvent('cw-racingapp:server:finishPlayer',
     function(raceData, totalTime, totalLaps, bestLap, carClass, vehicleModel, ranking, racingCrew, driftScore)
         local src = source
+        if not raceData or not raceData.RaceId then return end
         local raceId = raceData.RaceId
+        local race = Races[raceId]
+        if not race then return end
         local availableKey = GetOpenedRaceKey(raceData.RaceId)
         local racerName = raceData.RacerName
         local playersFinished = 0
         local amountOfRacers = 0
-        local reversed = Races[raceData.RaceId].Reversed
+        local reversed = race.Reversed
 
-        local isDrift = Races[raceData.RaceId].Drift or false
+        local isDrift = race.Drift or false
 
         if UseDebug then
             print('^3=== Finishing Racer: ' .. racerName .. ' ===^0')
@@ -558,15 +561,19 @@ end
 
 RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local src = source
+    if not RaceData or not RaceData.RaceId then return end
     local playerVehicleEntity = RaceData.PlayerVehicleEntity
-    local raceName = RaceData.RaceName
     local raceId = RaceData.RaceId
-    local trackId = RaceData.TrackId
-    local availableKey = GetOpenedRaceKey(RaceData.RaceId)
+    local race = Races[raceId]
+    if not race then return end
+    local raceName = race.RaceName
+    local trackId = race.TrackId
+    local availableKey = GetOpenedRaceKey(raceId)
     local citizenId = getCitizenId(src)
     local currentRaceId = GetCurrentRace(citizenId)
     local racerName = RaceData.RacerName
     local racerCrew = RaceData.RacerCrew
+    local buyIn = race.BuyIn or 0
 
     if UseDebug then
         print('======= Joining Race =======')
@@ -578,8 +585,8 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
         print('Racer Crew:', racerCrew)
     end
 
-    if isToFarAway(src, trackId, RaceData.Reversed) then
-        if RaceData.Reversed then
+    if isToFarAway(src, trackId, race.Reversed) then
+        if race.Reversed then
             TriggerClientEvent('cw-racingapp:client:notCloseEnough', src,
                 Tracks[trackId].Checkpoints[#Tracks[trackId].Checkpoints].coords.x,
                 Tracks[trackId].Checkpoints[#Tracks[trackId].Checkpoints].coords.y)
@@ -589,12 +596,12 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
         end
         return
     end
-    if not Races[raceId].Started then
+    if not race.Started then
         if UseDebug then
-            print('Join: BUY IN', RaceData.BuyIn)
+            print('Join: BUY IN', buyIn)
         end
 
-        if RaceData.BuyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, RaceData.BuyIn, racerName) then
+        if buyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, buyIn, racerName) then
             NotifyHandler( src, Lang("not_enough_money"))
         else
             if currentRaceId ~= nil then
@@ -620,22 +627,22 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
             end
 
             local amountOfRacers = 0
-            for _, _ in pairs(Races[raceId].Racers) do
+            for _, _ in pairs(race.Racers) do
                 amountOfRacers = amountOfRacers + 1
             end
-            if amountOfRacers == 0 and not Races[raceId].Automated then
+            if amountOfRacers == 0 and not race.Automated then
                 if UseDebug then print('setting creator') end
-                Races[raceId].SetupCitizenId = citizenId
+                race.SetupCitizenId = citizenId
             end
-            Races[raceId].AmountOfRacers = amountOfRacers + 1
+            race.AmountOfRacers = amountOfRacers + 1
             if UseDebug then print('Current amount of racers in this race:', amountOfRacers) end
-            if RaceData.BuyIn > 0 then
-                if not handleRemoveMoney(src, Config.Payments.racing, RaceData.BuyIn, racerName) then
+            if buyIn > 0 then
+                if not handleRemoveMoney(src, Config.Payments.racing, buyIn, racerName) then
                     return
                 end
             end
 
-            Races[raceId].Racers[citizenId] = {
+            race.Racers[citizenId] = {
                 Checkpoint = 1,
                 Lap = 1,
                 Finished = false,
@@ -646,13 +653,13 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
                 RacerSource = src,
                 CheckpointTimes = {},
             }
-            AvailableRaces[availableKey].RaceData = Races[raceId]
-            TriggerClientEvent('cw-racingapp:client:joinRace', src, Races[raceId], Tracks[trackId].Checkpoints, RaceData.Laps, racerName)
-            for _, racer in pairs(Races[raceId].Racers) do
+            AvailableRaces[availableKey].RaceData = race
+            TriggerClientEvent('cw-racingapp:client:joinRace', src, race, Tracks[trackId].Checkpoints, RaceData.Laps, racerName)
+            for _, racer in pairs(race.Racers) do
                 TriggerClientEvent('cw-racingapp:client:updateActiveRacers', racer.RacerSource, raceId,
-                    Races[raceId].Racers)
+                    race.Racers)
             end
-            if not Races[raceId].Automated then
+            if not race.Automated then
                 local creatorsource = getSrcOfPlayerByCitizenId(AvailableRaces[availableKey].SetupCitizenId)
                 if creatorsource ~= src then
                     NotifyHandler( creatorsource, Lang("race_someone_joined"))
@@ -678,11 +685,11 @@ local function assignNewOrganizer(raceId, src)
 end
 
 local function leaveCurrentRace(src)
-    TriggerClientEvent('cw-racingapp:server:leaveCurrentRace', src)    
+    TriggerClientEvent('cw-racingapp:client:leaveCurrentRace', src)
 end exports('leaveCurrentRace', leaveCurrentRace)
 
-RegisterNetEvent('cw-racingapp:server:leaveCurrentRace', function(src)
-    leaveCurrentRace(src)
+RegisterNetEvent('cw-racingapp:server:leaveCurrentRace', function()
+    leaveCurrentRace(source)
 end)
 
 RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
@@ -1038,6 +1045,11 @@ if Config.AutomatedOptions and Config.AutomatedRaces then
 end
 
 RegisterNetEvent('cw-racingapp:server:updateRaceState', function(raceId, started, waiting)
+    if not raceId or not Races[raceId] then return end
+    local src = source
+    local citizenId = getCitizenId(src)
+    if not citizenId then return end
+    if Races[raceId].SetupCitizenId ~= citizenId then return end
     Races[raceId].Waiting = waiting
     Races[raceId].Started = started
 end)
@@ -1095,35 +1107,36 @@ end
 RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpoint, lap, finished, raceTime)
     local src = source
     local citizenId = getCitizenId(src)
-    if Races[raceId].Racers[citizenId] then
-        Races[raceId].Racers[citizenId].Checkpoint = checkpoint
-        Races[raceId].Racers[citizenId].Lap = lap
-        Races[raceId].Racers[citizenId].Finished = finished
-        Races[raceId].Racers[citizenId].RaceTime = raceTime
-
-        Races[raceId].Racers[citizenId].CheckpointTimes[#Races[raceId].Racers[citizenId].CheckpointTimes + 1] = {
-            lap =
-                lap,
-            checkpoint = checkpoint,
-            time = raceTime
-        }
-
-        for _, racer in pairs(Races[raceId].Racers) do
-            if GetPlayerName(racer.RacerSource) then 
-                TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, citizenId,
-                    Races[raceId].Racers[citizenId])
-            else
-                if UseDebug then 
-                    print('^1Could not find player with source^0', racer.RacerSource)
-                    print(json.encode(racer, {indent=true})) 
-                end
-            end
-        end
-    else
+    if not raceId or not Races[raceId] or not Races[raceId].Racers or not Races[raceId].Racers[citizenId] then
         -- Attemt to make sure script dont break if something goes wrong
         NotifyHandler( src, Lang("youre_not_in_the_race"), 'error')
-        TriggerClientEvent('cw-racingapp:client:leaveRace', -1, nil)
+        TriggerClientEvent('cw-racingapp:client:leaveRace', src, nil)
         leftRace(src)
+        return
+    end
+
+    Races[raceId].Racers[citizenId].Checkpoint = checkpoint
+    Races[raceId].Racers[citizenId].Lap = lap
+    Races[raceId].Racers[citizenId].Finished = finished
+    Races[raceId].Racers[citizenId].RaceTime = raceTime
+
+    Races[raceId].Racers[citizenId].CheckpointTimes[#Races[raceId].Racers[citizenId].CheckpointTimes + 1] = {
+        lap =
+            lap,
+        checkpoint = checkpoint,
+        time = raceTime
+    }
+
+    for _, racer in pairs(Races[raceId].Racers) do
+        if GetPlayerName(racer.RacerSource) then 
+            TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, citizenId,
+                Races[raceId].Racers[citizenId])
+        else
+            if UseDebug then 
+                print('^1Could not find player with source^0', racer.RacerSource)
+                print(json.encode(racer, {indent=true})) 
+            end
+        end
     end
     if Config.UseResetTimer then updateTimer(raceId) end
 end)
@@ -1512,6 +1525,19 @@ RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, track
     end
 end)
 
+local function resolvePurchaseType(purchaseType, userType)
+    if not purchaseType or not userType then return nil end
+    if Config.Trader and purchaseType.moneyType == Config.Trader.moneyType and purchaseType.racingUserCosts and
+        purchaseType.racingUserCosts[userType] == Config.Trader.racingUserCosts[userType] then
+        return Config.Trader
+    end
+    if Config.Laptop and purchaseType.moneyType == Config.Laptop.moneyType and purchaseType.racingUserCosts and
+        purchaseType.racingUserCosts[userType] == Config.Laptop.racingUserCosts[userType] then
+        return Config.Laptop
+    end
+    return nil
+end
+
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
     if UseDebug then
         print('Creating a racing user. Input:')
@@ -1521,15 +1547,17 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
         print('purchaseType', json.encode(purchaseType, { indent = true }))
     end
 
-    local cost = 1000
-    if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
-        cost = purchaseType.racingUserCosts[type]
-    else
+    local safePurchaseType = resolvePurchaseType(purchaseType, type)
+    if not safePurchaseType then
+        NotifyHandler( source, 'Invalid purchase type', 'error')
+        return false
+    end
+    local cost = safePurchaseType.racingUserCosts[type] or 1000
+    if not safePurchaseType.racingUserCosts[type] then
         NotifyHandler( source,
             'The user type you entered does not exist, defaulting to $1000', 'error')
     end
-
-    if not handleRemoveMoney(source, purchaseType.moneyType, cost, creatorName) then return false end
+    if not handleRemoveMoney(source, safePurchaseType.moneyType, cost, creatorName) then return false end
 
 
     local creatorCitizenId = 'unknown'
