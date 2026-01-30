@@ -67,7 +67,7 @@ local function getTrackRaceStats(datespanDays)
             stats.firstPersonCount = stats.firstPersonCount + (race.firstPerson  and 1 or 0)
             stats.automatedCount = stats.automatedCount + (race.automated  and 1 or 0)
             stats.silentCount = stats.silentCount + (race.silent and 1 or 0)
-            stats.driftCount = stats.driftCount + (race.drift and 1 or 0) 
+            stats.driftCount = stats.driftCount + (race.drift and 1 or 0)
             if race.maxClass and race.maxClass ~= "" then
                 maxClassCount[race.maxClass] = (maxClassCount[race.maxClass] or 0) + 1
             end
@@ -169,22 +169,14 @@ local function addRaceEntry(raceData)
     return MySQL.Sync.execute(query, params)
 end
 
--- Overwrite cleanupOldRaces to invalidate cache
-local function cleanupOldRaces(daysOld)
-    invalidateTrackRaceStatsCache()
-    invalidateTopRacerWinnersCache()
-    local query = "DELETE FROM racing_races WHERE timestamp < DATE_SUB(NOW(), INTERVAL ? DAY)"
-    return MySQL.Sync.execute(query, { daysOld })
-end
-
 -- Function to add/update track time (returns "PB" if new personal best)
 local function addTrackTime(timeData)
     -- First check if there's an existing record
     local existingQuery = [[
-        SELECT time, pbHistory FROM track_times 
+        SELECT time, pbHistory FROM track_times
         WHERE trackId = ? AND racerName = ? AND carClass = ? AND raceType = ? AND reversed = ?
     ]]
-    
+
     local existingParams = {
         StrictSanitize(timeData.trackId),
         StrictSanitize(timeData.racerName),
@@ -192,37 +184,37 @@ local function addTrackTime(timeData)
         StrictSanitize(timeData.raceType),
         timeData.reversed or false
     }
-    
+
     local existingRecord = MySQL.Sync.fetchAll(existingQuery, existingParams)
     local newTime = tonumber(timeData.time)
-    
+
     -- If no existing record or new time is better
     if not existingRecord or #existingRecord == 0 or newTime < tonumber(existingRecord[1].time) then
         local pbHistory = {}
-        
+
         -- Get existing PB history if it exists
         if existingRecord and #existingRecord > 0 and existingRecord[1].pbHistory then
             pbHistory = json.decode(existingRecord[1].pbHistory) or {}
         end
-        
+
         -- Add the new PB to history
         table.insert(pbHistory, newTime)
-        
+
         -- Delete existing record if it exists
         if existingRecord and #existingRecord > 0 then
             local deleteQuery = [[
-                DELETE FROM track_times 
+                DELETE FROM track_times
                 WHERE trackId = ? AND racerName = ? AND carClass = ? AND raceType = ? AND reversed = ?
             ]]
             MySQL.Sync.execute(deleteQuery, existingParams)
         end
-        
+
         -- Insert new record with updated PB history
         local insertQuery = [[
             INSERT INTO track_times (trackId, racerName, carClass, vehicleModel, raceType, time, reversed, pbHistory)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ]]
-        
+
         local insertParams = {
             StrictSanitize(timeData.trackId),
             StrictSanitize(timeData.racerName),
@@ -233,11 +225,11 @@ local function addTrackTime(timeData)
             timeData.reversed or false,
             json.encode(pbHistory)
         }
-        
+
         MySQL.Sync.execute(insertQuery, insertParams)
         return "PB"
     end
-    
+
     return nil -- No personal best
 end
 
@@ -256,46 +248,46 @@ end
 -- Function to get best times for a track (top 10)
 local function getBestTimesForTrack(trackId, raceType, carClass, reversed)
     local query = [[
-        SELECT * FROM track_times 
+        SELECT * FROM track_times
         WHERE trackId = ? AND raceType = ? AND carClass = ? AND reversed = ?
-        ORDER BY time DESC 
+        ORDER BY time DESC
         LIMIT 10
     ]]
-    
+
     local params = {
         StrictSanitize(trackId),
         StrictSanitize(raceType),
         StrictSanitize(carClass),
         reversed or 0
     }
-    
+
     return MySQL.Sync.fetchAll(query, params)
 end
 
 -- Function to get all best times for a track (all classes/types)
 local function getAllBestTimesForTrack(trackId)
     local query = [[
-        SELECT * FROM track_times 
+        SELECT * FROM track_times
         WHERE trackId = ?
         ORDER BY time ASC
     ]]
-    
+
     local params = {
         StrictSanitize(trackId),
     }
-    
+
     return MySQL.Sync.fetchAll(query, params)
 end
 
 -- Function to get best personal time for a racer by trackId
 local function getBestPersonalTime(racerName, trackId, carClass, raceType, reversed)
     local query = [[
-        SELECT * FROM track_times 
+        SELECT * FROM track_times
         WHERE racerName = ? AND trackId = ? AND carClass = ? AND raceType = ? AND reversed = ?
-        ORDER BY time ASC 
+        ORDER BY time ASC
         LIMIT 1
     ]]
-    
+
     local params = {
         StrictSanitize(racerName),
         StrictSanitize(trackId),
@@ -303,18 +295,18 @@ local function getBestPersonalTime(racerName, trackId, carClass, raceType, rever
         StrictSanitize(raceType),
         reversed or false
     }
-    
+
     return MySQL.Sync.fetchAll(query, params)
 end
 
 -- Function to get all personal times for a racer
 local function getAllPersonalTimes(racerName)
     local query = [[
-        SELECT * FROM track_times 
+        SELECT * FROM track_times
         WHERE racerName = ?
         ORDER BY trackId, carClass, raceType, time ASC
     ]]
-    
+
     return MySQL.Sync.fetchAll(query, { StrictSanitize(racerName) })
 end
 
@@ -327,20 +319,22 @@ end
 -- Function to get race statistics for a track
 local function getTrackStats(trackId)
     local query = [[
-        SELECT 
+        SELECT
             COUNT(*) as totalRaces,
             AVG(amountOfRacers) as avgRacers,
             MAX(amountOfRacers) as maxRacers,
             MIN(amountOfRacers) as minRacers
-        FROM racing_races 
+        FROM racing_races
         WHERE trackId = ?
     ]]
-    
+
     return MySQL.Sync.fetchAll(query, { StrictSanitize(trackId) })
 end
 
 -- Function to delete old racing_races (older than specified days)
 local function cleanupOldRaces(daysOld)
+    invalidateTrackRaceStatsCache()
+    invalidateTopRacerWinnersCache()
     local query = "DELETE FROM racing_races WHERE timestamp < DATE_SUB(NOW(), INTERVAL ? DAY)"
     return MySQL.Sync.execute(query, { daysOld })
 end
@@ -348,18 +342,18 @@ end
 -- Function to get leaderboard for a specific track/class combination
 local function getTrackLeaderboard(trackId, carClass, raceType, reversed, limit)
     local query = [[
-        SELECT 
+        SELECT
             racerName,
             MIN(time) as bestTime,
             vehicleModel,
             timestamp
-        FROM track_times 
+        FROM track_times
         WHERE trackId = ? AND carClass = ? AND raceType = ? AND reversed = ?
         GROUP BY racerName
         ORDER BY bestTime ASC
         LIMIT ?
     ]]
-    
+
     local params = {
         StrictSanitize(trackId),
         StrictSanitize(carClass),
@@ -367,7 +361,7 @@ local function getTrackLeaderboard(trackId, carClass, raceType, reversed, limit)
         reversed or false,
         limit or 10
     }
-    
+
     return MySQL.Sync.fetchAll(query, params)
 end
 
@@ -386,11 +380,11 @@ end
 -- Alternative function using MySQL JSON functions (MySQL 5.7+)
 local function getRacerHistory(racerName)
     local query = [[
-        SELECT * FROM racing_races 
+        SELECT * FROM racing_races
         WHERE JSON_SEARCH(results, 'one', ?, NULL, '$') IS NOT NULL
         ORDER BY timestamp DESC
     ]]
-    
+
     return MySQL.Sync.fetchAll(query, { StrictSanitize(racerName) })
 end
 
