@@ -1,6 +1,20 @@
 local DriftCountdowns = {} -- [raceId] = true while countdown running
 local DriftCountdownLength = (Config and ConfigDrift and ConfigDrift.finishCountdown) or 9 -- seconds fallback
 
+local function hasDriftAdminAccess(src)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(src))
+    if not raceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return false
+    end
+    local auth = raceUser.auth
+    if not Config.Permissions[auth] or not Config.Permissions[auth].adminMenu then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+    return true
+end
+
 -- Helper: ensure RaceResults entry exists
 local function ensureRaceResults(raceId, cleanedData)
     if not RaceResults[raceId] then
@@ -48,7 +62,7 @@ RegisterNetEvent('cw-racingapp:server:updateRacerDataDrift', function(raceId, ch
     end
 
     if not Races[raceId] or not Races[raceId].Racers or not Races[raceId].Racers[citizenId] then
-        print('^1Player with src', src'  was updating positions in race they were not in^0')
+        print('^1Player with src', src, ' was updating positions in race they were not in^0')
         return
     end
 
@@ -120,7 +134,7 @@ local function finalizeDriftRace(raceData)
     if Config.Debug then
         print("[RacingApp][Drift] Finalized drift", json.encode(RaceResults[raceId].Result, {indent=true}))
     end
-    
+
     if Races[raceId] then
         Races[raceId].Racers = {}
         Races[raceId].Started = false
@@ -141,12 +155,12 @@ local function upsertRaceResult(raceId, racerName, src, driftScore, carClass, ve
 
     for _, res in ipairs(results) do
         if res.RacerName == racerName then
-            if Config.Debug then print('Found racer, adding drift score') end 
+            if Config.Debug then print('Found racer, adding drift score') end
             res.DriftScore = (tonumber(res.DriftScore) or 0) + addVal
             return res
         end
     end
-    if Config.Debug then print('Did not find racer, adding racer set') end 
+    if Config.Debug then print('Did not find racer, adding racer set') end
 
     -- not found -> create new entry
     local newRes = {
@@ -171,11 +185,11 @@ function FinishDriftRacer(src, raceData, driftScore, carClass, vehicleModel, rac
 
     -- create and insert this player's result (do NOT pay out now)
     local racerName = raceData.RacerName
-    
+
     local citizenId = getCitizenId(src)
-    
+
     if not Races[raceId] or not Races[raceId].Racers or not Races[raceId].Racers[citizenId] then
-        print('^1Player with src', src'  was updating positions in race they were not in^0')
+        print('^1Player with src', src, ' was updating positions in race they were not in^0')
         return
     end
 
@@ -202,11 +216,11 @@ function FinishDriftRacer(src, raceData, driftScore, carClass, vehicleModel, rac
     local countdown = DriftCountdownLength
 
     local amountOfRacers = 0
-    for _, r in pairs(Races[raceId].Racers) do
+    for _ in pairs(Races[raceId].Racers) do
         amountOfRacers = amountOfRacers + 1
     end
 
-    if amountOfRacers == 1 then 
+    if amountOfRacers == 1 then
         DebugLog('Only one racer in race, skipping kick countdown')
         finalizeDriftRace(raceData)
         return
@@ -234,6 +248,7 @@ end
 
 -- Exported helper to force immediate finalize (useful for admin/testing)
 RegisterNetEvent('cw-racingapp:server:forceFinalizeDriftRace', function(raceId)
+    if not hasDriftAdminAccess(source) then return end
     if not raceId or not Races[raceId] then return end
     local raceData = {
         RaceId = raceId,
