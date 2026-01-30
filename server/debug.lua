@@ -1,4 +1,4 @@
-DebugRaceResults = {
+local DebugRaceResults = {
     ["RI-DEBUG"] = {
         Data = {
             FinishTime = os.time(),
@@ -190,3 +190,5 @@ DebugRaceResults = {
         }
     }
 }
+
+_G.DebugRaceResults = DebugRaceResults
