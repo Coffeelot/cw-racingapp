@@ -1,5 +1,4 @@
--- luacheck: ignore 211
-TranslationsPTBR = {
+local TranslationsPTBR = {
         accept = "Aceitar",
         access_for = "acesso para",
         access_list = "Lista de Acesso",
@@ -385,3 +384,5 @@ TranslationsPTBR = {
         you_got_an_invite_h2h = "Você recebeu um convite para uma corrida X1",
         you_have_to_place_a_new_checkpoint_down_first = "Você precisa colocar um novo ponto de controle primeiro",
 }
+
+_G.TranslationsPTBR = TranslationsPTBR
