@@ -15,8 +15,6 @@ local useDebug = Config.Debug
 local finishBlip = nil
 local markers = {}
 
-local finishEntity
-
 local function updateH2HInfo(data)
     local newData = {
         opponentId = opponentId,
@@ -59,14 +57,13 @@ local function finishRace()
 end
 
 local function getPosition()
-    
     if opponentId then
         local ply = GetPlayerPed(-1)
-        local plyCoords = GetEntityCoords(ply, 0)    
+        local plyCoords = GetEntityCoords(ply, 0)
         local plyDistance = #(plyCoords.xy-currentH2H.finishCoords.xy)
-    
-        local opponentId = GetPlayerFromServerId(opponentId)
-        local target = GetPlayerPed(opponentId)
+
+        local opponentPlayerId = GetPlayerFromServerId(opponentId)
+        local target = GetPlayerPed(opponentPlayerId)
         local opponentCoords = GetEntityCoords(target, 0)
         local opponentDistance = #(opponentCoords.xy-currentH2H.finishCoords.xy)
         if plyDistance < opponentDistance then
@@ -142,19 +139,19 @@ local function initRacingThread()
                     local baseTextHeight = currentH2H.finishCoords.z + height
                     local labelHeight = baseTextHeight + 0.7 + height * 0.05
                     local distanceHeight = baseTextHeight + 0.5
-                
+
                     local color = DistanceColor
-                
+
                     -- Draw checkpoint label
                     local labelCoords = vector3(currentH2H.finishCoords.x, currentH2H.finishCoords.y, labelHeight)
                     Draw3DText(labelCoords, Lang("finish"), 0.25, color)
-                
+
                     -- Draw distance
                     local distanceCoords = vector3(currentH2H.finishCoords.x, currentH2H.finishCoords.y, distanceHeight)
                     Draw3DText(distanceCoords, string.format("%.0fm", distanceToFinish), 0.5, DistanceColor)
 
                     currentTime = GetTimeDifference(GetGameTimer(), startTime)
-                    
+
                     if not hasFinished and distanceToFinish < maxDistance then
                         PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
                         TriggerServerEvent('cw-head2head:server:finishRacer', currentH2H.raceId, getCitizenId(), GetTimeDifference(GetGameTimer(), startTime) )
@@ -174,14 +171,13 @@ local function initRacingThread()
     end)
 end
 
-local function isPlayerNearby(playerCoords, otherPlayerCoords, maxDistance)
-    return #(playerCoords - otherPlayerCoords) <= maxDistance
+local function isPlayerNearby(playerCoords, otherPlayerCoords, distanceLimit)
+    return #(playerCoords - otherPlayerCoords) <= distanceLimit
 end
 
 local function inviteNearbyPlayers(raceId, amount)
     local playerPed = PlayerPedId()
     local playerCoords = GetEntityCoords(playerPed)
-    local vehicle = GetVehiclePedIsIn(playerPed, false)
 
     local nearbyPlayersFound = false
     for _, playerId in ipairs(GetActivePlayers()) do
@@ -302,7 +298,7 @@ local function setupHead2Head(data)
     end
     local finishCoords = nil
     if GetFirstBlipInfoId( 8 ) ~= 0 then
-        local waypointBlip = GetFirstBlipInfoId( 8 ) 
+        local waypointBlip = GetFirstBlipInfoId( 8 )
         local coord = Citizen.InvokeNative( 0xFA7C7F0AADF25D09, waypointBlip, Citizen.ResultAsVector( ) )
         finishCoords = vector3(coord.x,coord.y,coord.z)
     end
@@ -310,14 +306,13 @@ local function setupHead2Head(data)
     handleHighBeams()
 end
 
-local defaultLightsState = 0
 RegisterNetEvent('cw-racingapp:h2h:client:setupRace', function(data)
     setupHead2Head(data)
 end)
 
 local function getOpponent()
     local ply = GetPlayerPed(-1)
-    for i, racer in pairs(currentH2H.racers) do
+    for _, racer in pairs(currentH2H.racers) do
         local playerIdx = GetPlayerFromServerId(racer.source)
         local target = GetPlayerPed(playerIdx)
         if ply ~= target then
@@ -369,29 +364,21 @@ end)
 RegisterNetEvent('cw-racingapp:h2h:client:debugMap', function()
     if #markers > 0 then
         DebugLog('[H2H] removing markers')
-        for i, marker in pairs(markers) do
+        for _, marker in pairs(markers) do
             RemoveBlip(marker)
         end
         markers = {}
     else
         DebugLog('[H2H] adding markers')
-        for i, coord in pairs(ConfigH2H.Finishes) do
+        for _, coord in pairs(ConfigH2H.Finishes) do
             markers[#markers+1] = AddBlipForCoord(coord.x, coord.y, coord.z)
-        end    
+        end
     end
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:client:toggleDebug', function(debug)
    DebugLog('[H2H] Setting debug to',debug)
    useDebug = debug
-end)
-
-AddEventHandler('onResourceStop', function (resource)
-   if resource ~= GetCurrentResourceName() then return end
-   if DoesEntityExist(finishEntity) then
-        DebugLog('[H2H] deleting', finishEntity)
-        DeleteEntity(finishEntity)
-    end
 end)
 
 RegisterNUICallback('UiFetchH2HData', function(_, cb)

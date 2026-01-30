@@ -576,8 +576,8 @@ local function updateGpsForRace(started)
         checkpointData.pileright = createPile(checkpointData.offset.right, pileModel)
 
         if checkpointData.blip then
-            SetBlipDisplay(checkpointData.blip, 2) 
-            ShowHeightOnBlip(checkpointData.blip, true) 
+            SetBlipDisplay(checkpointData.blip, 2)
+            ShowHeightOnBlip(checkpointData.blip, true)
         end
     end
 
@@ -2239,7 +2239,7 @@ end
 
 RegisterNetEvent('cw-racingapp:client:setCurrentRacingCrew', function(crew)
     CurrentCrew = crew
-    if crew == nil then 
+    if crew == nil then
         NotifyHandler(Lang('left_crew'))
     end
 end)

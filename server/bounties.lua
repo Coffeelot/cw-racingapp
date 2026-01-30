@@ -1,5 +1,4 @@
 Bounties = {}
-local UseDebug = Config.Debug
 
 local function hasBountyAccess(src)
     local raceUser = RADB.getActiveRacerName(getCitizenId(src))
@@ -50,10 +49,9 @@ function GenerateBounties()
         local randomIndex = math.random(1, #availableBounties)
         local selectedBounty = availableBounties[randomIndex]
 
-        local trackName = 'TRACK DOES NOT EXIST IN DATABASE'
         if Tracks[selectedBounty.trackId] then
-            trackName = Tracks[selectedBounty.trackId].RaceName
-        
+            local trackName = Tracks[selectedBounty.trackId].RaceName
+
             local bounty = {
                 id = "bty_" .. tostring(i),
                 trackId = selectedBounty.trackId,
@@ -68,10 +66,10 @@ function GenerateBounties()
                 },
                 trackName = trackName,
             }
-        
+
             -- Remove the selected bounty from the available bounties
             table.remove(availableBounties, randomIndex)
-        
+
             table.insert(bounties, bounty)
         else
             DebugLog('^3Warning:^0 Track ID '..selectedBounty.trackId..' was included in your bounties config but was not found in Tracks cache. Please verify that it is in your database')
@@ -87,7 +85,7 @@ local function checkBountyCompletion(racerName, vehicleModel, rank, trackId, cla
 
     for i, bounty in pairs(Bounties) do
         if bounty.trackId == trackId and bounty.maxClass == class then
-            local raceTypeMatches = (bounty.sprint and sprint) or (not bounty.sprint and not sprint) 
+            local raceTypeMatches = (bounty.sprint and sprint) or (not bounty.sprint and not sprint)
             local raceDirectionMatches = (bounty.reversed and reversed) or (not bounty.reversed and not reversed)
             local meetsRankReq = rank >= bounty.rankRequired
             DebugLog('^5Found race that matches. Verifcation results:^0', 'Race type matches: '.. tostring(raceTypeMatches),
@@ -108,8 +106,6 @@ local function checkBountyCompletion(racerName, vehicleModel, rank, trackId, cla
                         return math.floor(bounty.price)
                     end
                 end
-            else
-
             end
             DebugLog(racerName, '^1Did not beat the bounty for^0', trackId, class)
             break
