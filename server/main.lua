@@ -19,8 +19,8 @@ local DefaultTrackMetadata = {
 }
 
 RaceResults = {}
-if Config.Debug and DebugRaceResults then
-    RaceResults = DebugRaceResults
+if Config.Debug and _G.DebugRaceResults then
+    RaceResults = _G.DebugRaceResults
 end
 
 local function leftRace(src)
