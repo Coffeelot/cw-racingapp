@@ -267,7 +267,7 @@ Config.Options = {
     participationCurrencyOptions = {
         { title= 'RAC', value= 'racingcrypto' },
         { title= 'Cash', value = 'cash' },
-        { title= 'Bank', value= 'bank'}, 
+        { title= 'Bank', value= 'bank'},
     },
     conversionRate = 0.01, -- money * conversionRate = crypto amount, so if this is 0.1 and you pay $10 you get 1 Racing App Crypto.
 
