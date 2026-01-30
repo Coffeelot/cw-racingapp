@@ -42,8 +42,8 @@ RegisterNetEvent('cw-racingapp:h2h:server:leaveRace', function(raceId)
     resetRace(raceId)
 end)
 
-RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(citizenId, racerName, startCoords, amount, waypoint)
-    citizenId = getCitizenId(source)
+RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(_citizenId, racerName, startCoords, amount, waypoint)
+    local citizenId = getCitizenId(source)
     local raceId = generateRaceId()
     if useDebug then
         print('setting up', citizenId, racerName, startCoords, amount)
@@ -107,11 +107,11 @@ RegisterNetEvent('cw-racingapp:h2h:server:raceStarted', function(raceId)
     activeRaces[raceId].started = true
 end)
 
-RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(citizenId, racerName, raceId)
+RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(_citizenId, racerName, raceId)
     if not activeRaces[raceId] then
         return
     end
-    citizenId = getCitizenId(source)
+    local citizenId = getCitizenId(source)
     if activeRaces[raceId].started then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("error.race_already_started"), "error")
     elseif activeRaces[raceId].amount > 0 then
