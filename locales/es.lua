@@ -1,3 +1,4 @@
+-- luacheck: ignore 211
 TranslationsES = {
         accept = "Aceptar",
         all_tracks = "Todas las pistas",

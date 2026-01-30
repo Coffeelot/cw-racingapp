@@ -1,3 +1,4 @@
+-- luacheck: ignore 211
 TranslationsPTBR = {
         accept = "Aceitar",
         access_for = "acesso para",
