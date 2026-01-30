@@ -1,6 +1,20 @@
 Bounties = {}
 local UseDebug = Config.Debug
 
+local function hasBountyAccess(src)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(src))
+    if not raceUser then
+        NotifyHandler( src, Lang("error_no_user"), 'error')
+        return false
+    end
+    local auth = raceUser.auth
+    if not Config.Permissions[auth] or not Config.Permissions[auth].handleBounties then
+        NotifyHandler( src, Lang("not_auth"), 'error')
+        return false
+    end
+    return true
+end
+
 -- Bounty generation function
 function GenerateBounties()
     local bounties = {}
@@ -109,6 +123,7 @@ BountyHandler = {
 }
 
 RegisterNetEvent('cw-racingapp:server:rerollBounties', function()
+    if not hasBountyAccess(source) then return end
     GenerateBounties()
 end)
 

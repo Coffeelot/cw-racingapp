@@ -1186,6 +1186,14 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
         NotifyHandler( src, Lang("error_no_user"), 'error')
         return
     end
+    if not trackData or not trackData.Checkpoints then
+        NotifyHandler( src, Lang("race_doesnt_exist"), 'error')
+        return
+    end
+    if Config.MaxCheckpoints and #trackData.Checkpoints > Config.MaxCheckpoints then
+        NotifyHandler( src, Lang("race_doesnt_exist"), 'error')
+        return
+    end
     local trackId
     if trackData.TrackId ~= nil then
         trackId = trackData.TrackId
