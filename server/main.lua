@@ -19,8 +19,8 @@ local DefaultTrackMetadata = {
 }
 
 RaceResults = {}
-if Config.Debug and DebugRaceResults then
-    RaceResults = DebugRaceResults
+if Config.Debug and _G.DebugRaceResults then
+    RaceResults = _G.DebugRaceResults
 end
 
 local function leftRace(src)
@@ -579,7 +579,6 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local raceId = RaceData.RaceId
     local race = Races[raceId]
     if not race then return end
-    local raceName = race.RaceName
     local trackId = race.TrackId
     local availableKey = GetOpenedRaceKey(raceId)
     local citizenId = getCitizenId(src)
@@ -1139,13 +1138,13 @@ RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpo
     }
 
     for _, racer in pairs(Races[raceId].Racers) do
-        if GetPlayerName(racer.RacerSource) then 
+        if GetPlayerName(racer.RacerSource) then
             TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, citizenId,
                 Races[raceId].Racers[citizenId])
         else
-            if UseDebug then 
+            if UseDebug then
                 print('^1Could not find player with source^0', racer.RacerSource)
-                print(json.encode(racer, {indent=true})) 
+                print(json.encode(racer, {indent=true}))
             end
         end
     end
