@@ -3,9 +3,6 @@ local Ox = require '@ox_core.lib.init'
 
 if Config.Debug then print('Using OX Core bridge') end
 
--- Get vehicle data from ox_core
-local VEHICLEHASHES = Ox.GetVehicleData()
-
 -- Listen for player loaded event
 RegisterNetEvent('ox:playerLoaded', function()
     InitialRacingAppSetup()

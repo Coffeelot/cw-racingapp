@@ -213,7 +213,7 @@ end)
 
 RegisterNUICallback('UiChangeAuth', function(data, cb)
     DebugLog('changing auth', json.encode(data, {indent=true}))
-    if not Config.Permissions[data.auth] then debugPrint('User type does not exist') return end
+    if not Config.Permissions[data.auth] then DebugLog('User type does not exist') return end
     local result = cwCallback.await('cw-racingapp:server:setUserAuth', data)
     cb(result)
 end)

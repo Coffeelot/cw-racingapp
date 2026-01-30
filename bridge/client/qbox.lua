@@ -2,6 +2,7 @@ if GetResourceState('qbx_core') ~= 'started' then return end
 
 if Config.Debug then print('Using QBOX bridge') end
 
+local QBX = exports.qbx_core:GetCoreObject()
 local VEHICLEHASHES = exports.qbx_core:GetVehiclesByHash()
 
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()

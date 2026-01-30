@@ -1,18 +1,6 @@
 local useDebug = Config.Debug
 
 local activeRaces = {}
-local Timers = {}
-
-local race = {
-    racers = { nil, nil},
-    startCoords = nil,
-    finishCoords = nil,
-    winner = nil,
-    started = false,
-    finished = false,
-    forMoney = false,
-    amount = 0
-}
 
 local function generateRaceId()
     local RaceId = "IR-" .. math.random(1111, 9999)
@@ -23,7 +11,7 @@ local function generateRaceId()
 end
 
 local function getFinish(startCoords)
-    for i=1, 100 do
+    for _ = 1, 100 do
         local finishCoords = ConfigH2H.Finishes[math.random(1,#ConfigH2H.Finishes)]
         local distance = #(finishCoords.xy-startCoords.xy)
         if tonumber(distance) > ConfigH2H.MinimumDistance and tonumber(distance) < ConfigH2H.MaximumDistance then
@@ -54,7 +42,8 @@ RegisterNetEvent('cw-racingapp:h2h:server:leaveRace', function(raceId)
     resetRace(raceId)
 end)
 
-RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(citizenId, racerName, startCoords, amount, waypoint)
+RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(_citizenId, racerName, startCoords, amount, waypoint)
+    local citizenId = getCitizenId(source)
     local raceId = generateRaceId()
     if useDebug then
         print('setting up', citizenId, racerName, startCoords, amount)
@@ -94,7 +83,7 @@ RegisterNetEvent('cw-racingapp:h2h:server:startRace', function(raceId)
         print('starting race')
     end
     activeRaces[raceId].started = false
-    for citizenId, racer in pairs(activeRaces[raceId].racers) do
+    for _, racer in pairs(activeRaces[raceId].racers) do
         if useDebug then
             print('racer', json.encode(racer, {indent=true}))
         end
@@ -118,23 +107,39 @@ RegisterNetEvent('cw-racingapp:h2h:server:raceStarted', function(raceId)
     activeRaces[raceId].started = true
 end)
 
-RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(citizenId, racerName, raceId)
+RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(_citizenId, racerName, raceId)
+    if not activeRaces[raceId] then
+        return
+    end
+    local citizenId = getCitizenId(source)
     if activeRaces[raceId].started then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("error.race_already_started"), "error")
     elseif activeRaces[raceId].amount > 0 then
-        if canPay(source, activeRaces[raceId].amount) then
+        if not canPay(source, ConfigH2H.MoneyType, activeRaces[raceId].amount) then
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford"), "error")
+            return
         end
-            
-    else
-        activeRaces[raceId].racers[#activeRaces[raceId].racers+1] = { citizenId = citizenId, source = source, racerName = racerName }
-        if #activeRaces[raceId].racers > 1 then
-            TriggerEvent('cw-racingapp:h2h:server:startRace', raceId)
-        end
+    end
+    activeRaces[raceId].racers[#activeRaces[raceId].racers+1] = { citizenId = citizenId, source = source, racerName = racerName }
+    if #activeRaces[raceId].racers > 1 then
+        TriggerEvent('cw-racingapp:h2h:server:startRace', raceId)
     end
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:server:finishRacer', function(raceId, citizenId, finishTime)
+    if not activeRaces[raceId] then
+        return
+    end
+    local validRacer = false
+    for _, racer in pairs(activeRaces[raceId].racers) do
+        if racer.citizenId == citizenId and racer.source == source then
+            validRacer = true
+            break
+        end
+    end
+    if not validRacer then
+        return
+    end
     if useDebug then
         print('finishing', citizenId, 'in race', raceId)
     end
@@ -142,7 +147,7 @@ RegisterNetEvent('cw-racingapp:h2h:server:finishRacer', function(raceId, citizen
         activeRaces[raceId].winner = citizenId
         TriggerClientEvent('cw-racingapp:h2h:client:notifyFinish', source, Lang('info.winner'))
         if activeRaces[raceId].amount > 0 then
-            addMoney(ConfigH2H.MoneyType, activeRaces[raceId].amount*2)
+            addMoney(source, ConfigH2H.MoneyType, activeRaces[raceId].amount * 2)
         end
     else
         activeRaces[raceId].finished = true

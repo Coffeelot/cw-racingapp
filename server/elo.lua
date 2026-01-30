@@ -10,7 +10,7 @@ local function getRankingForCrew(crewName)
         ['Not A real Crew'] = { rank = 1 },
     }
         return names[crewName].rank
-    else 
+    else
         return GetCrewRanking(crewName)
     end
 end
@@ -21,7 +21,7 @@ if not modifiers then
 end
 
 local function calculateTrueSkillRatingsForCrews(crewRacers)
-    if debugAlgo then 
+    if debugAlgo then
         print('= STARTING ELO CALCULATIONS FOR CREWS =')
         print('crews sent for elo check', json.encode(crewRacers, {indent=true}))
     end
@@ -161,17 +161,17 @@ local function firstEntryWins(racerA, racerB, isDrift)
         end
     else
         -- For regular races, lower TotalTime wins
-        if racerA.TotalTime < racerB.TotalTime then 
+        if racerA.TotalTime < racerB.TotalTime then
             return true
         else
             return false
-        end 
+        end
     end
-    
-end 
+
+end
 
 function calculateTrueSkillRatings(results, isDrift)
-    if debugAlgo then 
+    if debugAlgo then
         print('= STARTING ELO CALCULATIONS =')
         print('IS DRIFT:', isDrift)
         print('ALL results', json.encode(results, {indent=true}))
