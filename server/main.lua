@@ -696,12 +696,14 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
 
     if not citizenId then print('ERROR: Could not find identifier for player with src', src) return end
 
-    local racerName = RaceData.RacerName
-
+    if not RaceData or not RaceData.RaceId then return end
     local raceId = RaceData.RaceId
+    local race = Races[raceId]
+    if not race or not race.Racers or not race.Racers[citizenId] then return end
+    local racerName = race.Racers[citizenId].RacerName
     local availableKey = GetOpenedRaceKey(raceId)
 
-    if not Races[raceId].Automated then
+    if not race.Automated then
         local creator = getSrcOfPlayerByCitizenId(AvailableRaces[availableKey].SetupCitizenId)
 
         if creator then
@@ -711,7 +713,7 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
 
     local amountOfRacers = 0
     local playersFinished = 0
-    for _, v in pairs(Races[raceId].Racers) do
+    for _, v in pairs(race.Racers) do
         if v.Finished then
             playersFinished = playersFinished + 1
         end
@@ -732,14 +734,14 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
         }
     end
     -- Races[raceId].Racers[citizenId] = nil
-    if Races[raceId].SetupCitizenId == citizenId then
+    if race.SetupCitizenId == citizenId then
         assignNewOrganizer(raceId, src)
     end
 
     -- Check if last racer
     if (amountOfRacers - 1) == 0 then
         -- Complete race if leaving last
-        if not Races[raceId].Automated then
+        if not race.Automated then
             if UseDebug then print(citizenId, ' was the last racer. ^3Cancelling race^0') end
             resetTrack(raceId, 'last racer left')
             table.remove(AvailableRaces, availableKey)
@@ -749,20 +751,20 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
             if UseDebug then print(citizenId, ' was the last racer. ^Race was Automated. No cancel.^0') end
         end
     else
-        AvailableRaces[availableKey].RaceData = Races[raceId]
+        AvailableRaces[availableKey].RaceData = race
     end
     if playersFinished == amountOfRacers - 1 then
         if UseDebug then print('Last racer to leave') end
-        CompleteRace(amountOfRacers, RaceData)
+        CompleteRace(amountOfRacers, race)
     end
 
     TriggerClientEvent('cw-racingapp:client:leaveRace', src)
     leftRace(src)
 
-    for _, racer in pairs(Races[raceId].Racers) do
-        TriggerClientEvent('cw-racingapp:client:updateRaceRacers', racer.RacerSource, raceId, Races[raceId].Racers)
+    for _, racer in pairs(race.Racers) do
+        TriggerClientEvent('cw-racingapp:client:updateRaceRacers', racer.RacerSource, raceId, race.Racers)
     end
-    if RaceData.Ranked and RaceData.Started and RaceData.TotalRacers > 1 and reason then
+    if race.Ranked and race.Started and amountOfRacers > 1 and reason then
         if Config.EloPunishments[reason] then
             updateRacerElo(src, racerName, Config.EloPunishments[reason])
         end
@@ -1019,7 +1021,22 @@ local function generateAutomatedRace()
     setupRace(race, nil)
 end
 
+local function hasPermission(src, permission)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(src))
+    if not raceUser then
+        NotifyHandler( src, Lang("error_no_user"), 'error')
+        return false
+    end
+    local auth = raceUser.auth
+    if not Config.Permissions[auth] or not Config.Permissions[auth][permission] then
+        NotifyHandler( src, Lang("not_auth"), 'error')
+        return false
+    end
+    return true
+end
+
 RegisterNetEvent('cw-racingapp:server:newAutoHost', function()
+    if not hasPermission(source, 'handleAutoHost') then return end
     generateAutomatedRace()
 end)
 
@@ -1132,6 +1149,8 @@ RegisterNetEvent('cw-racingapp:server:startRace', function(raceId)
     if UseDebug then print(source, 'is starting race', raceId) end
     local src = source
     local AvailableKey = GetOpenedRaceKey(raceId)
+    local citizenId = getCitizenId(src)
+    if not citizenId then return end
 
     if not raceId then
         if src then NotifyHandler( src, Lang("not_in_race"), 'error') end
@@ -1146,6 +1165,10 @@ RegisterNetEvent('cw-racingapp:server:startRace', function(raceId)
     if not AvailableRaces[AvailableKey].RaceData then
         if UseDebug then print('Could not find available race data', raceId) end
         return
+    end
+    local race = AvailableRaces[AvailableKey].RaceData
+    if race.SetupCitizenId ~= citizenId then
+        if not hasPermission(src, 'startAll') then return end
     end
     if AvailableRaces[AvailableKey].RaceData.Started then
         if UseDebug then print('Race was already started', raceId) end
