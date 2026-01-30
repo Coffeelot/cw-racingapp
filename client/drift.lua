@@ -53,11 +53,11 @@ RegisterNetEvent('cw-racingapp:client:forceSetDriftScore', function(driftScore)
 end)
 
 local function finalizeDriftRace(raceId)
-        if not DriftLocal.localFinished and CurrentRaceData and CurrentRaceData.RaceId == raceId then
-            -- mark finished to avoid double sends
-            DriftLocal.localFinished = true
-        end
+    if not DriftLocal.localFinished and CurrentRaceData and CurrentRaceData.RaceId == raceId then
+        -- mark finished to avoid double sends
+        DriftLocal.localFinished = true
     end
+end
 -- When server tells clients a drift finish countdown started (first finisher crossed)
 RegisterNetEvent('cw-racingapp:client:driftFinishCountdown', function(raceId, countdown)
     if not raceId then return end
@@ -67,7 +67,7 @@ RegisterNetEvent('cw-racingapp:client:driftFinishCountdown', function(raceId, co
     DriftLocal.localFinished = DriftLocal.localFinished or false
 
     -- no countdown -> nothing to do
-    if not countdown then 
+    if not countdown then
         finalizeDriftRace(raceId)
         return
     end
@@ -86,7 +86,7 @@ RegisterNetEvent('cw-racingapp:client:driftFinishCountdown', function(raceId, co
         end
 
         finalizeDriftRace(raceId)
-        
+
         DriftLocal.countdownActive[raceId] = nil
         showDriftCountdown(raceId, -1)  -- -1 means hide
     end)
@@ -96,7 +96,6 @@ end)
 RegisterNetEvent('cw-racingapp:client:driftRaceFinished', function(raceId, results)
     if CurrentRaceData and CurrentRaceData.RaceId == raceId then
         -- results is a table of {RacerName, DriftScore, RacerSource, ...} sorted by score server-side
-        local top = results and results[1] and results[1].RacerName or "?"
         SendNUIMessage({
             action = "update",
             type = "drift_results",
@@ -111,5 +110,5 @@ end)
 
 -- Event to listen for drift score updates to update the UI
 RegisterNetEvent('cw_drifting:client:scoreUpdate', function(info)
-    
+
 end)

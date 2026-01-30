@@ -1,18 +1,6 @@
 local useDebug = Config.Debug
 
 local activeRaces = {}
-local Timers = {}
-
-local race = {
-    racers = { nil, nil},
-    startCoords = nil,
-    finishCoords = nil,
-    winner = nil,
-    started = false,
-    finished = false,
-    forMoney = false,
-    amount = 0
-}
 
 local function generateRaceId()
     local RaceId = "IR-" .. math.random(1111, 9999)
@@ -23,7 +11,7 @@ local function generateRaceId()
 end
 
 local function getFinish(startCoords)
-    for i=1, 100 do
+    for _ = 1, 100 do
         local finishCoords = ConfigH2H.Finishes[math.random(1,#ConfigH2H.Finishes)]
         local distance = #(finishCoords.xy-startCoords.xy)
         if tonumber(distance) > ConfigH2H.MinimumDistance and tonumber(distance) < ConfigH2H.MaximumDistance then
@@ -94,7 +82,7 @@ RegisterNetEvent('cw-racingapp:h2h:server:startRace', function(raceId)
         print('starting race')
     end
     activeRaces[raceId].started = false
-    for citizenId, racer in pairs(activeRaces[raceId].racers) do
+    for _, racer in pairs(activeRaces[raceId].racers) do
         if useDebug then
             print('racer', json.encode(racer, {indent=true}))
         end
@@ -125,7 +113,7 @@ RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(citizenId, racerNa
         if canPay(source, activeRaces[raceId].amount) then
             TriggerClientEvent('cw-racingapp:client:notify', source, Lang("can_not_afford"), "error")
         end
-            
+
     else
         activeRaces[raceId].racers[#activeRaces[raceId].racers+1] = { citizenId = citizenId, source = source, racerName = racerName }
         if #activeRaces[raceId].racers > 1 then

@@ -199,7 +199,7 @@ end
 
 local function leaveRacingCrew(citizenId, crewName)
     local members = MySQL.Sync.fetchScalar(
-        "SELECT members FROM racing_crews WHERE crew_name = ?", 
+        "SELECT members FROM racing_crews WHERE crew_name = ?",
         { StrictSanitize(crewName) }
     )
 
@@ -214,7 +214,7 @@ local function leaveRacingCrew(citizenId, crewName)
 
     local updated = json.encode(parsed)
     MySQL.Sync.execute(
-        "UPDATE racing_crews SET members = ? WHERE crew_name = ?", 
+        "UPDATE racing_crews SET members = ? WHERE crew_name = ?",
         { updated, StrictSanitize(crewName) }
     )
 
@@ -254,13 +254,13 @@ end
 
 -- Add crypto to a racer's balance
 local function addCryptoToRacer(racerName, amount)
-    return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto + ? WHERE racername = ?', 
+    return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto + ? WHERE racername = ?',
         { amount, StrictSanitize(racerName) })
 end
 
 -- Remove crypto from a racer's balance
 local function removeCryptoFromRacer(racerName, amount)
-    return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto - ? WHERE racername = ?', 
+    return MySQL.Sync.execute('UPDATE racer_names SET crypto = crypto - ? WHERE racername = ?',
         { amount, StrictSanitize(racerName) })
 end
 
