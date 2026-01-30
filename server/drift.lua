@@ -1,6 +1,20 @@
 local DriftCountdowns = {} -- [raceId] = true while countdown running
 local DriftCountdownLength = (Config and ConfigDrift and ConfigDrift.finishCountdown) or 9 -- seconds fallback
 
+local function hasDriftAdminAccess(src)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(src))
+    if not raceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return false
+    end
+    local auth = raceUser.auth
+    if not Config.Permissions[auth] or not Config.Permissions[auth].adminMenu then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+    return true
+end
+
 -- Helper: ensure RaceResults entry exists
 local function ensureRaceResults(raceId, cleanedData)
     if not RaceResults[raceId] then
@@ -234,6 +248,7 @@ end
 
 -- Exported helper to force immediate finalize (useful for admin/testing)
 RegisterNetEvent('cw-racingapp:server:forceFinalizeDriftRace', function(raceId)
+    if not hasDriftAdminAccess(source) then return end
     if not raceId or not Races[raceId] then return end
     local raceData = {
         RaceId = raceId,
