@@ -1,4 +1,4 @@
-TranslationsES = {
+local TranslationsES = {
         accept = "Aceptar",
         all_tracks = "Todas las pistas",
         access_for = "acceso para",
@@ -400,3 +400,5 @@ TranslationsES = {
         you_got_an_invite_h2h = "Recibiste una invitación a una carrera de cabeza a cabeza",
         you_have_to_place_a_new_checkpoint_down_first = "Primero debes colocar un nuevo punto de control",
 }
+
+_G.TranslationsES = TranslationsES
