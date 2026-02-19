@@ -2009,105 +2009,94 @@ if Config.EnableCommands then
         print(json.encode(RaceResults, { indent = true }))
     end, true)
     
-    -- RegisterRacingAppCommand('updateDatabaseWithRacerIds', 'Update database with racer IDs for all users',
-    --     {}, true, function(source, args)
-    --         if source ~= 0 then
-    --             NotifyHandler(source, "This command can only be run from the server console.", "error")
-    --             return
-    --         end                                                                                                                        -- Only allow from server console
-    
-    --         local allRacers = RADB.getAllRaceUsers()
-    --         for _, racer in pairs(allRacers) do
-    --             if not racer.racerid or racer.racerid == '' then
-    --                 if racer.racername == nil then
-    --                     print('Racer has no name! citizenid:', racer.citizenid)
-    --                 else
-    --                     local newRacerId = generateRacerId()
-    --                     print('Updating racer', racer.racername, 'with new racerId', newRacerId)
-    --                     RADB.updateRacer(racer.racername, "racerid", newRacerId)
-    --                 end
-    --             end
-    --         end
-    --     end, true)
+    local function migrateRacerIdsToTables()
+        print('[Racing] Starting racerId migration...')
+        -- Get all racer names with their IDs
+        local racerNames = MySQL.Sync.fetchAll('SELECT racername, racerid FROM racer_names', {})
+        if not racerNames or #racerNames == 0 then
+            print('[Racing] No racer names found to migrate')
+            return
+        end
+        -- Build a lookup table for fast access
+        local racerIdLookup = {}
+        for _, racer in ipairs(racerNames) do
+            if racer.racername and racer.racerid then
+                racerIdLookup[racer.racername] = racer.racerid
+            end
+        end
+        local updatedTracks = 0
+        local updatedTimes = 0
+        local updatedCrews = 0
+        -- 1. Update race_tracks table
+        print('[Racing] Updating race_tracks...')
+        local tracks = MySQL.Sync.fetchAll(
+        'SELECT id, creatorname, racerid FROM race_tracks WHERE racerid = "" OR racerid IS NULL', {})
+        for _, track in ipairs(tracks) do
+            local racerId = racerIdLookup[track.creatorname]
+            if racerId then
+                MySQL.query('UPDATE race_tracks SET racerid = ? WHERE id = ?', { racerId, track.id })
+                updatedTracks = updatedTracks + 1
+            else
+                print(('[Racing] Warning: No racerId found for track creator: %s'):format(track.creatorname))
+            end
+        end
+        -- 2. Update track_times table
+        print('[Racing] Updating track_times...')
+        local times = MySQL.Sync.fetchAll(
+        'SELECT id, racerName, racerid FROM track_times WHERE racerid = "" OR racerid IS NULL', {})
+        for _, time in ipairs(times) do
+            local racerId = racerIdLookup[time.racerName]
+            if racerId then
+                MySQL.query('UPDATE track_times SET racerid = ? WHERE id = ?', { racerId, time.id })
+                updatedTimes = updatedTimes + 1
+            else
+                print(('[Racing] Warning: No racerId found for racer: %s'):format(time.racerName))
+            end
+        end
+        -- 3. Update racing_crews table
+        print('[Racing] Updating racing_crews...')
+        local crews = MySQL.Sync.fetchAll(
+        'SELECT id, founder_name, founder_racerid FROM racing_crews WHERE founder_racerid = "" OR founder_racerid IS NULL',
+            {})
+        for _, crew in ipairs(crews) do
+            local racerId = racerIdLookup[crew.founder_name]
+            if racerId then
+                MySQL.query('UPDATE racing_crews SET founder_racerid = ? WHERE id = ?', { racerId, crew.id })
+                updatedCrews = updatedCrews + 1
+            else
+                print(('[Racing] Warning: No racerId found for crew founder: %s'):format(crew.founder_name))
+            end
+        end
+        print(('[Racing] Migration complete! Updated %d tracks, %d times, %d crews'):format(updatedTracks, updatedTimes,
+            updatedCrews))
+    end
+    RegisterCommand('migrateracerids', function(source, args, rawCommand)
+        if source ~= 0 then
+            NotifyHandler(source, "This command can only be run from the server console.", "error")
+            return
+        end                                                                                                                            -- Only allow from server console
+    end, true)
+
+
+    RegisterRacingAppCommand('updateDatabaseWithRacerIds', 'Update database with racer IDs for all users',
+        {}, true, function(source, args)
+            if source ~= 0 then
+                NotifyHandler(source, "This command can only be run from the server console.", "error")
+                return
+            end                                                                                                                        -- Only allow from server console
+            local allRacers = RADB.getAllRaceUsers()
+            for _, racer in pairs(allRacers) do
+                if not racer.racerid or racer.racerid == '' then
+                    if racer.racername == nil then
+                        print('Racer has no name! citizenid:', racer.citizenid)
+                    else
+                        local newRacerId = generateRacerId()
+                        print('Updating racer', racer.racername, 'with new racerId', newRacerId)
+                        RADB.updateRacer(racer.racername, "racerid", newRacerId)
+                    end
+                end
+            end
+            print('Racer ID update complete. Starting database migration...')
+            migrateRacerIdsToTables()
+        end, true)
 end
-
--- local function migrateRacerIdsToTables()
---     print('[Racing] Starting racerId migration...')
-
---     -- Get all racer names with their IDs
---     local racerNames = MySQL.Sync.fetchAll('SELECT racername, racerid FROM racer_names', {})
-
---     if not racerNames or #racerNames == 0 then
---         print('[Racing] No racer names found to migrate')
---         return
---     end
-
---     -- Build a lookup table for fast access
---     local racerIdLookup = {}
---     for _, racer in ipairs(racerNames) do
---         if racer.racername and racer.racerid then
---             racerIdLookup[racer.racername] = racer.racerid
---         end
---     end
-
---     local updatedTracks = 0
---     local updatedTimes = 0
---     local updatedCrews = 0
-
---     -- 1. Update race_tracks table
---     print('[Racing] Updating race_tracks...')
---     local tracks = MySQL.Sync.fetchAll(
---     'SELECT id, creatorname, racerid FROM race_tracks WHERE racerid = "" OR racerid IS NULL', {})
-
---     for _, track in ipairs(tracks) do
---         local racerId = racerIdLookup[track.creatorname]
---         if racerId then
---             MySQL.query('UPDATE race_tracks SET racerid = ? WHERE id = ?', { racerId, track.id })
---             updatedTracks = updatedTracks + 1
---         else
---             print(('[Racing] Warning: No racerId found for track creator: %s'):format(track.creatorname))
---         end
---     end
-
---     -- 2. Update track_times table
---     print('[Racing] Updating track_times...')
---     local times = MySQL.Sync.fetchAll(
---     'SELECT id, racerName, racerid FROM track_times WHERE racerid = "" OR racerid IS NULL', {})
-
---     for _, time in ipairs(times) do
---         local racerId = racerIdLookup[time.racerName]
---         if racerId then
---             MySQL.query('UPDATE track_times SET racerid = ? WHERE id = ?', { racerId, time.id })
---             updatedTimes = updatedTimes + 1
---         else
---             print(('[Racing] Warning: No racerId found for racer: %s'):format(time.racerName))
---         end
---     end
-
---     -- 3. Update racing_crews table
---     print('[Racing] Updating racing_crews...')
---     local crews = MySQL.Sync.fetchAll(
---     'SELECT id, founder_name, founder_racerid FROM racing_crews WHERE founder_racerid = "" OR founder_racerid IS NULL',
---         {})
-
---     for _, crew in ipairs(crews) do
---         local racerId = racerIdLookup[crew.founder_name]
---         if racerId then
---             MySQL.query('UPDATE racing_crews SET founder_racerid = ? WHERE id = ?', { racerId, crew.id })
---             updatedCrews = updatedCrews + 1
---         else
---             print(('[Racing] Warning: No racerId found for crew founder: %s'):format(crew.founder_name))
---         end
---     end
-
---     print(('[Racing] Migration complete! Updated %d tracks, %d times, %d crews'):format(updatedTracks, updatedTimes,
---         updatedCrews))
--- end
--- RegisterCommand('migrateracerids', function(source, args, rawCommand)
---     if source ~= 0 then
---         NotifyHandler(source, "This command can only be run from the server console.", "error")
---         return
---     end                                                                                                                            -- Only allow from server console
-
---     migrateRacerIdsToTables()
--- end, true)
