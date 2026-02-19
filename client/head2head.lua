@@ -188,7 +188,7 @@ local function inviteNearbyPlayers(raceId, amount)
         local otherPed = GetPlayerPed(playerId)
         local otherPlayerCoords = GetEntityCoords(otherPed)
         if playerPed ~= otherPed and isPlayerNearby(playerCoords, otherPlayerCoords, ConfigH2H.InviteDistance) then
-            TriggerServerEvent('cw-racingapp:h2h:server:invitePlayer', GetPlayerServerId(playerId), raceId, amount, CurrentName)
+            TriggerServerEvent('cw-racingapp:h2h:server:invitePlayer', GetPlayerServerId(playerId), raceId, amount, CurrentUserData?.racername or 'UNKNOWN')
             nearbyPlayersFound = true
         end
     end
@@ -294,7 +294,7 @@ local function setupHead2Head(data)
         DebugLog('[H2H] setting up race: $'..(data?.value or 0))
     end
     local citizenId = getCitizenId()
-    local racerName = CurrentName or 'UNKNOWN'
+    local racerName = CurrentUserData?.racername or 'UNKNOWN' or 'UNKNOWN'
     local startCoords = GetEntityCoords(GetPlayerPed(-1))
     local amount = data?.value or 0
     if useDebug then

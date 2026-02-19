@@ -1,5 +1,5 @@
 ConfigDrift = {
-    useDrift = false, -- enable/disable drift racing features
+    useDrift = true, -- enable/disable drift racing features
     finishCountdown = 9, -- seconds to countdown for remaining racers after first finisher
     checkpointTimePenalty = {
         usePenalty = true, -- whether to apply point penalties for taking too long between checkpoints
@@ -8,4 +8,10 @@ ConfigDrift = {
         penaltyPercentage = 0.5, -- (0.0-1.0 where 1.0 is 100% of current score) Should be used as alternative, or together with the above. Will reduce total score by a percentage instead.
         stackPenalties = true -- whether penalties should stack for multiple intervals exceeded
     },
+    useDriftChallenges = true, -- enable/disable drift challenge mode
+    driftChallengeSettings = {
+        length = 60, -- duration of drift challenges in seconds
+        waitTime = 10, -- time to wait for joiners in seconds
+        scoreBoardTimeout = 15, -- time to show scoreboard after challenge ends in seconds
+    }
 }

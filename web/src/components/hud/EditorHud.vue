@@ -3,6 +3,7 @@
     <div class="blocks-container">
       <div class="blocks">
         <div class="box editor-holder">
+          
           <span class="editor-text" id="editor-racename"
             >{{ translate("track_name") }} :
             {{ globalStore.creatorData.RaceName }}</span

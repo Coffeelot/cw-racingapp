@@ -65,22 +65,6 @@ function NotifyHandler(message, type)
     end
 end
 
-local function getCurrentRankingFromRacer(racerNames)
-    for _, racer in pairs(racerNames) do
-        if racer.racername == CurrentName then
-            return racer.ranking
-        end
-    end
-end
-
-local function getCurrentCryptoFromRacer(racerNames)
-    for _, racer in pairs(racerNames) do
-        if racer.racername == CurrentName then
-            return racer.crypto
-        end
-    end
-end
-
 function AddPointToGpsRoute(cx, cy, offset)
     local x = cx
     local y = cy
@@ -180,20 +164,10 @@ function InitialRacingAppSetup()
     DebugLog('Racer Data', json.encode(racerData))
     if not racerData and not MyRacerNames then return end
 
-    local racerName = racerData?.racername
-    local racerAuth = racerData?.auth
-    local racerCrew = racerData?.crew
-
-    if racerName then
-        CurrentName = racerName
-        CurrentAuth = racerAuth
-        CurrentRanking = getCurrentRankingFromRacer(playerNames)
-        CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
+    CurrentUserData = racerData or {}
+    if CurrentUserData then
         if UseDebug then
-            print('^3Racer name in metadata: ^0', racerName)
-            print('^3Racer auth in metadata: ^0', racerAuth)
-            print('^3Ranking^0', CurrentRanking)
-            print('^3Crypto^0', CurrentCrypto)
+            print('Current racername data:', json.encode(CurrentUserData, { indent = true }))
         end
     else
         DebugLog('No racername was selected, checking if there is only one available')
@@ -202,23 +176,19 @@ function InitialRacingAppSetup()
             local result = cwCallback.await('cw-racingapp:server:changeRacerName', playerNames[1].racername)
             if result == 1 then
                 DebugLog('Only one racername available. Setting to ', playerNames[1].racername, playerNames[1].auth)
-                CurrentName = playerNames[1].racername
-                CurrentAuth = playerNames[1].auth
-                CurrentRanking = getCurrentRankingFromRacer(playerNames)
-                CurrentCrypto = getCurrentCryptoFromRacer(playerNames)
+                CurrentUserData = playerNames[1]
             end
         end
     end
-    if racerCrew then
-        DebugLog('Has a crew set in metadata', racerCrew)
-        CurrentCrew = racerCrew
-        local crewExists = cwCallback.await('cw-racingapp:server:crewStillExists', racerCrew)
+    if CurrentUserData.crew then
+        DebugLog('Has a crew set in metadata', CurrentUserData.crew)
+        local crewExists = cwCallback.await('cw-racingapp:server:crewStillExists', CurrentUserData.crew)
         if crewExists then
             DebugLog('crew still exists', crewExists)
         else
-            DebugLog('Crew does not exist anymore', CurrentCrew)
-            TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentName, nil)
-            CurrentCrew = nil
+            DebugLog('Crew does not exist anymore', CurrentUserData.crew)
+            TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentUserData.racername, nil)
+            CurrentUserData.crew = nil
         end
     end
     SendNUIMessage({

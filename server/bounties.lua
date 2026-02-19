@@ -69,7 +69,7 @@ function GenerateBounties()
 end
 
 local function checkBountyCompletion(racerName, vehicleModel, rank, trackId, class, newTime, sprint, reversed)
-    DebugLog('^5Checking bounty for^0', racerName)
+    DebugLog('^5Checking bounty for^0', racerName, 'on track', trackId)
 
     for i, bounty in pairs(Bounties) do
         if bounty.trackId == trackId and bounty.maxClass == class then

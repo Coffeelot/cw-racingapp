@@ -1,15 +1,15 @@
 <template>
   <Popover v-model:open="menu">
     <PopoverTrigger as-child>
-      <Button :variant=" globalStore.head2headData?.inviteRaceId ? 'default' : 'outline'" @click="menu = true" class="float-right">
-        <CircleAlertIcon v-if="globalStore.head2headData?.inviteRaceId" />
-        {{ translate('head2head') }}
+      <Button :variant=" globalStore.driftChallengeData?.latestChallengeId ? 'default' : 'outline'" @click="menu = true" class="float-right">
+        <CircleAlertIcon v-if="globalStore.driftChallengeData?.latestChallengeId" />
+        {{ translate('drift') }}
       </Button>
     </PopoverTrigger>
     <PopoverContent align="end" class="dark w-96">
-      <div class="flex flex-col gap-2" v-if="!globalStore.head2headData?.inviteRaceId">
-        <div class="font-bold text-lg mb-1">{{ translate('head2head_title') }}</div>
-        <div class="mb-2">{{ translate('head2head_subtitle') }}</div>
+      <div class="flex flex-col gap-2" v-if="!hasActiveChallenge && !isInChallenge">
+        <div class="font-bold text-lg mb-1">{{ translate('driftChallenge_title') }}</div>
+        <div class="mb-2">{{ translate('driftChallenge_subtitle') }}</div>
         <div class="flex gap-2 justify-end">
           <Button variant="ghost" :loading="loading" @click="menu = false">
             {{ translate('close') }}
@@ -19,17 +19,17 @@
           </Button>
         </div>
       </div>
-      <div v-if="globalStore.head2headData?.opponentId" class="flex flex-col gap-2">
-        <div class="font-bold text-lg mb-1">{{ translate('in_h2h') }}</div>
+      <div v-else-if="isInChallenge" class="flex flex-col gap-2">
+        <div class="font-bold text-lg mb-1">{{ translate('in_driftChallenge') }}</div>
         <div class="mb-2" v-if="globalStore.notification?.text">{{ globalStore.notification.text }}</div>
         <div class="flex gap-3 justify-end">
           <Button variant="default" @click="leave()">
-            {{ translate('leave_h2h') }}
+            {{ translate('leave_driftChallenge') }}
           </Button>
         </div>
       </div>
-      <div v-else-if="globalStore.head2headData?.inviteRaceId" class="flex flex-col gap-2">
-        <div class="font-bold text-lg mb-1">{{ translate('head2head_invite') }}</div>
+      <div v-else-if="hasActiveChallenge" class="flex flex-col gap-2">
+        <div class="font-bold text-lg mb-1">{{ translate('driftChallenge_invite') }}</div>
         <div class="mb-2" v-if="globalStore.notification?.text">{{ globalStore.notification.text }}</div>
         <div class="flex gap-3 justify-end">
           <Button variant="destructive"  @click="deny">
@@ -46,11 +46,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { translate } from "@/helpers/translate";
 import api from "@/api/axios";
 import { useGlobalStore } from "@/store/global";
-import { Head2headData } from "@/store/types";
+import { DriftChallengeData } from "@/store/types";
 import {
   Popover,
   PopoverTrigger,
@@ -65,13 +65,21 @@ const loading = ref(false);
 const menu = ref(false);
 
 const fetchLatestData = async () => {
-  const res = await api.post("UiFetchH2HData");
-  globalStore.head2headData = res.data as Head2headData;
+  const res = await api.post("UiFetchDriftChallengeData");
+  globalStore.driftChallengeData = res.data as DriftChallengeData;
 };
+
+const hasActiveChallenge = computed((): boolean => {
+  return !!globalStore.driftChallengeData?.latestChallengeId;
+})
+
+const isInChallenge = computed((): boolean => {
+  return !!globalStore.driftChallengeData?.activeDriftChallengeId;
+})
 
 const invite = async () => {
   loading.value = true;
-  await api.post("UiSetupHead2Head");
+  await api.post("UiSetupDriftChallenge");
   loading.value = false;
   fetchLatestData();
   menu.value = false;
@@ -79,7 +87,7 @@ const invite = async () => {
 
 const accept = () => {
   loading.value = true;
-  api.post("UiJoinHead2Head");
+  api.post("UiJoinDriftChallenge");
   loading.value = false;
   fetchLatestData();
   closeApp()
@@ -87,7 +95,7 @@ const accept = () => {
 
 const leave = async () => {
   loading.value = true;
-  await api.post("UiLeaveHead2Head");
+  await api.post("UiLeaveDriftChallenge");
   loading.value = false;
   fetchLatestData();
   closeApp();
@@ -96,7 +104,7 @@ const leave = async () => {
 
 const deny = () => {
   loading.value = true;
-  api.post("UiDenyHead2Head");
+  api.post("UiDenyDriftChallenge");
   loading.value = false;
   fetchLatestData();
 }

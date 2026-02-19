@@ -233,9 +233,11 @@ const showRace = async () => {
 const futureTimestamp = ref<number>(props.race.ExpirationTime);
 
 const remainingTime = ref<number>(
-  futureTimestamp.value
-    ? futureTimestamp.value - Math.floor(Date.now() / 1000)
-    : 0
+  props.race.ExpirationDuration != null
+    ? props.race.ExpirationDuration
+    : futureTimestamp.value
+      ? futureTimestamp.value - Math.floor(Date.now() / 1000)
+      : 0
 );
 
 const minutes = computed(() =>

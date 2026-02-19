@@ -74,6 +74,7 @@ RegisterNetEvent('cw-racingapp:server:updateRacerDataDrift', function(raceId, ch
     if Config.UseResetTimer and raceId then
         if Timers then Timers[raceId] = GetGameTimer() end
     end
+
 end)
 
 -- Internal: force-finish all remaining racers for a drift race (collect current drift scores)

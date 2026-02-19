@@ -37,31 +37,37 @@
     </div>
 
     <h3 class="font-semibold mb-2">{{ translate('quick_actions') }}</h3>
-    <div class="mt-4 flex flex-row gap-2 mb-2">
-      <Button
-        class="btn btn-primary"
-        @click="toggleCasualDrifting()"
-      >
-        {{ translate('toggle_casual_drifting') }}
-      </Button>
-      <Button
-        class="btn btn-primary"
-        @click="goToRacing('current')"
-      >
-        {{ translate('go_to_current_races') }}
-      </Button>
-      <Button
-        class="btn btn-primary"
-        @click="goToRacing('bounties')"
-      >
-        {{ translate('go_to_bounties') }}
-      </Button>
-      <Button
-        class="btn btn-primary"
-        @click="goToRacing('setup')"
-      >
-        {{ translate('go_to_setup_race') }}
-      </Button>
+    <div class="flex flex-col md:flex-row justify-between mb-4">      
+      <div class="mt-4 flex flex-row gap-2 mb-2">
+        <Button
+          class="btn btn-primary"
+          @click="toggleCasualDrifting()"
+        >
+          {{ translate('toggle_casual_drifting') }}
+        </Button>
+        <Button
+          class="btn btn-primary"
+          @click="goToRacing('current')"
+        >
+          {{ translate('go_to_current_races') }}
+        </Button>
+        <Button
+          class="btn btn-primary"
+          @click="goToRacing('bounties')"
+        >
+          {{ translate('go_to_bounties') }}
+        </Button>
+        <Button
+          class="btn btn-primary"
+          @click="goToRacing('setup')"
+        >
+          {{ translate('go_to_setup_race') }}
+        </Button>
+      </div>
+      <div class="flex items-center gap-2">
+        <DriftInviteMenu v-if="globalStore.baseData.data.driftingIsEnabled" />
+        <Head2HeadInviteMenu v-if="globalStore.baseData.data.showH2H" />
+      </div>
     </div>
     <div class="pagecontent dashboard-content">
       <Transition name="quick-slide" mode="out-in">
@@ -105,6 +111,8 @@ import UserSpecificIcon from "../components/UserSpecificIcon.vue";
 import { CarIcon } from "lucide-vue-next";
 import CryptoDialog from "../components/dialogs/CryptoDialog.vue";
 import CrewIcon from "@/assets/icons/CrewIcon.vue";
+import DriftInviteMenu from "../components/drift/DriftInviteMenu.vue";
+import Head2HeadInviteMenu from "../components/h2h/Head2HeadInviteMenu.vue";
 
 const globalStore = useGlobalStore();
 const trackStats = ref<TrackRaceStats[]>([]);

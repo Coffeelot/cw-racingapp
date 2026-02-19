@@ -59,8 +59,20 @@ function OpenUi()
         StartScreenEffect('MenuMGIn', 1, true)
         handleAnimation()
     end
+    if CurrentUserData.racername then
+        TriggerServerEvent('cw-racingapp:server:updateRacerCrypto', CurrentUserData.racername)
+    end
+        
 end
 
+function UpdateUiData(dataType, data)
+    SendNUIMessage({
+        action = "update",
+        type = "dataUpdate",
+        dataType = dataType,
+        data = data,
+    })
+end
 
 RegisterNUICallback('GetBaseData', function(_, cb)
     -- DebugLog('Base data object', json.encode(GetBaseDataObject(), { indent = true }))
@@ -89,15 +101,13 @@ function ToggleDriftHud(show)
 end exports ('ToggleDriftHud', ToggleDriftHud)
 
 local function findRacerByName()
-    if #MyRacerNames == 1 and CurrentName == nil then
-        CurrentName = MyRacerNames[1].racername
-        CurrentAuth = MyRacerNames[1].auth
-        cwCallback.await('cw-racingapp:server:changeRacerName', CurrentName)
+    if #MyRacerNames == 1 and CurrentUserData.racername == nil then
+        cwCallback.await('cw-racingapp:server:changeRacerName', CurrentUserData.racername)
         return MyRacerNames[1]
     end
     if MyRacerNames then
         for _, user in pairs(MyRacerNames) do
-            if CurrentName == user.racername then return user end
+            if CurrentUserData.racername == user.racername then return user end
         end
     end
     return false
@@ -176,12 +186,12 @@ RegisterNUICallback('UiGetRacerNamesByPlayer', function(racername, cb)
     end
     if currentRacer then
         if currentRacer.ranking then
-            CurrentRanking = currentRacer.ranking
-            DebugLog('Ranking is', CurrentRanking)
+            CurrentUserData.ranking = currentRacer.ranking
+            DebugLog('Ranking is', CurrentUserData.ranking)
         end
         if currentRacer.crypto then
-            CurrentCrypto = currentRacer.crypto
-            DebugLog('Crypto is', CurrentCrypto)
+            CurrentUserData.crypto = currentRacer.crypto
+            DebugLog('Crypto is', CurrentUserData.crypto)
         end
     end
     cb(playerNames)
@@ -189,7 +199,7 @@ end)
 
 RegisterNUICallback('UiPurchaseCrypto', function(data, cb)
     DebugLog('purchasing crypto', data.cryptoAmount)
-    local result = cwCallback.await('cw-racingapp:server:purchaseCrypto', CurrentName, data.cryptoAmount)
+    local result = cwCallback.await('cw-racingapp:server:purchaseCrypto', CurrentUserData.racername, data.cryptoAmount)
     DebugLog('purchasing crypto result', result)
     Wait(1000)
     cb(result)
@@ -197,7 +207,7 @@ end)
 
 RegisterNUICallback('UiSellCrypto', function(data, cb)
     DebugLog('selling crypto', data.cryptoAmount)
-    local result = cwCallback.await('cw-racingapp:server:sellCrypto', CurrentName, data.cryptoAmount)
+    local result = cwCallback.await('cw-racingapp:server:sellCrypto', CurrentUserData.racername, data.cryptoAmount)
     DebugLog('selling crypto result', result)
     Wait(1000)
     cb(result)
@@ -205,7 +215,7 @@ end)
 
 RegisterNUICallback('UiTransferCrypto', function(data, cb)
     DebugLog('selling crypto', data.cryptoAmount, 'to', data.recipient)
-    local result = cwCallback.await('cw-racingapp:server:transferCrypto', CurrentName, data.cryptoAmount, data.recipient)
+    local result = cwCallback.await('cw-racingapp:server:transferCrypto', CurrentUserData.racername, data.cryptoAmount, data.recipient)
     DebugLog('selling crypto result', result)
     Wait(1000)
     cb(result)
@@ -213,7 +223,7 @@ end)
 
 RegisterNUICallback('UiChangeAuth', function(data, cb)
     DebugLog('changing auth', json.encode(data, {indent=true}))
-    if not Config.Permissions[data.auth] then debugPrint('User type does not exist') return end
+    if not Config.Permissions[data.auth] then DebugLog('User type does not exist') return end
     local result = cwCallback.await('cw-racingapp:server:setUserAuth', data)
     cb(result)
 end)
@@ -241,7 +251,7 @@ end)
 
 RegisterNUICallback('UiGetRacersCreatedByUser', function(_, cb)
     local racerId = getCitizenId()
-    local playerNames = cwCallback.await('cw-racingapp:server:getRacersCreatedByUser', racerId, CurrentAuth)
+    local playerNames = cwCallback.await('cw-racingapp:server:getRacersCreatedByUser', racerId, CurrentUserData.auth)
 
     DebugLog('player names created by  user', #playerNames, json.encode(playerNames))
     cb(playerNames)
@@ -345,7 +355,7 @@ local function joinRace(raceId)
         NotifyHandler(Lang("race_no_exist"), 'error')
     else
         if MyCarClassIsAllowed(currentRace.MaxClass, class) then
-            currentRace.RacerName = CurrentName
+            currentRace.RacerName = CurrentUserData.racername
             currentRace.PlayerVehicleEntity = GetVehiclePedIsIn(PlayerPed, false)
             DebugLog('^2 joining race with race id', raceId)
             TriggerServerEvent('cw-racingapp:server:joinRace', currentRace)
@@ -392,7 +402,7 @@ end)
 
 RegisterNUICallback('UiEditTrack', function(track, cb)
     DebugLog('opening track editor for', track.RaceName)
-    TriggerEvent("cw-racingapp:client:startRaceEditor", track.RaceName, CurrentName, track.TrackId)
+    TriggerEvent("cw-racingapp:client:startRaceEditor", track.RaceName, CurrentUserData.racername, track.TrackId)
     cb(true)
 end)
 
@@ -524,6 +534,19 @@ local function getAvailableTracks()
             tracks[#tracks + 1] = track
         end
     end
+    if UseDebug then
+        print('Available tracks before sort:')
+        -- print tracks without Checkpoints
+        for _, track in pairs(tracks) do
+            local trackCopy = {}
+            for k, v in pairs(track) do
+                if k ~= 'Checkpoints' then
+                    trackCopy[k] = v
+                end
+            end
+            print(json.encode(trackCopy, { indent = true }))
+        end
+    end
     return sortTracksByName(tracks)
 end
 exports('getAvailableTracks', getAvailableTracks)
@@ -545,7 +568,7 @@ local function getAvailableRaces()
                 racers = racers + 1
             end
 
-            race.RacerName = CurrentName
+            race.RacerName = CurrentUserData.racername
 
             local maxClass = 'open'
             if (race.RaceData.MaxClass ~= nil and race.RaceData.MaxClass ~= "") then
@@ -598,7 +621,7 @@ RegisterNUICallback('UiKickCrewMember', function(data, cb)
     local citizenId  = data.citizenId
     local memberName  = data.memberName
     DebugLog('kicking crew member with citizenId', memberName, citizenId)
-    local result = cwCallback.await('cw-racingapp:server:kickMemberFromCrew', memberName, citizenId, CurrentCrew)
+    local result = cwCallback.await('cw-racingapp:server:kickMemberFromCrew', memberName, citizenId, CurrentUserData.crew)
     cb(result)
 end)
 
@@ -619,7 +642,7 @@ local function attemptSetupRace(setupData)
             local data = {
                 trackId = setupData.trackId,
                 laps = tonumber(setupData.laps),
-                hostName = CurrentName,
+                hostName = CurrentUserData.racername,
                 maxClass = setupData.maxClass,
                 ghostingEnabled = setupData.ghostingOn,
                 ghostingTime = tonumber(setupData.ghostingTime),
@@ -669,6 +692,7 @@ end)
 
 RegisterNUICallback('UiQuickHost', function(track, cb)
     local setupData = {}
+    DebugLog('Track metadata for quick host', json.encode(track.Metadata, { indent = true }))
     for field, value in pairs(Config.QuickSetupDefaults) do
         setupData[field] = value
     end
@@ -754,8 +778,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             return
         end
 
-        local result = cwCallback.await('cw-racingapp:server:isAuthorizedToCreateRaces', createData.name, CurrentName)
-
+        local result = cwCallback.await('cw-racingapp:server:isAuthorizedToCreateRaces', createData.name, CurrentUserData.racername)
         if not result.permissioned then
             NotifyHandler(Lang("not_auth"), 'error')
             cb(false)
@@ -765,7 +788,7 @@ RegisterNUICallback('UiCreateTrack', function(createData, cb)
             cb(false)
         end
 
-        TriggerServerEvent('cw-racingapp:server:createTrack', createData.name, CurrentName, decodedCheckpoints)
+        TriggerServerEvent('cw-racingapp:server:createTrack', createData.name, CurrentUserData.racername, CurrentUserData.racerid, decodedCheckpoints)
         cb(true)
     end
 end)
@@ -780,12 +803,12 @@ end)
 -- Crew stuff
 RegisterNUICallback('UiJoinCrew', function(data, cb)
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:joinCrew', CurrentName, citizenId, data.crewName)
+    local result = cwCallback.await('cw-racingapp:server:joinCrew', CurrentUserData.racername, citizenId, data.crewName)
 
     DebugLog('Success: ', result)
     if result then
-        CurrentCrew = result
-        TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentCrew)
+        CurrentUserData.crew = result
+        TriggerServerEvent('cw-racingapp:server:changeCrew', CurrentUserData.crew)
     end
     cb(result)
 end)
@@ -793,11 +816,11 @@ end)
 RegisterNUICallback('UiLeaveCrew', function(data, cb)
     DebugLog('Leaving', data.crewName)
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:leaveCrew', CurrentName, citizenId, data.crewName)
+    local result = cwCallback.await('cw-racingapp:server:leaveCrew', CurrentUserData.racername, citizenId, data.crewName)
 
     DebugLog('Success: ', result)
     if result then
-        CurrentCrew = nil
+        CurrentUserData.crew = nil
         TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
     end
     cb(result)
@@ -809,7 +832,7 @@ RegisterNUICallback('UiDisbandCrew', function(data, cb)
 
     DebugLog('Success: ', result)
     if result then
-        CurrentCrew = nil
+        CurrentUserData.crew = nil
         TriggerServerEvent('cw-racingapp:server:changeCrew', nil)
     end
     cb(result)
@@ -823,11 +846,11 @@ RegisterNUICallback('UiCreateCrew', function(data, cb)
         return
     end
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:createCrew', CurrentName, citizenId, sanitizedName)
+    local result = cwCallback.await('cw-racingapp:server:createCrew', CurrentUserData.racername, citizenId, sanitizedName)
 
     DebugLog('Success: ', result)
     if result then
-        CurrentCrew = sanitizedName
+        CurrentUserData.crew = sanitizedName
         TriggerServerEvent('cw-racingapp:server:changeCrew', sanitizedName)
     end
     cb(result)
@@ -851,7 +874,7 @@ RegisterNUICallback('UiSendInvite', function(data, cb)
     end
     local myServerID = GetPlayerServerId(PlayerId())
 
-    local result = cwCallback.await('cw-racingapp:server:sendInvite', myServerID, data.citizenId, CurrentCrew)
+    local result = cwCallback.await('cw-racingapp:server:sendInvite', myServerID, data.citizenId, CurrentUserData.crew)
 
     DebugLog('Success: ', result)
     cb(result)
@@ -868,18 +891,18 @@ RegisterNUICallback('UiSendInviteClosest', function(data, cb)
     local closestServerID = GetPlayerServerId(closestP)
     local myServerID = GetPlayerServerId(PlayerId())
 
-    local result = cwCallback.await('cw-racingapp:server:sendInviteClosest', myServerID, closestServerID, CurrentCrew)
+    local result = cwCallback.await('cw-racingapp:server:sendInviteClosest', myServerID, closestServerID, CurrentUserData.crew)
     DebugLog('Success: ', result)
     cb(result)
 end)
 
 RegisterNUICallback('UiAcceptInvite', function(data, cb)
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:acceptInvite', CurrentName, citizenId)
+    local result = cwCallback.await('cw-racingapp:server:acceptInvite', CurrentUserData.racername, citizenId)
 
     DebugLog('Success: ', result)
     if result then
-        CurrentCrew = data.crewName
+        CurrentUserData.crew = data.crewName
         TriggerServerEvent('cw-racingapp:server:changeCrew', data.crewName)
     end
     cb(result)
@@ -912,7 +935,7 @@ end)
 
 RegisterNUICallback('UiGetCrewData', function(data, cb)
     local citizenId = getCitizenId()
-    local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentCrew)
+    local result = cwCallback.await('cw-racingapp:server:getCrewData', citizenId, CurrentUserData.crew)
     DebugLog('crew data: ', json.encode(result, {indent=true}))
     cb(result)
 end)
@@ -926,8 +949,8 @@ RegisterNUICallback('UiCancelRace', function(trackId, cb)
 end)
 
 RegisterNUICallback('UiFetchRacerHistory', function(racerName, cb)
-    DebugLog('Fetching Racer history for racer',racerName or CurrentName )
-    local result = cwCallback.await('cw-racingapp:server:fetchRacerHistory', racerName or CurrentName)
+    DebugLog('Fetching Racer history for racer',racerName or CurrentUserData.racername )
+    local result = cwCallback.await('cw-racingapp:server:fetchRacerHistory', racerName or CurrentUserData.racername)
     cb(result)
 end)
 

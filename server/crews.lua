@@ -420,9 +420,9 @@ AddEventHandler('onResourceStart', function(resourceName)
     end
 end)
 
-if useDebug then
+if Config.EnableCommands then
     -- Debugging
-    registerCommand('createracingcrew', "Create a new racing crew", {
+    RegisterRacingAppCommand('createracingcrew', "Create a new racing crew", {
         { name = 'founder',   help = 'Founder name' },
         { name = 'citizenid', help = 'Citizen ID' },
         { name = 'crew',      help = 'Crew name' },
@@ -431,7 +431,7 @@ if useDebug then
         createRacingCrew(args[1], args[2], args[3])
     end, true)
     
-    registerCommand('joinracingcrew', "Join a racing crew", {
+    RegisterRacingAppCommand('joinracingcrew', "Join a racing crew", {
         { name = 'member',    help = 'Member name' },
         { name = 'citizenid', help = 'Citizen ID' },
         { name = 'crew',      help = 'Crew name' },
@@ -440,7 +440,7 @@ if useDebug then
         joinRacingCrew(args[1], args[2], args[3])
     end, true)
     
-    registerCommand('leaveracingcrew', "Leave a racing crew", {
+    RegisterRacingAppCommand('leaveracingcrew', "Leave a racing crew", {
         { name = 'citizenid', help = 'Citizen ID' },
         { name = 'crew',      help = 'Crew name' },
     }, true, function(source, args)
@@ -448,21 +448,21 @@ if useDebug then
         leaveRacingCrew(args[1], args[2])
     end, true)
     
-    registerCommand('addwintocrew', "Add a win to a racing crew", {
+    RegisterRacingAppCommand('addwintocrew', "Add a win to a racing crew", {
         { name = 'crew', help = 'Crew name' },
     }, true, function(source, args)
         print('Adding a win to racing crew', args[1])
         addWinToCrew(args[1])
     end, true)
     
-    registerCommand('addracetocrew', "Add a race to a racing crew", {
+    RegisterRacingAppCommand('addracetocrew', "Add a race to a racing crew", {
         { name = 'crew', help = 'Crew name' },
     }, true, function(source, args)
         print('Adding a race to racing crew', args[1])
         addRaceToCrew(args[1])
     end, true)
     
-    registerCommand('updateranking', "add/remove rank for a racing crew", {
+    RegisterRacingAppCommand('updateranking', "add/remove rank for a racing crew", {
         { name = 'crew',   help = 'Crew name' },
         { name = 'amount', help = 'How much do you want to increase/decrease with' },
     }, true, function(source, args)
@@ -470,19 +470,19 @@ if useDebug then
         updateRanking(args[1], args[2])
     end, true)
     
-    registerCommand('disbandracingcrew', "Disband a racing crew", {
+    RegisterRacingAppCommand('disbandracingcrew', "Disband a racing crew", {
         { name = 'crew', help = 'Crew name' },
     }, true, function(source, args)
         print('Disbanding racing crew', args[1])
         disbandRacingCrew(args[1])
     end, true)
     
-    registerCommand('printracingcrews', "Print racing crews", {
+    RegisterRacingAppCommand('printracingcrews', "Print racing crews", {
     }, true, function(source, args)
         print(json.encode(RacingCrews))
     end, true)
     
-    registerCommand('printinvites', "Print racing crews", {
+    RegisterRacingAppCommand('printinvites', "Print racing crews", {
     }, true, function(source, args)
         print(json.encode(ActiveInvites))
     end, true)

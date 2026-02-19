@@ -61,6 +61,9 @@ const handleDataUpdate = (itemData: any) => {
     case 'crypto':
       globalStore.baseData.data.currentCrypto = itemData.data
       break;
+    case 'driftChallenge':
+      globalStore.driftChallengeData = itemData.data
+      break;
     default:
       break;
   }
@@ -81,6 +84,16 @@ const handleDriftUpdate = (data: any) => {
 
 const handleDriftCountdown = (data: any) => {
   globalStore.countdown = data?.seconds || 0
+}
+
+const handleDriftFinish = (data: any) => {
+  if (!!data ) {
+     globalStore.showDriftResults = true
+     globalStore.driftChallengeResults = data || {}
+  } else {
+    globalStore.showDriftResults = false
+  }
+  
 }
 
 const handleMessageListener = (event: MessageEvent) => {
@@ -110,8 +123,12 @@ const handleMessageListener = (event: MessageEvent) => {
         break;
       case 'head2head':
         handleHead2HeadUpdate(itemData.data)
+        break;
       case 'drift_countdown':
         handleDriftCountdown(itemData.data)
+        break;      
+      case 'drift_finish':
+        handleDriftFinish(itemData.data)
         break;
       default:
         break;
@@ -132,6 +149,7 @@ const getBaseData = async () => {
 }
 
 onMounted(() => {
+  // Kinda irrelevant mock stuff
   if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
     globalStore.$state = testState as unknown as typeof globalStore.$state;
   }
@@ -199,7 +217,7 @@ onMounted(() => {
       };
     }, 2000);
   }
-
+  // Very relevant event listner
   window.addEventListener("message", handleMessageListener);
 });
 

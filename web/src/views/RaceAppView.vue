@@ -1,7 +1,6 @@
 <template>
   <div class="ui-container">
     <div class="screen-container dark" v-if="globalStore.baseData.data">
-      <!-- <TopBar /> -->
       <div ref="screen-root" id="screen-root" class="app-container dark bg-background text-foreground">
         <Toaster container="screen-root" position="top-center" />
         <SidebarProvider class="m-h-0 h-80">
@@ -56,7 +55,7 @@ import { getBaseData } from "@/helpers/getBaseData";
 import { translate } from "@/helpers/translate";
 import UserCreation from "@/components/app/components/UserCreation.vue";
 import AdminMenu from "@/components/app/pages/AdminMenu.vue";
-import { computed } from "vue";
+import { computed, onUnmounted } from "vue";
 import { onMounted } from "vue";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "vue-sonner";
@@ -169,6 +168,11 @@ onMounted(() => {
       } as MessageEvent);
     }, 500);
   }
+});
+
+onUnmounted(() => {
+  toast.dismiss();
+  window.removeEventListener("message", handleMessageListener);
 });
 </script>
 

@@ -1,6 +1,6 @@
 Config = Config or {}
 Config.Debug = GetConvarInt('racingapp_debug', 0) == 1
-Config.EnableCommands = false
+Config.EnableCommands = true
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
 Lang = function(phrase)
@@ -20,14 +20,13 @@ Config.MaxRacerNames = 2                -- Maximum allowed amount of unique name
 Config.MaxCheckpoints = 60              -- This is just for the warning to show up. You can still go above it, but the script WILL crash clients if there's to many checkpoints. Test higher values at own risk.
 Config.AllowCreateFromShare = true      -- toggle this to allow using the share track creation
 Config.CheckDistance = true             -- If enabled, distances to checkpoints are compared for position tracking (If you got alot of racers this might affect client performance)
-Config.TimeOutTimerInMinutes = 1        -- Default = 5 minutes
+Config.TimeOutTimerInMinutes = 5        -- Default = 5 minutes
 Config.NotifyRacers = true              -- set to true and anyone holding a racing gps will get a notification when races are hosted
 
 Config.UseOxLibForKeybind = true       -- YOU HAVE TO ENABLE OXLIB IN FXMANIFEST TO USE THIS!!!!!!!!!!!!!!!!!!!!!!!!! Use oxlib for keybinds instead of natives.
 Config.UseOxTarget = true              -- Require ox target. Obviously
-Config.OxInput = false                  -- If you want Oxlib input menus Same as above with fxmanifest ^
+Config.OxInput = true                  -- If you want Oxlib input menus Same as above with fxmanifest ^
 Config.OxLibNotify = true              -- If you want Oxlib notify Same as above with fxmanifest ^
-
 Config.LimitTopListTo = 10              -- If this is nil, the Racers Ranking will list all racers that exist, if set to a number it will limit to the top of that amount
 Config.DontShowRankingsUnderZero = true -- If this is true, the top rank list will not show player with with 0 or lower ranking
 Config.UseVehicleModelInsteadOfClassForRecords = false -- if this is true then players can have multiple records per class, but only once per vehicle model
@@ -85,7 +84,7 @@ Config.DrawTextSetup = {
 }
 
 Config.CustomAmounts = { -- custom max amout of racer names
-    ['PX6944'] = 100,
+    ['YE7606'] = 100,
     ['FMN22732'] = 100,
     ['SYY99260'] = 100,
 }
@@ -93,7 +92,7 @@ Config.CustomAmounts = { -- custom max amout of racer names
 Config.LimitTracks = true        -- set to true to limit tracks per citizenid. Below two fields are irrelevent if this is false
 Config.MaxCharacterTracks = 2    -- Amount of tracks allowed per citizenid
 Config.CustomAmountsOfTracks = { -- custom max amout of tracks per citizenid
-    ['PX6944'] = 100,
+    ['YE7606'] = 100,
     ['FMN22732'] = 100,
     ['SYY99260'] = 100,
 }
@@ -196,9 +195,8 @@ Config.Permissions = {
 Config.MarkAmountOfCheckpointsAhead = 5
 Config.FlareTime = 10000                                 -- How long the flares are lit
 Config.KickTime = 10 * 60 * 1000                         -- How long (in ms) until you get kicked if not being at race
-Config.StartAndFinishModel = 'prop_beachflag_le'         -- comment this line out if you dont want props for start/finish line
-Config.CheckpointPileModel =
-'xm_prop_base_tripod_lampa'                              --good alternative: 'prop_flare_01b' - comment this line out if you dont want entities for checkpoints
+Config.StartAndFinishModel = 'xm_prop_base_tripod_lampa'         -- comment this line out if you dont want props for start/finish line
+Config.CheckpointPileModel = 'prop_flare_01'                              --good alternative: 'prop_flare_01b' - comment this line out if you dont want entities for checkpoints
 Config.CheckpointBuffer = 1.0                            -- Distance (in meters) of how much outside of a checkpoints size (size is determined by the checkpoint edges) you can be to still pass it
 
 Config.Classes = {
@@ -287,13 +285,13 @@ Config.Payments = {
     racing = 'racingcrypto', -- what money is used for buyins and payots in racing
     automationPayout = 'racingcrypto', -- what money is used  to payouts in automation races
     participationPayout = 'racingcrypto', -- what money the participation rewards give out
-    bountyPayout = 'racingcrypto', -- what money bounties pay out
+    bountyPayout = 'racingcrypto', --'racingcrypto', -- what money bounties pay out
     createRacingUser = 'bank', -- what money is used to create racing users
-    crypto = 'cash', -- what money type is used to buy Racing App Crypto
+    crypto = 'bank', -- what money type is used to buy Racing App Crypto
 }
 
 Config.Trader = {
-    active = true,
+    active = false,
     jobRequirement = { racer = false }, -- tied to Config.AllowedJobs
     requireToken = false,
     model = 'csb_paige',
@@ -310,7 +308,7 @@ Config.Trader = {
 }
 
 Config.Laptop = {
-    active = true,                                                                -- If the laptop spawns
+    active = false,                                                                -- If the laptop spawns
     jobRequirement = { racer = false, creator = false, master = false, god = false }, -- Tied to Config.AllowedJobs
     requireToken = false,                                                         -- using cw tokens?
     model = 'xm_prop_x17_laptop_mrsr',                                            -- entity model
@@ -346,7 +344,7 @@ Config.QuickSetupDefaults = {
     buyIn = 0,
     ranked = false,
     reversed = false,
-    laps = 1,
+    laps = 2,
     maxClass = nil,
     participationMoney = 0,
     participationCurrency = Config.Payments.participationPayout,
@@ -382,220 +380,4 @@ Config.Buttons = {
     IncreaseDistance = 'PAGEUP',
     DecreaseDistance = 'PAGEDOWN',
     Exit = '9'
-}
-
-Config.AutoMatedRacesHostName = 'AutoMate'
-
-Config.AutomatedRaces = {
-    {
-        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'A',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 1,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 1,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = false             -- forced first person
-    },
-    {
-        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'B',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 10,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 10,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = true             -- forced first person
-    },
-    {
-        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'S',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 5,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 5,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = false             -- forced first person
-    },
-    {
-        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'B',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 1,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 1,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = false             -- forced first person
-    },
-    {
-        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'S',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 10,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 10,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = false             -- forced first person
-    },
-    {
-        trackId = 'CW-4925',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'A',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 1,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 1,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = false             -- forced first person
-    },
-    {
-        trackId = 'CW-4925',            -- TrackId. Found in your tracks in racingapp or in DB
-        laps = 2,                       -- Laps. 0 for sprint
-        maxClass = 'A',                 -- Max Class
-        ghostingEnabled = true,        -- Use Ghosting
-        ghostingTime = 0,               -- Ghosting Time
-        buyIn = 1,                   -- amount to participate
-        ranked = true,                  -- ranked or not
-        reversed = false,               -- reversed track or not
-        participationMoney = 1,       -- how much players get for participating
-        participationCurrency = Config.Payments.participationPayout, -- currency
-        firstPerson = false             -- forced first person
-    },
-}
-
-Config.AutomatedOptions = {
-    timeBetweenRaces = 2 * 60 * 1000, -- Default = every 20 minutes - change 20 to whateer minutes you wanna use or go look up minutes to milliseconds and learn something
-    minimumParticipants = 1,      -- The least amount of participants that are needed for the race to start
-    payouts = {                   -- Extra payouts from Automated Races
-        participation = 500,
-        winner = 1000,
-        perRacer = 50, -- Extra payment per racer, so if it's 50 then if 10 racers show you everyone gets 500 extra for finishing
-    }
-}
-
-Config.Bounties = {
-    {
-        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'A',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 31787,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 300,                    -- Price money
-        sprint = false,                  -- require race to be a sprint to claim bounty
-    },
-    {
-        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'D',                 -- Max Class
-        reversed = true,               -- reversed track or not
-        timeToBeat = 49000,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 200,                    -- Price money
-        sprint = false,                  -- require race to be a sprint to claim bounty
-    },
-    {
-        trackId = 'CW-7666',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'C',                 -- Max Class
-        reversed = true,               -- reversed track or not
-        timeToBeat = 43000,             -- time you have to beat in milliseconds
-        extraTime = 1000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 300,                    -- Price money
-        sprint = false,                  -- require race to be a sprint to claim bounty
-    },
-    {
-        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'B',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 91787,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 300,                    -- Price money
-        sprint = false,                  -- require race to be a sprint to claim bounty
-    },
-    {
-        trackId = 'CW-3232',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'D',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 240000,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 400,                    -- Price money
-        sprint = false,                  -- require race to be a sprint to claim bounty
-    },
-    {
-        trackId = 'CW-4267',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'X',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 801787,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 1000,                    -- Price money
-        sprint = true,                  -- require race to be a sprint to claim bounty
-        rankRequired = 15,                -- Rank required to claim
-    },
-    {
-        trackId = 'CW-9030',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'A',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 130000,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 500,                    -- Price money
-        sprint = false,                  -- require race to be a sprint to claim bounty
-        rankRequired = 2,                -- Rank required to claim
-
-    },
-    {
-        trackId = 'CW-4267',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'B',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 130000,             -- time you have to beat in milliseconds
-        extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 500,                    -- Price money
-        sprint = true,                  -- require race to be a sprint to claim bounty
-        rankRequired = 2,                -- Rank required to claim
-
-    },
-    {
-        trackId = 'CW-3610',            -- TrackId. Found in your tracks in racingapp or in DB
-        maxClass = 'E',                 -- Max Class
-        reversed = false,               -- reversed track or not
-        timeToBeat = 114000,             -- time you have to beat in milliseconds
-        extraTime = 1000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-        price = 500,                    -- Price money
-        sprint = true,                  -- require race to be a sprint to claim bounty
-        rankRequired = 0,                -- Rank required to claim
-
-    },
-    -- {
-    --     trackId = 'LR-9238',            -- TrackId. Found in your tracks in racingapp or in DB
-    --     maxClass = 'S',                 -- Max Class
-    --     reversed = false,               -- reversed track or not
-    --     timeToBeat = 801787,             -- time you have to beat in milliseconds
-    --     extraTime = 5000,               -- max time (in milliseconds) that can be added ontop of timeToBeat when generated
-    --     price = 500,                    -- Price money
-    --     sprint = true,                  -- require race to be a sprint to claim bounty
-    --     rankRequired = 5,                -- Rank required to claim
-    -- },
-}
-
-Config.BountiesOptions = {
-    defaultRankRequirement = 0, -- Default rank requirement to see and claim bounties. Can be overrided by assigning a rankRequired in the bounty.
-    maxAmount = 6, -- Max amount of bounties that can be generated
-    minAmount = 2, -- min amount of bounties that can be generated
-    allowMultipleOnSameTrack = true, -- if set to false, only allow one bounty per track
-    allowMultipleInSameClass = true, -- if set to false, only allow one per class
-    consecutiveMultiplier = 0.5, -- this times the price for how much players get when they beat their own time for a bounty, so if this is 0.5 you get 50% of the original bounty after the first one
 }

@@ -23,7 +23,6 @@ end
 local function getTrackRaceStats(datespanDays)
     local cacheKey = getCacheKey(datespanDays)
     if trackRaceStatsCache[cacheKey] then
-        if UseDebug then print('Returning cache', json.encode(trackRaceStatsCache[cacheKey], {indent=true})) end
         return trackRaceStatsCache[cacheKey]
     end
 
@@ -219,8 +218,8 @@ local function addTrackTime(timeData)
         
         -- Insert new record with updated PB history
         local insertQuery = [[
-            INSERT INTO track_times (trackId, racerName, carClass, vehicleModel, raceType, time, reversed, pbHistory)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO track_times (trackId, racerName, carClass, vehicleModel, raceType, time, reversed, pbHistory, racerid)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ]]
         
         local insertParams = {
@@ -231,7 +230,8 @@ local function addTrackTime(timeData)
             StrictSanitize(timeData.raceType),
             newTime,
             timeData.reversed or false,
-            json.encode(pbHistory)
+            json.encode(pbHistory),
+            StrictSanitize(timeData.racerid)
         }
         
         MySQL.Sync.execute(insertQuery, insertParams)

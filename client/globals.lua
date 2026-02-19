@@ -7,10 +7,7 @@ IsFirstUser = false
 CharacterHasLoaded = false
 
 CurrentName = nil
-CurrentAuth = nil
-CurrentCrew = nil
-CurrentCrypto = nil
-CurrentRanking = nil
+CurrentUserData = {}
 MyRacerNames = {}
 
 Classes = getVehicleClasses()

@@ -22,9 +22,9 @@ end
 
 local function createTrack(raceData, checkpoints, citizenId, raceId)
     MySQL.Async.insert(
-        'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO race_tracks (name, checkpoints, creatorid, creatorname, distance, raceid, curated, access, racerid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         { StrictSanitize(raceData.RaceName), json.encode(checkpoints), citizenId, StrictSanitize(raceData.RacerName),
-            raceData.RaceDistance, raceId, 0, '{}' }
+            raceData.RaceDistance, raceId, 0, '{}', StrictSanitize(raceData.RacerId) }
     )
 end
 
@@ -91,13 +91,26 @@ local function getUserAuth(racerName)
     end
 end
 
+local function updateRacer(racerName, field, value)
+    local query = 'UPDATE racer_names SET ' .. field .. ' = ? WHERE racername = ?'
+    return MySQL.Sync.execute(query, { value, StrictSanitize(racerName) })
+end
+
+local function setActiveRacerUserByRacerId(racerId, active)
+    return MySQL.Sync.execute('UPDATE racer_names SET active = ? WHERE racerid = ?', { tonumber(active), racerId })     
+end
+
 local function getRaceUserByName(racerName)
     return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racername = ?', { StrictSanitize(racerName) })[1]
 end
 
-local function createRaceUser(citizenId, racerName, auth, creatorCitizenId)
-    MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby) VALUES (?, ?, ?, ?)',
-        { citizenId, StrictSanitize(racerName), auth, creatorCitizenId })
+local function getRaceUserByRacerId(racerId)
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE racerid = ?', { StrictSanitize(racerId) })[1]
+end
+
+local function createRaceUser(citizenId, racerName, auth, creatorCitizenId, racerId)
+    MySQL.Async.insert('INSERT INTO racer_names (citizenid, racername, auth, createdby, racerid) VALUES (?, ?, ?, ?, ?)',
+        { citizenId, StrictSanitize(racerName), auth, creatorCitizenId, racerId })
 end
 
 local function getRaceUserRankingByName(racerName)
@@ -283,7 +296,9 @@ RADB = {
     getAllRaceTracks = getAllRaceTracks,
     getAllRaceUsers = getAllRaceUsers,
     changeRaceUser = changeRaceUser,
+    updateRacer = updateRacer,
     getRaceUserByName = getRaceUserByName,
+    getRaceUserByRacerId = getRaceUserByRacerId,
     getUserAuth = getUserAuth,
     getActiveRacerName = getActiveRacerName,
     getActiveRacerCrew = getActiveRacerCrew,
@@ -312,4 +327,5 @@ RADB = {
     addCryptoToRacer = addCryptoToRacer,
     removeCryptoFromRacer = removeCryptoFromRacer,
     getRacingUsersByCitizenId = getRacingUsersByCitizenId,
+    setActiveRacerUserByRacerId = setActiveRacerUserByRacerId,
 }

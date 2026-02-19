@@ -4,27 +4,34 @@
       <CardTitle class="flex items-center gap-2">
         {{ bounty.trackName }}
         <Badge :variant="hasBeenCompleted ? 'default' : 'outline'" class="ml-2">
-          {{ msToHMS(bounty.timeToBeat) }}
+          <TimerIcon />
+          {{ translate('time_to_beat') }}: {{ msToHMS(bounty.timeToBeat) }}
         </Badge>
       </CardTitle>
     </CardHeader>
     <CardContent class="text flex gap-2 flex-wrap">
       <Badge variant="outline">
-        {{ translate('price') }}: {{ translate('currency_text') }}{{ bounty.price }}
+        <HandCoins />
+        {{ translate('price') }}: {{ priceText }}
       </Badge>
       <Badge variant="outline">
+        <InfoIcon />
         {{ translate('class') }}: {{ bounty.maxClass }}
       </Badge>
       <Badge :variant="meetsRequiredRank ? 'outline' : 'destructive'">
+        <RankedIcon />
         {{ translate('required_rank') }}: {{ bounty.rankRequired }}
       </Badge>
       <Badge variant="outline" v-if="bounty.reversed">
+        <RotateCcw />
         {{ translate('reversed') }}
       </Badge>
       <Badge variant="outline" v-if="bounty.sprint">
+         <TrackIcon />
         {{ translate('sprint') }}
       </Badge>
       <Badge variant="outline" v-else>
+         <TrackIcon />
         {{ translate('circuit') }}
       </Badge>
     </CardContent>
@@ -116,6 +123,9 @@ import {
 import { Table, TableCell, TableBody, TableHead, TableRow, TableHeader } from "@/components/ui/table";
 import { DialogPortal } from "reka-ui";
 import DialogOverlay from "@/components/ui/dialog/DialogOverlay.vue";
+import { HandCoins, InfoIcon, RotateCcw, TimerIcon } from "lucide-vue-next";
+import RankedIcon from "@/assets/icons/RankedIcon.vue";
+import TrackIcon from "@/assets/icons/TrackIcon.vue";
 
 const props = defineProps<{
   bounty: Bounty;
@@ -136,6 +146,16 @@ const hasBeenCompleted = computed(() => {
 
 const meetsRequiredRank = computed(() => {
   return props.bounty.rankRequired <= globalStore.baseData.data.currentRanking
+})
+
+const priceText = computed(() => {
+  if (globalStore.baseData.data.payments.bountyPayout === 'racingcrypto') {
+    return `${globalStore.baseData.data.payments.cryptoType} ${props.bounty.price}`
+  } else if (globalStore.baseData.data.payments.bountyPayout === 'santacoin') {
+    return `${props.bounty.price} ${translate('santacoin')}`
+  } else {
+    return `${translate('currency_text')}${props.bounty.price}`
+  }
 })
 
 const quickHost = async () => {

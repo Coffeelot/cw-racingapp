@@ -11,9 +11,9 @@
     >
       <circle
         v-if="currentPercent <= 90 && currentPercent >= 0"
-        cx="50"
-        cy="50"
-        r="45"
+        :cx="props.circleSize ?? 50"
+        :cy="props.circleSize ?? 50"
+        :r="props.circleRadius ?? 45"
         :stroke-width="circleStrokeWidth"
         stroke-dashoffset="0"
         stroke-linecap="round"
@@ -21,9 +21,9 @@
         class="gauge-secondary-stroke opacity-100"
       />
       <circle
-        cx="50"
-        cy="50"
-        r="45"
+        :cx="props.circleSize ?? 50"
+        :cy="props.circleSize ?? 50"
+        :r="props.circleRadius ?? 45"
         :stroke-width="circleStrokeWidth"
         stroke-dashoffset="0"
         stroke-linecap="round"
@@ -52,6 +52,8 @@ interface Props {
   gaugePrimaryColor?: string;
   gaugeSecondaryColor?: string;
   class?: string;
+  circleSize?: number;
+  circleRadius?: number;
   circleStrokeWidth?: number;
   showPercentage?: boolean;
   duration?: number;

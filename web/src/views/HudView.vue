@@ -1,7 +1,8 @@
 <template>
   <div class="hud-view">
-    <EditorHud  v-if="!!globalStore.creatorData && globalStore.activeHudData.InCreator" />
+    <EditorHud v-if="!!globalStore.creatorData && globalStore.activeHudData.InCreator" />
     <RaceHud v-if="globalStore.activeRace && globalStore.activeHudData.InRace" />
+    <DriftResults v-if="globalStore.showDriftResults" />
     <DriftHud v-if="globalStore.showDriftHud" />
     <CountdownHud v-if="globalStore.countdown > -1" :countdownNumber="globalStore.countdown" />
   </div>
@@ -13,6 +14,7 @@ import EditorHud from "../components/hud/EditorHud.vue";
 import RaceHud from "../components/hud/RaceHud.vue";
 import CountdownHud from "../components/hud/CountdownHud.vue";
 import DriftHud from "@/components/hud/DriftHud.vue";
+import DriftResults from "@/components/app/components/drift/DriftResults.vue";
 
 const globalStore = useGlobalStore();
 </script>

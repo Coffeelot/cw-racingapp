@@ -7,15 +7,42 @@
           <TabsTrigger @click="setTab('bounties')" value="bounties">{{ translate('bounties') }}</TabsTrigger>
           <TabsTrigger @click="setTab('setup')" value="setup" v-if="globalStore.baseData.data.auth.setup">{{ translate('setup') }}</TabsTrigger>
         </TabsList>
-      <Head2HeadInviteMenu v-if="globalStore.baseData.data.showH2H" />
+      <div class="flex items-center gap-2">
+        <DriftInviteMenu v-if="globalStore.baseData.data.driftingIsEnabled" />
+        <Head2HeadInviteMenu v-if="globalStore.baseData.data.showH2H" />
+      </div>
     </div>
     <Transition name="quick-slide" mode="out-in">
     <TabsContent value="current" v-if="tab === 'current'">
+      <InfoHeader
+        :title="translate('racing')"
+        :subtitle="translate('racing_desc')">
+        <Badge color="primary" variant="outline">
+          <UserIcon />
+          <div class="flex items-center gap-2">
+            {{ globalStore.baseData?.data?.currentRacerName }}
+            <span v-if="globalStore.baseData?.data?.currentCrewName">
+              [{{ globalStore.baseData.data.currentCrewName }}]
+            </span>
+          </div>
+        </Badge>
+        <Badge v-if="globalStore.baseData?.data?.currentRacerAuth" variant="outline">
+          <UserSpecificIcon />
+          {{ translate("auth_type_" + globalStore.baseData?.data?.currentRacerAuth) }}
+        </Badge>
+        <Badge
+          v-if="globalStore.baseData?.data?.currentVehicle?.model && globalStore.baseData?.data?.currentVehicle?.class"
+          variant="outline"
+          color="primary"
+        >
+          <CarIcon /> {{ translate('you_are_in_a_vehicle') }}
+          {{ globalStore.baseData?.data?.currentVehicle?.model }}
+          [{{ globalStore.baseData?.data?.currentVehicle?.class }}]
+        </Badge>
+      </InfoHeader>
       <div class="current-race-container">
         <div id="current-race-selection" v-if="currentRace">
-          <div class="mb-1" id="subheader">
-            <h2>{{ translate('active') }}</h2>
-          </div>
+          <h2 class="mb-1">{{ translate('active') }}</h2>
           <CurrentRaceCard
             :race="currentRace"
             @leave="leaveRace"
@@ -24,18 +51,18 @@
           />
         </div>
       </div>
-      <div class="subheader mt-2" v-if="racesToDisplay.length > 0">
-        <h2>{{ translate('available_races') }}</h2>
-      </div>
-      <div v-if="isLoading" class="circular-loading-container flex justify-center items-center">
-        <span class="loader"></span>
-      </div>
-      <div v-else-if="racesToDisplay.length > 0" class="available-races pagecontent">
-        <AvailableRacesCard
-          v-for="race in racesToDisplay"
-          :key="race.RaceId"
-          :race="race"
-        />
+      <div v-if="racesToDisplay.length > 0" class="mt-2">
+        <h2 class="mb-1">{{ translate('available_races') }}</h2>
+        <div v-if="isLoading" class="circular-loading-container flex justify-center items-center">
+          <span class="loader"></span>
+        </div>
+        <div v-else-if="racesToDisplay.length > 0" class="available-races pagecontent">
+          <AvailableRacesCard
+            v-for="race in racesToDisplay"
+            :key="race.RaceId"
+            :race="race"
+          />
+        </div> 
       </div>
       <InfoText
         v-if="races.length === 0"
@@ -107,6 +134,11 @@ import { Switch } from "@/components/ui/switch";
 import { fakeRaces } from "@/mocking/testState";
 import Label from "@/components/ui/label/Label.vue";
 import { Input } from "@/components/ui/input";
+import InfoHeader from "../components/InfoHeader.vue";
+import Badge from "@/components/ui/badge/Badge.vue";
+import { CarIcon, UserIcon } from "lucide-vue-next";
+import UserSpecificIcon from "../components/UserSpecificIcon.vue";
+import DriftInviteMenu from "../components/drift/DriftInviteMenu.vue";
 
 const globalStore = useGlobalStore();
 const tab = ref(globalStore.currentTab.racing);
@@ -249,7 +281,6 @@ onMounted(() => {
   flex-wrap: wrap;
   overflow-y: auto;
   gap: 1em;
-  margin-top: 1em;
   width: fit-content;
 }
 

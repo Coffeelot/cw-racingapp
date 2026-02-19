@@ -1,6 +1,9 @@
 <template>
   <div class="page-container" v-if="allResults">
-    <InfoHeader :title="translate('race_results')" :subtitle="translate('select_track_to_view')" />
+    <InfoHeader :title="translate('race_results')" 
+      :subtitle="translate('only_saved_tempo')"
+      :subsubtitle="translate('select_track_to_view')"
+      />
     <div class="inline standardGap header">
       <Select v-model="selectedRace" class="w-50">
         <SelectTrigger class="w-64">
@@ -99,7 +102,8 @@ const resultsWithTitle = computed(() => {
     mappedResult.title = `${trackResult.raceName} (${timeStr})`;
     return mappedResult;
   });
-  return results;
+  const sortedResults = results?.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp)) ?? [];
+  return sortedResults;
 });
 
 const selectedRace: Ref<TrackResultWithTitle | undefined> = ref(undefined);

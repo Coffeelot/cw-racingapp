@@ -150,20 +150,23 @@ RegisterNetEvent('cw-racingapp:h2h:server:finishRacer', function(raceId, citizen
     end
 end)
 
-registerCommand('h2hsetup', 'Setup Impromptu',{}, false, function(source)
-    TriggerClientEvent('cw-racingapp:h2h:client:setupRace', source)
-end, true)
+if Config.EnableCommands then
 
-registerCommand('h2hjoin', 'join impromtu',{}, false, function(source)
-    TriggerClientEvent('cw-racingapp:h2h:client:joinRace', source)
-end, true)
-
-registerCommand('impdebugmap', 'Show H2H locations',{}, false, function(source)
-    TriggerClientEvent('cw-racingapp:h2h:client:debugMap', source)
-end, true)
-
-registerCommand('cwdebughead2head', 'toggle debug for head2head', {}, true, function(source, args)
-    useDebug = not useDebug
-    print('debug is now:', useDebug)
-    TriggerClientEvent('cw-racingapp:h2h:client:toggleDebug',source, useDebug)
-end, true)
+    RegisterRacingAppCommand('h2hsetup', 'Setup Impromptu',{}, false, function(source)
+        TriggerClientEvent('cw-racingapp:h2h:client:setupRace', source)
+    end, true)
+    
+    RegisterRacingAppCommand('h2hjoin', 'join impromtu',{}, false, function(source)
+        TriggerClientEvent('cw-racingapp:h2h:client:joinRace', source)
+    end, true)
+    
+    RegisterRacingAppCommand('impdebugmap', 'Show H2H locations',{}, false, function(source)
+        TriggerClientEvent('cw-racingapp:h2h:client:debugMap', source)
+    end, true)
+    
+    RegisterRacingAppCommand('cwdebughead2head', 'toggle debug for head2head', {}, true, function(source, args)
+        useDebug = not useDebug
+        print('debug is now:', useDebug)
+        TriggerClientEvent('cw-racingapp:h2h:client:toggleDebug',source, useDebug)
+    end, true)
+end

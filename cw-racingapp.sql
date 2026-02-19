@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `race_tracks` (
 	`metadata` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`creatorid` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`creatorname` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	`racerid` VARCHAR(50) NOT NULL,
 	`distance` INT(11) NULL DEFAULT NULL,
 	`raceid` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 	`access` TEXT NULL DEFAULT NULL COLLATE 'utf8_general_ci',
@@ -23,6 +24,7 @@ AUTO_INCREMENT=41
 -- DROP TABLE IF EXISTS racer_names;
 CREATE TABLE IF NOT EXISTS `racer_names` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`racerid` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`citizenid` TEXT NOT NULL COLLATE 'utf8mb4_general_ci',
 	`racername` TEXT NOT NULL COLLATE 'utf8mb4_general_ci',
 	`lasttouched` TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -75,6 +77,7 @@ CREATE TABLE IF NOT EXISTS track_times (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trackId VARCHAR(255) NOT NULL,
     racerName VARCHAR(255) NOT NULL,
+	racerid VARCHAR(50) NOT NULL,
     carClass VARCHAR(50) NOT NULL,
     vehicleModel VARCHAR(255) NOT NULL,
     raceType VARCHAR(50) NOT NULL,
@@ -97,6 +100,7 @@ CREATE TABLE IF NOT EXISTS `racing_crews` (
 	`rank` INT(11) NULL DEFAULT NULL,
 	`founder_name` TEXT NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
 	`founder_citizenid` TEXT NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+	`founder_racerid` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
 	PRIMARY KEY (`id`) USING BTREE,
 	CONSTRAINT `members` CHECK (json_valid(`members`))
 )

@@ -28,8 +28,7 @@ end
 -- COMMANDS --
 --------------
 
-function registerCommand(command, description, arguments, argsrequired, callback, restricted)
-    -- Register the command
+function RegisterRacingAppCommand(command, description, arguments, argsrequired, callback, restricted)
     RegisterCommand(command, function(source, args, rawCommand)
         -- Call the callback function
         callback(source, args, rawCommand)
