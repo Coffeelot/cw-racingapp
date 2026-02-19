@@ -9,6 +9,7 @@
 - Host races
 - Buy-Ins
 - [Drift Races](#Drifting)
+- [Drift Challenges](#Drifting)
 - [Automated Races](#Automated-Races)
 - [Time Trial Bounties](#Time-Trial-Bounties)
 - Built in Crypto system
@@ -160,6 +161,17 @@ To install drifting:
 - Make sure it's running before Racingapp
 - Enable Racingapp in CW Driftings config
 - Enable Drifting in CW Racingapp drift config
+
+### Drift Challenges
+If you have drifting enabled you can also do drift challenges. These work like this:
+
+1. Racer A initializes a challenge.
+2. Everyone in the vicinity gets an invite.
+3. After a short time, the inivitation period is closed. Countdown starts.
+4. When countdown is done the challenge starts - racers must now get as high of a drift score in the alloted time as possible.
+5. Scoreboard is displayed when race finishes
+
+> Theres currently no buyin/betting for these in the app itself.
 
 ### Automated Races
 The script offers automated races. You can set these up in the config (`Config.AutomatedRaces`, `Config.AutomatedOptions`). If any of these are commented out/removed the automation will not start.
@@ -514,6 +526,36 @@ RacingApp is built in VUE, this means you can't just edit the files directly. Th
 * [ox lib](https://github.com/overextended/ox_lib)
 
 # Updating?
+
+## 6.0 Drift Challenges
+This update comes with a change to how Racers table is handled.
+
+> If this it to complex for you, remove all Racingapp DB Tables and reinstall, and it will work. Probably the safer option, but you will lose tracks and racers.
+
+1. Run this SQL:
+```sql
+-- Add racerid column to race_tracks if it doesn't exist
+ALTER TABLE race_tracks
+    ADD COLUMN IF NOT EXISTS racerid VARCHAR(50) NOT NULL;
+
+-- Add racerid column to track_times if it doesn't exist
+ALTER TABLE track_times
+    ADD COLUMN IF NOT EXISTS racerid VARCHAR(50) NOT NULL;
+
+-- Add founder_racerid column to racing_crews if it doesn't exist
+ALTER TABLE racing_crews
+    ADD COLUMN IF NOT EXISTS founder_racerid VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci';
+
+ALTER TABLE racer_names
+    ADD COLUMN IF NOT EXISTS racerid VARCHAR(50) NOT NULL;
+```
+2. Enable commands in Config 
+```lua
+Config.EnableCommands = true
+```
+> Both the following commands need to be run on the server (So in your TXAdmin for example - CAN NOT BE RUN IN GAME)
+3. Run command `updateDatabaseWithRacerIds`. Wait it to print `[Racing] Migration complete!...`
+
 
 ## 5.1 Drift update
 New column added, run this in your db to update:
