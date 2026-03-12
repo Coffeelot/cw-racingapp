@@ -1555,7 +1555,17 @@ RegisterNetEvent('cw-racingapp:client:leaveRace', function()
     unGhostPlayer()
     deleteCurrentRaceCheckpoints()
     FreezeEntityPosition(GetVehiclePedIsIn(PlayerPedId(), false), false)
+    RaceData.InRace = false
+    LocalPlayer.state:set('inRace', false, true)
+    LocalPlayer.state:set('raceId', nil, true)
     CurrentRaceData.RaceId = nil
+    SendNUIMessage({
+        type = "race",
+        action = "update",
+        data = {},
+        racedata = RaceData,
+        active = false
+    })
 end)
 
 RegisterNetEvent("cw-racingapp:client:DeletetrackConfirmed", function(data)
