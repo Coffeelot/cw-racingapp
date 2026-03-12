@@ -13,104 +13,104 @@
       </div>
     </div>
     <Transition name="quick-slide" mode="out-in">
-    <TabsContent value="current" v-if="tab === 'current'">
-      <InfoHeader
-        :title="translate('racing')"
-        :subtitle="translate('racing_desc')">
-        <Badge color="primary" variant="outline">
-          <UserIcon />
-          <div class="flex items-center gap-2">
-            {{ globalStore.baseData?.data?.currentRacerName }}
-            <span v-if="globalStore.baseData?.data?.currentCrewName">
-              [{{ globalStore.baseData.data.currentCrewName }}]
-            </span>
+      <TabsContent value="current" v-if="tab === 'current'" class="overflow-auto">
+        <InfoHeader
+          :title="translate('racing')"
+          :subtitle="translate('racing_desc')">
+          <Badge color="primary" variant="outline">
+            <UserIcon />
+            <div class="flex items-center gap-2">
+              {{ globalStore.baseData?.data?.currentRacerName }}
+              <span v-if="globalStore.baseData?.data?.currentCrewName">
+                [{{ globalStore.baseData.data.currentCrewName }}]
+              </span>
+            </div>
+          </Badge>
+          <Badge v-if="globalStore.baseData?.data?.currentRacerAuth" variant="outline">
+            <UserSpecificIcon />
+            {{ translate("auth_type_" + globalStore.baseData?.data?.currentRacerAuth) }}
+          </Badge>
+          <Badge
+            v-if="globalStore.baseData?.data?.currentVehicle?.model && globalStore.baseData?.data?.currentVehicle?.class"
+            variant="outline"
+            color="primary"
+          >
+            <CarIcon /> {{ translate('you_are_in_a_vehicle') }}
+            {{ globalStore.baseData?.data?.currentVehicle?.model }}
+            [{{ globalStore.baseData?.data?.currentVehicle?.class }}]
+          </Badge>
+        </InfoHeader>
+        <div class="current-race-container">
+          <div id="current-race-selection" v-if="currentRace">
+            <h2 class="mb-1">{{ translate('active') }}</h2>
+            <CurrentRaceCard
+              :race="currentRace"
+              @leave="leaveRace"
+              @start="startRace"
+              @cancel="cancelRace"
+            />
           </div>
-        </Badge>
-        <Badge v-if="globalStore.baseData?.data?.currentRacerAuth" variant="outline">
-          <UserSpecificIcon />
-          {{ translate("auth_type_" + globalStore.baseData?.data?.currentRacerAuth) }}
-        </Badge>
-        <Badge
-          v-if="globalStore.baseData?.data?.currentVehicle?.model && globalStore.baseData?.data?.currentVehicle?.class"
-          variant="outline"
-          color="primary"
-        >
-          <CarIcon /> {{ translate('you_are_in_a_vehicle') }}
-          {{ globalStore.baseData?.data?.currentVehicle?.model }}
-          [{{ globalStore.baseData?.data?.currentVehicle?.class }}]
-        </Badge>
-      </InfoHeader>
-      <div class="current-race-container">
-        <div id="current-race-selection" v-if="currentRace">
-          <h2 class="mb-1">{{ translate('active') }}</h2>
-          <CurrentRaceCard
-            :race="currentRace"
-            @leave="leaveRace"
-            @start="startRace"
-            @cancel="cancelRace"
+        </div>
+        <div v-if="racesToDisplay.length > 0" class="mt-2">
+          <h2 class="mb-1">{{ translate('available_races') }}</h2>
+          <div v-if="isLoading" class="circular-loading-container flex justify-center items-center">
+            <span class="loader"></span>
+          </div>
+          <div v-else-if="racesToDisplay.length > 0" class="available-races pagecontent">
+            <AvailableRacesCard
+              v-for="race in racesToDisplay"
+              :key="race.RaceId"
+              :race="race"
+            />
+          </div> 
+        </div>
+        <InfoText
+          v-if="races.length === 0"
+          class="no-races-text"
+          :title="translate('no_races')"
+          :text="translate('no_races_subtitle')"
+        />
+      </TabsContent>
+
+      <TabsContent value="map" v-else-if="tab === 'map'" >
+        <RacingMapTab />
+      </TabsContent>
+
+      <TabsContent value="bounties" v-else-if="tab === 'bounties'" >
+        <BountiesTab />
+      </TabsContent>
+
+      <TabsContent value="setup" v-else-if="tab === 'setup'" >
+        <div class="subheader flex items-center gap-2">
+          <h3 class="header-text">{{ translate('pick_track') }}</h3>
+          <Label for="show-curated">
+              {{ translate('curated_only') }}
+          </Label>
+          <Switch
+            id="show-curated"
+            :model-value="globalStore.showOnlyCurated"
+            class="mr-1"
+            @update:model-value="toggleCurated"
+          >
+          </Switch>
+          <Input
+            class="text-field w-64"
+            :placeholder="translate('search_dot')"
+            v-model="search"
           />
         </div>
-      </div>
-      <div v-if="racesToDisplay.length > 0" class="mt-2">
-        <h2 class="mb-1">{{ translate('available_races') }}</h2>
-        <div v-if="isLoading" class="circular-loading-container flex justify-center items-center">
+        <div v-if="isLoading" class="loading-container flex justify-center items-center" id="available-races-loader">
           <span class="loader"></span>
         </div>
-        <div v-else-if="racesToDisplay.length > 0" class="available-races pagecontent">
-          <AvailableRacesCard
-            v-for="race in racesToDisplay"
-            :key="race.RaceId"
-            :race="race"
+        <div v-else class="pagecontent available-tracks">
+          <AvailableTracksCard
+            v-for="track in filteredTracks"
+            :key="track.TrackId"
+            :track="track"
+            @select="selectTrack"
           />
-        </div> 
-      </div>
-      <InfoText
-        v-if="races.length === 0"
-        class="no-races-text"
-        :title="translate('no_races')"
-        :text="translate('no_races_subtitle')"
-      />
-    </TabsContent>
-
-    <TabsContent value="map" v-if="tab === 'map'" >
-      <RacingMapTab />
-    </TabsContent>
-
-    <TabsContent value="bounties" v-if="tab === 'bounties'" >
-      <BountiesTab />
-    </TabsContent>
-
-    <TabsContent value="setup" v-if="tab === 'setup'" >
-      <div class="subheader flex items-center gap-2">
-        <h3 class="header-text">{{ translate('pick_track') }}</h3>
-        <Label for="show-curated">
-            {{ translate('curated_only') }}
-        </Label>
-        <Switch
-          id="show-curated"
-          :model-value="globalStore.showOnlyCurated"
-          class="mr-1"
-          @update:model-value="toggleCurated"
-        >
-        </Switch>
-        <Input
-          class="text-field w-64"
-          :placeholder="translate('search_dot')"
-          v-model="search"
-        />
-      </div>
-      <div v-if="isLoading" class="loading-container flex justify-center items-center" id="available-races-loader">
-        <span class="loader"></span>
-      </div>
-      <div v-else class="pagecontent available-tracks">
-        <AvailableTracksCard
-          v-for="track in filteredTracks"
-          :key="track.TrackId"
-          :track="track"
-          @select="selectTrack"
-        />
-      </div>
-    </TabsContent>
+        </div>
+      </TabsContent>
     </Transition>
     </Tabs>
 </template>

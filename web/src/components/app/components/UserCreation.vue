@@ -4,16 +4,22 @@
       <CardTitle>{{ translate("create_racer") }}</CardTitle>
     </CardHeader>
     <CardContent>
-      <Input
-        :placeholder="translate('racer_name')"
-        v-model="create.racerName"
-        class="mb-2"
-      />
-      <Alert v-if="globalStore.baseData.data.isFirstUser" variant="default" class="mb-2">
-        {{ translate('is_first_user') }}
+      <div v-if="allowCreation">
+        <Input
+          :placeholder="translate('racer_name')"
+          v-model="create.racerName"
+          class="mb-2"
+        />
+        <Alert v-if="globalStore.baseData.data.isFirstUser" variant="default" class="mb-2">
+          {{ translate('is_first_user') }}
+        </Alert>
+      </div>
+      <Alert v-else variant="default" class="mb-2">
+        <CircleAlertIcon></CircleAlertIcon>
+        {{ translate('creation_not_allowed') }}
       </Alert>
     </CardContent>
-    <CardFooter>
+    <CardFooter v-if="allowCreation">
       <Button
         class="w-full"
         variant="default"
@@ -43,6 +49,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Input from "@/components/ui/input/Input.vue";
 import { Alert } from "@/components/ui/alert";
+import { CircleAlertIcon, Icon } from "lucide-vue-next";
 
 const globalStore = useGlobalStore();
 
@@ -55,6 +62,12 @@ const creationType = ref<any | undefined>(undefined);
 const shouldDisableButton = computed(() => {
   if (loading.value) return true;
   if (create.value.racerName === "") return true;
+  return false;
+});
+
+const allowCreation = computed(() => {
+  if (globalStore.baseData.data.isFirstUser) return true;
+  if (globalStore.baseData.data.anyoneCanCreate) return true;
   return false;
 });
 
