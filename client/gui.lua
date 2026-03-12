@@ -465,7 +465,8 @@ RegisterNUICallback('UiFetchCurrentRace', function(_, cb)
             ranked = CurrentRaceData.Ranked,
             reversed = CurrentRaceData.Reversed,
             hostName = CurrentRaceData.SetupRacerName,
-            drift = CurrentRaceData.Drift or false
+            drift = CurrentRaceData.Drift or false,
+            itemPayoutData = CurrentRaceData.ItemPayoutData or nil
         }
         DebugLog('Current race', json.encode(data, { indent = true }))
         cb(data)
@@ -654,7 +655,8 @@ local function attemptSetupRace(setupData)
                 firstPerson = setupData.firstPerson,
                 silent = setupData.silent,
                 hidden = setupData.hidden,
-                drift = setupData.drift
+                drift = setupData.drift,
+                itemPayoutData = setupData.itemPayoutData
             }
             local res = cwCallback.await('cw-racingapp:server:setupRace', data)
             return res

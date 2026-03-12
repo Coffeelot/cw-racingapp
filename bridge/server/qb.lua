@@ -24,6 +24,13 @@ function canPay(src, moneyType, cost)
     return Player.PlayerData.money[moneyType] >= cost
 end
 
+-- Gives an item to a player
+function giveItem(src, itemName, amount, metadata)
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return false end
+    return Player.Functions.AddItem(itemName, amount, nil, metadata)
+end
+
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local Player = QBCore.Functions.GetPlayer(src)

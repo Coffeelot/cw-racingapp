@@ -365,7 +365,22 @@ Config.ParticipationTrophies = {                                                
     enabled = true,                                                                                                 -- false if you dont want players getting Participation trophies
     minimumOfRacers = 6,                                                                                            -- minimum of racers to hand out Participation trophies
     amount = { [1] = 15, [2] = 10, [3] = 10, [4] = 10, [5] = 10, [6] = 10, [7] = 10, [8] = 10, [9] = 10, [10] = 10 }, -- [<position>] = <amount>
-    minumumRaceLength = 3000
+    minumumRaceLength = 3000,
+
+    -- Race Length Modifier
+    -- Scales the participation trophy amounts based on how long the race is relative to a baseline distance.
+    -- A race at exactly defaultLength meters gets the unmodified amount from the 'amount' table above.
+    -- Shorter races get less, longer races get more.
+    -- Example: defaultLength = 1000, amount[1] = 15
+    --   Race 500m  → multiplier 0.5 → payout = 7  (15 * 0.5)
+    --   Race 1000m → multiplier 1.0 → payout = 15 (15 * 1.0)
+    --   Race 2000m → multiplier 2.0 → payout = 30 (15 * 2.0)
+    lengthModifier = {
+        enabled = true,           -- Set to false to disable length-based scaling (amounts will be used as-is)
+        defaultLength = 1000,     -- Baseline race distance in meters. This is where the multiplier equals 1.0
+        minMultiplier = 0.25,     -- Floor multiplier — even very short races still pay out at least this fraction
+        maxMultiplier = 3.0,      -- Cap multiplier — prevents absurdly large payouts on extremely long races
+    },
 }
 
 Config.ParticipationAmounts = {                          -- Different from ParticipationTrophies. These are manual

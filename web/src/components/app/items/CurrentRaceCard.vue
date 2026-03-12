@@ -35,6 +35,10 @@
         <RotateCcw />
         {{ translate('reversed') }}
       </Badge>
+      <Badge v-if="race.itemPayoutData" variant="outline" class="bg-purple-500 text-white flex items-center gap-1">
+        <PackageIcon :size="14" />
+        {{ translate('item_rewards') || 'Item Rewards' }}
+      </Badge>
     </CardContent>
     <CardFooter class="flex gap-2 justify-end">
       <Button
@@ -91,7 +95,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import RankedIcon from "@/assets/icons/RankedIcon.vue";
 import GhostIcon from "@/assets/icons/GhostIcon.vue";
-import { InfoIcon, RotateCcw, Users, UsersIcon } from "lucide-vue-next";
+import { InfoIcon, RotateCcw, Users, UsersIcon, PackageIcon } from "lucide-vue-next";
 import DriftIcon from "@/assets/icons/DriftIcon.vue";
 import TrackIcon from "@/assets/icons/TrackIcon.vue";
 import CardDescription from "@/components/ui/card/CardDescription.vue";

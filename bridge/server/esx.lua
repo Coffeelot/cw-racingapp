@@ -37,6 +37,14 @@ function canPay(src, moneyType, cost)
     end
 end
 
+-- Gives an item to a player
+function giveItem(src, itemName, amount, metadata)
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return false end
+    xPlayer.addInventoryItem(itemName, amount, metadata)
+    return true
+end
+
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local xPlayer = ESX.GetPlayerFromId(src)

@@ -1,5 +1,6 @@
 TranslationsEN = {
         santacoin = "Santa Coin",
+        creation_not_allowed = "You are not allowed to create a new user. Find a race organizer to create one for you.",
         accept = "Accept",
         you_are_in_a_vehicle = "You are in a ",
         default_controls = "Default Controls",
@@ -350,6 +351,8 @@ TranslationsEN = {
         results = "Results",
         return_to_start = "Return to the start or you will be kicked from the race: ",
         reversed = "Reversed",
+        item_rewards = "Item Rewards",
+        item_rewards_info = "Finishing racers may receive item rewards",
         revoke = "Revoke",
         revoked_access = "Your current racing user has had it's access changed",
         save_track = "Save Track",

@@ -12,6 +12,7 @@
 - [Drift Challenges](#Drifting)
 - [Automated Races](#Automated-Races)
 - [Time Trial Bounties](#Time-Trial-Bounties)
+- [Item Payouts](#Item-Payouts)
 - Built in Crypto system
 - Buy-Ins and automated splits
 - Phasing/Ghosting
@@ -70,6 +71,7 @@
   - [Track Sharing](#track-sharing)
   - [Automated Races](#automated-races)
   - [Time Trial Bounties](#time-trial-bounties)
+  - [Item Payouts](#item-payouts)
   - [RacingApp Crypto [RAC]](#racingapp-crypto-rac)
   - [User Management](#user-management)
 - [Opening the Racing App](#opening-the-racing-app)
@@ -193,6 +195,30 @@ As of 16th November 2024 the script has customizable time trial bounties that pl
     },
 ```
 These are randomized upon server start (~5 seconds after script start/restart). You can modify how many of these are added in the Bounties Options. If your auth type has the `handleBounties` auth you should be able to re-roll the bounties from the bounties menu.
+
+### Item Payouts
+RacingApp supports awarding items to racers when they finish a race. The system uses **weighted random selection** from named item lists and configurable payout styles that determine which finishing positions receive items.
+
+All configuration lives in `shared/payouts.lua` under `Config.ItemPayouts`.
+
+**Quick overview:**
+- **`enabled`** — Master toggle. Set to `false` to disable all item payouts globally.
+- **`lists`** — Named tables of items (e.g. `'low'`, `'long_race'`). Each item has a `name`, a `weight` (higher = more likely), an optional `amount` range `{ min, max }`, and optional `metadata`.
+- **`styles`** — Named payout styles that control which positions get items. Built-in: `'all'` (every finisher), `'topThree'` (positions 1-3), `'onlyOne'` (winner only), `'custom'` (explicit position list).
+- **`default`** — Optional fallback that applies to **all** races automatically unless overridden. Includes a `minimumRaceLength` (meters) so short races can be excluded.
+
+**Per-race override:** When setting up a race (via UI or export), include `itemPayoutData` in the setup data:
+```lua
+itemPayoutData = {
+    itemList = 'long_race',   -- key from Config.ItemPayouts.lists
+    payoutStyle = 'topThree', -- key from Config.ItemPayouts.styles
+}
+```
+If a race has its own `itemPayoutData`, it takes priority over the default. If neither exists, no items are awarded.
+
+**Important:** Items are given via the `giveItem` bridge function. By default this uses `ox_inventory`. If you use a different inventory, update your framework's bridge file in `bridge/server/`.
+
+Races with item payouts show a purple box icon in the race listings UI.
 
 ### RacingApp Crypto [RAC]
 RacingApp has a built in crypto system tied to the racing user. To use this you can set your payment methods to `'racingcrypto'` and it will use the custom Racing Crypto System instead of your core payment system. The crypto is tied to a racinguser, so make sure you have a way to buy one of those with normal money if you don't want to have racing masters handle your users. 

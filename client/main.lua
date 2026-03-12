@@ -1385,6 +1385,7 @@ local function handleActiveRace(raceData, trackCheckpoints, Laps)
         Racers = {},
         Position = 0,
         Drift = raceData.Drift or false,
+        ItemPayoutData = raceData.ItemPayoutData or nil,
     }
     DebugLog('Race Was setup:', json.encode(CurrentRaceData, { indent = true }))
     CurrentRaceData.Checkpoints = checkpoints

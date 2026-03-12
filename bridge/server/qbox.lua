@@ -26,6 +26,13 @@ function canPay(src, moneyType, cost)
     return player.PlayerData.money[moneyType] >= cost
 end
 
+-- Gives an item to a player
+function giveItem(src, itemName, amount, metadata)
+    local player = exports.qbx_core:GetPlayer(tonumber(src))
+    if not player then return false end
+    return player.Functions.AddItem(itemName, amount, nil, metadata)
+end
+
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local player = exports.qbx_core:GetPlayer(tonumber(src))

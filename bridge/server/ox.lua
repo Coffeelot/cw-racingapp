@@ -58,6 +58,11 @@ function canPay(src, moneyType, cost)
     end
 end
 
+-- Gives an item to a player
+function giveItem(src, itemName, amount, metadata)
+    return exports.ox_inventory:AddItem(src, itemName, amount, metadata)
+end
+
 -- Fetches the CitizenId by Source
 function getCitizenId(src)
     local player = Ox.GetPlayer(tonumber(src))

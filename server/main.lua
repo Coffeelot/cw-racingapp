@@ -182,15 +182,177 @@ local function giveSplit(src, racers, position, pot, racerName)
     end
 end
 
-local function handOutParticipationTrophy(src, position, racerName)
+local function handOutParticipationTrophy(src, position, racerName, raceDistance)
     if Config.ParticipationTrophies.amount[position] then
-        handleAddMoney(src, Config.Payments.participationPayout, Config.ParticipationTrophies.amount[position], racerName)
+        local baseAmount = Config.ParticipationTrophies.amount[position]
+        local finalAmount = baseAmount
+
+        -- Apply length modifier if enabled
+        local lm = Config.ParticipationTrophies.lengthModifier
+        if lm and lm.enabled and lm.defaultLength and lm.defaultLength > 0 and raceDistance and raceDistance > 0 then
+            local multiplier = raceDistance / lm.defaultLength
+            if lm.minMultiplier then multiplier = math.max(multiplier, lm.minMultiplier) end
+            if lm.maxMultiplier then multiplier = math.min(multiplier, lm.maxMultiplier) end
+            finalAmount = math.floor(baseAmount * multiplier)
+            if UseDebug then
+                print(string.format('Participation length modifier: distance=%d, default=%d, multiplier=%.2f, base=%d, final=%d',
+                    raceDistance, lm.defaultLength, multiplier, baseAmount, finalAmount))
+            end
+        end
+
+        if finalAmount > 0 then
+            handleAddMoney(src, Config.Payments.participationPayout, finalAmount, racerName)
+        end
     end
 end
 
 local function handOutAutomationPayout(src, amount, racerName)
     if Config.Payments.automationPayout then
         handleAddMoney(src, Config.Payments.automationPayout, amount, racerName, 'extra_payout')
+    end
+end
+
+-- ============================================================================
+-- ITEM PAYOUT SYSTEM
+-- ============================================================================
+
+--- Picks a weighted random item from a named item list.
+--- @param listName string The key in Config.ItemPayouts.lists
+--- @return table|nil A table with { name, amount, metadata } or nil if list not found
+local function pickRandomItem(listName)
+    local list = Config.ItemPayouts and Config.ItemPayouts.lists and Config.ItemPayouts.lists[listName]
+    if not list or #list == 0 then
+        if UseDebug then print('^1[ItemPayout] Item list not found or empty: ' .. tostring(listName) .. '^0') end
+        return nil
+    end
+
+    -- Calculate total weight
+    local totalWeight = 0
+    for _, item in ipairs(list) do
+        totalWeight = totalWeight + (item.weight or 1)
+    end
+
+    -- Pick random based on weight
+    local roll = math.random() * totalWeight
+    local cumulative = 0
+    for _, item in ipairs(list) do
+        cumulative = cumulative + (item.weight or 1)
+        if roll <= cumulative then
+            -- Determine amount from range
+            local amount = 1
+            if item.amount then
+                local min = item.amount[1] or 1
+                local max = item.amount[2] or min
+                amount = math.random(min, max)
+            end
+            return {
+                name = item.name,
+                amount = amount,
+                metadata = item.metadata or nil,
+            }
+        end
+    end
+
+    -- Fallback (shouldn't happen)
+    local fallback = list[1]
+    return { name = fallback.name, amount = 1, metadata = fallback.metadata or nil }
+end
+
+--- Checks whether a given finishing position qualifies for an item payout.
+--- @param position number The racer's finishing position (1-based)
+--- @param styleName string The key in Config.ItemPayouts.styles
+--- @return boolean
+local function positionQualifiesForItemPayout(position, styleName)
+    local style = Config.ItemPayouts and Config.ItemPayouts.styles and Config.ItemPayouts.styles[styleName]
+    if not style then
+        if UseDebug then print('^1[ItemPayout] Payout style not found: ' .. tostring(styleName) .. '^0') end
+        return false
+    end
+
+    if style.type == 'all' then
+        return true
+    elseif style.type == 'positions' then
+        if style.positions then
+            for _, pos in ipairs(style.positions) do
+                if pos == position then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    return false
+end
+
+--- Attempts to give item payout to a racer based on race's itemPayoutData or the global default.
+--- Race-specific itemPayoutData overrides the default. Checks minimum race length if configured.
+--- @param src number Player source
+--- @param position number Finishing position
+--- @param raceData table The Races[raceId] data
+--- @param racerName string The racer's display name
+local function handleItemPayout(src, position, raceData, racerName)
+    -- Master toggle check
+    if not Config.ItemPayouts or not Config.ItemPayouts.enabled then return end
+
+    -- Resolve effective payout data: race-specific overrides default
+    local itemPayoutData = raceData.ItemPayoutData
+    if not itemPayoutData then
+        -- Fall back to default if configured
+        local default = Config.ItemPayouts and Config.ItemPayouts.default
+        if not default then return end
+        itemPayoutData = default
+    end
+
+    local listName = itemPayoutData.itemList
+    local styleName = itemPayoutData.payoutStyle
+
+    if UseDebug then
+        print('Handling item payout for', racerName, 'position', position)
+        print('Using itemPayoutData:', json.encode(itemPayoutData, { indent = true }))
+    end
+
+    if not listName or not styleName then
+        if UseDebug then print('^1[ItemPayout] Missing itemList or payoutStyle in itemPayoutData^0') end
+        return
+    end
+
+    -- Check minimum race length requirement
+    local minLength = itemPayoutData.minimumRaceLength
+    if minLength and minLength > 0 and raceData.TrackId then
+        local trackDistance = Tracks[raceData.TrackId] and Tracks[raceData.TrackId].Distance or 0
+        local laps = raceData.Laps or 0
+        local totalDistance = trackDistance
+        if laps > 0 then
+            totalDistance = trackDistance * laps
+        end
+        if totalDistance < minLength then
+            if UseDebug then
+                print('[ItemPayout] Race distance ' .. totalDistance .. 'm is below minimum ' .. minLength .. 'm. Skipping item payout.')
+            end
+            return
+        end
+    end
+
+    if not positionQualifiesForItemPayout(position, styleName) then
+        if UseDebug then print('[ItemPayout] Position ' .. position .. ' does not qualify for style: ' .. styleName) end
+        return
+    end
+
+    local item = pickRandomItem(listName)
+    if not item then
+        if UseDebug then print('^1[ItemPayout] Failed to pick item from list: ' .. listName .. '^0') end
+        return
+    end
+
+    if UseDebug then
+        print('^2[ItemPayout] Giving ' .. racerName .. ' (pos ' .. position .. '): ' ..
+            item.amount .. 'x ' .. item.name .. '^0')
+    end
+
+    local success = giveItem(src, item.name, item.amount, item.metadata)
+    if not success then
+        if UseDebug then print('^1[ItemPayout] Failed to give item to ' .. racerName .. '^0') end
     end
 end
 
@@ -280,7 +442,10 @@ local function handleDriftPayouts(raceId, raceData)
         if Config.ParticipationTrophies.enabled and Config.ParticipationTrophies.minimumOfRacers <= amountOfRacers then
             if not Config.ParticipationTrophies.requireBuyins or
                 (Config.ParticipationTrophies.requireBuyins and Config.ParticipationTrophies.buyInMinimum >= raceData.BuyIn) then
-                handOutParticipationTrophy(src, position, racer.RacerName)
+                local driftDistance = Tracks[raceData.TrackId] and Tracks[raceData.TrackId].Distance or 0
+                local driftLaps = raceData.TotalLaps or 0
+                if driftLaps > 1 then driftDistance = driftDistance * driftLaps end
+                handOutParticipationTrophy(src, position, racer.RacerName, driftDistance)
             end
         end
 
@@ -308,6 +473,9 @@ local function handleDriftPayouts(raceId, raceData)
             end
             handOutAutomationPayout(src, total, racer.RacerName)
         end
+
+        -- Item payouts
+        handleItemPayout(src, position, raceData, racer.RacerName)
     end
 end
 
@@ -476,7 +644,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                         if UseDebug then print('Participation Trophies buy in check passed', src) end
                         if not Config.ParticipationTrophies.requireRanked or (Config.ParticipationTrophies.requireRanked and AvailableRaces[availableKey].Ranked) then
                             if UseDebug then print('Participation Trophies Rank check passed, handing out to', src) end
-                            handOutParticipationTrophy(src, playersFinished, racerName)
+                            handOutParticipationTrophy(src, playersFinished, racerName, distance)
                         end
                     end
                 else
@@ -522,6 +690,9 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
                     handOutAutomationPayout(src, total, racerName)
                 end
             end
+
+            -- Item payouts
+            handleItemPayout(src, playersFinished, Races[raceData.RaceId], racerName)
         end
 
         local bountyResult = BountyHandler.checkBountyCompletion(racerName, vehicleModel, ranking, raceData.TrackId,
@@ -751,7 +922,12 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
     local availableKey = GetOpenedRaceKey(raceId)
 
     if not Races[raceId].Automated then
-        local creator = getSrcOfPlayerByCitizenId(AvailableRaces[availableKey].SetupCitizenId)
+        local citizenId = AvailableRaces[availableKey]?.SetupCitizenId
+        if not citizenId then
+            if UseDebug then print('No creator citizen ID found for race', raceId) end
+            return
+        end
+        local creator = getSrcOfPlayerByCitizenId(citizenId)
 
         if creator then
             NotifyHandler(creator, Lang("race_someone_left"))
@@ -903,6 +1079,36 @@ local function setupRace(setupData, src)
     local hidden = setupData.hidden
     local silent = setupData.silent
     local drift = setupData.drift
+    local itemPayoutData = setupData.itemPayoutData
+
+    -- Validate itemPayoutData if provided
+    if itemPayoutData then
+        if not itemPayoutData.itemList or not itemPayoutData.payoutStyle then
+            if UseDebug then print('^1[ItemPayout] Invalid itemPayoutData: missing itemList or payoutStyle^0') end
+            itemPayoutData = nil
+        elseif not Config.ItemPayouts or not Config.ItemPayouts.lists[itemPayoutData.itemList] then
+            if UseDebug then print('^1[ItemPayout] Unknown item list: ' .. tostring(itemPayoutData.itemList) .. '^0') end
+            itemPayoutData = nil
+        elseif not Config.ItemPayouts.styles[itemPayoutData.payoutStyle] then
+            if UseDebug then print('^1[ItemPayout] Unknown payout style: ' .. tostring(itemPayoutData.payoutStyle) .. '^0') end
+            itemPayoutData = nil
+        end
+    else
+        if Config.ItemPayouts and Config.ItemPayouts.enabled then
+            if UseDebug then print('^3[ItemPayout] No item payout data provided, but item payouts are enabled. Using default item payout.^0') end
+            local defaults = Config.ItemPayouts.default
+            -- if defaults are not defined then skip
+            if not defaults or not defaults.itemList or not defaults.payoutStyle then
+                if UseDebug then print('^1[ItemPayout] Invalid default item payout configuration. Skipping item payouts.^0') end
+                 itemPayoutData = nil
+            else
+                itemPayoutData = {
+                    itemList = defaults.itemList,
+                    payoutStyle = defaults.payoutStyle
+                }
+            end
+        end
+    end
 
     if not HostingIsAllowed then
         if src then NotifyHandler(src, Lang("hosting_not_allowed"), 'error') end
@@ -912,7 +1118,25 @@ local function setupRace(setupData, src)
     local raceId = GenerateRaceId()
 
     if UseDebug then
-        print('Setting up race', 'RaceID: ' .. raceId or 'FAILED TO GENERATE RACE ID', json.encode(setupData))
+        print('Setting up race', 'RaceID: ' .. raceId or 'FAILED TO GENERATE RACE ID', json.encode({
+            trackId = trackId,
+            laps = laps,
+            racerName = racerName,
+            maxClass = maxClass,
+            ghostingEnabled = ghostingEnabled,
+            ghostingTime = ghostingTime,
+            buyIn = buyIn,
+            ranked = ranked,
+            reversed = reversed,
+            participationAmount = participationAmount,
+            participationCurrency = participationCurrency,
+            firstPerson = firstPerson,
+            automated = automated,
+            hidden = hidden,
+            silent = silent,
+            drift = drift,
+            itemPayoutData = itemPayoutData
+        }))
     end
 
     if not src then
@@ -956,6 +1180,7 @@ local function setupRace(setupData, src)
                 Races[raceId].FirstPerson = firstPerson
                 Races[raceId].Hidden = hidden
                 Races[raceId].Drift = drift
+                Races[raceId].ItemPayoutData = itemPayoutData
                 Races[raceId].ParticipationAmount = tonumber(participationAmount)
                 Races[raceId].ParticipationCurrency = participationCurrency
                 Races[raceId].ExpirationTime = expirationTime
@@ -982,6 +1207,7 @@ local function setupRace(setupData, src)
                     ExpirationDuration = expirationDuration,
                     Hidden = hidden,
                     Drift = drift,
+                    ItemPayoutData = itemPayoutData,
                 }
                 AvailableRaces[#AvailableRaces + 1] = allRaceData
                 if not automated then
@@ -2009,94 +2235,105 @@ if Config.EnableCommands then
         print(json.encode(RaceResults, { indent = true }))
     end, true)
     
-    local function migrateRacerIdsToTables()
-        print('[Racing] Starting racerId migration...')
-        -- Get all racer names with their IDs
-        local racerNames = MySQL.Sync.fetchAll('SELECT racername, racerid FROM racer_names', {})
-        if not racerNames or #racerNames == 0 then
-            print('[Racing] No racer names found to migrate')
-            return
-        end
-        -- Build a lookup table for fast access
-        local racerIdLookup = {}
-        for _, racer in ipairs(racerNames) do
-            if racer.racername and racer.racerid then
-                racerIdLookup[racer.racername] = racer.racerid
-            end
-        end
-        local updatedTracks = 0
-        local updatedTimes = 0
-        local updatedCrews = 0
-        -- 1. Update race_tracks table
-        print('[Racing] Updating race_tracks...')
-        local tracks = MySQL.Sync.fetchAll(
-        'SELECT id, creatorname, racerid FROM race_tracks WHERE racerid = "" OR racerid IS NULL', {})
-        for _, track in ipairs(tracks) do
-            local racerId = racerIdLookup[track.creatorname]
-            if racerId then
-                MySQL.query('UPDATE race_tracks SET racerid = ? WHERE id = ?', { racerId, track.id })
-                updatedTracks = updatedTracks + 1
-            else
-                print(('[Racing] Warning: No racerId found for track creator: %s'):format(track.creatorname))
-            end
-        end
-        -- 2. Update track_times table
-        print('[Racing] Updating track_times...')
-        local times = MySQL.Sync.fetchAll(
-        'SELECT id, racerName, racerid FROM track_times WHERE racerid = "" OR racerid IS NULL', {})
-        for _, time in ipairs(times) do
-            local racerId = racerIdLookup[time.racerName]
-            if racerId then
-                MySQL.query('UPDATE track_times SET racerid = ? WHERE id = ?', { racerId, time.id })
-                updatedTimes = updatedTimes + 1
-            else
-                print(('[Racing] Warning: No racerId found for racer: %s'):format(time.racerName))
-            end
-        end
-        -- 3. Update racing_crews table
-        print('[Racing] Updating racing_crews...')
-        local crews = MySQL.Sync.fetchAll(
-        'SELECT id, founder_name, founder_racerid FROM racing_crews WHERE founder_racerid = "" OR founder_racerid IS NULL',
-            {})
-        for _, crew in ipairs(crews) do
-            local racerId = racerIdLookup[crew.founder_name]
-            if racerId then
-                MySQL.query('UPDATE racing_crews SET founder_racerid = ? WHERE id = ?', { racerId, crew.id })
-                updatedCrews = updatedCrews + 1
-            else
-                print(('[Racing] Warning: No racerId found for crew founder: %s'):format(crew.founder_name))
-            end
-        end
-        print(('[Racing] Migration complete! Updated %d tracks, %d times, %d crews'):format(updatedTracks, updatedTimes,
-            updatedCrews))
-    end
-    RegisterCommand('migrateracerids', function(source, args, rawCommand)
-        if source ~= 0 then
-            NotifyHandler(source, "This command can only be run from the server console.", "error")
-            return
-        end                                                                                                                            -- Only allow from server console
-    end, true)
-
-
-    RegisterRacingAppCommand('updateDatabaseWithRacerIds', 'Update database with racer IDs for all users',
-        {}, true, function(source, args)
-            if source ~= 0 then
-                NotifyHandler(source, "This command can only be run from the server console.", "error")
-                return
-            end                                                                                                                        -- Only allow from server console
-            local allRacers = RADB.getAllRaceUsers()
-            for _, racer in pairs(allRacers) do
-                if not racer.racerid or racer.racerid == '' then
-                    if racer.racername == nil then
-                        print('Racer has no name! citizenid:', racer.citizenid)
-                    else
-                        local newRacerId = generateRacerId()
-                        print('Updating racer', racer.racername, 'with new racerId', newRacerId)
-                        RADB.updateRacer(racer.racername, "racerid", newRacerId)
-                    end
-                end
-            end
-            print('Racer ID update complete. Starting database migration...')
-            migrateRacerIdsToTables()
-        end, true)
+    -- RegisterRacingAppCommand('updateDatabaseWithRacerIds', 'Update database with racer IDs for all users',
+    --     {}, true, function(source, args)
+    --         if source ~= 0 then
+    --             NotifyHandler(source, "This command can only be run from the server console.", "error")
+    --             return
+    --         end                                                                                                                        -- Only allow from server console
+    
+    --         local allRacers = RADB.getAllRaceUsers()
+    --         for _, racer in pairs(allRacers) do
+    --             if not racer.racerid or racer.racerid == '' then
+    --                 if racer.racername == nil then
+    --                     print('Racer has no name! citizenid:', racer.citizenid)
+    --                 else
+    --                     local newRacerId = generateRacerId()
+    --                     print('Updating racer', racer.racername, 'with new racerId', newRacerId)
+    --                     RADB.updateRacer(racer.racername, "racerid", newRacerId)
+    --                 end
+    --             end
+    --         end
+    --     end, true)
 end
+
+-- local function migrateRacerIdsToTables()
+--     print('[Racing] Starting racerId migration...')
+
+--     -- Get all racer names with their IDs
+--     local racerNames = MySQL.Sync.fetchAll('SELECT racername, racerid FROM racer_names', {})
+
+--     if not racerNames or #racerNames == 0 then
+--         print('[Racing] No racer names found to migrate')
+--         return
+--     end
+
+--     -- Build a lookup table for fast access
+--     local racerIdLookup = {}
+--     for _, racer in ipairs(racerNames) do
+--         if racer.racername and racer.racerid then
+--             racerIdLookup[racer.racername] = racer.racerid
+--         end
+--     end
+
+--     local updatedTracks = 0
+--     local updatedTimes = 0
+--     local updatedCrews = 0
+
+--     -- 1. Update race_tracks table
+--     print('[Racing] Updating race_tracks...')
+--     local tracks = MySQL.Sync.fetchAll(
+--     'SELECT id, creatorname, racerid FROM race_tracks WHERE racerid = "" OR racerid IS NULL', {})
+
+--     for _, track in ipairs(tracks) do
+--         local racerId = racerIdLookup[track.creatorname]
+--         if racerId then
+--             MySQL.query('UPDATE race_tracks SET racerid = ? WHERE id = ?', { racerId, track.id })
+--             updatedTracks = updatedTracks + 1
+--         else
+--             print(('[Racing] Warning: No racerId found for track creator: %s'):format(track.creatorname))
+--         end
+--     end
+
+--     -- 2. Update track_times table
+--     print('[Racing] Updating track_times...')
+--     local times = MySQL.Sync.fetchAll(
+--     'SELECT id, racerName, racerid FROM track_times WHERE racerid = "" OR racerid IS NULL', {})
+
+--     for _, time in ipairs(times) do
+--         local racerId = racerIdLookup[time.racerName]
+--         if racerId then
+--             MySQL.query('UPDATE track_times SET racerid = ? WHERE id = ?', { racerId, time.id })
+--             updatedTimes = updatedTimes + 1
+--         else
+--             print(('[Racing] Warning: No racerId found for racer: %s'):format(time.racerName))
+--         end
+--     end
+
+--     -- 3. Update racing_crews table
+--     print('[Racing] Updating racing_crews...')
+--     local crews = MySQL.Sync.fetchAll(
+--     'SELECT id, founder_name, founder_racerid FROM racing_crews WHERE founder_racerid = "" OR founder_racerid IS NULL',
+--         {})
+
+--     for _, crew in ipairs(crews) do
+--         local racerId = racerIdLookup[crew.founder_name]
+--         if racerId then
+--             MySQL.query('UPDATE racing_crews SET founder_racerid = ? WHERE id = ?', { racerId, crew.id })
+--             updatedCrews = updatedCrews + 1
+--         else
+--             print(('[Racing] Warning: No racerId found for crew founder: %s'):format(crew.founder_name))
+--         end
+--     end
+
+--     print(('[Racing] Migration complete! Updated %d tracks, %d times, %d crews'):format(updatedTracks, updatedTimes,
+--         updatedCrews))
+-- end
+-- RegisterCommand('migrateracerids', function(source, args, rawCommand)
+--     if source ~= 0 then
+--         NotifyHandler(source, "This command can only be run from the server console.", "error")
+--         return
+--     end                                                                                                                            -- Only allow from server console
+
+--     migrateRacerIdsToTables()
+-- end, true)
