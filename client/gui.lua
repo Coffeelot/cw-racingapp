@@ -946,7 +946,9 @@ RegisterNUICallback('UiCancelRace', function(trackId, cb)
     DebugLog('Cancelling', trackId)
     local result = cwCallback.await('cw-racingapp:server:cancelRace', trackId)
     Wait(1000)
-    CurrentRaceData.RaceId = nil
+    if CurrentRaceData.RaceId == trackId then
+        TriggerEvent('cw-racingapp:client:leaveRace')
+    end
     cb(result)
 end)
 
