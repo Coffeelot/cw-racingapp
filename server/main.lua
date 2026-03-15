@@ -1508,6 +1508,9 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
     end
 
     if trackData.IsEdit then
+        if not canManageTrackSource(src, trackData.TrackId) then
+            return
+        end
         print('Saving over previous track', trackData.TrackId)
         RADB.setTrackCheckpoints(checkpoints, trackData.TrackId)
         Tracks[trackId].Checkpoints = checkpoints
@@ -1533,6 +1536,9 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
 end)
 
 RegisterNetEvent('cw-racingapp:server:deleteTrack', function(trackId)
+    if not canManageTrackSource(source, trackId) then
+        return
+    end
     RADB.deleteTrack(trackId)
     Tracks[trackId] = nil
 end)
@@ -1543,6 +1549,9 @@ RegisterNetEvent('cw-racingapp:server:removeRecord', function(record)
 end)
 
 RegisterNetEvent('cw-racingapp:server:clearLeaderboard', function(trackId)
+    if not canManageTrackSource(source, trackId) then
+        return
+    end
     RESDB.clearTrackRecords(trackId)
 end)
 
@@ -1728,6 +1737,34 @@ local function getRaces()
 end
 exports('getRaces', getRaces)
 
+local function canManageTrackSource(src, trackId)
+    if not src or not trackId or not Tracks[trackId] then
+        if src then
+            NotifyHandler(src, Lang("no_track_found"), 'error')
+        end
+        return false
+    end
+
+    local citizenId = getCitizenId(src)
+    if citizenId and Tracks[trackId].Creator == citizenId then
+        return true
+    end
+
+    local raceUser = citizenId and RADB.getActiveRacerName(citizenId) or nil
+    if not raceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return false
+    end
+
+    local auth = raceUser.auth
+    if Config.Permissions[auth] and Config.Permissions[auth].adminMenu then
+        return true
+    end
+
+    NotifyHandler(src, Lang("not_auth"), 'error')
+    return false
+end
+
 RegisterServerCallback('cw-racingapp:server:getRaces', function(source)
     return Races
 end)
@@ -1743,6 +1780,9 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:setAccess', function(trackId, access)
     local src = source
+    if not canManageTrackSource(src, trackId) then
+        return
+    end
     if UseDebug then
         print('source ', src, 'has updated access for', trackId)
         print(json.encode(access))
@@ -1941,6 +1981,9 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:updateTrackMetadata', function(source, trackId, metadata)
     if not trackId then
+        return false
+    end
+    if not canManageTrackSource(source, trackId) then
         return false
     end
     if UseDebug then print('Updating track', trackId, ' metadata with:', json.encode(metadata, { indent = true })) end
