@@ -1603,6 +1603,34 @@ RegisterNetEvent('cw-racingapp:server:startRace', function(raceId)
     if Config.UseResetTimer then startTimer(raceId) end
 end)
 
+local function canManageTrackSource(src, trackId)
+    if not src or not trackId or not Tracks[trackId] then
+        if src then
+            NotifyHandler(src, Lang("no_track_found"), 'error')
+        end
+        return false
+    end
+
+    local citizenId = getCitizenId(src)
+    if citizenId and Tracks[trackId].Creator == citizenId then
+        return true
+    end
+
+    local raceUser = citizenId and RADB.getActiveRacerName(citizenId) or nil
+    if not raceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return false
+    end
+
+    local auth = raceUser.auth
+    if Config.Permissions[auth] and Config.Permissions[auth].adminMenu then
+        return true
+    end
+
+    NotifyHandler(src, Lang("not_auth"), 'error')
+    return false
+end
+
 RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
     local src = source
     local citizenId = getCitizenId(src)
@@ -1853,34 +1881,6 @@ local function getRaces()
     return Races
 end
 exports('getRaces', getRaces)
-
-local function canManageTrackSource(src, trackId)
-    if not src or not trackId or not Tracks[trackId] then
-        if src then
-            NotifyHandler(src, Lang("no_track_found"), 'error')
-        end
-        return false
-    end
-
-    local citizenId = getCitizenId(src)
-    if citizenId and Tracks[trackId].Creator == citizenId then
-        return true
-    end
-
-    local raceUser = citizenId and RADB.getActiveRacerName(citizenId) or nil
-    if not raceUser then
-        NotifyHandler(src, Lang("error_no_user"), 'error')
-        return false
-    end
-
-    local auth = raceUser.auth
-    if Config.Permissions[auth] and Config.Permissions[auth].adminMenu then
-        return true
-    end
-
-    NotifyHandler(src, Lang("not_auth"), 'error')
-    return false
-end
 
 RegisterServerCallback('cw-racingapp:server:getRaces', function(source)
     return Races
