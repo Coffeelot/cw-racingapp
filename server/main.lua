@@ -1448,6 +1448,28 @@ local function updateTimer(raceId)
     Timers[raceId] = GetGameTimer()
 end
 
+local function isRaceOrganizerSource(src, raceId)
+    if not raceId or not Races[raceId] then
+        return false
+    end
+
+    if Races[raceId].Automated then
+        return true
+    end
+
+    local numericSrc = tonumber(src) or 0
+    if numericSrc <= 0 then
+        return true
+    end
+
+    local citizenId = getCitizenId(numericSrc)
+    if not citizenId then
+        return false
+    end
+
+    return Races[raceId].SetupCitizenId == citizenId
+end
+
 RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpoint, lap, finished, raceTime)
     local src = source
     local citizenId = getCitizenId(src)
@@ -1501,6 +1523,12 @@ RegisterNetEvent('cw-racingapp:server:startRace', function(raceId)
 
     if not AvailableRaces[AvailableKey].RaceData then
         if UseDebug then print('Could not find available race data', raceId) end
+        return
+    end
+    if not isRaceOrganizerSource(src, raceId) then
+        if src and src > 0 then
+            NotifyHandler(src, Lang("no_permission"), 'error')
+        end
         return
     end
     if AvailableRaces[AvailableKey].RaceData.Started then
@@ -1717,6 +1745,10 @@ RegisterServerCallback('cw-racingapp:server:cancelRace', function(source, raceId
         print('Player is canceling race', src, raceId)
     end
     if not raceId or not Races[raceId] then return false end
+    if not isRaceOrganizerSource(src, raceId) then
+        NotifyHandler(src, Lang("no_permission"), 'error')
+        return false
+    end
 
     for _, racer in pairs(Races[raceId].Racers) do
         NotifyHandler(racer.RacerSource, Lang("race_canceled"),
