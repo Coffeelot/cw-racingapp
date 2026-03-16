@@ -1914,8 +1914,18 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
     return true
 end
 
-local function getRacersCreatedByUser(src, citizenId, type)
-    if Config.Permissions[type] and Config.Permissions[type].controlAll then
+local function getRacersCreatedByUser(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return {}
+    end
+
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    if not raceUser then
+        return {}
+    end
+
+    if Config.Permissions[raceUser.auth] and Config.Permissions[raceUser.auth].controlAll then
         if UseDebug then print('Fetching racers for a god') end
         return RADB.getAllRaceUsers()
     end
@@ -1923,10 +1933,10 @@ local function getRacersCreatedByUser(src, citizenId, type)
     return RADB.getRaceUsersBelongingToCitizenId(citizenId)
 end
 
-RegisterServerCallback('cw-racingapp:server:getRacersCreatedByUser', function(source, citizenid, type)
-    if UseDebug then print('Fetching all racers created by ', citizenid) end
-    local result = getRacersCreatedByUser(source, citizenid, type)
-    if UseDebug then print('result from fetching racers created by user', citizenid, json.encode(result)) end
+RegisterServerCallback('cw-racingapp:server:getRacersCreatedByUser', function(source)
+    if UseDebug then print('Fetching racers for source', source) end
+    local result = getRacersCreatedByUser(source)
+    if UseDebug then print('result from fetching racers created by source', source, json.encode(result)) end
     return result
 end)
 
