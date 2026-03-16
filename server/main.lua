@@ -765,6 +765,11 @@ end
 
 RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local src = source
+    if type(RaceData) ~= 'table' then
+        if UseDebug then print('JoinRace called with invalid payload') end
+        return
+    end
+
     local playerVehicleEntity = RaceData.PlayerVehicleEntity
     local raceId = RaceData.RaceId
     local trackId = RaceData.TrackId
@@ -789,6 +794,34 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
         print('Racer Name:', racerName)
         print('Racer Crew:', racerCrew)
         print('Racer Id:', racerId)
+    end
+
+    if not raceId or not trackId then
+        if UseDebug then print('JoinRace missing raceId or trackId', raceId, trackId) end
+        return
+    end
+
+    if not Races[raceId] then
+        if UseDebug then print('JoinRace called for missing race', raceId) end
+        NotifyHandler(src, Lang("race_does_not_exist"), 'error')
+        return
+    end
+
+    if not Tracks[trackId] then
+        if UseDebug then print('JoinRace called for missing track', trackId) end
+        NotifyHandler(src, Lang("no_track_found"), 'error')
+        return
+    end
+
+    if Races[raceId].TrackId ~= trackId then
+        if UseDebug then print('JoinRace track mismatch', raceId, trackId, Races[raceId].TrackId) end
+        return
+    end
+
+    if not availableKey or not AvailableRaces[availableKey] then
+        if UseDebug then print('JoinRace called for unavailable race', raceId, availableKey) end
+        NotifyHandler(src, Lang("race_does_not_exist"), 'error')
+        return
     end
 
     if isToFarAway(src, trackId, RaceData.Reversed) then
