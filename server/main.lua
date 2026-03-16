@@ -1652,7 +1652,7 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
         if not canManageTrackSource(src, trackData.TrackId) then
             return
         end
-        print('Saving over previous track', trackData.TrackId)
+        if Config.Debug then print('Saving over previous track', trackData.TrackId) end
         RADB.setTrackCheckpoints(checkpoints, trackData.TrackId)
         Tracks[trackId].Checkpoints = checkpoints
     else
