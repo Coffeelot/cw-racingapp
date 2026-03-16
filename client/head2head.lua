@@ -157,7 +157,7 @@ local function initRacingThread()
                     
                     if not hasFinished and distanceToFinish < maxDistance then
                         PlaySound(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0, 0, 1)
-                        TriggerServerEvent('cw-head2head:server:finishRacer', currentH2H.raceId, getCitizenId(), GetTimeDifference(GetGameTimer(), startTime) )
+                        TriggerServerEvent('cw-racingapp:h2h:server:finishRacer', currentH2H.raceId, getCitizenId(), GetTimeDifference(GetGameTimer(), startTime))
                         hasFinished = true
                         Countdown = 5
                         PlaySoundFrontend(-1, Config.Sounds.Finish.lib, Config.Sounds.Finish.sound)
