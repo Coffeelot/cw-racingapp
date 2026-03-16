@@ -28,12 +28,18 @@ end
 
 local function leftRace(src)
     local player = Player(src)
+    if not player then
+        return
+    end
     player.state.inRace = false
     player.state.raceId = nil
 end
 
 local function setInRace(src, raceId)
     local player = Player(src)
+    if not player then
+        return
+    end
     player.state.inRace = true
     player.state.raceId = raceId
 end
@@ -913,9 +919,9 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     end
 end)
 
-local function assignNewOrganizer(raceId, src)
+local function assignNewOrganizer(raceId, leavingCitizenId)
     for citId, racerData in pairs(Races[raceId].Racers) do
-        if citId ~= getCitizenId(src) then
+        if citId ~= leavingCitizenId then
             Races[raceId].SetupCitizenId = citId
             NotifyHandler(racerData.RacerSource, Lang("new_host"))
             for _, racer in pairs(Races[raceId].Racers) do
@@ -934,6 +940,125 @@ exports('leaveCurrentRace', leaveCurrentRace)
 RegisterNetEvent('cw-racingapp:server:leaveCurrentRace', function(src)
     leaveCurrentRace(src)
 end)
+
+local function findRaceRacerBySource(src)
+    for raceId, race in pairs(Races) do
+        for citizenId, racerData in pairs(race.Racers) do
+            if racerData.RacerSource == src then
+                return raceId, citizenId, racerData
+            end
+        end
+    end
+end
+
+local function cleanupRaceRacer(raceId, citizenId, src, racerName, reason, triggerLeaveEvent)
+    if not raceId or not citizenId or not Races[raceId] then
+        return false
+    end
+
+    local racerData = Races[raceId].Racers[citizenId]
+    if not racerData then
+        return false
+    end
+
+    racerName = racerName or racerData.RacerName
+    local availableKey = GetOpenedRaceKey(raceId)
+
+    if not Races[raceId].Automated and availableKey and AvailableRaces[availableKey] then
+        local creatorCitizenId = AvailableRaces[availableKey].SetupCitizenId
+        if not creatorCitizenId then
+            if UseDebug then print('No creator citizen ID found for race', raceId) end
+        else
+            local creator = getSrcOfPlayerByCitizenId(creatorCitizenId)
+            if creator then
+                NotifyHandler(creator, Lang("race_someone_left"))
+            end
+        end
+    end
+
+    local amountOfRacers = 0
+    local playersFinished = 0
+    for _, v in pairs(Races[raceId].Racers) do
+        if v.Finished then
+            playersFinished = playersFinished + 1
+        end
+        amountOfRacers = amountOfRacers + 1
+    end
+    if not racerData.Finished then
+        if NotFinished[raceId] ~= nil then
+            NotFinished[raceId][#NotFinished[raceId] + 1] = {
+                TotalTime = "DNF",
+                BestLap = "DNF",
+                Holder = racerName
+            }
+        else
+            NotFinished[raceId] = {}
+            NotFinished[raceId][#NotFinished[raceId] + 1] = {
+                TotalTime = "DNF",
+                BestLap = "DNF",
+                Holder = racerName
+            }
+        end
+    end
+
+    Races[raceId].Racers[citizenId] = nil
+    if Races[raceId].SetupCitizenId == citizenId then
+        assignNewOrganizer(raceId, citizenId)
+    end
+
+    local racersLeft = 0
+    for _, _ in pairs(Races[raceId].Racers) do
+        racersLeft = racersLeft + 1
+    end
+
+    -- Check if last racer
+    if racersLeft == 0 then
+        -- Complete race if leaving last
+        if not Races[raceId].Automated then
+            if UseDebug then print(citizenId, ' was the last racer. ^3Cancelling race^0') end
+            resetTrack(raceId, 'last racer left')
+            if availableKey then
+                table.remove(AvailableRaces, availableKey)
+            end
+            if triggerLeaveEvent and src and GetPlayerName(src) then
+                NotifyHandler(src, Lang("race_last_person"))
+            end
+            NotFinished[raceId] = nil
+        else
+            if UseDebug then print(citizenId, ' was the last racer. ^Race was Automated. No cancel.^0') end
+        end
+    elseif availableKey and AvailableRaces[availableKey] then
+        AvailableRaces[availableKey].RaceData = Races[raceId]
+    end
+
+    playersFinished = 0
+    for _, v in pairs(Races[raceId].Racers) do
+        if v.Finished then
+            playersFinished = playersFinished + 1
+        end
+    end
+    if racersLeft > 0 and playersFinished == racersLeft then
+        if UseDebug then print('Last racer to leave') end
+        CompleteRace(amountOfRacers, Races[raceId])
+    end
+
+    if triggerLeaveEvent and src and GetPlayerName(src) then
+        TriggerClientEvent('cw-racingapp:client:leaveRace', src)
+    end
+    if src then
+        leftRace(src)
+    end
+
+    for _, racer in pairs(Races[raceId].Racers) do
+        TriggerClientEvent('cw-racingapp:client:updateActiveRacers', racer.RacerSource, raceId, Races[raceId].Racers)
+    end
+    if triggerLeaveEvent and Races[raceId].Ranked and Races[raceId].Started and amountOfRacers > 1 and reason then
+        if Config.EloPunishments[reason] then
+            updateRacerElo(src, racerName, Config.EloPunishments[reason])
+        end
+    end
+    return true
+end
 
 RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
     if UseDebug then
@@ -972,94 +1097,21 @@ RegisterNetEvent('cw-racingapp:server:leaveRace', function(RaceData, reason)
         return
     end
 
-    local racerName = racerData.RacerName or RaceData.RacerName
-    local availableKey = GetOpenedRaceKey(raceId)
+    cleanupRaceRacer(raceId, citizenId, src, racerData.RacerName or RaceData.RacerName, reason, true)
+end)
 
-    if not Races[raceId].Automated and availableKey and AvailableRaces[availableKey] then
-        local creatorCitizenId = AvailableRaces[availableKey].SetupCitizenId
-        if not creatorCitizenId then
-            if UseDebug then print('No creator citizen ID found for race', raceId) end
-        else
-            local creator = getSrcOfPlayerByCitizenId(creatorCitizenId)
-            if creator then
-                NotifyHandler(creator, Lang("race_someone_left"))
-            end
-        end
+AddEventHandler('playerDropped', function()
+    local src = source
+    local raceId, citizenId, racerData = findRaceRacerBySource(src)
+    if not raceId or not citizenId or not racerData then
+        return
     end
 
-    local amountOfRacers = 0
-    local playersFinished = 0
-    for _, v in pairs(Races[raceId].Racers) do
-        if v.Finished then
-            playersFinished = playersFinished + 1
-        end
-        amountOfRacers = amountOfRacers + 1
-    end
-    if NotFinished[raceId] ~= nil then
-        NotFinished[raceId][#NotFinished[raceId] + 1] = {
-            TotalTime = "DNF",
-            BestLap = "DNF",
-            Holder = racerName
-        }
-    else
-        NotFinished[raceId] = {}
-        NotFinished[raceId][#NotFinished[raceId] + 1] = {
-            TotalTime = "DNF",
-            BestLap = "DNF",
-            Holder = racerName
-        }
+    if UseDebug then
+        print('Cleaning up dropped player from race', raceId, citizenId, racerData.RacerName)
     end
 
-    Races[raceId].Racers[citizenId] = nil
-    if Races[raceId].SetupCitizenId == citizenId then
-        assignNewOrganizer(raceId, src)
-    end
-
-    local racersLeft = 0
-    for _, _ in pairs(Races[raceId].Racers) do
-        racersLeft = racersLeft + 1
-    end
-
-    -- Check if last racer
-    if racersLeft == 0 then
-        -- Complete race if leaving last
-        if not Races[raceId].Automated then
-            if UseDebug then print(citizenId, ' was the last racer. ^3Cancelling race^0') end
-            resetTrack(raceId, 'last racer left')
-            if availableKey then
-                table.remove(AvailableRaces, availableKey)
-            end
-            NotifyHandler(src, Lang("race_last_person"))
-            NotFinished[raceId] = nil
-        else
-            if UseDebug then print(citizenId, ' was the last racer. ^Race was Automated. No cancel.^0') end
-        end
-    elseif availableKey and AvailableRaces[availableKey] then
-        AvailableRaces[availableKey].RaceData = Races[raceId]
-    end
-
-    playersFinished = 0
-    for _, v in pairs(Races[raceId].Racers) do
-        if v.Finished then
-            playersFinished = playersFinished + 1
-        end
-    end
-    if racersLeft > 0 and playersFinished == racersLeft then
-        if UseDebug then print('Last racer to leave') end
-        CompleteRace(amountOfRacers, Races[raceId])
-    end
-
-    TriggerClientEvent('cw-racingapp:client:leaveRace', src)
-    leftRace(src)
-
-    for _, racer in pairs(Races[raceId].Racers) do
-        TriggerClientEvent('cw-racingapp:client:updateActiveRacers', racer.RacerSource, raceId, Races[raceId].Racers)
-    end
-    if Races[raceId].Ranked and Races[raceId].Started and amountOfRacers > 1 and reason then
-        if Config.EloPunishments[reason] then
-            updateRacerElo(src, racerName, Config.EloPunishments[reason])
-        end
-    end
+    cleanupRaceRacer(raceId, citizenId, src, racerData.RacerName, 'disconnect', false)
 end)
 
 local function createTimeoutThread(raceId)
