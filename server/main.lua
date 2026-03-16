@@ -1961,11 +1961,34 @@ RegisterServerCallback('cw-racingapp:server:updateTrackMetadata', function(sourc
     return false
 end)
 
+local function srcHasUserAccess(src, access)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(src))
+    if not raceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return false
+    end
+    local auth = raceUser.auth
+
+    local hasAuth = Config.Permissions[auth][access]
+
+    if not hasAuth then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+    return true
+end
+
 RegisterNetEvent('cw-racingapp:server:removeRacerName', function(racerName)
+    if not srcHasUserAccess(source, 'controlAll') then return end
+
     if UseDebug then print('removing racer with name', racerName) end
     if UseDebug then print('removed by source', source, getCitizenId(source)) end
 
     local res = RADB.getRaceUserByName(racerName)
+    if not res then
+        NotifyHandler(source, 'Race Name Not Found', 'error')
+        return
+    end
 
     RADB.removeRaceUserByName(racerName)
     Wait(1000)
@@ -1999,6 +2022,8 @@ local function setRevokedRacerName(src, racerName, revoked)
 end
 
 RegisterNetEvent('cw-racingapp:server:setRevokedRacenameStatus', function(racername, revoked)
+    if not srcHasUserAccess(source, 'controlAll') then return end
+
     if UseDebug then print('revoking racename', racername, revoked) end
     setRevokedRacerName(source, racername, revoked)
 end)
@@ -2079,23 +2104,6 @@ RegisterServerCallback('cw-racingapp:server:transferCrypto', function(source, ra
     end
     return 'NOT_ENOUGH'
 end)
-
-local function srcHasUserAccess(src, access)
-    local raceUser = RADB.getActiveRacerName(getCitizenId(src))
-    if not raceUser then
-        NotifyHandler(src, Lang("error_no_user"), 'error')
-        return false
-    end
-    local auth = raceUser.auth
-
-    local hasAuth = Config.Permissions[auth][access]
-
-    if not hasAuth then
-        NotifyHandler(src, Lang("not_auth"), 'error')
-        return false
-    end
-    return true
-end
 
 RegisterServerCallback('cw-racingapp:server:toggleAutoHost', function(source)
     if not srcHasUserAccess(source, 'handleAutoHost') then return end
