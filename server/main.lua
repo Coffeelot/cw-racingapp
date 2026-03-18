@@ -1685,6 +1685,11 @@ RegisterNetEvent('cw-racingapp:server:deleteTrack', function(trackId)
 end)
 
 RegisterNetEvent('cw-racingapp:server:removeRecord', function(record)
+    if not record or not record.trackId or not canManageTrackSource(source, record.trackId) then
+        NotifyHandler(source, Lang("not_auth"), 'error')
+        return
+    end
+
     if UseDebug then print('Removing record', json.encode(record, { indent = true })) end
     RESDB.removeTrackRecord(record.id)
 end)
