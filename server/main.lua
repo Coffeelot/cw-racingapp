@@ -2043,6 +2043,62 @@ local function generateRacerId()
     return racerId
 end
 
+local function canSourceCreateRacingName(src, requestedType, targetSource)
+    if not Config.Permissions[requestedType] then
+        NotifyHandler(src, Lang("bad_input"), 'error')
+        return false
+    end
+
+    local srcCitizenId = getCitizenId(src)
+    if not srcCitizenId then
+        NotifyHandler(src, Lang("could_not_find_person"), 'error')
+        return false
+    end
+
+    local normalizedTargetSource = tonumber(targetSource)
+    local isSelfTarget = normalizedTargetSource == tonumber(src)
+    local activeRaceUser = RADB.getActiveRacerName(srcCitizenId)
+
+    if activeRaceUser then
+        local auth = activeRaceUser.auth
+        if Config.Permissions[auth] and Config.Permissions[auth].controlAll then
+            return true
+        end
+
+        if requestedType == 'racer' and Config.AllowRacerCreationForAnyone and isSelfTarget then
+            return true
+        end
+
+        if auth == 'master' and (requestedType == 'creator' or requestedType == 'racer') then
+            return true
+        end
+
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    if not isSelfTarget then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    if IsFirstUser then
+        if requestedType == 'god' then
+            return true
+        end
+
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    if Config.AllowAnyoneToCreateUserInApp and requestedType == Config.BasePermission then
+        return true
+    end
+
+    NotifyHandler(src, Lang("not_auth"), 'error')
+    return false
+end
+
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
     local racerId = generateRacerId()
     if UseDebug then
@@ -2203,6 +2259,11 @@ RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racer
             json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType })
         )
     end
+
+    if not canSourceCreateRacingName(source, type, playerId) then
+        return
+    end
+
     local citizenId = getCitizenId(tonumber(playerId))
     if citizenId then
         createRacingName(source, citizenId, racerName, type, purchaseType, playerId, creatorName)
