@@ -2010,6 +2010,17 @@ RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(sou
 end)
 
 RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, trackId, curated)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(source))
+    if not raceUser then
+        NotifyHandler(source, Lang("error_no_user"), 'error')
+        return false
+    end
+
+    if not (Config.Permissions[raceUser.auth] and Config.Permissions[raceUser.auth].curateTracks) then
+        NotifyHandler(source, Lang("not_auth"), 'error')
+        return false
+    end
+
     local res = RADB.setCurationForTrack(curated, trackId)
     local status = 'curated'
     if curated == 0 then status = 'NOT curated' end
