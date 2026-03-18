@@ -2090,6 +2090,24 @@ local function getRacersCreatedByUser(src)
     return RADB.getRaceUsersBelongingToCitizenId(citizenId)
 end
 
+local function sourceOwnsRacerName(src, racerName)
+    if type(racerName) ~= 'string' or racerName == '' then
+        return false
+    end
+
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return false
+    end
+
+    local raceUser = RADB.getRaceUserByName(racerName)
+    if not raceUser then
+        return false
+    end
+
+    return raceUser.citizenid == citizenId
+end
+
 RegisterServerCallback('cw-racingapp:server:getRacersCreatedByUser', function(source)
     if UseDebug then print('Fetching racers for source', source) end
     local result = getRacersCreatedByUser(source)
@@ -2191,6 +2209,11 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:updateRacerCrypto', function(racerName)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return
+    end
+
     local racingcrypto = RacingCrypto.getRacerCrypto(racerName)
     TriggerClientEvent('cw-racingapp:client:updateUserData', src, 'crypto', racingcrypto)
 end)
@@ -2213,6 +2236,10 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, racerName, cryptoAmount)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        return 'NOT_AUTH'
+    end
+
     local moneyToPay = math.floor((1.0 * cryptoAmount) / Config.Options.conversionRate)
     if UseDebug then
         print('Buying Crypto')
@@ -2228,6 +2255,10 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:sellCrypto', function(source, racerName, cryptoAmount)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        return 'NOT_AUTH'
+    end
+
     local money = (1.0 * cryptoAmount) / Config.Options.conversionRate
     local afterFee = math.floor(money - money * Config.Options.sellCharge)
     if UseDebug then
@@ -2245,6 +2276,10 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:transferCrypto', function(source, racerName, cryptoAmount, recipientName)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        return 'NOT_AUTH'
+    end
+
     local recipient = RADB.getRaceUserByName(recipientName)
     if UseDebug then print('Recipient data', json.encode(recipient, { indent = true })) end
     if not recipient then return 'USER_DOES_NOT_EXIST' end
