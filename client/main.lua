@@ -1762,7 +1762,7 @@ function HasAuth(tradeType, userType)
         return false
     else
         DebugLog('Requiement is false for', userType)
-        return true
+        return hasPermission(userType)
     end
 end
 

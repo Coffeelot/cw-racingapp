@@ -1685,6 +1685,11 @@ RegisterNetEvent('cw-racingapp:server:deleteTrack', function(trackId)
 end)
 
 RegisterNetEvent('cw-racingapp:server:removeRecord', function(record)
+    if not record or not record.trackId or not canManageTrackSource(source, record.trackId) then
+        NotifyHandler(source, Lang("not_auth"), 'error')
+        return
+    end
+
     if UseDebug then print('Removing record', json.encode(record, { indent = true })) end
     RESDB.removeTrackRecord(record.id)
 end)
@@ -1957,6 +1962,33 @@ local function addRacerName(citizenId, racerName, targetSource, auth, creatorCit
     end
 end
 
+local function canLookupPlayerRacerData(src, targetSource)
+    local normalizedTargetSource = tonumber(targetSource) or tonumber(src)
+    if normalizedTargetSource == tonumber(src) then
+        return true
+    end
+
+    local srcCitizenId = getCitizenId(src)
+    if not srcCitizenId then
+        NotifyHandler(src, Lang("could_not_find_person"), 'error')
+        return false
+    end
+
+    local raceUser = RADB.getActiveRacerName(srcCitizenId)
+    if not raceUser then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    local permissions = Config.Permissions[raceUser.auth]
+    if permissions and (permissions.control or permissions.controlAll) then
+        return true
+    end
+
+    NotifyHandler(src, Lang("not_auth"), 'error')
+    return false
+end
+
 RegisterServerCallback('cw-racingapp:server:getAmountOfTracks', function(source, citizenId)
     if Config.UseNameValidation then
         local tracks = RADB.getTracksByCitizenId(citizenId)
@@ -1967,12 +1999,21 @@ RegisterServerCallback('cw-racingapp:server:getAmountOfTracks', function(source,
 end)
 
 RegisterServerCallback('cw-racingapp:server:nameIsAvailable', function(source, racerName, serverId)
+    local playerSource = tonumber(serverId) or source
+    if not canLookupPlayerRacerData(source, playerSource) then
+        return false
+    end
+
     if UseDebug then
         print('checking availability for',
-            json.encode({ racerName = racerName, sererId = serverId }, { indent = true }))
+            json.encode({ racerName = racerName, sererId = playerSource }, { indent = true }))
     end
     if Config.UseNameValidation then
-        local citizenId = getCitizenId(serverId)
+        local citizenId = getCitizenId(playerSource)
+        if not citizenId then
+            return false
+        end
+
         if nameIsValid(racerName, citizenId) then
             return true
         else
@@ -1992,11 +2033,18 @@ local function getActiveRacerName(raceUsers)
 end
 
 RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(source, serverId)
-    local playerSource = serverId or source
+    local playerSource = tonumber(serverId) or source
+    if not canLookupPlayerRacerData(source, playerSource) then
+        return {}
+    end
 
     if UseDebug then print('Getting racer names for serverid', playerSource) end
 
     local citizenId = getCitizenId(playerSource)
+    if not citizenId then
+        return {}
+    end
+
     if UseDebug then print('Racer citizenid', citizenId) end
 
     local result = RADB.getRaceUsersBelongingToCitizenId(citizenId)
@@ -2010,6 +2058,17 @@ RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(sou
 end)
 
 RegisterServerCallback('cw-racingapp:server:curateTrack', function(source, trackId, curated)
+    local raceUser = RADB.getActiveRacerName(getCitizenId(source))
+    if not raceUser then
+        NotifyHandler(source, Lang("error_no_user"), 'error')
+        return false
+    end
+
+    if not (Config.Permissions[raceUser.auth] and Config.Permissions[raceUser.auth].curateTracks) then
+        NotifyHandler(source, Lang("not_auth"), 'error')
+        return false
+    end
+
     local res = RADB.setCurationForTrack(curated, trackId)
     local status = 'curated'
     if curated == 0 then status = 'NOT curated' end
@@ -2077,6 +2136,62 @@ local function resolveTrustedCreatePurchaseType(clientPurchaseType)
     return nil
 end
 
+local function canSourceCreateRacingName(src, requestedType, targetSource)
+    if not Config.Permissions[requestedType] then
+        NotifyHandler(src, Lang("bad_input"), 'error')
+        return false
+    end
+
+    local srcCitizenId = getCitizenId(src)
+    if not srcCitizenId then
+        NotifyHandler(src, Lang("could_not_find_person"), 'error')
+        return false
+    end
+
+    local normalizedTargetSource = tonumber(targetSource)
+    local isSelfTarget = normalizedTargetSource == tonumber(src)
+    local activeRaceUser = RADB.getActiveRacerName(srcCitizenId)
+
+    if activeRaceUser then
+        local auth = activeRaceUser.auth
+        if Config.Permissions[auth] and Config.Permissions[auth].controlAll then
+            return true
+        end
+
+        if requestedType == 'racer' and Config.AllowRacerCreationForAnyone and isSelfTarget then
+            return true
+        end
+
+        if auth == 'master' and (requestedType == 'creator' or requestedType == 'racer') then
+            return true
+        end
+
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    if not isSelfTarget then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    if IsFirstUser then
+        if requestedType == 'god' then
+            return true
+        end
+
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    if Config.AllowAnyoneToCreateUserInApp and requestedType == Config.BasePermission then
+        return true
+    end
+
+    NotifyHandler(src, Lang("not_auth"), 'error')
+    return false
+end
+
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
     local trustedPurchaseType = resolveTrustedCreatePurchaseType(purchaseType)
     if not trustedPurchaseType then
@@ -2128,6 +2243,24 @@ local function getRacersCreatedByUser(src)
     end
     if UseDebug then print('Fetching racers for a master') end
     return RADB.getRaceUsersBelongingToCitizenId(citizenId)
+end
+
+local function sourceOwnsRacerName(src, racerName)
+    if type(racerName) ~= 'string' or racerName == '' then
+        return false
+    end
+
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return false
+    end
+
+    local raceUser = RADB.getRaceUserByName(racerName)
+    if not raceUser then
+        return false
+    end
+
+    return raceUser.citizenid == citizenId
 end
 
 RegisterServerCallback('cw-racingapp:server:getRacersCreatedByUser', function(source)
@@ -2231,6 +2364,11 @@ end)
 
 RegisterNetEvent('cw-racingapp:server:updateRacerCrypto', function(racerName)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return
+    end
+
     local racingcrypto = RacingCrypto.getRacerCrypto(racerName)
     TriggerClientEvent('cw-racingapp:client:updateUserData', src, 'crypto', racingcrypto)
 end)
@@ -2243,6 +2381,11 @@ RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racer
             json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType })
         )
     end
+
+    if not canSourceCreateRacingName(source, type, playerId) then
+        return
+    end
+
     local citizenId = getCitizenId(tonumber(playerId))
     if citizenId then
         createRacingName(source, citizenId, racerName, type, purchaseType, playerId, creatorName)
@@ -2253,6 +2396,10 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:purchaseCrypto', function(source, racerName, cryptoAmount)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        return 'NOT_AUTH'
+    end
+
     local moneyToPay = math.floor((1.0 * cryptoAmount) / Config.Options.conversionRate)
     if UseDebug then
         print('Buying Crypto')
@@ -2268,6 +2415,10 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:sellCrypto', function(source, racerName, cryptoAmount)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        return 'NOT_AUTH'
+    end
+
     local money = (1.0 * cryptoAmount) / Config.Options.conversionRate
     local afterFee = math.floor(money - money * Config.Options.sellCharge)
     if UseDebug then
@@ -2285,6 +2436,10 @@ end)
 
 RegisterServerCallback('cw-racingapp:server:transferCrypto', function(source, racerName, cryptoAmount, recipientName)
     local src = source
+    if not sourceOwnsRacerName(src, racerName) then
+        return 'NOT_AUTH'
+    end
+
     local recipient = RADB.getRaceUserByName(recipientName)
     if UseDebug then print('Recipient data', json.encode(recipient, { indent = true })) end
     if not recipient then return 'USER_DOES_NOT_EXIST' end
