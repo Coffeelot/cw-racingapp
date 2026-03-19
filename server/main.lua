@@ -746,11 +746,22 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
 RegisterNetEvent('cw-racingapp:server:createTrack', function(raceName, racerName, racerid, checkpoints)
     local src = source
-    if UseDebug then print(src, racerName, 'is creating a track named', raceName) end
+    local citizenId = getCitizenId(src)
+    local activeRaceUser = citizenId and RADB.getActiveRacerName(citizenId)
+    local activeRacerName = activeRaceUser and activeRaceUser.racername
+    local activeRacerId = activeRaceUser and activeRaceUser.racerid
 
-    if IsPermissioned(racerName, 'create') then
+    if UseDebug then print(src, activeRacerName or racerName, 'is creating a track named', raceName) end
+
+    if not activeRaceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return
+    end
+
+    if IsPermissioned(activeRacerName, 'create') then
         if IsNameAvailable(raceName) then
-            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, raceName, racerName, racerid, nil, checkpoints)
+            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, raceName, activeRacerName, activeRacerId, nil,
+                checkpoints)
         else
             NotifyHandler(src, Lang("race_name_exists"), 'error')
         end
@@ -1634,6 +1645,7 @@ end
 RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
     local src = source
     local citizenId = getCitizenId(src)
+    local activeRaceUser = citizenId and RADB.getActiveRacerName(citizenId)
     local trackId
     if trackData.TrackId ~= nil then
         trackId = trackData.TrackId
@@ -1656,12 +1668,24 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
         RADB.setTrackCheckpoints(checkpoints, trackData.TrackId)
         Tracks[trackId].Checkpoints = checkpoints
     else
+        if not activeRaceUser then
+            NotifyHandler(src, Lang("error_no_user"), 'error')
+            return
+        end
+
+        if not IsPermissioned(activeRaceUser.racername, 'create') then
+            NotifyHandler(src, Lang("no_permission"), 'error')
+            return
+        end
+
+        trackData.RacerName = activeRaceUser.racername
+        trackData.RacerId = activeRaceUser.racerid
         Tracks[trackId] = {
             RaceName = trackData.RaceName,
             Checkpoints = checkpoints,
             Creator = citizenId,
-            CreatorName = trackData.RacerName,
-            RacerId = trackData.RacerId,
+            CreatorName = activeRaceUser.racername,
+            RacerId = activeRaceUser.racerid,
             TrackId = trackId,
             Started = false,
             Waiting = false,
