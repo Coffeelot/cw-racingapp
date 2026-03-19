@@ -25,6 +25,23 @@ local function changeRacerCrew(src,racerName, selectedCrew)
     RADB.setActiveRacerCrew(racerName, selectedCrew)
 end
 
+local function getSourceCrewIdentity(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil
+    end
+
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    if not raceUser or not raceUser.racername then
+        return nil
+    end
+
+    return {
+        citizenId = citizenId,
+        racerName = raceUser.racername,
+    }
+end
+
 -- SQL calling functions
 
 local function joinRacingCrew(memberName, citizenId, crewName)
@@ -292,16 +309,31 @@ RegisterServerCallback('cw-racingapp:server:sendInviteClosest',
     end)
 
 RegisterServerCallback('cw-racingapp:server:acceptInvite', function(source, racerName, invitedCitizenId)
-    if useDebug then print(invitedCitizenId, ' is joining a crew with racer name', racerName) end
-    return acceptInvite(racerName, invitedCitizenId)
+    local identity = getSourceCrewIdentity(source)
+    if not identity then
+        return false
+    end
+
+    if useDebug then print(identity.citizenId, ' is joining a crew with racer name', identity.racerName) end
+    return acceptInvite(identity.racerName, identity.citizenId)
 end)
 
 RegisterServerCallback('cw-racingapp:server:denyInvite', function(source, invitedCitizenId)
-    return denyInvite(invitedCitizenId)
+    local citizenId = getCitizenId(source)
+    if not citizenId then
+        return false
+    end
+
+    return denyInvite(citizenId)
 end)
 
 RegisterServerCallback('cw-racingapp:server:createCrew', function(source, founderName, founderCitizenId, crewName)
-    local canCreateCrew = canFounderCreateCrew(founderCitizenId)
+    local identity = getSourceCrewIdentity(source)
+    if not identity then
+        return false
+    end
+
+    local canCreateCrew = canFounderCreateCrew(identity.citizenId)
     local trimmedCrewName = string.gsub(crewName, '^%s*(.-)%s*$', '%1')
     if RacingCrews[trimmedCrewName] then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("name_taken"), 'error')
@@ -310,7 +342,7 @@ RegisterServerCallback('cw-racingapp:server:createCrew', function(source, founde
     if canCreateCrew then
         if useDebug then print('Player can create ') end
 
-        return createRacingCrew(founderName, founderCitizenId, trimmedCrewName)
+        return createRacingCrew(identity.racerName, identity.citizenId, trimmedCrewName)
     else
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("disband_crew_first"), 'error')
     end
@@ -318,10 +350,15 @@ RegisterServerCallback('cw-racingapp:server:createCrew', function(source, founde
 end)
 
 RegisterServerCallback('cw-racingapp:server:joinCrew', function(source, memberName, citizenId, crewName)
-    local canJoinCrew = isMemberInCrew(citizenId, crewName)
+    local identity = getSourceCrewIdentity(source)
+    if not identity then
+        return false
+    end
+
+    local canJoinCrew = isMemberInCrew(identity.citizenId, crewName)
 
     if canJoinCrew then
-        return joinRacingCrew(memberName, citizenId, crewName)
+        return joinRacingCrew(identity.racerName, identity.citizenId, crewName)
     else
         print("Error: Member cannot join the crew")
     end
@@ -329,23 +366,28 @@ RegisterServerCallback('cw-racingapp:server:joinCrew', function(source, memberNa
 end)
 
 RegisterServerCallback('cw-racingapp:server:leaveCrew', function(source, memberName, citizenId, crewName)
+    local identity = getSourceCrewIdentity(source)
+    if not identity then
+        return false
+    end
+
     if not RacingCrews[crewName] then
         if useDebug then print('The racing crew did not exist') end
-        changeRacerCrew(source,memberName, nil)
+        changeRacerCrew(source, identity.racerName, nil)
     end
-    local canLeaveCrew = isMemberInCrew(citizenId, crewName)
-    local isFounder = canFounderDisbandCrew(citizenId, crewName)
+    local canLeaveCrew = isMemberInCrew(identity.citizenId, crewName)
+    local isFounder = canFounderDisbandCrew(identity.citizenId, crewName)
 
     if isFounder then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("founder_can_not_leave"), 'error')
     end
     if canLeaveCrew then
-        changeRacerCrew(source,memberName, nil)
+        changeRacerCrew(source, identity.racerName, nil)
         Wait(500)
-        return leaveRacingCrew(citizenId, crewName)
+        return leaveRacingCrew(identity.citizenId, crewName)
     else
         if useDebug then print("Error: Member cannot leave the crew") end
-        changeRacerCrew(source,memberName, nil)
+        changeRacerCrew(source, identity.racerName, nil)
         return true
     end
 end)
