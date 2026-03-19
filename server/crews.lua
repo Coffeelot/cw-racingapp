@@ -25,6 +25,16 @@ local function changeRacerCrew(src,racerName, selectedCrew)
     RADB.setActiveRacerCrew(racerName, selectedCrew)
 end
 
+local function getSourceActiveRacerName(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil
+    end
+
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    return raceUser and raceUser.racername or nil
+end
+
 -- SQL calling functions
 
 local function joinRacingCrew(memberName, citizenId, crewName)
@@ -247,7 +257,12 @@ end
 
 -- Events
 RegisterServerEvent('cw-racingapp:server:changeCrew', function(racerName, crewName)
-    changeRacerCrew(source, racerName, crewName)
+    local activeRacerName = getSourceActiveRacerName(source)
+    if not activeRacerName then
+        return
+    end
+
+    changeRacerCrew(source, activeRacerName, crewName)
 end)
 
 -- Callbacks
