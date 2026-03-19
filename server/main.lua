@@ -2102,6 +2102,40 @@ local function generateRacerId()
     return racerId
 end
 
+local function purchaseConfigMatches(clientPurchaseType, trustedPurchaseType)
+    if type(clientPurchaseType) ~= 'table' or type(trustedPurchaseType) ~= 'table' then
+        return false
+    end
+
+    if clientPurchaseType.moneyType ~= trustedPurchaseType.moneyType then
+        return false
+    end
+
+    if type(clientPurchaseType.racingUserCosts) ~= 'table' or type(trustedPurchaseType.racingUserCosts) ~= 'table' then
+        return false
+    end
+
+    for authName, _ in pairs(Config.Permissions) do
+        if clientPurchaseType.racingUserCosts[authName] ~= trustedPurchaseType.racingUserCosts[authName] then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function resolveTrustedCreatePurchaseType(clientPurchaseType)
+    if Config.Trader.active and purchaseConfigMatches(clientPurchaseType, Config.Trader) then
+        return Config.Trader
+    end
+
+    if purchaseConfigMatches(clientPurchaseType, Config.Laptop) then
+        return Config.Laptop
+    end
+
+    return nil
+end
+
 local function canSourceCreateRacingName(src, requestedType, targetSource)
     if not Config.Permissions[requestedType] then
         NotifyHandler(src, Lang("bad_input"), 'error')
@@ -2159,6 +2193,12 @@ local function canSourceCreateRacingName(src, requestedType, targetSource)
 end
 
 local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
+    local trustedPurchaseType = resolveTrustedCreatePurchaseType(purchaseType)
+    if not trustedPurchaseType then
+        NotifyHandler(source, Lang("bad_input"), 'error')
+        return false
+    end
+
     local racerId = generateRacerId()
     if UseDebug then
         print('Creating a racing user. Input:')
@@ -2166,18 +2206,18 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
         print('racerName', racerName)
         print('type', type)
         print('racerId', racerId)
-        print('purchaseType', json.encode(purchaseType, { indent = true }))
+        print('purchaseType', json.encode(trustedPurchaseType, { indent = true }))
     end
 
     local cost = 1000
-    if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
-        cost = purchaseType.racingUserCosts[type]
+    if trustedPurchaseType.racingUserCosts and trustedPurchaseType.racingUserCosts[type] then
+        cost = trustedPurchaseType.racingUserCosts[type]
     else
         NotifyHandler(source,
             'The user type you entered does not exist, defaulting to $1000', 'error')
     end
 
-    if not handleRemoveMoney(source, purchaseType.moneyType, cost, creatorName) then return false end
+    if not handleRemoveMoney(source, trustedPurchaseType.moneyType, cost, creatorName) then return false end
 
 
     local creatorCitizenId = 'unknown'
