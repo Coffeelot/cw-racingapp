@@ -1962,6 +1962,33 @@ local function addRacerName(citizenId, racerName, targetSource, auth, creatorCit
     end
 end
 
+local function canLookupPlayerRacerData(src, targetSource)
+    local normalizedTargetSource = tonumber(targetSource) or tonumber(src)
+    if normalizedTargetSource == tonumber(src) then
+        return true
+    end
+
+    local srcCitizenId = getCitizenId(src)
+    if not srcCitizenId then
+        NotifyHandler(src, Lang("could_not_find_person"), 'error')
+        return false
+    end
+
+    local raceUser = RADB.getActiveRacerName(srcCitizenId)
+    if not raceUser then
+        NotifyHandler(src, Lang("not_auth"), 'error')
+        return false
+    end
+
+    local permissions = Config.Permissions[raceUser.auth]
+    if permissions and (permissions.control or permissions.controlAll) then
+        return true
+    end
+
+    NotifyHandler(src, Lang("not_auth"), 'error')
+    return false
+end
+
 RegisterServerCallback('cw-racingapp:server:getAmountOfTracks', function(source, citizenId)
     if Config.UseNameValidation then
         local tracks = RADB.getTracksByCitizenId(citizenId)
@@ -1972,12 +1999,21 @@ RegisterServerCallback('cw-racingapp:server:getAmountOfTracks', function(source,
 end)
 
 RegisterServerCallback('cw-racingapp:server:nameIsAvailable', function(source, racerName, serverId)
+    local playerSource = tonumber(serverId) or source
+    if not canLookupPlayerRacerData(source, playerSource) then
+        return false
+    end
+
     if UseDebug then
         print('checking availability for',
-            json.encode({ racerName = racerName, sererId = serverId }, { indent = true }))
+            json.encode({ racerName = racerName, sererId = playerSource }, { indent = true }))
     end
     if Config.UseNameValidation then
-        local citizenId = getCitizenId(serverId)
+        local citizenId = getCitizenId(playerSource)
+        if not citizenId then
+            return false
+        end
+
         if nameIsValid(racerName, citizenId) then
             return true
         else
@@ -1997,11 +2033,18 @@ local function getActiveRacerName(raceUsers)
 end
 
 RegisterServerCallback('cw-racingapp:server:getRacerNamesByPlayer', function(source, serverId)
-    local playerSource = serverId or source
+    local playerSource = tonumber(serverId) or source
+    if not canLookupPlayerRacerData(source, playerSource) then
+        return {}
+    end
 
     if UseDebug then print('Getting racer names for serverid', playerSource) end
 
     local citizenId = getCitizenId(playerSource)
+    if not citizenId then
+        return {}
+    end
+
     if UseDebug then print('Racer citizenid', citizenId) end
 
     local result = RADB.getRaceUsersBelongingToCitizenId(citizenId)
