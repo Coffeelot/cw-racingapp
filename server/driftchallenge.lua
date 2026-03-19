@@ -29,18 +29,64 @@ local function handleTimeout(challengeId)
     end)
 end
 
+local function getChallengeParticipant(challengeId, src)
+    local challenge = ActiveChallenges[challengeId]
+    if not challenge then
+        return nil, nil
+    end
+
+    for index, racer in ipairs(challenge.racers) do
+        if racer.source == src then
+            return index, racer
+        end
+    end
+
+    return nil, nil
+end
+
+local function isChallengeHost(challengeId, src)
+    local challenge = ActiveChallenges[challengeId]
+    return challenge and challenge.racers[1] and challenge.racers[1].source == src
+end
+
+local function getSourceChallengeIdentity(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil
+    end
+
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    if not raceUser or not raceUser.racername then
+        return nil
+    end
+
+    return {
+        source = src,
+        name = raceUser.racername,
+    }
+end
+
 RegisterNetEvent('cw-racingapp:drift-challenge:server:leaveChallenge', function(challengeId)
+    if not getChallengeParticipant(challengeId, source) then
+        return
+    end
+
     endRace(challengeId)
 end)
 
 RegisterNetEvent('cw-racingapp:drift-challenge:server:setup', function(racerName)
     local src = source
+    local identity = getSourceChallengeIdentity(src)
+    if not identity then
+        return
+    end
+
     local challengeId = generateChallengeId()
     if UseDebug then print('Generated drift challenge ID:', challengeId) end
 
     ActiveChallenges[challengeId] = {
         challengeId = challengeId,
-        racers = { { source = src, name = racerName } },
+        racers = { identity },
         started = false,
         finished = false,
         scores = {}
@@ -63,29 +109,36 @@ end)
 
 RegisterNetEvent('cw-racingapp:drift-challenge:server:invitePlayer', function(targetSrc, challengeId, racerName)
     local src = source
+    local challenge = ActiveChallenges[challengeId]
+    if not challenge or not isChallengeHost(challengeId, src) or challenge.started then
+        return
+    end
+
+    local inviter = challenge.racers[1]
     if UseDebug then print('Player', src, 'is inviting', targetSrc, 'to drift challenge', challengeId) end
-    if not ActiveChallenges[challengeId] then return end
-    if ActiveChallenges[challengeId].started then return end
 
     if UseDebug then
         print('Sending drift challenge invite to player', targetSrc, 'for challenge', challengeId)
     end
-    TriggerClientEvent('cw-racingapp:drift-challenge:client:receiveInvite', targetSrc, challengeId, racerName)
+    TriggerClientEvent('cw-racingapp:drift-challenge:client:receiveInvite', targetSrc, challengeId, inviter and inviter.name or '')
 end)
 
 RegisterNetEvent('cw-racingapp:drift-challenge:server:join', function(challengeId, racerName)
     local src = source
+    local identity = getSourceChallengeIdentity(src)
+    if not identity then
+        return
+    end
+
     if not ActiveChallenges[challengeId] then print('No active challenge with ID:', challengeId) return end
     if ActiveChallenges[challengeId].started then return end
+    if getChallengeParticipant(challengeId, src) then return end
 
     for _, racer in pairs(ActiveChallenges[challengeId].racers) do
         TriggerClientEvent('cw-racingapp:drift-challenge:client:notifyNewJoiner', 
-            racer.source, racerName)
+            racer.source, identity.name)
     end
-    table.insert(ActiveChallenges[challengeId].racers, { 
-        source = src,
-        name = racerName
-    })
+    table.insert(ActiveChallenges[challengeId].racers, identity)
 
 
 end)
@@ -94,6 +147,7 @@ RegisterNetEvent('cw-racingapp:drift-challenge:server:updateScore', function(cha
     local src = source
     if not ActiveChallenges[challengeId] then return end
     if not ActiveChallenges[challengeId].started then return end
+    if not getChallengeParticipant(challengeId, src) then return end
     
     ActiveChallenges[challengeId].scores[src] = score
 
@@ -105,6 +159,9 @@ RegisterNetEvent('cw-racingapp:drift-challenge:server:updateScore', function(cha
 end)
 
 RegisterNetEvent('cw-racingapp:drift-challenge:server:started', function(challengeId)
+    if not isChallengeHost(challengeId, source) then
+        return
+    end
     if not ActiveChallenges[challengeId] then return end
     ActiveChallenges[challengeId].started = true
 
