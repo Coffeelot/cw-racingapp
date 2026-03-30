@@ -235,6 +235,13 @@ end
 
 -- Exported helper to force immediate finalize (useful for admin/testing)
 RegisterNetEvent('cw-racingapp:server:forceFinalizeDriftRace', function(raceId)
+    local citizenId = getCitizenId(source)
+    local raceUser = citizenId and RADB.getActiveRacerName(citizenId) or nil
+    local permissions = raceUser and Config.Permissions[raceUser.auth] or nil
+    if not (permissions and permissions.adminMenu) then
+        return
+    end
+
     if not raceId or not Races[raceId] then return end
     local raceData = {
         RaceId = raceId,

@@ -746,11 +746,22 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
 RegisterNetEvent('cw-racingapp:server:createTrack', function(raceName, racerName, racerid, checkpoints)
     local src = source
-    if UseDebug then print(src, racerName, 'is creating a track named', raceName) end
+    local citizenId = getCitizenId(src)
+    local activeRaceUser = citizenId and RADB.getActiveRacerName(citizenId)
+    local activeRacerName = activeRaceUser and activeRaceUser.racername
+    local activeRacerId = activeRaceUser and activeRaceUser.racerid
 
-    if IsPermissioned(racerName, 'create') then
+    if UseDebug then print(src, activeRacerName or racerName, 'is creating a track named', raceName) end
+
+    if not activeRaceUser then
+        NotifyHandler(src, Lang("error_no_user"), 'error')
+        return
+    end
+
+    if IsPermissioned(activeRacerName, 'create') then
         if IsNameAvailable(raceName) then
-            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, raceName, racerName, racerid, nil, checkpoints)
+            TriggerClientEvent('cw-racingapp:client:startRaceEditor', src, raceName, activeRacerName, activeRacerId, nil,
+                checkpoints)
         else
             NotifyHandler(src, Lang("race_name_exists"), 'error')
         end
@@ -780,15 +791,22 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local raceId = RaceData.RaceId
     local trackId = RaceData.TrackId
     local availableKey = GetOpenedRaceKey(RaceData.RaceId)
-    local racerName = RaceData.RacerName
-    local racerCrew = RaceData.RacerCrew
-    local racerId = RaceData.RacerId
 
     local citizenId = getCitizenId(src)
     if not citizenId then
         error("Citizen ID not found for source: " .. tostring(src))
         return
     end
+
+    local activeRaceUser = RADB.getActiveRacerName(citizenId)
+    if not activeRaceUser or not activeRaceUser.racername then
+        NotifyHandler(src, Lang("error_lacking_user"), 'error')
+        return
+    end
+
+    local racerName = activeRaceUser.racername
+    local racerCrew = activeRaceUser.crew or ''
+    local racerId = activeRaceUser.racerid
     local currentRaceId = GetCurrentRace(citizenId)
 
     if UseDebug then
@@ -1182,10 +1200,19 @@ local function joinRaceByRaceId(raceId, src)
 end
 exports('joinRaceByRaceId', joinRaceByRaceId)
 
+local function getActiveRaceUserForSource(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil
+    end
+
+    return RADB.getActiveRacerName(citizenId)
+end
+
 local function setupRace(setupData, src)
     local trackId = setupData.trackId
     local laps = setupData.laps
-    local racerName = setupData.hostName or Config.AutoMatedRacesHostName
+    local racerName = Config.AutoMatedRacesHostName
     local maxClass = setupData.maxClass
     local ghostingEnabled = setupData.ghostingEnabled
     local ghostingTime = setupData.ghostingTime
@@ -1264,6 +1291,14 @@ local function setupRace(setupData, src)
             print('No Source was included. Defaulting to Automated')
         end
         automated = true
+    else
+        local activeRaceUser = getActiveRaceUserForSource(src)
+        if not activeRaceUser or not activeRaceUser.racername then
+            NotifyHandler(src, Lang("error_lacking_user"), 'error')
+            return false
+        end
+
+        racerName = activeRaceUser.racername
     end
 
     if Tracks[trackId] ~= nil then
@@ -1366,6 +1401,12 @@ exports('setupRace', setupRace)
 
 RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupData)
     local src = source
+    local activeRaceUser = getActiveRaceUserForSource(src)
+    if not activeRaceUser or not activeRaceUser.racername then
+        NotifyHandler(src, Lang("error_lacking_user"), 'error')
+        return false
+    end
+
     if not Tracks[setupData.trackId] then
         NotifyHandler(src, Lang("no_track_found") .. tostring(setupData.trackId), 'error')
     end
@@ -1380,9 +1421,10 @@ RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupDa
         end
         return false
     end
-    if (setupData.buyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, setupData.buyIn, setupData.hostName)) then
+    if (setupData.buyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, setupData.buyIn, activeRaceUser.racername)) then
         NotifyHandler(src, Lang("not_enough_money"))
     else
+        setupData.hostName = activeRaceUser.racername
         setupData.automated = false
         return setupRace(setupData, src)
     end
@@ -1634,6 +1676,7 @@ end
 RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
     local src = source
     local citizenId = getCitizenId(src)
+    local activeRaceUser = citizenId and RADB.getActiveRacerName(citizenId)
     local trackId
     if trackData.TrackId ~= nil then
         trackId = trackData.TrackId
@@ -1656,12 +1699,24 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
         RADB.setTrackCheckpoints(checkpoints, trackData.TrackId)
         Tracks[trackId].Checkpoints = checkpoints
     else
+        if not activeRaceUser then
+            NotifyHandler(src, Lang("error_no_user"), 'error')
+            return
+        end
+
+        if not IsPermissioned(activeRaceUser.racername, 'create') then
+            NotifyHandler(src, Lang("no_permission"), 'error')
+            return
+        end
+
+        trackData.RacerName = activeRaceUser.racername
+        trackData.RacerId = activeRaceUser.racerid
         Tracks[trackId] = {
             RaceName = trackData.RaceName,
             Checkpoints = checkpoints,
             Creator = citizenId,
-            CreatorName = trackData.RacerName,
-            RacerId = trackData.RacerId,
+            CreatorName = activeRaceUser.racername,
+            RacerId = activeRaceUser.racerid,
             TrackId = trackId,
             Started = false,
             Waiting = false,
@@ -2102,6 +2157,40 @@ local function generateRacerId()
     return racerId
 end
 
+local function purchaseConfigMatches(clientPurchaseType, trustedPurchaseType)
+    if type(clientPurchaseType) ~= 'table' or type(trustedPurchaseType) ~= 'table' then
+        return false
+    end
+
+    if clientPurchaseType.moneyType ~= trustedPurchaseType.moneyType then
+        return false
+    end
+
+    if type(clientPurchaseType.racingUserCosts) ~= 'table' or type(trustedPurchaseType.racingUserCosts) ~= 'table' then
+        return false
+    end
+
+    for authName, _ in pairs(Config.Permissions) do
+        if clientPurchaseType.racingUserCosts[authName] ~= trustedPurchaseType.racingUserCosts[authName] then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function resolveTrustedCreatePurchaseType(clientPurchaseType)
+    if Config.Trader.active and purchaseConfigMatches(clientPurchaseType, Config.Trader) then
+        return Config.Trader
+    end
+
+    if purchaseConfigMatches(clientPurchaseType, Config.Laptop) then
+        return Config.Laptop
+    end
+
+    return nil
+end
+
 local function canSourceCreateRacingName(src, requestedType, targetSource)
     if not Config.Permissions[requestedType] then
         NotifyHandler(src, Lang("bad_input"), 'error')
@@ -2158,7 +2247,13 @@ local function canSourceCreateRacingName(src, requestedType, targetSource)
     return false
 end
 
-local function createRacingName(src, citizenid, racerName, type, purchaseType, targetSource, creatorName)
+local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
+    local trustedPurchaseType = resolveTrustedCreatePurchaseType(purchaseType)
+    if not trustedPurchaseType then
+        NotifyHandler(source, Lang("bad_input"), 'error')
+        return false
+    end
+
     local racerId = generateRacerId()
     if UseDebug then
         print('Creating a racing user. Input:')
@@ -2166,22 +2261,22 @@ local function createRacingName(src, citizenid, racerName, type, purchaseType, t
         print('racerName', racerName)
         print('type', type)
         print('racerId', racerId)
-        print('purchaseType', json.encode(purchaseType, { indent = true }))
+        print('purchaseType', json.encode(trustedPurchaseType, { indent = true }))
     end
 
     local cost = 1000
-    if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
-        cost = purchaseType.racingUserCosts[type]
+    if trustedPurchaseType.racingUserCosts and trustedPurchaseType.racingUserCosts[type] then
+        cost = trustedPurchaseType.racingUserCosts[type]
     else
-        NotifyHandler(src,
+        NotifyHandler(source,
             'The user type you entered does not exist, defaulting to $1000', 'error')
     end
 
-    if not handleRemoveMoney(src, purchaseType.moneyType, cost, creatorName) then return false end
+    if not handleRemoveMoney(source, trustedPurchaseType.moneyType, cost, creatorName) then return false end
 
 
     local creatorCitizenId = 'unknown'
-    if getCitizenId(src) then creatorCitizenId = getCitizenId(src) end
+    if getCitizenId(source) then creatorCitizenId = getCitizenId(source) end
     addRacerName(citizenid, racerName, targetSource, type, creatorCitizenId, racerId)
     return true
 end
