@@ -138,7 +138,7 @@ local function handleAddMoney(src, moneyType, amount, racerName, textKey)
 end
 
 local function handleRemoveMoney(src, moneyType, amount, racerName)
-    if UseDebug then print('Attempting to charge', racerName, amount, moneyType) end
+    if UseDebug then print('Attempting to charge', json.encode({ src = src, moneyType = moneyType, amount = amount, racerName = racerName }, {indent=true})) end
     if moneyType == 'racingcrypto' then
         if RacingCrypto.removeCrypto(racerName, amount) then
             NotifyHandler(src,
@@ -2158,7 +2158,7 @@ local function canSourceCreateRacingName(src, requestedType, targetSource)
     return false
 end
 
-local function createRacingName(source, citizenid, racerName, type, purchaseType, targetSource, creatorName)
+local function createRacingName(src, citizenid, racerName, type, purchaseType, targetSource, creatorName)
     local racerId = generateRacerId()
     if UseDebug then
         print('Creating a racing user. Input:')
@@ -2173,15 +2173,15 @@ local function createRacingName(source, citizenid, racerName, type, purchaseType
     if purchaseType and purchaseType.racingUserCosts and purchaseType.racingUserCosts[type] then
         cost = purchaseType.racingUserCosts[type]
     else
-        NotifyHandler(source,
+        NotifyHandler(src,
             'The user type you entered does not exist, defaulting to $1000', 'error')
     end
 
-    if not handleRemoveMoney(source, purchaseType.moneyType, cost, creatorName) then return false end
+    if not handleRemoveMoney(src, purchaseType.moneyType, cost, creatorName) then return false end
 
 
     local creatorCitizenId = 'unknown'
-    if getCitizenId(source) then creatorCitizenId = getCitizenId(source) end
+    if getCitizenId(src) then creatorCitizenId = getCitizenId(src) end
     addRacerName(citizenid, racerName, targetSource, type, creatorCitizenId, racerId)
     return true
 end
@@ -2335,22 +2335,23 @@ end)
 
 
 RegisterNetEvent('cw-racingapp:server:createRacerName', function(playerId, racerName, type, purchaseType, creatorName)
+    local src = source
     if UseDebug then
         print(
             'Creating a user',
-            json.encode({ playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType })
+            json.encode({ src = src, playerId = playerId, racerName = racerName, type = type, purchaseType = purchaseType })
         )
     end
 
-    if not canSourceCreateRacingName(source, type, playerId) then
+    if not canSourceCreateRacingName(src, type, playerId) then
         return
     end
 
     local citizenId = getCitizenId(tonumber(playerId))
     if citizenId then
-        createRacingName(source, citizenId, racerName, type, purchaseType, playerId, creatorName)
+        createRacingName(src, citizenId, racerName, type, purchaseType, playerId, creatorName)
     else
-        NotifyHandler(source, Lang("could_not_find_person"), "error")
+        NotifyHandler(src, Lang("could_not_find_person"), "error")
     end
 end)
 
