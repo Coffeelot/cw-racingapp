@@ -33,6 +33,10 @@ local function getFinish(startCoords)
 end
 
 local function resetRace(raceId)
+    if not activeRaces[raceId] then
+        return
+    end
+
     for _, racer in pairs(activeRaces[raceId].racers) do
         if GetPlayerName(racer.source) then
             TriggerClientEvent('cw-racingapp:h2h:client:leaveRace', racer.source, raceId)
@@ -40,6 +44,44 @@ local function resetRace(raceId)
     end
     activeRaces[raceId] = nil
 end
+
+local function getRaceParticipant(raceId, src)
+    local raceData = activeRaces[raceId]
+    if not raceData then
+        return nil, nil
+    end
+
+    for index, racer in ipairs(raceData.racers) do
+        if racer.source == src then
+            return index, racer
+        end
+    end
+
+    return nil, nil
+end
+
+local function isRaceOrganizer(raceId, src)
+    local raceData = activeRaces[raceId]
+    return raceData and raceData.racers[1] and raceData.racers[1].source == src
+end
+
+local function getSourceRacerIdentity(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil
+    end
+
+    local raceUser = RADB.getActiveRacerName(citizenId)
+    local racerName = raceUser and raceUser.racername or ''
+
+    return {
+        citizenId = citizenId,
+        racerName = racerName,
+        source = src,
+    }
+end
+
+local startRaceInternal
 
 local function handleTimeout(raceId)
     SetTimeout(Config.RaceResetTimer, function()
@@ -51,20 +93,29 @@ local function handleTimeout(raceId)
 end
 
 RegisterNetEvent('cw-racingapp:h2h:server:leaveRace', function(raceId)
+    if not getRaceParticipant(raceId, source) then
+        return
+    end
+
     resetRace(raceId)
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(citizenId, racerName, startCoords, amount, waypoint)
+    local identity = getSourceRacerIdentity(source)
+    if not identity then
+        return
+    end
+
     local raceId = generateRaceId()
     if useDebug then
-        print('setting up', citizenId, racerName, startCoords, amount)
+        print('setting up', identity.citizenId, identity.racerName, startCoords, amount)
     end
 
     local finishCoords = getFinish(startCoords)
     if finishCoords then
         activeRaces[raceId] = {
             raceId = raceId,
-            racers = { { citizenId = citizenId, racerName = racerName, source = source } },
+            racers = { identity },
             startCoords = startCoords,
             finishCoords = finishCoords,
             winner = nil,
@@ -74,7 +125,7 @@ RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(citizenId, racerN
         }
         if useDebug then print('Race Data:', json.encode(activeRaces[raceId], {indent=true})) end
         if ConfigH2H.SoloRace then
-            TriggerEvent('cw-racingapp:h2h:server:startRace', raceId) -- Used for debugging
+            startRaceInternal(raceId) -- Used for debugging
         else
             TriggerClientEvent('cw-racingapp:h2h:client:checkDistance', source, raceId, amount)
         end
@@ -85,11 +136,17 @@ RegisterNetEvent('cw-racingapp:h2h:server:setupRace', function(citizenId, racerN
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:server:invitePlayer', function(sourceToInvite, raceId, amount, racerName)
-    if useDebug then print('[H2H]', racerName, ' is inviting', sourceToInvite,'to', raceId) end
-    TriggerClientEvent('cw-racingapp:h2h:client:invite', sourceToInvite, raceId, amount, racerName)
+    local raceData = activeRaces[raceId]
+    if not raceData or not isRaceOrganizer(raceId, source) or raceData.started then
+        return
+    end
+
+    local inviter = raceData.racers[1]
+    if useDebug then print('[H2H]', inviter and inviter.racerName or '', ' is inviting', sourceToInvite,'to', raceId) end
+    TriggerClientEvent('cw-racingapp:h2h:client:invite', sourceToInvite, raceId, raceData.amount, inviter and inviter.racerName or '')
 end)
 
-RegisterNetEvent('cw-racingapp:h2h:server:startRace', function(raceId)
+startRaceInternal = function(raceId)
     if useDebug then
         print('starting race')
     end
@@ -115,15 +172,32 @@ RegisterNetEvent('cw-racingapp:h2h:server:startRace', function(raceId)
             TriggerClientEvent('cw-racingapp:h2h:client:raceCountdown', playerSource, activeRaces[raceId])
         end
     end
+end
+
+RegisterNetEvent('cw-racingapp:h2h:server:startRace', function(raceId)
+    if not isRaceOrganizer(raceId, source) then
+        return
+    end
+
+    startRaceInternal(raceId)
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:server:raceStarted', function(raceId)
+    if not getRaceParticipant(raceId, source) then
+        return
+    end
+
     if activeRaces[raceId] then
         activeRaces[raceId].started = true
     end
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(citizenId, racerName, raceId)
+    local identity = getSourceRacerIdentity(source)
+    if not identity then
+        return
+    end
+
     if not activeRaces[raceId] then
         TriggerClientEvent('cw-racingapp:client:notify', source, Lang("error.race_does_not_exist"), "error")
         return
@@ -141,21 +215,35 @@ RegisterNetEvent('cw-racingapp:h2h:server:joinRace', function(citizenId, racerNa
         end
     end
 
-    activeRaces[raceId].racers[#activeRaces[raceId].racers+1] = { citizenId = citizenId, source = source, racerName = racerName }
+    if #activeRaces[raceId].racers >= 2 then
+        TriggerClientEvent('cw-racingapp:client:notify', source, Lang("error.race_already_started"), "error")
+        return
+    end
+
+    if getRaceParticipant(raceId, source) then
+        return
+    end
+
+    activeRaces[raceId].racers[#activeRaces[raceId].racers+1] = identity
     if #activeRaces[raceId].racers > 1 then
-        TriggerEvent('cw-racingapp:h2h:server:startRace', raceId)
+        startRaceInternal(raceId)
     end
 end)
 
 RegisterNetEvent('cw-racingapp:h2h:server:finishRacer', function(raceId, citizenId, finishTime)
-    if useDebug then
-        print('finishing', citizenId, 'in race', raceId)
+    local _, racer = getRaceParticipant(raceId, source)
+    if not racer then
+        return
     end
-    if not activeRaces[raceId] then
+
+    if useDebug then
+        print('finishing', racer.citizenId, 'in race', raceId)
+    end
+    if not activeRaces[raceId] or not activeRaces[raceId].started then
         return
     end
     if activeRaces[raceId].winner == nil then
-        activeRaces[raceId].winner = citizenId
+        activeRaces[raceId].winner = racer.citizenId
         TriggerClientEvent('cw-racingapp:h2h:client:notifyFinish', source, Lang('info.winner'))
         if activeRaces[raceId].amount > 0 then
             addMoney(source, ConfigH2H.MoneyType, activeRaces[raceId].amount * 2)
