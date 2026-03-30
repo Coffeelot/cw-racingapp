@@ -1200,10 +1200,19 @@ local function joinRaceByRaceId(raceId, src)
 end
 exports('joinRaceByRaceId', joinRaceByRaceId)
 
+local function getActiveRaceUserForSource(src)
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil
+    end
+
+    return RADB.getActiveRacerName(citizenId)
+end
+
 local function setupRace(setupData, src)
     local trackId = setupData.trackId
     local laps = setupData.laps
-    local racerName = setupData.hostName or Config.AutoMatedRacesHostName
+    local racerName = Config.AutoMatedRacesHostName
     local maxClass = setupData.maxClass
     local ghostingEnabled = setupData.ghostingEnabled
     local ghostingTime = setupData.ghostingTime
@@ -1282,6 +1291,14 @@ local function setupRace(setupData, src)
             print('No Source was included. Defaulting to Automated')
         end
         automated = true
+    else
+        local activeRaceUser = getActiveRaceUserForSource(src)
+        if not activeRaceUser or not activeRaceUser.racername then
+            NotifyHandler(src, Lang("error_lacking_user"), 'error')
+            return false
+        end
+
+        racerName = activeRaceUser.racername
     end
 
     if Tracks[trackId] ~= nil then
@@ -1384,6 +1401,12 @@ exports('setupRace', setupRace)
 
 RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupData)
     local src = source
+    local activeRaceUser = getActiveRaceUserForSource(src)
+    if not activeRaceUser or not activeRaceUser.racername then
+        NotifyHandler(src, Lang("error_lacking_user"), 'error')
+        return false
+    end
+
     if not Tracks[setupData.trackId] then
         NotifyHandler(src, Lang("no_track_found") .. tostring(setupData.trackId), 'error')
     end
@@ -1398,9 +1421,10 @@ RegisterServerCallback('cw-racingapp:server:setupRace', function(source, setupDa
         end
         return false
     end
-    if (setupData.buyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, setupData.buyIn, setupData.hostName)) then
+    if (setupData.buyIn > 0 and not hasEnoughMoney(src, Config.Payments.racing, setupData.buyIn, activeRaceUser.racername)) then
         NotifyHandler(src, Lang("not_enough_money"))
     else
+        setupData.hostName = activeRaceUser.racername
         setupData.automated = false
         return setupRace(setupData, src)
     end
