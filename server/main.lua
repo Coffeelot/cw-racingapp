@@ -791,15 +791,22 @@ RegisterNetEvent('cw-racingapp:server:joinRace', function(RaceData)
     local raceId = RaceData.RaceId
     local trackId = RaceData.TrackId
     local availableKey = GetOpenedRaceKey(RaceData.RaceId)
-    local racerName = RaceData.RacerName
-    local racerCrew = RaceData.RacerCrew
-    local racerId = RaceData.RacerId
 
     local citizenId = getCitizenId(src)
     if not citizenId then
         error("Citizen ID not found for source: " .. tostring(src))
         return
     end
+
+    local activeRaceUser = RADB.getActiveRacerName(citizenId)
+    if not activeRaceUser or not activeRaceUser.racername then
+        NotifyHandler(src, Lang("error_lacking_user"), 'error')
+        return
+    end
+
+    local racerName = activeRaceUser.racername
+    local racerCrew = activeRaceUser.crew or ''
+    local racerId = activeRaceUser.racerid
     local currentRaceId = GetCurrentRace(citizenId)
 
     if UseDebug then
