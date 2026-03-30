@@ -1,6 +1,12 @@
 local trackRaceStatsCache = {}
 local topRacerWinnersCache = {}
 
+local function dbLog(msg)
+    if Config.Debug and Config.DatabaseDebug then
+        print('[RESDB] ' .. tostring(msg))
+    end
+end
+
 
 local function getCacheKey(datespanDays)
     return tostring(datespanDays)
@@ -21,8 +27,10 @@ end
 
 -- Fetch track race stats for all tracks within the given datespan (in days)
 local function getTrackRaceStats(datespanDays)
+    dbLog('getTrackRaceStats | datespanDays: ' .. tostring(datespanDays))
     local cacheKey = getCacheKey(datespanDays)
     if trackRaceStatsCache[cacheKey] then
+        dbLog('getTrackRaceStats | returning cached result')
         return trackRaceStatsCache[cacheKey]
     end
 
@@ -132,12 +140,13 @@ local function getTrackRaceStats(datespanDays)
     end
 
     trackRaceStatsCache[cacheKey] = result
-    if UseDebug then print('Returning fresh result', json.encode(result, {indent=true})) end
+    dbLog('getTrackRaceStats | returning fresh result, count: ' .. tostring(#result))
     return result
 end
 
 -- Overwrite addRaceEntry to invalidate cache
 local function addRaceEntry(raceData)
+    dbLog('addRaceEntry | raceId: ' .. tostring(raceData.raceId) .. ', trackId: ' .. tostring(raceData.trackId))
     invalidateTopRacerWinnersCache()
     invalidateTrackRaceStatsCache()
     local query = [[
@@ -170,6 +179,7 @@ end
 
 -- Overwrite cleanupOldRaces to invalidate cache
 local function cleanupOldRaces(daysOld)
+    dbLog('cleanupOldRaces (with cache invalidation) | daysOld: ' .. tostring(daysOld))
     invalidateTrackRaceStatsCache()
     invalidateTopRacerWinnersCache()
     local query = "DELETE FROM racing_races WHERE timestamp < DATE_SUB(NOW(), INTERVAL ? DAY)"
@@ -178,6 +188,7 @@ end
 
 -- Function to add/update track time (returns "PB" if new personal best)
 local function addTrackTime(timeData)
+    dbLog('addTrackTime | trackId: ' .. tostring(timeData.trackId) .. ', racerName: ' .. tostring(timeData.racerName) .. ', time: ' .. tostring(timeData.time))
     -- First check if there's an existing record
     local existingQuery = [[
         SELECT time, pbHistory FROM track_times 
@@ -243,18 +254,21 @@ end
 
 -- Function to get race results by raceId
 local function getRaceResults(raceId)
+    dbLog('getRaceResults | raceId: ' .. tostring(raceId))
     local query = "SELECT * FROM racing_races WHERE raceId = ?"
     return MySQL.Sync.fetchAll(query, { StrictSanitize(raceId) })
 end
 
 -- Function to get all racing_races for a specific track
 local function getRacesByTrackId(trackId)
+    dbLog('getRacesByTrackId | trackId: ' .. tostring(trackId))
     local query = "SELECT * FROM racing_races WHERE trackId = ? ORDER BY timestamp DESC"
     return MySQL.Sync.fetchAll(query, { StrictSanitize(trackId) })
 end
 
 -- Function to get best times for a track (top 10)
 local function getBestTimesForTrack(trackId, raceType, carClass, reversed)
+    dbLog('getBestTimesForTrack | trackId: ' .. tostring(trackId) .. ', raceType: ' .. tostring(raceType) .. ', carClass: ' .. tostring(carClass))
     local query = [[
         SELECT * FROM track_times 
         WHERE trackId = ? AND raceType = ? AND carClass = ? AND reversed = ?
@@ -274,6 +288,7 @@ end
 
 -- Function to get all best times for a track (all classes/types)
 local function getAllBestTimesForTrack(trackId)
+    dbLog('getAllBestTimesForTrack | trackId: ' .. tostring(trackId))
     local query = [[
         SELECT * FROM track_times 
         WHERE trackId = ?
@@ -289,6 +304,7 @@ end
 
 -- Function to get best personal time for a racer by trackId
 local function getBestPersonalTime(racerName, trackId, carClass, raceType, reversed)
+    dbLog('getBestPersonalTime | racerName: ' .. tostring(racerName) .. ', trackId: ' .. tostring(trackId))
     local query = [[
         SELECT * FROM track_times 
         WHERE racerName = ? AND trackId = ? AND carClass = ? AND raceType = ? AND reversed = ?
@@ -309,6 +325,7 @@ end
 
 -- Function to get all personal times for a racer
 local function getAllPersonalTimes(racerName)
+    dbLog('getAllPersonalTimes | racerName: ' .. tostring(racerName))
     local query = [[
         SELECT * FROM track_times 
         WHERE racerName = ?
@@ -320,12 +337,14 @@ end
 
 -- Function to get recent racing_races (last 50)
 local function getRecentRaces(limit)
+    dbLog('getRecentRaces | limit: ' .. tostring(limit or 50))
     local query = "SELECT * FROM racing_races ORDER BY timestamp DESC LIMIT ?"
     return MySQL.Sync.fetchAll(query, { limit or 50 })
 end
 
 -- Function to get race statistics for a track
 local function getTrackStats(trackId)
+    dbLog('getTrackStats | trackId: ' .. tostring(trackId))
     local query = [[
         SELECT 
             COUNT(*) as totalRaces,
@@ -340,13 +359,16 @@ local function getTrackStats(trackId)
 end
 
 -- Function to delete old racing_races (older than specified days)
+-- NOTE: This re-declares cleanupOldRaces without cache invalidation; it shadows the version above (with invalidation) for the RESDB export
 local function cleanupOldRaces(daysOld)
+    dbLog('cleanupOldRaces | daysOld: ' .. tostring(daysOld))
     local query = "DELETE FROM racing_races WHERE timestamp < DATE_SUB(NOW(), INTERVAL ? DAY)"
     return MySQL.Sync.execute(query, { daysOld })
 end
 
 -- Function to get leaderboard for a specific track/class combination
 local function getTrackLeaderboard(trackId, carClass, raceType, reversed, limit)
+    dbLog('getTrackLeaderboard | trackId: ' .. tostring(trackId) .. ', carClass: ' .. tostring(carClass) .. ', raceType: ' .. tostring(raceType))
     local query = [[
         SELECT 
             racerName,
@@ -373,18 +395,21 @@ end
 
 -- Function to clear all track records for a specific track
 local function clearTrackRecords(trackId)
+    dbLog('clearTrackRecords | trackId: ' .. tostring(trackId))
     local query = "DELETE FROM track_times WHERE trackId = ?"
     return MySQL.Sync.execute(query, { StrictSanitize(trackId) })
 end
 
 -- Function to remove a specific track record by database ID
 local function removeTrackRecord(recordId)
+    dbLog('removeTrackRecord | recordId: ' .. tostring(recordId))
     local query = "DELETE FROM track_times WHERE id = ?"
     return MySQL.Sync.execute(query, { recordId })
 end
 
 -- Alternative function using MySQL JSON functions (MySQL 5.7+)
 local function getRacerHistory(racerName)
+    dbLog('getRacerHistory | racerName: ' .. tostring(racerName))
     local query = [[
         SELECT * FROM racing_races 
         WHERE JSON_SEARCH(results, 'one', ?, NULL, '$') IS NOT NULL
@@ -397,11 +422,9 @@ end
 local function getTopRacerWinnersAndWinLoss(racers, days)
     local amountOfRacers = racers or Config.Dashboard.defaultTopRacers
     local cacheKey = getTopRacerWinnersCacheKey(days)
-    if UseDebug then
-        print('Checking top racer winners cache for key:', cacheKey)
-        print('Cache', json.encode(topRacerWinnersCache[cacheKey] or {}, { indent = true }))
-    end
+    dbLog('getTopRacerWinnersAndWinLoss | days: ' .. tostring(days) .. ', amountOfRacers: ' .. tostring(amountOfRacers) .. ', cacheKey: ' .. cacheKey)
     if topRacerWinnersCache[cacheKey] then
+        dbLog('getTopRacerWinnersAndWinLoss | returning cached result')
         return { topRacerWins = topRacerWinnersCache[cacheKey].topRacerWins, topRacerWinLoss = topRacerWinnersCache[cacheKey].topRacerWinLoss }
     end
 
@@ -464,7 +487,7 @@ local function getTopRacerWinnersAndWinLoss(racers, days)
         local wins = winCounts[name] or 0
         local nonWins = totalRaces - wins
         local ratio = totalRaces > 0 and (wins / totalRaces) or (wins > 0 and math.huge or 0)
-        if UseDebug then print("Racer:", name, "Wins:", wins, "Losses:", nonWins, "Ratio:", ratio , "totalRaces:", totalRaces) end
+        dbLog('getTopRacerWinnersAndWinLoss | racer: ' .. tostring(name) .. ', wins: ' .. tostring(wins) .. ', losses: ' .. tostring(nonWins) .. ', ratio: ' .. tostring(ratio))
         table.insert(winLossList, { racerName = name, wins = wins, losses = nonWins, winLoss = ratio })
     end
     table.sort(winLossList, function(a, b) return a.winLoss > b.winLoss end)

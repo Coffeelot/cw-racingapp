@@ -1,5 +1,6 @@
 Config = Config or {}
 Config.Debug = GetConvarInt('racingapp_debug', 0) == 1
+Config.DatabaseDebug = false -- Set to true (alongside Config.Debug) to log all database access
 Config.EnableCommands = false
 
 Config.Locale = TranslationsEN -- This must match one of the variables in your locales/x.lua
