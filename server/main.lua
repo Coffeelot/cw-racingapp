@@ -375,6 +375,24 @@ local function getRankingForRacer(racerName)
     return RADB.getRaceUserRankingByName(racerName) or 0
 end
 
+local function getMaxTracksForCitizenId(citizenId)
+    if Config.CustomAmountsOfTracks and Config.CustomAmountsOfTracks[citizenId] then
+        return Config.CustomAmountsOfTracks[citizenId]
+    end
+
+    return Config.MaxCharacterTracks
+end
+
+local function isTrackLimitReached(citizenId)
+    if not Config.LimitTracks or not Config.UseNameValidation or not citizenId then
+        return false, 0, 0
+    end
+
+    local tracks = RADB.getTracksByCitizenId(citizenId)
+    local maxTracks = getMaxTracksForCitizenId(citizenId)
+    return #tracks >= maxTracks, #tracks, maxTracks
+end
+
 local function updateRacerElo(source, racerName, eloChange)
     local currentRank = getRankingForRacer(racerName)
     RADB.updateRacerElo(racerName, eloChange)
@@ -755,6 +773,12 @@ RegisterNetEvent('cw-racingapp:server:createTrack', function(raceName, racerName
 
     if not activeRaceUser then
         NotifyHandler(src, Lang("error_no_user"), 'error')
+        return
+    end
+
+    local limitReached, _, maxTracks = isTrackLimitReached(citizenId)
+    if limitReached then
+        NotifyHandler(src, Lang("max_tracks") .. maxTracks, 'error')
         return
     end
 
@@ -1704,6 +1728,12 @@ RegisterNetEvent('cw-racingapp:server:saveTrack', function(trackData)
             return
         end
 
+        local limitReached, _, maxTracks = isTrackLimitReached(citizenId)
+        if limitReached then
+            NotifyHandler(src, Lang("max_tracks") .. maxTracks, 'error')
+            return
+        end
+
         if not IsPermissioned(activeRaceUser.racername, 'create') then
             NotifyHandler(src, Lang("no_permission"), 'error')
             return
@@ -2046,7 +2076,12 @@ end
 
 RegisterServerCallback('cw-racingapp:server:getAmountOfTracks', function(source, citizenId)
     if Config.UseNameValidation then
-        local tracks = RADB.getTracksByCitizenId(citizenId)
+        local sourceCitizenId = getCitizenId(source)
+        if not sourceCitizenId then
+            return 0
+        end
+
+        local tracks = RADB.getTracksByCitizenId(sourceCitizenId)
         return #tracks
     else
         return 0
