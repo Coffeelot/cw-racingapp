@@ -1760,7 +1760,8 @@ RegisterServerCallback('cw-racingapp:server:getRaceResults', function(source, am
     local limit = amount or 10
     local result = RESDB.getRecentRaces(limit)
     for i, track in ipairs(result) do
-        result[i].raceName = Tracks[track.trackId].RaceName
+        local existingTrack = Tracks[track.trackId]
+        result[i].raceName = existingTrack and existingTrack.RaceName or (track.raceName or ('Track #' .. tostring(track.trackId)))
     end
 
     for i, race in ipairs(CompletedRacesOneRacer) do
