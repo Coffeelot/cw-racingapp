@@ -558,17 +558,38 @@ function CompleteRace(amountOfRacers, raceData)
     Races[raceData.RaceId].MaxClass = nil
 end
 
+local isRaceOrganizerSource
+local getRaceRacerEntry
+local raceResultAlreadyRecorded
+
 RegisterNetEvent('cw-racingapp:server:finishPlayer',
     function(raceData, totalTime, totalLaps, bestLap, carClass, vehicleModel, ranking, racingCrew, driftScore)
         local src = source
+        if type(raceData) ~= 'table' or not raceData.RaceId then
+            return
+        end
+
         local raceId = raceData.RaceId
-        local availableKey = GetOpenedRaceKey(raceData.RaceId)
-        local racerName = raceData.RacerName
+        local _, racerData = getRaceRacerEntry(raceId, src)
+        if not racerData then
+            NotifyHandler(src, Lang("youre_not_in_the_race"), 'error')
+            TriggerClientEvent('cw-racingapp:client:leaveRace', src)
+            leftRace(src)
+            return
+        end
+
+        local availableKey = GetOpenedRaceKey(raceId)
+        local racerName = racerData.RacerName
         local playersFinished = 0
         local amountOfRacers = 0
-        local reversed = Races[raceData.RaceId].Reversed
+        local reversed = Races[raceId].Reversed
 
-        local isDrift = Races[raceData.RaceId].Drift or false
+        local isDrift = Races[raceId].Drift or false
+
+        if raceResultAlreadyRecorded(raceId, racerData.RacerId, racerName) then
+            if UseDebug then print('Ignoring duplicate finish submission for', racerName, 'in race', raceId) end
+            return
+        end
 
         if UseDebug then
             print('^3=== Finishing Racer: ' .. racerName .. ' ===^0')
@@ -595,10 +616,10 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
             CarClass = carClass,
             VehicleModel = vehicleModel,
             RacerName = racerName,
-            RacerId = raceData.RacerId,
-            Ranking = ranking,
+            RacerId = racerData.RacerId,
+            Ranking = getRankingForRacer(racerName),
             RacerSource = src,
-            RacingCrew = racingCrew
+            RacingCrew = racerData.RacerCrew
         }
         if UseDebug then
             print('Recording race result:', json.encode(raceResult, { indent = true }))
@@ -607,7 +628,7 @@ RegisterNetEvent('cw-racingapp:server:finishPlayer',
 
         if isDrift then
             if UseDebug then print('Drift score:', driftScore) end
-            FinishDriftRacer(src, raceData, driftScore, carClass, vehicleModel, racingCrew, totalTime)
+            FinishDriftRacer(src, raceData, driftScore, carClass, vehicleModel, racerData.RacerCrew, totalTime)
         end
 
         local amountOfRacersThatLeft = 0
@@ -1488,6 +1509,15 @@ RegisterNetEvent('cw-racingapp:server:updateRaceState', function(raceId, started
         if UseDebug then print('Could not update race state, race not found', raceId) end
         return
     end
+
+    if not isRaceOrganizerSource(source, raceId) then
+        if source and source > 0 then
+            NotifyHandler(source, Lang("not_auth"), 'error')
+        end
+        if UseDebug then print('Blocked unauthorized race state update for', raceId, 'from', source) end
+        return
+    end
+
     Races[raceId].Waiting = waiting
     Races[raceId].Started = started
 end)
@@ -1542,7 +1572,7 @@ local function updateTimer(raceId)
     Timers[raceId] = GetGameTimer()
 end
 
-local function isRaceOrganizerSource(src, raceId)
+isRaceOrganizerSource = function(src, raceId)
     if not raceId or not Races[raceId] then
         return false
     end
@@ -1564,16 +1594,48 @@ local function isRaceOrganizerSource(src, raceId)
     return Races[raceId].SetupCitizenId == citizenId
 end
 
+getRaceRacerEntry = function(raceId, src)
+    if not raceId or not Races[raceId] or not Races[raceId].Racers then
+        return nil, nil
+    end
+
+    local citizenId = getCitizenId(src)
+    if not citizenId then
+        return nil, nil
+    end
+
+    return citizenId, Races[raceId].Racers[citizenId]
+end
+
+raceResultAlreadyRecorded = function(raceId, racerId, racerName)
+    local raceResults = RaceResults[raceId]
+    if not raceResults or not raceResults.Result then
+        return false
+    end
+
+    for _, result in ipairs(raceResults.Result) do
+        if racerId and result.RacerId == racerId then
+            return true
+        end
+
+        if racerName and result.RacerName == racerName then
+            return true
+        end
+    end
+
+    return false
+end
+
 RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpoint, lap, finished, raceTime)
     local src = source
-    local citizenId = getCitizenId(src)
-    if Races[raceId].Racers[citizenId] then
-        Races[raceId].Racers[citizenId].Checkpoint = checkpoint
-        Races[raceId].Racers[citizenId].Lap = lap
-        Races[raceId].Racers[citizenId].Finished = finished
-        Races[raceId].Racers[citizenId].RaceTime = raceTime
+    local citizenId, racerData = getRaceRacerEntry(raceId, src)
+    if racerData then
+        racerData.Checkpoint = checkpoint
+        racerData.Lap = lap
+        racerData.Finished = finished
+        racerData.RaceTime = raceTime
 
-        Races[raceId].Racers[citizenId].CheckpointTimes[#Races[raceId].Racers[citizenId].CheckpointTimes + 1] = {
+        racerData.CheckpointTimes[#racerData.CheckpointTimes + 1] = {
             lap =
                 lap,
             checkpoint = checkpoint,
@@ -1583,7 +1645,7 @@ RegisterNetEvent('cw-racingapp:server:updateRacerData', function(raceId, checkpo
         for _, racer in pairs(Races[raceId].Racers) do
             if GetPlayerName(racer.RacerSource) then
                 TriggerClientEvent('cw-racingapp:client:updateRaceRacerData', racer.RacerSource, raceId, citizenId,
-                    Races[raceId].Racers[citizenId])
+                    racerData)
             else
                 if UseDebug then
                     print('^1Could not find player with source^0', racer.RacerSource)
