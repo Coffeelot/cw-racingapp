@@ -1487,6 +1487,22 @@ local function generateAutomatedRace()
 end
 
 RegisterNetEvent('cw-racingapp:server:newAutoHost', function()
+    local src = source
+    if src and src > 0 then
+        local citizenId = getCitizenId(src)
+        local raceUser = citizenId and RADB.getActiveRacerName(citizenId)
+
+        if not raceUser then
+            NotifyHandler(src, Lang("error_no_user"), 'error')
+            return
+        end
+
+        if not (Config.Permissions[raceUser.auth] and Config.Permissions[raceUser.auth].handleAutoHost) then
+            NotifyHandler(src, Lang("not_auth"), 'error')
+            return
+        end
+    end
+
     generateAutomatedRace()
 end)
 
