@@ -89,7 +89,7 @@ end
 
 local function getActiveRacerName(citizenId)
     dbLog('getActiveRacerName | citizenId: ' .. tostring(citizenId))
-    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { StrictSanitize(citizenId) })[1]
+    return MySQL.Sync.fetchAll('SELECT * FROM racer_names WHERE citizenid = ?', { citizenId })[1]
 end
 
 local function getActiveRacerCrew(racerName)
