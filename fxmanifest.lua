@@ -19,6 +19,7 @@ shared_scripts {
     'shared/head2head.lua',
     'shared/bounties.lua',
     'shared/autoHost.lua',
+    'shared/itemPayouts.lua',
     '@qbx_core/modules/playerdata.lua', -- remove this if you don't use qbox
 }
 
